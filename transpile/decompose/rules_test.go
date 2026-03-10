@@ -84,10 +84,9 @@ func circuitUnitary3q(ops []ir.Operation) []complex128 {
 // q0 and q1 are the qubit indices (0, 1, or 2) the gate acts on.
 func embed2qIn3q(mat []complex128, q0, q1 int) []complex128 {
 	dim := 8
-	result := Eye(dim)
 
 	// Build the full matrix by iterating over all 3-qubit basis states.
-	result = make([]complex128, dim*dim)
+	result := make([]complex128, dim*dim)
 	for inBits := range dim {
 		for outBits := range dim {
 			// Extract the bits for q0 and q1 from inBits and outBits.

@@ -15,15 +15,6 @@ func DecomposeByRule(g gate.Gate, qubits []int, basisGates []string) []ir.Operat
 		basis[b] = true
 	}
 
-	name := g.Name()
-	// Strip dagger suffix for matching.
-	isInverse := false
-	if len(name) > 0 && name[len(name)-1] == '\xe2' { // "†" is multi-byte
-		isInverse = true
-	}
-	// Use the base name directly for known fixed gates.
-	_ = isInverse
-
 	if basis["CX"] || basis["CNOT"] {
 		return decomposeToCX(g, qubits, basis)
 	}

@@ -222,24 +222,39 @@ func TestSWAP(t *testing.T) {
 func TestExpectationValue(t *testing.T) {
 	// |0> state: <Z> = +1
 	sim := New(1)
-	c, _ := builder.New("z0", 1).Build()
-	sim.Evolve(c)
+	c, err := builder.New("z0", 1).Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := sim.Evolve(c); err != nil {
+		t.Fatal(err)
+	}
 	ev := sim.ExpectationValue([]int{0})
 	if math.Abs(ev-1.0) > eps {
 		t.Errorf("<Z>|0> = %f, want 1.0", ev)
 	}
 
 	// |1> state: <Z> = -1
-	c, _ = builder.New("z1", 1).X(0).Build()
-	sim.Evolve(c)
+	c, err = builder.New("z1", 1).X(0).Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := sim.Evolve(c); err != nil {
+		t.Fatal(err)
+	}
 	ev = sim.ExpectationValue([]int{0})
 	if math.Abs(ev-(-1.0)) > eps {
 		t.Errorf("<Z>|1> = %f, want -1.0", ev)
 	}
 
 	// |+> state: <Z> = 0
-	c, _ = builder.New("z+", 1).H(0).Build()
-	sim.Evolve(c)
+	c, err = builder.New("z+", 1).H(0).Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := sim.Evolve(c); err != nil {
+		t.Fatal(err)
+	}
 	ev = sim.ExpectationValue([]int{0})
 	if math.Abs(ev) > eps {
 		t.Errorf("<Z>|+> = %f, want 0.0", ev)

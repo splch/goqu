@@ -169,6 +169,14 @@ func (m *Manager) SubmitBatch(ctx context.Context, backends []string, req *backe
 		wg.Add(1)
 		go func(n string) {
 			defer wg.Done()
+			// Acquire semaphore slot.
+			select {
+			case m.sem <- struct{}{}:
+				defer func() { <-m.sem }()
+			case <-ctx.Done():
+				ch <- ResultOrError{Backend: n, Err: ctx.Err()}
+				return
+			}
 			result, err := m.Submit(ctx, n, req)
 			ch <- ResultOrError{
 				Result:  result,

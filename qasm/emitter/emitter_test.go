@@ -1,6 +1,8 @@
 package emitter
 
 import (
+	"math"
+	"strings"
 	"testing"
 
 	"github.com/splch/qgo/circuit/builder"
@@ -36,7 +38,7 @@ func TestEmitBell(t *testing.T) {
 		"cx q[0], q[1];",
 	}
 	for _, e := range expects {
-		if !contains(s, e) {
+		if !strings.Contains(s,e) {
 			t.Errorf("output missing %q\nFull output:\n%s", e, s)
 		}
 	}
@@ -45,8 +47,8 @@ func TestEmitBell(t *testing.T) {
 func TestEmitParameterized(t *testing.T) {
 	c, err := builder.New("param", 1).
 		WithClbits(1).
-		RZ(3.14159265358979/4, 0).
-		Phase(3.14159265358979/2, 0).
+		RZ(math.Pi/4, 0).
+		Phase(math.Pi/2, 0).
 		Build()
 	if err != nil {
 		t.Fatal(err)
@@ -57,10 +59,10 @@ func TestEmitParameterized(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if !contains(s, "rz(") {
+	if !strings.Contains(s,"rz(") {
 		t.Errorf("output missing rz gate\nFull output:\n%s", s)
 	}
-	if !contains(s, "p(") {
+	if !strings.Contains(s,"p(") {
 		t.Errorf("output missing phase gate\nFull output:\n%s", s)
 	}
 }
@@ -87,7 +89,7 @@ c[1] = measure q[1];
 		t.Fatal(err)
 	}
 
-	if !contains(s, "if (c == 1) x") {
+	if !strings.Contains(s,"if (c == 1) x") {
 		t.Errorf("output missing conditional\nFull output:\n%s", s)
 	}
 }
@@ -172,15 +174,3 @@ func TestRoundTripParameterized(t *testing.T) {
 	}
 }
 
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || len(s) > 0 && containsStr(s, substr))
-}
-
-func containsStr(s, sub string) bool {
-	for i := 0; i <= len(s)-len(sub); i++ {
-		if s[i:i+len(sub)] == sub {
-			return true
-		}
-	}
-	return false
-}

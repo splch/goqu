@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/splch/qgo/backend"
@@ -215,9 +216,9 @@ func deviceTarget(device string) target.Target {
 	switch {
 	case device == "simulator":
 		return target.Simulator
-	case len(device) >= 8 && device[:8] == "qpu.aria":
+	case strings.HasPrefix(device, "qpu.aria"):
 		return target.IonQAria
-	case len(device) >= 9 && device[:9] == "qpu.forte":
+	case strings.HasPrefix(device, "qpu.forte"):
 		return target.IonQForte
 	default:
 		return target.Simulator

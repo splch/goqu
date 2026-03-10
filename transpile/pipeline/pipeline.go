@@ -3,7 +3,6 @@ package pipeline
 
 import (
 	"context"
-	"time"
 
 	"github.com/splch/qgo/circuit/ir"
 	"github.com/splch/qgo/observe"
@@ -121,9 +120,7 @@ func runPasses(ctx context.Context, c *ir.Circuit, t target.Target, passes []nam
 			ctx, passDone = hooks.WrapPass(ctx, np.name, passIn)
 		}
 
-		start := time.Now()
 		out, err := np.fn(result, t)
-		_ = time.Since(start)
 
 		if passDone != nil {
 			passOut := observe.CircuitInfo{}

@@ -36,8 +36,21 @@ func New(name string, numQubits, numClbits int, ops []Operation, metadata map[st
 func (c *Circuit) Name() string              { return c.name }
 func (c *Circuit) NumQubits() int             { return c.numQubits }
 func (c *Circuit) NumClbits() int             { return c.numClbits }
-func (c *Circuit) Ops() []Operation           { return c.ops }
-func (c *Circuit) Metadata() map[string]string { return c.metadata }
+func (c *Circuit) Ops() []Operation {
+	out := make([]Operation, len(c.ops))
+	copy(out, c.ops)
+	return out
+}
+func (c *Circuit) Metadata() map[string]string {
+	if c.metadata == nil {
+		return nil
+	}
+	out := make(map[string]string, len(c.metadata))
+	for k, v := range c.metadata {
+		out[k] = v
+	}
+	return out
+}
 
 // Operation is a single step in a circuit.
 type Operation struct {

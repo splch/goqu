@@ -6,8 +6,6 @@ import (
 	"math/cmplx"
 )
 
-const defaultTol = 1e-12
-
 // MatMul multiplies two n×n matrices stored as flat row-major slices.
 func MatMul(a, b []complex128, n int) []complex128 {
 	c := make([]complex128, n*n)

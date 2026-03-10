@@ -45,6 +45,7 @@ type emitter struct {
 	c   *ir.Circuit
 	w   io.Writer
 	cfg *config
+	err error
 }
 
 func (e *emitter) emit() error {
@@ -70,7 +71,7 @@ func (e *emitter) emit() error {
 			return err
 		}
 	}
-	return nil
+	return e.err
 }
 
 func (e *emitter) emitOp(op ir.Operation) error {
@@ -122,7 +123,10 @@ func (e *emitter) emitOp(op ir.Operation) error {
 }
 
 func (e *emitter) writef(format string, args ...any) {
-	fmt.Fprintf(e.w, format, args...)
+	if e.err != nil {
+		return
+	}
+	_, e.err = fmt.Fprintf(e.w, format, args...)
 }
 
 func qasmGateName(name string) string {
@@ -190,20 +194,11 @@ func qasmGateName(name string) string {
 func formatParam(v float64) string {
 	// Try to express as a multiple of pi for readability.
 	ratio := v / math.Pi
-	if ratio == 1 {
+	if math.Abs(ratio-1) < 1e-10 {
 		return "pi"
 	}
-	if ratio == -1 {
+	if math.Abs(ratio+1) < 1e-10 {
 		return "-pi"
-	}
-	if ratio == 0.5 {
-		return "pi/2"
-	}
-	if ratio == 0.25 {
-		return "pi/4"
-	}
-	if ratio == 0.125 {
-		return "pi/8"
 	}
 	// Check if ratio is a simple fraction of pi.
 	for denom := 2; denom <= 16; denom++ {

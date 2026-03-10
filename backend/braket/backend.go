@@ -235,10 +235,12 @@ func (b *Backend) Result(ctx context.Context, jobID string) (*backend.Result, er
 	} else {
 		// Try to extract from results JSON.
 		var raw struct {
-			Shots int `json:"taskMetadata.shots"`
+			TaskMetadata struct {
+				Shots int `json:"shots"`
+			} `json:"taskMetadata"`
 		}
-		json.Unmarshal(data, &raw) //nolint: best effort
-		shots = raw.Shots
+		json.Unmarshal(data, &raw) // best effort
+		shots = raw.TaskMetadata.Shots
 	}
 
 	return parseResults(data, shots)

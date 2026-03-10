@@ -3,7 +3,6 @@ package decompose
 import (
 	"math"
 	"math/cmplx"
-	"sort"
 
 	"github.com/splch/qgo/circuit/gate"
 	"github.com/splch/qgo/circuit/ir"
@@ -219,11 +218,10 @@ func kakGeneral(m []complex128, q0, q1 int) []ir.Operation {
 func kronError(m []complex128) float64 {
 	a, b := factorKronecker(m)
 	prod := Tensor(a, 2, b, 2)
-	_, ok := GlobalPhase(prod, m, 1.0)
+	ph, ok := GlobalPhase(prod, m, 1.0)
 	if !ok {
 		return 10.0
 	}
-	ph, _ := GlobalPhase(prod, m, 1.0)
 	factor := cmplx.Exp(complex(0, ph))
 	e := 0.0
 	for i := range m {
@@ -585,35 +583,6 @@ func jacobi4(m []float64) ([]float64, [4]float64) {
 		}
 	}
 	return v, eigvals
-}
-
-// canonicalizeWeyl maps (x,y,z) into the Weyl chamber: π/4 >= cx >= cy >= |cz| >= 0.
-func canonicalizeWeyl(x, y, z float64) (cx, cy, cz float64) {
-	cx = math.Mod(x, math.Pi/2)
-	cy = math.Mod(y, math.Pi/2)
-	cz = math.Mod(z, math.Pi/2)
-	if cx < 0 {
-		cx += math.Pi / 2
-	}
-	if cy < 0 {
-		cy += math.Pi / 2
-	}
-	if cz < 0 {
-		cz += math.Pi / 2
-	}
-	if cx > math.Pi/4 {
-		cx = math.Pi/2 - cx
-	}
-	if cy > math.Pi/4 {
-		cy = math.Pi/2 - cy
-	}
-	if cz > math.Pi/4 {
-		cz = math.Pi/2 - cz
-	}
-	vals := []float64{math.Abs(cx), math.Abs(cy), math.Abs(cz)}
-	sort.Float64s(vals)
-	cx, cy, cz = vals[2], vals[1], vals[0]
-	return
 }
 
 // Magic basis change matrix Q and its adjoint.

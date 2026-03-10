@@ -68,7 +68,6 @@ type gatedef struct {
 	params []string // parameter names
 	qubits []string // qubit parameter names
 	body   []token.Token
-	gate   gate.Gate // for standard gates with known matrices
 }
 
 func (p *parser) cur() token.Token {
@@ -515,10 +514,11 @@ func (p *parser) parseIf() error {
 
 	// Optional index.
 	if p.peek() == token.LBRACKET {
-		p.advance()
-		p.advance() // skip index value
-		_, err = p.expect(token.RBRACKET)
-		if err != nil {
+		p.advance() // consume [
+		if _, err = p.parseExpr(); err != nil {
+			return err
+		}
+		if _, err = p.expect(token.RBRACKET); err != nil {
 			return err
 		}
 	}
@@ -727,9 +727,9 @@ func (p *parser) resolveGate(name string, params []float64) (gate.Gate, error) {
 	}
 
 	// Check user-defined gates.
-	if _, ok := p.gates[name]; ok {
+	if gd, ok := p.gates[name]; ok {
 		// User-defined gate — we don't expand it, just create an opaque reference.
-		return opaqueGate{name: name, n: -1, params: params}, nil
+		return opaqueGate{name: name, n: len(gd.qubits), params: params}, nil
 	}
 
 	return nil, fmt.Errorf("unknown gate: %s", name)
@@ -845,7 +845,7 @@ func (p *parser) parseExpr() (float64, error) {
 }
 
 func (p *parser) parseOr() (float64, error) {
-	return p.parseAdd() // simplified: skip logical for now
+	return p.parseAdd()
 }
 
 func (p *parser) parseAdd() (float64, error) {
@@ -992,9 +992,10 @@ func (p *parser) parsePrimary() (float64, error) {
 	}
 }
 
-// builtinGates returns the predefined gate map (stdgates.inc equivalents).
+// builtinGates returns the gate definition map, initially empty.
+// User-defined gates are added during parsing.
 func builtinGates() map[string]*gatedef {
-	return map[string]*gatedef{}
+	return make(map[string]*gatedef)
 }
 
 // Pseudo-gates for barrier and reset.

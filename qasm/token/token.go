@@ -115,6 +115,9 @@ var tokenNames = map[Type]string{
 	CTRL: "ctrl", NEGCTRL: "negctrl", INV: "inv", POW: "pow",
 	GPHASE: "gphase", U: "U", PI: "pi", EULER: "euler", TAU: "tau",
 	TRUE: "true", FALSE: "false", LET: "let",
+	INT_TYPE: "int", UINT_TYPE: "uint", FLOAT_TYPE: "float",
+	ANGLE_TYPE: "angle", BOOL_TYPE: "bool", COMPLEX_TYPE: "complex",
+	DURATION: "duration", STRETCH: "stretch",
 }
 
 func (t Type) String() string {

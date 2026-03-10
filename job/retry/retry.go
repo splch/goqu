@@ -43,9 +43,11 @@ func Do(ctx context.Context, p Policy, fn func() error) error {
 		if attempt == p.MaxAttempts-1 {
 			break
 		}
+		timer := time.NewTimer(delay)
 		select {
-		case <-time.After(delay):
+		case <-timer.C:
 		case <-ctx.Done():
+			timer.Stop()
 			return ctx.Err()
 		}
 		delay = time.Duration(float64(delay) * p.BackoffFactor)

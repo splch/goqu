@@ -76,7 +76,7 @@ func buildNativeCircuit(nQubits, nGates int, seed uint32) *ir.Circuit {
 		angle := rng.Float64() * 2 * math.Pi
 		if nQubits >= 2 && rng.Intn(3) == 0 {
 			// MS gate on two qubits
-			q0, q1 := distinctPairRng(rng, nQubits)
+			q0, q1 := distinctPair(rng, nQubits)
 			ops = append(ops, ir.Operation{
 				Gate:   gate.MS(angle, rng.Float64()*2*math.Pi),
 				Qubits: []int{q0, q1},
@@ -107,10 +107,6 @@ func distinctPair(rng *rand.Rand, n int) (int, int) {
 		q1++
 	}
 	return q0, q1
-}
-
-func distinctPairRng(rng *rand.Rand, n int) (int, int) {
-	return distinctPair(rng, n)
 }
 
 // FuzzMarshalCircuit builds random QIS circuits and tries to marshal them.

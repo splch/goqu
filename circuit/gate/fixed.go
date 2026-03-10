@@ -15,12 +15,24 @@ func (g *fixed) Matrix() []complex128 { return g.matrix }
 func (g *fixed) Params() []float64   { return nil }
 
 func (g *fixed) Inverse() Gate {
-	// Compute conjugate transpose.
+	// Self-adjoint gates return themselves.
+	switch g.name {
+	case "I", "H", "X", "Y", "Z", "CNOT", "CZ", "SWAP", "CCX", "CSWAP":
+		return g
+	case "S":
+		return Sdg
+	case "S†":
+		return S
+	case "T":
+		return Tdg
+	case "T†":
+		return T
+	}
+	// General case: compute conjugate transpose.
 	dim := 1 << g.n
 	inv := make([]complex128, dim*dim)
 	for r := range dim {
 		for c := range dim {
-			// adjoint: swap indices and conjugate
 			inv[r*dim+c] = conj(g.matrix[c*dim+r])
 		}
 	}

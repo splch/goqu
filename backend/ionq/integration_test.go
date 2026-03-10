@@ -4,7 +4,6 @@ package ionq
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -87,5 +86,5 @@ func TestIonQSimulatorIntegration(t *testing.T) {
 
 	// Test ToCounts conversion.
 	counts := result.ToCounts()
-	fmt.Printf("Counts (from probabilities): %v\n", counts)
+	t.Logf("Counts (from probabilities): %v", counts)
 }

@@ -43,12 +43,6 @@ func BasisName(g gate.Gate) string {
 	switch name {
 	case "CNOT":
 		return "CX"
-	case "S":
-		return "S"
-	case "T":
-		return "T"
-	case "P":
-		return "P"
 	default:
 		return name
 	}

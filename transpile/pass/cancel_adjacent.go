@@ -99,14 +99,16 @@ func findNextAdjacent(timelines []analysis.QubitTimeline, ops []ir.Operation, i 
 	return -1
 }
 
+var selfInverseGates = map[gate.Gate]bool{
+	gate.H: true, gate.X: true, gate.Y: true, gate.Z: true,
+	gate.CNOT: true, gate.CZ: true, gate.SWAP: true,
+}
+
 // areInverse checks if two gates are inverse of each other.
 func areInverse(a, b gate.Gate) bool {
 	// Fixed gate pairs: pointer equality for self-inverse.
-	selfInverse := []gate.Gate{gate.H, gate.X, gate.Y, gate.Z, gate.CNOT, gate.CZ, gate.SWAP}
-	for _, g := range selfInverse {
-		if a == g && b == g {
-			return true
-		}
+	if a == b && selfInverseGates[a] {
+		return true
 	}
 
 	// S/Sdg pair.

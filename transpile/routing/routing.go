@@ -23,8 +23,7 @@ func Route(c *ir.Circuit, t target.Target) (*ir.Circuit, error) {
 	fwdOps, fwdLayout := sabrePass(c, t, dist, adj, TrivialLayout(c.NumQubits()), false)
 
 	// Backward pass: reverse the circuit, use forward's final layout.
-	revOps, bwdLayout := sabrePass(c, t, dist, adj, fwdLayout, true)
-	_ = bwdLayout
+	revOps, _ := sabrePass(c, t, dist, adj, fwdLayout, true)
 
 	// Use whichever produced fewer SWAPs.
 	fwdSwaps := countSwaps(fwdOps)
@@ -32,6 +31,10 @@ func Route(c *ir.Circuit, t target.Target) (*ir.Circuit, error) {
 
 	var resultOps []ir.Operation
 	if revSwaps < fwdSwaps {
+		// Reverse revOps back to forward order.
+		for i, j := 0, len(revOps)-1; i < j; i, j = i+1, j-1 {
+			revOps[i], revOps[j] = revOps[j], revOps[i]
+		}
 		resultOps = revOps
 	} else {
 		resultOps = fwdOps
@@ -71,27 +74,15 @@ func sabrePass(c *ir.Circuit, t target.Target, dist [][]int, adj map[int][]int, 
 		}
 	}
 
-	// For each op, find predecessors (previous op on same qubit).
+	// For each op, count predecessors (previous ops on same qubit).
 	predCount := make([]int, numOps)
-	qubitPos := make([]int, n) // next position in qubitOps[q] to consider
-	for idx, op := range ops {
-		for _, q := range op.Qubits {
-			if q < n {
-				// Find ops on this qubit before idx.
-				count := 0
-				for _, prev := range qubitOps[q] {
-					if prev >= idx {
-						break
-					}
-					if !executed[prev] {
-						count++
-					}
-				}
-				predCount[idx] += count
-			}
+	for q := range n {
+		for k := 1; k < len(qubitOps[q]); k++ {
+			idx := qubitOps[q][k]
+			// Count all prior ops on this qubit as predecessors.
+			predCount[idx] += k
 		}
 	}
-	_ = qubitPos
 
 	var result []ir.Operation
 

@@ -76,6 +76,15 @@ func (b *Builder) Apply(g gate.Gate, qubits ...int) *Builder {
 	if b.err != nil {
 		return b
 	}
+	// Check for duplicate qubit indices.
+	for i := 0; i < len(qubits); i++ {
+		for j := i + 1; j < len(qubits); j++ {
+			if qubits[i] == qubits[j] {
+				b.err = fmt.Errorf("duplicate qubit %d in gate %s", qubits[i], g.Name())
+				return b
+			}
+		}
+	}
 	qs := make([]int, len(qubits))
 	copy(qs, qubits)
 	b.ops = append(b.ops, ir.Operation{Gate: g, Qubits: qs})

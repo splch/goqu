@@ -39,7 +39,7 @@ func newHTTPClient(apiKey, baseURL string, base *http.Client) *httpClient {
 func (c *httpClient) do(ctx context.Context, method, path string, body, resp any) error {
 	var attempt int
 	for {
-		err := c.doOnce(ctx, method, path, body, resp, attempt)
+		err := c.doOnce(ctx, method, path, body, resp)
 		if err == nil {
 			return nil
 		}
@@ -57,7 +57,7 @@ func (c *httpClient) do(ctx context.Context, method, path string, body, resp any
 	}
 }
 
-func (c *httpClient) doOnce(ctx context.Context, method, path string, body, resp any, attempt int) error {
+func (c *httpClient) doOnce(ctx context.Context, method, path string, body, resp any) error {
 	hooks := observe.FromContext(ctx)
 	var httpDone func(int, error)
 	if hooks != nil && hooks.WrapHTTP != nil {

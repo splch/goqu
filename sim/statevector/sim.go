@@ -4,6 +4,7 @@ package statevector
 import (
 	"fmt"
 	"math"
+	"math/bits"
 	"math/rand/v2"
 	"runtime"
 	"sync"
@@ -30,31 +31,8 @@ func New(numQubits int) *Sim {
 
 // Run executes the circuit and returns measurement counts.
 func (s *Sim) Run(c *ir.Circuit, shots int) (map[string]int, error) {
-	if c.NumQubits() != s.numQubits {
-		return nil, fmt.Errorf("circuit has %d qubits, simulator has %d", c.NumQubits(), s.numQubits)
-	}
-
-	// Reset to |0...0>.
-	for i := range s.state {
-		s.state[i] = 0
-	}
-	s.state[0] = 1
-
-	// Apply all gate operations (skip measurements in the evolution phase).
-	for _, op := range c.Ops() {
-		if op.Gate == nil || op.Gate.Name() == "barrier" {
-			continue
-		}
-		switch op.Gate.Qubits() {
-		case 1:
-			s.applyGate1(op.Qubits[0], op.Gate.Matrix())
-		case 2:
-			s.applyGate2(op.Qubits[0], op.Qubits[1], op.Gate.Matrix())
-		case 3:
-			s.applyGate3(op.Qubits[0], op.Qubits[1], op.Qubits[2], op.Gate.Matrix())
-		default:
-			return nil, fmt.Errorf("unsupported gate size: %d qubits", op.Gate.Qubits())
-		}
+	if err := s.Evolve(c); err != nil {
+		return nil, err
 	}
 
 	// Sample measurement results.
@@ -277,18 +255,16 @@ func optimalWorkers(nQubits int) int {
 
 // ExpectationValue computes <psi|O|psi> for a diagonal Pauli-Z observable
 // specified as a list of qubit indices. For example, [0, 1] computes <Z0 Z1>.
+// The result is rounded to 14 decimal places to clean up floating-point noise.
 func (s *Sim) ExpectationValue(qubits []int) float64 {
+	var mask int
+	for _, q := range qubits {
+		mask |= 1 << q
+	}
 	var ev float64
 	for i, amp := range s.state {
 		prob := real(amp)*real(amp) + imag(amp)*imag(amp)
-		// Count parity of measured qubits
-		parity := 0
-		for _, q := range qubits {
-			if i&(1<<q) != 0 {
-				parity++
-			}
-		}
-		if parity%2 == 0 {
+		if bits.OnesCount(uint(i&mask))%2 == 0 {
 			ev += prob
 		} else {
 			ev -= prob
