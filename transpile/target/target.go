@@ -125,6 +125,20 @@ var (
 		MaxCircuitDepth: 0,
 	}
 
+	IBMBrisbane = Target{
+		Name:       "ibm.brisbane",
+		NumQubits:  127,
+		BasisGates: []string{"CX", "RZ", "SX", "X", "I"},
+		// Heavy-hex topology; connectivity fetched from calibration API.
+	}
+
+	IBMSherbrooke = Target{
+		Name:       "ibm.sherbrooke",
+		NumQubits:  127,
+		BasisGates: []string{"CX", "RZ", "SX", "X", "I"},
+		// Heavy-hex topology; connectivity fetched from calibration API.
+	}
+
 	Quantinuum = Target{
 		Name:       "Quantinuum H1",
 		NumQubits:  32,
