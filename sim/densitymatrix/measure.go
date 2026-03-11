@@ -1,6 +1,10 @@
 package densitymatrix
 
-import "math/rand/v2"
+import (
+	"math"
+	"math/bits"
+	"math/rand/v2"
+)
 
 // diagonalProbs extracts measurement probabilities from the density matrix diagonal.
 // P(i) = Re(ρ[i*dim+i]).
@@ -64,6 +68,26 @@ func (s *Sim) ApplyReadoutError(probs []float64) []float64 {
 		result = newResult
 	}
 	return result
+}
+
+// ExpectationValue computes Tr(ρ·O) for a diagonal Pauli-Z observable
+// specified as a list of qubit indices. For example, [0, 1] computes <Z0 Z1>.
+// The result is rounded to 14 decimal places to clean up floating-point noise.
+func (s *Sim) ExpectationValue(qubits []int) float64 {
+	var mask int
+	for _, q := range qubits {
+		mask |= 1 << q
+	}
+	var ev float64
+	for i := range s.dim {
+		prob := real(s.rho[i*s.dim+i])
+		if bits.OnesCount(uint(i&mask))%2 == 0 {
+			ev += prob
+		} else {
+			ev -= prob
+		}
+	}
+	return math.Round(ev*1e14) / 1e14
 }
 
 func sampleIndex(probs []float64, rng *rand.Rand) int {

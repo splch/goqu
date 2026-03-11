@@ -11,6 +11,7 @@ import (
 
 	"github.com/splch/qgo/circuit/gate"
 	"github.com/splch/qgo/circuit/ir"
+	"github.com/splch/qgo/sim/pauli"
 )
 
 // Sim simulates a circuit via full statevector evolution.
@@ -196,6 +197,17 @@ func optimalWorkers(nQubits int) int {
 		return maxProcs
 	}
 	return maxByWork
+}
+
+// ExpectPauliString computes <psi|P|psi> for an arbitrary Pauli string P.
+// The result is real for Hermitian observables.
+func (s *Sim) ExpectPauliString(ps pauli.PauliString) float64 {
+	return real(pauli.Expect(s.state, ps))
+}
+
+// ExpectPauliSum computes <psi|H|psi> for a Hamiltonian H (sum of Pauli strings).
+func (s *Sim) ExpectPauliSum(ps pauli.PauliSum) float64 {
+	return real(pauli.ExpectSum(s.state, ps))
 }
 
 // ExpectationValue computes <psi|O|psi> for a diagonal Pauli-Z observable

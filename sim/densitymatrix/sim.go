@@ -9,6 +9,7 @@ import (
 	"github.com/splch/qgo/circuit/gate"
 	"github.com/splch/qgo/circuit/ir"
 	"github.com/splch/qgo/sim/noise"
+	"github.com/splch/qgo/sim/pauli"
 )
 
 // parallelThreshold is the minimum number of qubits before enabling parallel kernels.
@@ -185,6 +186,17 @@ func (s *Sim) Fidelity(pureState []complex128) float64 {
 		}
 	}
 	return math.Abs(real(f))
+}
+
+// ExpectPauliString computes Tr(rho * P) for an arbitrary Pauli string P.
+// The result is real for Hermitian observables.
+func (s *Sim) ExpectPauliString(ps pauli.PauliString) float64 {
+	return real(pauli.ExpectDM(s.rho, s.dim, ps))
+}
+
+// ExpectPauliSum computes Tr(rho * H) for a Hamiltonian H (sum of Pauli strings).
+func (s *Sim) ExpectPauliSum(ps pauli.PauliSum) float64 {
+	return real(pauli.ExpectSumDM(s.rho, s.dim, ps))
 }
 
 func conj(c complex128) complex128 {
