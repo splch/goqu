@@ -1,33 +1,39 @@
+version: "2"
+
 linters:
+  default: none
   enable:
     - errcheck
     - govet
     - staticcheck
     - ineffassign
     - typecheck
-    - gofmt
-    - goimports
     - misspell
     - unconvert
     - unparam
     - gocyclo
     - gocritic
     - prealloc
+  settings:
+    gocyclo:
+      min-complexity: 20
+    govet:
+      disable:
+        - fieldalignment
+  exclusions:
+    rules:
+      - path: _test\.go
+        linters:
+          - errcheck
+          - gocyclo
+          - prealloc
+          - unparam
 
-linters-settings:
-  gocyclo:
-    min-complexity: 20
-  goimports:
-    local-prefixes: github.com/splch/qgo
-  govet:
-    disable:
-      - fieldalignment
-
-issues:
-  exclude-rules:
-    - path: _test\.go
-      linters:
-        - errcheck
-        - gocyclo
-        - prealloc
-        - unparam
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/splch/qgo
