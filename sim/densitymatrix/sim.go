@@ -5,6 +5,7 @@ import (
 	"math"
 	"math/rand/v2"
 
+	"github.com/splch/qgo/circuit/gate"
 	"github.com/splch/qgo/circuit/ir"
 	"github.com/splch/qgo/sim/noise"
 )
@@ -80,7 +81,25 @@ func (s *Sim) Evolve(c *ir.Circuit) error {
 		case 2:
 			s.applyGate2(op.Qubits[0], op.Qubits[1], m)
 		default:
-			return fmt.Errorf("densitymatrix: unsupported gate size: %d qubits", op.Gate.Qubits())
+			// Auto-decompose >2 qubit gates into 1-2 qubit operations.
+			subOps := decomposeForDensity(op)
+			if subOps == nil {
+				return fmt.Errorf("densitymatrix: unsupported gate size: %d qubits", op.Gate.Qubits())
+			}
+			for _, sub := range subOps {
+				sm := sub.Gate.Matrix()
+				if sm == nil {
+					continue
+				}
+				switch sub.Gate.Qubits() {
+				case 1:
+					s.applyGate1(sub.Qubits[0], sm)
+				case 2:
+					s.applyGate2(sub.Qubits[0], sub.Qubits[1], sm)
+				default:
+					return fmt.Errorf("densitymatrix: decomposition produced %d-qubit gate", sub.Gate.Qubits())
+				}
+			}
 		}
 		// Apply noise after gate.
 		if s.noise != nil {
@@ -169,4 +188,151 @@ func (s *Sim) Fidelity(pureState []complex128) float64 {
 
 func conj(c complex128) complex128 {
 	return complex(real(c), -imag(c))
+}
+
+// decomposeForDensity breaks a >2 qubit gate into 1-2 qubit operations.
+// Uses the gate's Decompose method, then recursively decomposes until all ops are <=2 qubits.
+func decomposeForDensity(op ir.Operation) []ir.Operation {
+	applied := op.Gate.Decompose(op.Qubits)
+	if applied != nil {
+		var result []ir.Operation
+		for _, a := range applied {
+			sub := ir.Operation{Gate: a.Gate, Qubits: a.Qubits}
+			if a.Gate.Qubits() <= 2 {
+				result = append(result, sub)
+			} else {
+				inner := decomposeForDensity(sub)
+				if inner == nil {
+					return nil
+				}
+				result = append(result, inner...)
+			}
+		}
+		return result
+	}
+	// For controlled gates, decompose via the controlled gate interface.
+	if cg, ok := op.Gate.(gate.ControlledGate); ok {
+		_ = cg
+		// Use a simple recursive approach: the controlled kernel for statevector
+		// uses direct bit manipulation, but density matrix needs decomposition.
+		// Recursively decompose: Controlled(U, n) → smaller controlled gates.
+		return decomposeControlledForDensity(op)
+	}
+	return nil
+}
+
+// decomposeControlledForDensity decomposes a controlled gate for density matrix sim.
+func decomposeControlledForDensity(op ir.Operation) []ir.Operation {
+	cg := op.Gate.(gate.ControlledGate)
+	nControls := cg.NumControls()
+	controls := op.Qubits[:nControls]
+	targets := op.Qubits[nControls:]
+	inner := cg.Inner()
+
+	if nControls == 1 && inner.Qubits() == 1 {
+		// Single-controlled single-qubit: this is a 2-qubit gate.
+		return []ir.Operation{op}
+	}
+
+	// For MCX: decompose using V-gate approach.
+	if inner.Qubits() == 1 {
+		if nControls == 1 {
+			return []ir.Operation{op}
+		}
+		// Create the controlled gate and let rules decompose it.
+		// Build: C^{n-1}(V) + CX + C^{n-1}(V†) + CX + C^{n-1}(Phase)
+		// Use SX as V (sqrt of X).
+		if inner == gate.X || inner.Name() == "X" {
+			return decomposeMCXForDensity(controls, targets[0])
+		}
+		// General: wrap with Controlled and recurse.
+		cInner := gate.Controlled(inner, nControls)
+		subOp := ir.Operation{Gate: cInner, Qubits: op.Qubits}
+		applied := subOp.Gate.Decompose(op.Qubits)
+		if applied != nil {
+			var result []ir.Operation
+			for _, a := range applied {
+				s := ir.Operation{Gate: a.Gate, Qubits: a.Qubits}
+				if a.Gate.Qubits() <= 2 {
+					result = append(result, s)
+				} else {
+					r := decomposeForDensity(s)
+					if r == nil {
+						return nil
+					}
+					result = append(result, r...)
+				}
+			}
+			return result
+		}
+		// Fallback: emit as single controlled gates via CX decomposition.
+		return nil
+	}
+
+	return nil
+}
+
+// decomposeMCXForDensity decomposes C^n(X) recursively for density matrix.
+func decomposeMCXForDensity(controls []int, target int) []ir.Operation {
+	n := len(controls)
+	if n == 1 {
+		return []ir.Operation{{Gate: gate.CNOT, Qubits: []int{controls[0], target}}}
+	}
+	if n == 2 {
+		// CCX decomposition.
+		c0, c1 := controls[0], controls[1]
+		return []ir.Operation{
+			{Gate: gate.H, Qubits: []int{target}},
+			{Gate: gate.CNOT, Qubits: []int{c1, target}},
+			{Gate: gate.Tdg, Qubits: []int{target}},
+			{Gate: gate.CNOT, Qubits: []int{c0, target}},
+			{Gate: gate.T, Qubits: []int{target}},
+			{Gate: gate.CNOT, Qubits: []int{c1, target}},
+			{Gate: gate.Tdg, Qubits: []int{target}},
+			{Gate: gate.CNOT, Qubits: []int{c0, target}},
+			{Gate: gate.T, Qubits: []int{c1}},
+			{Gate: gate.T, Qubits: []int{target}},
+			{Gate: gate.CNOT, Qubits: []int{c0, c1}},
+			{Gate: gate.H, Qubits: []int{target}},
+			{Gate: gate.T, Qubits: []int{c0}},
+			{Gate: gate.Tdg, Qubits: []int{c1}},
+			{Gate: gate.CNOT, Qubits: []int{c0, c1}},
+		}
+	}
+
+	// Recursive V-gate approach.
+	lastCtrl := controls[n-1]
+	restCtrls := controls[:n-1]
+	var ops []ir.Operation
+
+	// C^{n-1}(SX)
+	ops = append(ops, decomposeControlled1QForDensity(gate.SX, restCtrls, target)...)
+	// CX
+	ops = append(ops, ir.Operation{Gate: gate.CNOT, Qubits: []int{lastCtrl, target}})
+	// C^{n-1}(SX†)
+	ops = append(ops, decomposeControlled1QForDensity(gate.SX.Inverse(), restCtrls, target)...)
+	// CX
+	ops = append(ops, ir.Operation{Gate: gate.CNOT, Qubits: []int{lastCtrl, target}})
+	// C^{n-1}(S) phase correction
+	ops = append(ops, decomposeControlled1QForDensity(gate.S, restCtrls, lastCtrl)...)
+
+	return ops
+}
+
+// decomposeControlled1QForDensity decomposes C^n(U) for single-qubit U.
+func decomposeControlled1QForDensity(u gate.Gate, controls []int, target int) []ir.Operation {
+	if len(controls) == 1 {
+		cg := gate.Controlled(u, 1)
+		return []ir.Operation{{Gate: cg, Qubits: []int{controls[0], target}}}
+	}
+	if len(controls) == 2 && (u == gate.X || u.Name() == "X") {
+		return decomposeMCXForDensity(controls, target)
+	}
+	// For n >= 2: use a controlled gate and rely on it being a 2-qubit gate
+	// after the recursion bottoms out.
+	cg := gate.Controlled(u, len(controls))
+	qs := make([]int, 0, len(controls)+1)
+	qs = append(qs, controls...)
+	qs = append(qs, target)
+	return decomposeForDensity(ir.Operation{Gate: cg, Qubits: qs})
 }

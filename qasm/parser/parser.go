@@ -575,18 +575,40 @@ func (p *parser) parseIf() error {
 
 func (p *parser) parseGateCall() error {
 	// Handle gate modifiers: ctrl @, inv @, pow(k) @
-	// For now, we consume them but don't apply modifier logic to the matrix.
+	ctrlCount := 0
+	invCount := 0
 	for p.peek() == token.CTRL || p.peek() == token.NEGCTRL || p.peek() == token.INV || p.peek() == token.POW {
-		p.advance() // consume modifier keyword
-		if p.peek() == token.LPAREN {
-			p.advance()
-			_, err := p.parseExpr()
-			if err != nil {
-				return err
+		modTok := p.advance() // consume modifier keyword
+		switch modTok.Type {
+		case token.CTRL:
+			n := 1
+			if p.peek() == token.LPAREN {
+				p.advance()
+				v, err := p.parseExpr()
+				if err != nil {
+					return err
+				}
+				n = int(v)
+				_, err = p.expect(token.RPAREN)
+				if err != nil {
+					return err
+				}
 			}
-			_, err = p.expect(token.RPAREN)
-			if err != nil {
-				return err
+			ctrlCount += n
+		case token.INV:
+			invCount++
+		default:
+			// NEGCTRL, POW: consume parameters but don't apply.
+			if p.peek() == token.LPAREN {
+				p.advance()
+				_, err := p.parseExpr()
+				if err != nil {
+					return err
+				}
+				_, err = p.expect(token.RPAREN)
+				if err != nil {
+					return err
+				}
 			}
 		}
 		_, err := p.expect(token.AT)
@@ -634,7 +656,21 @@ func (p *parser) parseGateCall() error {
 			return err
 		}
 		// Non-strict: create an opaque gate.
-		g = opaqueGate{name: gateName, n: len(qubits), params: params}
+		innerQubits := len(qubits) - ctrlCount
+		if innerQubits < 1 {
+			innerQubits = 1
+		}
+		g = opaqueGate{name: gateName, n: innerQubits, params: params}
+	}
+
+	// Apply ctrl modifier: wrap the resolved gate with control qubits.
+	if ctrlCount > 0 {
+		g = gate.Controlled(g, ctrlCount)
+	}
+
+	// Apply inv modifier: take inverse for each inv @ encountered.
+	for range invCount {
+		g = g.Inverse()
 	}
 
 	p.ops = append(p.ops, ir.Operation{Gate: g, Qubits: qubits})

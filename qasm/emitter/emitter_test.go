@@ -145,6 +145,68 @@ c = measure q;`,
 	}
 }
 
+func TestEmitControlled(t *testing.T) {
+	// Test that multi-controlled gates emit ctrl(N) @ syntax.
+	c, err := builder.New("ctrl-test", 4).
+		Apply(gate.MCX(3), 0, 1, 2, 3).
+		Apply(gate.Controlled(gate.H, 2), 0, 1, 2).
+		Apply(gate.MCZ(2), 0, 1, 2).
+		Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	s, err := EmitString(c)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expects := []string{
+		"ctrl(3) @ x q[0], q[1], q[2], q[3];",
+		"ctrl(2) @ h q[0], q[1], q[2];",
+		"ctrl(2) @ z q[0], q[1], q[2];",
+	}
+	for _, e := range expects {
+		if !strings.Contains(s, e) {
+			t.Errorf("output missing %q\nFull output:\n%s", e, s)
+		}
+	}
+}
+
+func TestControlledRoundTrip(t *testing.T) {
+	// Build circuit with controlled gate, emit QASM, parse back, compare.
+	c, err := builder.New("ctrl-rt", 4).
+		Apply(gate.MCX(3), 0, 1, 2, 3).
+		Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	emitted, err := EmitString(c)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	c2, err := parser.ParseString(emitted)
+	if err != nil {
+		t.Fatalf("re-parse error: %v\nEmitted:\n%s", err, emitted)
+	}
+
+	if c.NumQubits() != c2.NumQubits() {
+		t.Errorf("NumQubits mismatch: %d vs %d", c.NumQubits(), c2.NumQubits())
+	}
+	if len(c.Ops()) != len(c2.Ops()) {
+		t.Errorf("Ops count mismatch: %d vs %d", len(c.Ops()), len(c2.Ops()))
+	}
+	// Verify the gate is still a ControlledGate.
+	ops2 := c2.Ops()
+	if len(ops2) > 0 {
+		if _, ok := ops2[0].Gate.(gate.ControlledGate); !ok {
+			t.Error("parsed gate is not a ControlledGate")
+		}
+	}
+}
+
 func TestRoundTripParameterized(t *testing.T) {
 	// Build a circuit with parameterized gates, emit, re-parse, verify.
 	c, err := builder.New("roundtrip", 2).

@@ -5,6 +5,7 @@ import (
 	"io"
 	"strings"
 
+	"github.com/splch/qgo/circuit/gate"
 	"github.com/splch/qgo/circuit/ir"
 	"github.com/splch/qgo/internal/piformat"
 )
@@ -282,6 +283,23 @@ func gateLabels(op ir.Operation, cfg *config) []string {
 		labels := make([]string, len(qubits))
 		for i := range labels {
 			labels[i] = "|"
+		}
+		return labels
+	}
+
+	// Check for multi-controlled gates via ControlledGate interface.
+	if cg, ok := op.Gate.(gate.ControlledGate); ok {
+		nControls := cg.NumControls()
+		innerName := gateBaseName(cg.Inner().Name())
+		innerParams := cg.Inner().Params()
+		targetLabel := formatGateWithParams(innerName, innerParams, cfg)
+
+		labels := make([]string, len(qubits))
+		for i := range nControls {
+			labels[i] = "@"
+		}
+		for i := nControls; i < len(qubits); i++ {
+			labels[i] = targetLabel
 		}
 		return labels
 	}

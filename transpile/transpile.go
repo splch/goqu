@@ -28,6 +28,7 @@ func Pipeline(passes ...Pass) Pass {
 
 // BasisName returns the canonical basis gate name for a gate.
 // Strips parameters: "RZ(0.78)" -> "RZ", "CNOT" -> "CX".
+// Multi-controlled: "C3-X" -> "C3-X", "C2-RZ(0.78)" -> "C2-RZ".
 func BasisName(g gate.Gate) string {
 	name := g.Name()
 
