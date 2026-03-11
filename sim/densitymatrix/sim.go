@@ -303,7 +303,7 @@ func decomposeMCXForDensity(controls []int, target int) []ir.Operation {
 	// Recursive V-gate approach.
 	lastCtrl := controls[n-1]
 	restCtrls := controls[:n-1]
-	ops := make([]ir.Operation, 0, 32) //nolint:prealloc // recursive size unknown
+	var ops []ir.Operation //nolint:prealloc // size depends on recursive decomposition depth
 
 	// C^{n-1}(SX)
 	ops = append(ops, decomposeControlled1QForDensity(gate.SX, restCtrls, target)...)

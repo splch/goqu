@@ -121,7 +121,7 @@ func decomposeMCX(controls []int, target int) []ir.Operation {
 	lastCtrl := controls[n-1]
 	restCtrls := controls[:n-1]
 
-	ops := make([]ir.Operation, 0, 32) //nolint:prealloc // recursive size unknown
+	var ops []ir.Operation //nolint:prealloc // size depends on recursive decomposition depth
 
 	// C^{n-1}(V) on restCtrls -> target
 	ops = append(ops, decomposeControlled1Q(v, restCtrls, target)...)
