@@ -183,9 +183,7 @@ func decomposeMCX(controls []int, target int) []ir.Operation {
 // Reduces to C^n(X) + single-qubit gates using:
 // U = e^{iδ} · AXBXC where ABC = I (Euler decomposition).
 // C^n(U) = Phase(δ)(ctrls) · A(tgt) · MCX(ctrls,tgt) · B(tgt) · MCX(ctrls,tgt) · C(tgt)
-// Circuit time order (left→right): C, MCX, B, MCX, A, Phase
-//
-//	+ phase correction on controls.
+// Circuit time order (left→right): C, MCX, B, MCX, A, Phase + phase correction on controls.
 func decomposeGeneralControlled(u gate.Gate, controls []int, target int) []ir.Operation {
 	alpha, beta, gamma, phase := EulerZYZ(u.Matrix())
 

@@ -329,14 +329,15 @@ func decomposeGeneralControlledForDensity(u gate.Gate, controls []int, target in
 	beta := 2 * math.Acos(clamp(absA, 0, 1))
 
 	var alpha, gamma float64
-	if cmplx.Abs(b) < 1e-10 {
+	switch {
+	case cmplx.Abs(b) < 1e-10:
 		alpha = -2 * cmplx.Phase(a)
 		gamma = 0
-	} else if cmplx.Abs(a) < 1e-10 {
+	case cmplx.Abs(a) < 1e-10:
 		alpha = -2 * cmplx.Phase(-b)
 		beta = math.Pi
 		gamma = 0
-	} else {
+	default:
 		apg := cmplx.Phase(a)
 		amg := cmplx.Phase(-b)
 		alpha = -(apg + amg)

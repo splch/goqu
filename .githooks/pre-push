@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -e
+
+echo "pre-push: running golangci-lint..."
+if command -v golangci-lint &> /dev/null; then
+    golangci-lint run ./...
+    for submod in backend/braket observe/otelbridge observe/prombridge; do
+        if [ -d "$submod" ]; then
+            (cd "$submod" && golangci-lint run ./...)
+        fi
+    done
+else
+    echo "WARNING: golangci-lint not found, skipping lint (install: https://golangci-lint.run/welcome/install/)"
+fi
+
+echo "pre-push: running tests with race detector..."
+go test -race -count=1 -timeout=5m ./...
+
+echo "pre-push: all checks passed"

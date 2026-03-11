@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+set -e
+
+# Only check staged .go files — avoids false positives from WIP changes.
+STAGED_GO_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '\.go$' || true)
+if [ -z "$STAGED_GO_FILES" ]; then
+    exit 0
+fi
+
+echo "pre-commit: checking gofmt on staged files..."
+UNFORMATTED=$(echo "$STAGED_GO_FILES" | xargs gofmt -l 2>/dev/null || true)
+if [ -n "$UNFORMATTED" ]; then
+    echo "ERROR: files not formatted by gofmt:"
+    echo "$UNFORMATTED"
+    echo "Run: gofmt -w ."
+    exit 1
+fi
+
+# Scope go vet to only the packages that have staged changes.
+echo "pre-commit: running go vet on changed packages..."
+PKGS=$(echo "$STAGED_GO_FILES" | xargs -n1 dirname | sort -u | sed 's|^|./|')
+echo "$PKGS" | xargs go vet
+
+echo "pre-commit: all checks passed (skip with --no-verify for WIP commits)"
