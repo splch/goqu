@@ -77,14 +77,25 @@ func (b *Builder) Apply(g gate.Gate, qubits ...int) *Builder {
 	if b.err != nil {
 		return b
 	}
-	// Check for duplicate qubit indices. O(n²) is intentional: quantum gates
-	// have 1–3 qubits, making nested loops faster than allocating a map.
-	for i := 0; i < len(qubits); i++ {
-		for j := i + 1; j < len(qubits); j++ {
-			if qubits[i] == qubits[j] {
-				b.err = fmt.Errorf("duplicate qubit %d in gate %s", qubits[i], g.Name())
+	// Check for duplicate qubit indices.
+	if len(qubits) <= 4 {
+		// O(n²) is fine for small gates.
+		for i := 0; i < len(qubits); i++ {
+			for j := i + 1; j < len(qubits); j++ {
+				if qubits[i] == qubits[j] {
+					b.err = fmt.Errorf("duplicate qubit %d in gate %s", qubits[i], g.Name())
+					return b
+				}
+			}
+		}
+	} else {
+		seen := make(map[int]bool, len(qubits))
+		for _, q := range qubits {
+			if seen[q] {
+				b.err = fmt.Errorf("duplicate qubit %d in gate %s", q, g.Name())
 				return b
 			}
+			seen[q] = true
 		}
 	}
 	qs := make([]int, len(qubits))
@@ -129,6 +140,39 @@ func (b *Builder) SWAP(q0, q1 int) *Builder {
 // CCX applies a Toffoli (CCX) gate.
 func (b *Builder) CCX(c0, c1, target int) *Builder {
 	return b.Apply(gate.CCX, c0, c1, target)
+}
+
+// MCX applies a multi-controlled X gate.
+func (b *Builder) MCX(controls []int, target int) *Builder {
+	qubits := make([]int, len(controls)+1)
+	copy(qubits, controls)
+	qubits[len(controls)] = target
+	return b.Apply(gate.MCX(len(controls)), qubits...)
+}
+
+// MCZ applies a multi-controlled Z gate.
+func (b *Builder) MCZ(controls []int, target int) *Builder {
+	qubits := make([]int, len(controls)+1)
+	copy(qubits, controls)
+	qubits[len(controls)] = target
+	return b.Apply(gate.MCZ(len(controls)), qubits...)
+}
+
+// MCP applies a multi-controlled Phase gate.
+func (b *Builder) MCP(phi float64, controls []int, target int) *Builder {
+	qubits := make([]int, len(controls)+1)
+	copy(qubits, controls)
+	qubits[len(controls)] = target
+	return b.Apply(gate.MCP(phi, len(controls)), qubits...)
+}
+
+// Ctrl wraps any gate with additional control qubits.
+func (b *Builder) Ctrl(g gate.Gate, controls []int, targets ...int) *Builder {
+	cg := gate.Controlled(g, len(controls))
+	qubits := make([]int, len(controls)+len(targets))
+	copy(qubits, controls)
+	copy(qubits[len(controls):], targets)
+	return b.Apply(cg, qubits...)
 }
 
 // RX applies an RX rotation gate.

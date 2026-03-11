@@ -27,6 +27,10 @@ func DecomposeByRule(g gate.Gate, qubits []int, basisGates []string) []ir.Operat
 
 // decomposeToCX decomposes known gates into CX + single-qubit basis.
 func decomposeToCX(g gate.Gate, qubits []int, basis map[string]bool) []ir.Operation {
+	// Check for multi-controlled gates first.
+	if cg, ok := g.(gate.ControlledGate); ok {
+		return DecomposeMultiControlled(cg, qubits)
+	}
 	switch g.Qubits() {
 	case 1:
 		return decompose1qToCXBasis(g, qubits, basis)

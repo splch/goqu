@@ -9,6 +9,7 @@ import (
 	"runtime"
 	"sync"
 
+	"github.com/splch/qgo/circuit/gate"
 	"github.com/splch/qgo/circuit/ir"
 )
 
@@ -75,7 +76,11 @@ func (s *Sim) Evolve(c *ir.Circuit) error {
 		case 3:
 			s.dispatchGate3(op.Gate, op.Qubits[0], op.Qubits[1], op.Qubits[2])
 		default:
-			return fmt.Errorf("unsupported gate size: %d qubits", op.Gate.Qubits())
+			if cg, ok := op.Gate.(gate.ControlledGate); ok {
+				s.dispatchControlled(cg, op.Qubits)
+			} else {
+				return fmt.Errorf("unsupported gate size: %d qubits", op.Gate.Qubits())
+			}
 		}
 	}
 	return nil

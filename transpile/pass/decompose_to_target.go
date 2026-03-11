@@ -10,8 +10,8 @@ import (
 )
 
 // maxDecomposeDepth limits recursive decomposition to prevent infinite loops.
-// Depth 3 handles all known gate chains (e.g. CCX → CX+1Q → basis).
-const maxDecomposeDepth = 3
+// Depth 10 handles multi-controlled gates (e.g. C^5(X) → recursive V-gate → CCX → CX → basis).
+const maxDecomposeDepth = 10
 
 // DecomposeToTarget replaces non-basis gates with basis gate sequences.
 func DecomposeToTarget(c *ir.Circuit, t target.Target) (*ir.Circuit, error) {
@@ -90,6 +90,14 @@ func decomposeOp(op ir.Operation, t target.Target, depth int, eb decompose.Euler
 		}
 		// Try rule-based decomposition for 3-qubit gates to CX basis.
 		ruleOps := decompose.DecomposeByRule(op.Gate, op.Qubits, []string{"CX", "H", "T", "Tdg", "S", "Sdg", "RZ", "RY"})
+		if ruleOps != nil {
+			return expandAndRecurse(ruleOps, t, depth, eb)
+		}
+	}
+
+	// Try multi-controlled gates (>3 qubits).
+	if op.Gate.Qubits() > 3 {
+		ruleOps := decompose.DecomposeByRule(op.Gate, op.Qubits, t.BasisGates)
 		if ruleOps != nil {
 			return expandAndRecurse(ruleOps, t, depth, eb)
 		}

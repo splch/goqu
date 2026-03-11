@@ -6,6 +6,7 @@ import (
 	"io"
 	"strings"
 
+	"github.com/splch/qgo/circuit/gate"
 	"github.com/splch/qgo/circuit/ir"
 	"github.com/splch/qgo/internal/piformat"
 )
@@ -98,6 +99,11 @@ func (e *emitter) emitOp(op ir.Operation) error {
 		return nil
 	}
 
+	// Check for multi-controlled gates: emit ctrl(N) @ syntax.
+	if cg, ok := op.Gate.(gate.ControlledGate); ok {
+		return e.emitControlledOp(cg, op)
+	}
+
 	// Build gate call.
 	gateName := qasmGateName(name)
 	params := op.Gate.Params()
@@ -134,6 +140,43 @@ func (e *emitter) emitOp(op ir.Operation) error {
 	} else {
 		e.writef("%s %s;\n", gateName, strings.Join(qargs, ", "))
 	}
+	return nil
+}
+
+// emitControlledOp emits a multi-controlled gate using OpenQASM 3.0 ctrl @ syntax.
+func (e *emitter) emitControlledOp(cg gate.ControlledGate, op ir.Operation) error {
+	nControls := cg.NumControls()
+	innerGate := cg.Inner()
+
+	// Build ctrl modifier.
+	var ctrl string
+	if nControls == 1 {
+		ctrl = "ctrl"
+	} else {
+		ctrl = fmt.Sprintf("ctrl(%d)", nControls)
+	}
+
+	// Build inner gate name + params.
+	innerName := qasmGateName(innerGate.Name())
+	params := innerGate.Params()
+	var gateCall string
+	if len(params) > 0 {
+		pstrs := make([]string, len(params))
+		for i, p := range params {
+			pstrs[i] = piformat.FormatQASM(p)
+		}
+		gateCall = fmt.Sprintf("%s(%s)", innerName, strings.Join(pstrs, ", "))
+	} else {
+		gateCall = innerName
+	}
+
+	// Build qubit arguments.
+	qargs := make([]string, len(op.Qubits))
+	for i, q := range op.Qubits {
+		qargs[i] = fmt.Sprintf("q[%d]", q)
+	}
+
+	e.writef("%s @ %s %s;\n", ctrl, gateCall, strings.Join(qargs, ", "))
 	return nil
 }
 

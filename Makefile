@@ -1,4 +1,4 @@
-.PHONY: test test-race test-all lint vet fuzz bench coverage clean
+.PHONY: test test-race test-all lint vet fuzz bench coverage clean hooks
 
 test:
 	go test -count=1 -timeout=5m ./...
@@ -45,6 +45,10 @@ coverage:
 	go test -coverprofile=coverage.out ./...
 	go tool cover -html=coverage.out -o coverage.html
 	@echo "Coverage report: coverage.html"
+
+hooks:
+	git config core.hooksPath .githooks
+	@echo "Git hooks installed from .githooks/"
 
 clean:
 	rm -f coverage.out coverage.html

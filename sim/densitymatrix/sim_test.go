@@ -408,3 +408,74 @@ func BenchmarkEvolveNoisy8Q(b *testing.B) {
 		dm.Evolve(c) //nolint:errcheck
 	}
 }
+
+func TestEvolveMCZ(t *testing.T) {
+	// MCZ(2) on |111>: density matrix should match statevector.
+	c, _ := builder.New("mcz", 3).
+		X(0).X(1).X(2).
+		Apply(gate.MCZ(2), 0, 1, 2).
+		Build()
+
+	dm := New(3)
+	if err := dm.Evolve(c); err != nil {
+		t.Fatal(err)
+	}
+
+	sv := statevector.New(3)
+	sv.Evolve(c)
+	svState := sv.StateVector()
+
+	fid := dm.Fidelity(svState)
+	if math.Abs(fid-1.0) > 1e-8 {
+		t.Errorf("MCZ(2) fidelity = %f, want 1.0", fid)
+	}
+}
+
+func TestEvolveControlledH(t *testing.T) {
+	// C2-H on |110>: density matrix should match statevector.
+	c, _ := builder.New("c2h", 3).
+		X(0).X(1).
+		Apply(gate.Controlled(gate.H, 2), 0, 1, 2).
+		Build()
+
+	dm := New(3)
+	if err := dm.Evolve(c); err != nil {
+		t.Fatal(err)
+	}
+
+	sv := statevector.New(3)
+	sv.Evolve(c)
+	svState := sv.StateVector()
+
+	fid := dm.Fidelity(svState)
+	if math.Abs(fid-1.0) > 1e-6 {
+		t.Errorf("C2-H fidelity = %f, want 1.0", fid)
+	}
+}
+
+func TestEvolveMCP(t *testing.T) {
+	// MCP(π, 2) on |111>: should apply phase π to |111> (equivalent to MCZ).
+	c, _ := builder.New("mcp", 3).
+		X(0).X(1).X(2).
+		Apply(gate.MCP(math.Pi, 2), 0, 1, 2).
+		Build()
+
+	dm := New(3)
+	if err := dm.Evolve(c); err != nil {
+		t.Fatal(err)
+	}
+
+	sv := statevector.New(3)
+	sv.Evolve(c)
+	svState := sv.StateVector()
+
+	// |111> = index 7, should get -1 phase.
+	if cmplx.Abs(svState[7]-(-1)) > 1e-8 {
+		t.Errorf("MCP(π,2) sv[7] = %v, want -1", svState[7])
+	}
+
+	fid := dm.Fidelity(svState)
+	if math.Abs(fid-1.0) > 1e-8 {
+		t.Errorf("MCP(π,2) fidelity = %f, want 1.0", fid)
+	}
+}
