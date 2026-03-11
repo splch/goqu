@@ -134,9 +134,9 @@ func (s *Sim) applyControlledGate2(controls []int, t0, t1 int, m []complex128) {
 			continue
 		}
 		idx := [4]int{
-			i,           // 00
-			i | mask1,   // 01
-			i | mask0,   // 10
+			i,                 // 00
+			i | mask1,         // 01
+			i | mask0,         // 10
 			i | mask0 | mask1, // 11
 		}
 		var a [4]complex128

@@ -10,9 +10,9 @@ import (
 
 func TestControlledSingletonReturns(t *testing.T) {
 	tests := []struct {
-		inner    gate.Gate
-		nCtrl   int
-		want    gate.Gate
+		inner gate.Gate
+		nCtrl int
+		want  gate.Gate
 	}{
 		{gate.X, 1, gate.CNOT},
 		{gate.Z, 1, gate.CZ},

@@ -61,10 +61,10 @@ func MCP(phi float64, nControls int) Gate {
 	return Controlled(Phase(phi), nControls)
 }
 
-func (g *controlled) Name() string    { return g.name }
-func (g *controlled) Qubits() int     { return g.nControls + g.inner.Qubits() }
-func (g *controlled) Inner() Gate     { return g.inner }
-func (g *controlled) NumControls() int { return g.nControls }
+func (g *controlled) Name() string      { return g.name }
+func (g *controlled) Qubits() int       { return g.nControls + g.inner.Qubits() }
+func (g *controlled) Inner() Gate       { return g.inner }
+func (g *controlled) NumControls() int  { return g.nControls }
 func (g *controlled) Params() []float64 { return g.inner.Params() }
 
 func (g *controlled) Inverse() Gate {

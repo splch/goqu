@@ -144,26 +144,34 @@ func (b *Builder) CCX(c0, c1, target int) *Builder {
 
 // MCX applies a multi-controlled X gate.
 func (b *Builder) MCX(controls []int, target int) *Builder {
-	qubits := append(controls, target)
+	qubits := make([]int, len(controls)+1)
+	copy(qubits, controls)
+	qubits[len(controls)] = target
 	return b.Apply(gate.MCX(len(controls)), qubits...)
 }
 
 // MCZ applies a multi-controlled Z gate.
 func (b *Builder) MCZ(controls []int, target int) *Builder {
-	qubits := append(controls, target)
+	qubits := make([]int, len(controls)+1)
+	copy(qubits, controls)
+	qubits[len(controls)] = target
 	return b.Apply(gate.MCZ(len(controls)), qubits...)
 }
 
 // MCP applies a multi-controlled Phase gate.
 func (b *Builder) MCP(phi float64, controls []int, target int) *Builder {
-	qubits := append(controls, target)
+	qubits := make([]int, len(controls)+1)
+	copy(qubits, controls)
+	qubits[len(controls)] = target
 	return b.Apply(gate.MCP(phi, len(controls)), qubits...)
 }
 
 // Ctrl wraps any gate with additional control qubits.
 func (b *Builder) Ctrl(g gate.Gate, controls []int, targets ...int) *Builder {
 	cg := gate.Controlled(g, len(controls))
-	qubits := append(controls, targets...)
+	qubits := make([]int, len(controls)+len(targets))
+	copy(qubits, controls)
+	copy(qubits[len(controls):], targets)
 	return b.Apply(cg, qubits...)
 }
 
