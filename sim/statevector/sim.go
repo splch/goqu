@@ -71,9 +71,9 @@ func (s *Sim) Evolve(c *ir.Circuit) error {
 		case 1:
 			s.applyGate1(op.Qubits[0], op.Gate.Matrix())
 		case 2:
-			s.applyGate2(op.Qubits[0], op.Qubits[1], op.Gate.Matrix())
+			s.dispatchGate2(op.Gate, op.Qubits[0], op.Qubits[1])
 		case 3:
-			s.applyGate3(op.Qubits[0], op.Qubits[1], op.Qubits[2], op.Gate.Matrix())
+			s.dispatchGate3(op.Gate, op.Qubits[0], op.Qubits[1], op.Qubits[2])
 		default:
 			return fmt.Errorf("unsupported gate size: %d qubits", op.Gate.Qubits())
 		}
@@ -141,68 +141,6 @@ func (s *Sim) applyGate1Parallel(qubit int, m []complex128) {
 		}(startBlock, endBlock)
 	}
 	wg.Wait()
-}
-
-// applyGate2 applies a two-qubit gate.
-// Matrix convention: row/col index bit 1 (MSB) = q0, bit 0 (LSB) = q1.
-func (s *Sim) applyGate2(q0, q1 int, m []complex128) {
-	mask0, mask1 := 1<<q0, 1<<q1
-	n := len(s.state)
-	for i := range n {
-		if i&mask0 != 0 || i&mask1 != 0 {
-			continue
-		}
-		// Map matrix rows to state indices: row bit1=q0, bit0=q1.
-		idx := [4]int{
-			i,              // |00>: q0=0, q1=0
-			i | mask1,      // |01>: q0=0, q1=1
-			i | mask0,      // |10>: q0=1, q1=0
-			i | mask0 | mask1, // |11>: q0=1, q1=1
-		}
-		a := [4]complex128{s.state[idx[0]], s.state[idx[1]], s.state[idx[2]], s.state[idx[3]]}
-		s.state[idx[0]] = m[0]*a[0] + m[1]*a[1] + m[2]*a[2] + m[3]*a[3]
-		s.state[idx[1]] = m[4]*a[0] + m[5]*a[1] + m[6]*a[2] + m[7]*a[3]
-		s.state[idx[2]] = m[8]*a[0] + m[9]*a[1] + m[10]*a[2] + m[11]*a[3]
-		s.state[idx[3]] = m[12]*a[0] + m[13]*a[1] + m[14]*a[2] + m[15]*a[3]
-	}
-}
-
-// applyGate3 applies a three-qubit gate.
-// Matrix convention: row/col bit 2 (MSB) = q0, bit 1 = q1, bit 0 (LSB) = q2.
-func (s *Sim) applyGate3(q0, q1, q2 int, m []complex128) {
-	mask0, mask1, mask2 := 1<<q0, 1<<q1, 1<<q2
-	n := len(s.state)
-	for i := range n {
-		if i&mask0 != 0 || i&mask1 != 0 || i&mask2 != 0 {
-			continue
-		}
-		// Map matrix rows: bit2=q0, bit1=q1, bit0=q2.
-		var indices [8]int
-		for r := range 8 {
-			idx := i
-			if r&4 != 0 {
-				idx |= mask0
-			}
-			if r&2 != 0 {
-				idx |= mask1
-			}
-			if r&1 != 0 {
-				idx |= mask2
-			}
-			indices[r] = idx
-		}
-		var a [8]complex128
-		for j := range 8 {
-			a[j] = s.state[indices[j]]
-		}
-		for r := range 8 {
-			var sum complex128
-			for c := range 8 {
-				sum += m[r*8+c] * a[c]
-			}
-			s.state[indices[r]] = sum
-		}
-	}
 }
 
 func (s *Sim) probabilities() []float64 {
