@@ -221,7 +221,7 @@ func (b *Backend) Result(ctx context.Context, jobID string) (*backend.Result, er
 	if err != nil {
 		return nil, fmt.Errorf("braket: fetch results from s3://%s/%s: %w", bucket, key, err)
 	}
-	defer s3Out.Body.Close()
+	defer func() { _ = s3Out.Body.Close() }()
 
 	data, err := io.ReadAll(s3Out.Body)
 	if err != nil {
@@ -239,7 +239,7 @@ func (b *Backend) Result(ctx context.Context, jobID string) (*backend.Result, er
 				Shots int `json:"shots"`
 			} `json:"taskMetadata"`
 		}
-		json.Unmarshal(data, &raw) // best effort
+		_ = json.Unmarshal(data, &raw) // best effort
 		shots = raw.TaskMetadata.Shots
 	}
 
