@@ -2,11 +2,15 @@ package manager
 
 import (
 	"context"
+	"math"
 	"testing"
 	"time"
 
 	"github.com/splch/qgo/backend"
 	"github.com/splch/qgo/backend/mock"
+	"github.com/splch/qgo/circuit/builder"
+	"github.com/splch/qgo/circuit/param"
+	"github.com/splch/qgo/sweep"
 )
 
 func TestSubmitSync(t *testing.T) {
@@ -195,4 +199,39 @@ func TestWatch_NonexistentBackend(t *testing.T) {
 	}
 	// Channel should close quickly (either with error status or empty).
 	// Just verify it closes within timeout and doesn't hang.
+}
+
+func TestSubmitSweep(t *testing.T) {
+	m := New(WithPollFrequency(time.Millisecond))
+	m.Register("sim", mock.New("sim", mock.WithStatusSequence(
+		backend.StateCompleted,
+	)))
+
+	theta := param.New("theta")
+	c, err := builder.New("ry", 1).
+		SymRY(theta.Expr(), 0).
+		MeasureAll().
+		Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	sw := sweep.Linspace{Key: "theta", Start: 0, Stop: math.Pi, Count: 3}
+	ch := m.SubmitSweep(context.Background(), "sim", c, 100, sw)
+
+	results := make(map[int]SweepResultOrError)
+	for roe := range ch {
+		if roe.Err != nil {
+			t.Errorf("sweep point %d: %v", roe.Index, roe.Err)
+		}
+		results[roe.Index] = roe
+	}
+	if len(results) != 3 {
+		t.Errorf("got %d results, want 3", len(results))
+	}
+	for i := 0; i < 3; i++ {
+		if _, ok := results[i]; !ok {
+			t.Errorf("missing result for index %d", i)
+		}
+	}
 }

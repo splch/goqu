@@ -22,6 +22,9 @@ type Hooks struct {
 	// WrapHTTP is called around backend HTTP requests.
 	WrapHTTP func(ctx context.Context, info HTTPInfo) (context.Context, func(statusCode int, err error))
 
+	// WrapSweep is called around a parameter sweep execution.
+	WrapSweep func(ctx context.Context, info SweepInfo) (context.Context, func(err error))
+
 	// OnJobPoll is called each time a job is polled for status.
 	OnJobPoll func(ctx context.Context, info JobPollInfo)
 }
@@ -64,6 +67,14 @@ type HTTPInfo struct {
 	Method  string
 	Path    string
 	Backend string
+}
+
+// SweepInfo describes a parameter sweep execution.
+type SweepInfo struct {
+	NumPoints int
+	NumParams int
+	Shots     int
+	NumQubits int
 }
 
 type hooksKey struct{}
