@@ -160,3 +160,39 @@ func SymCP(phi Expr) gate.Gate {
 		},
 	}
 }
+
+// SymRXX creates a symbolic Ising XX gate.
+func SymRXX(theta Expr) gate.Gate {
+	return &symbolicGate{
+		baseName: "RXX",
+		nQubits:  2,
+		exprs:    []Expr{theta},
+		constructor: func(p []float64) gate.Gate {
+			return gate.RXX(p[0])
+		},
+	}
+}
+
+// SymRYY creates a symbolic Ising YY gate.
+func SymRYY(theta Expr) gate.Gate {
+	return &symbolicGate{
+		baseName: "RYY",
+		nQubits:  2,
+		exprs:    []Expr{theta},
+		constructor: func(p []float64) gate.Gate {
+			return gate.RYY(p[0])
+		},
+	}
+}
+
+// SymRZZ creates a symbolic Ising ZZ gate.
+func SymRZZ(theta Expr) gate.Gate {
+	return &symbolicGate{
+		baseName: "RZZ",
+		nQubits:  2,
+		exprs:    []Expr{theta},
+		constructor: func(p []float64) gate.Gate {
+			return gate.RZZ(p[0])
+		},
+	}
+}

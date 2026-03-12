@@ -244,6 +244,12 @@ func qasmGateName(name string) string {
 			return "cry"
 		case "CRZ":
 			return "crz"
+		case "RXX":
+			return "rxx"
+		case "RYY":
+			return "ryy"
+		case "RZZ":
+			return "rzz"
 		}
 	}
 	return strings.ToLower(name)

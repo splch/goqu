@@ -214,6 +214,38 @@ func decompose2qToCX(g gate.Gate, qubits []int) []ir.Operation {
 			{Gate: gate.RY(-theta / 2), Qubits: []int{q1}},
 			{Gate: gate.CNOT, Qubits: []int{q0, q1}},
 		}
+	case "RZZ":
+		// RZZ(θ) = CX(q0,q1)·RZ(θ,q1)·CX(q0,q1)
+		theta := params[0]
+		return []ir.Operation{
+			{Gate: gate.CNOT, Qubits: []int{q0, q1}},
+			{Gate: gate.RZ(theta), Qubits: []int{q1}},
+			{Gate: gate.CNOT, Qubits: []int{q0, q1}},
+		}
+	case "RXX":
+		// RXX(θ) = H(q0)·H(q1)·CX(q0,q1)·RZ(θ,q1)·CX(q0,q1)·H(q0)·H(q1)
+		theta := params[0]
+		return []ir.Operation{
+			{Gate: gate.H, Qubits: []int{q0}},
+			{Gate: gate.H, Qubits: []int{q1}},
+			{Gate: gate.CNOT, Qubits: []int{q0, q1}},
+			{Gate: gate.RZ(theta), Qubits: []int{q1}},
+			{Gate: gate.CNOT, Qubits: []int{q0, q1}},
+			{Gate: gate.H, Qubits: []int{q0}},
+			{Gate: gate.H, Qubits: []int{q1}},
+		}
+	case "RYY":
+		// RYY(θ) = RX(π/2,q0)·RX(π/2,q1)·CX(q0,q1)·RZ(θ,q1)·CX(q0,q1)·RX(-π/2,q0)·RX(-π/2,q1)
+		theta := params[0]
+		return []ir.Operation{
+			{Gate: gate.RX(math.Pi / 2), Qubits: []int{q0}},
+			{Gate: gate.RX(math.Pi / 2), Qubits: []int{q1}},
+			{Gate: gate.CNOT, Qubits: []int{q0, q1}},
+			{Gate: gate.RZ(theta), Qubits: []int{q1}},
+			{Gate: gate.CNOT, Qubits: []int{q0, q1}},
+			{Gate: gate.RX(-math.Pi / 2), Qubits: []int{q0}},
+			{Gate: gate.RX(-math.Pi / 2), Qubits: []int{q1}},
+		}
 	}
 	return nil
 }

@@ -54,6 +54,17 @@ func (s *Sim) dispatchGate2(g gate.Gate, q0, q1 int) {
 		}
 		return
 	}
+	if strings.HasPrefix(name, "RZZ(") {
+		m := g.Matrix()
+		// Fully diagonal: apply phase factors to all 4 basis states.
+		d0, d1, d2, d3 := m[0], m[5], m[10], m[15]
+		if parallel {
+			s.kernel2qFullDiagonalParallel(q0, q1, d0, d1, d2, d3)
+		} else {
+			s.kernel2qFullDiagonal(q0, q1, d0, d1, d2, d3)
+		}
+		return
+	}
 	if strings.HasPrefix(name, "CRX(") || strings.HasPrefix(name, "CRY(") {
 		m := g.Matrix()
 		if parallel {
@@ -168,6 +179,25 @@ func (s *Sim) kernel2qDiagonal(q0, q1 int, d2, d3 complex128) {
 				i11 := offset | mask0 | mask1
 				s.state[i10] *= d2
 				s.state[i11] *= d3
+			}
+		}
+	}
+}
+
+// kernel2qFullDiagonal handles fully diagonal 2Q gates (e.g., RZZ) where each
+// of the 4 basis states gets a phase factor. ~4x faster than generic.
+func (s *Sim) kernel2qFullDiagonal(q0, q1 int, d0, d1, d2, d3 complex128) {
+	mask0, mask1, lo, hi := blockStride2(q0, q1)
+	n := len(s.state)
+	loMask := 1 << lo
+	hiMask := 1 << hi
+	for hi0 := 0; hi0 < n; hi0 += hiMask << 1 {
+		for lo0 := hi0; lo0 < hi0+hiMask; lo0 += loMask << 1 {
+			for offset := lo0; offset < lo0+loMask; offset++ {
+				s.state[offset] *= d0
+				s.state[offset|mask1] *= d1
+				s.state[offset|mask0] *= d2
+				s.state[offset|mask0|mask1] *= d3
 			}
 		}
 	}
@@ -392,6 +422,40 @@ func (s *Sim) kernel2qDiagonalParallel(q0, q1 int, d2, d3 complex128) {
 						i11 := offset | mask0 | mask1
 						s.state[i10] *= d2
 						s.state[i11] *= d3
+					}
+				}
+			}
+		}(startBlock, endBlock)
+	}
+	wg.Wait()
+}
+
+func (s *Sim) kernel2qFullDiagonalParallel(q0, q1 int, d0, d1, d2, d3 complex128) {
+	mask0, mask1, lo, hi := blockStride2(q0, q1)
+	loMask := 1 << lo
+	hiMask := 1 << hi
+	hiStep := hiMask << 1
+	nBlocks, nWorkers := s.parallelBlocks2(hiMask)
+	blocksPerWorker := nBlocks / nWorkers
+
+	var wg sync.WaitGroup
+	wg.Add(nWorkers)
+	for w := range nWorkers {
+		startBlock := w * blocksPerWorker
+		endBlock := startBlock + blocksPerWorker
+		if w == nWorkers-1 {
+			endBlock = nBlocks
+		}
+		go func(sb, eb int) {
+			defer wg.Done()
+			for b := sb; b < eb; b++ {
+				hi0 := b * hiStep
+				for lo0 := hi0; lo0 < hi0+hiMask; lo0 += loMask << 1 {
+					for offset := lo0; offset < lo0+loMask; offset++ {
+						s.state[offset] *= d0
+						s.state[offset|mask1] *= d1
+						s.state[offset|mask0] *= d2
+						s.state[offset|mask0|mask1] *= d3
 					}
 				}
 			}

@@ -184,6 +184,77 @@ func CRY(theta float64) Gate {
 	}
 }
 
+// RXX returns the Ising XX gate: exp(-i * theta/2 * X⊗X).
+//
+//	c = cos(θ/2), s = sin(θ/2)
+//	[[c, 0, 0, -is],
+//	 [0, c, -is, 0],
+//	 [0, -is, c, 0],
+//	 [-is, 0, 0, c]]
+func RXX(theta float64) Gate {
+	c, s := math.Cos(theta/2), math.Sin(theta/2)
+	is := complex(0, -s)
+	cc := complex(c, 0)
+	return &parameterized{
+		name:   fmt.Sprintf("RXX(%.4f)", theta),
+		n:      2,
+		params: []float64{theta},
+		matrix: []complex128{
+			cc, 0, 0, is,
+			0, cc, is, 0,
+			0, is, cc, 0,
+			is, 0, 0, cc,
+		},
+	}
+}
+
+// RYY returns the Ising YY gate: exp(-i * theta/2 * Y⊗Y).
+//
+//	c = cos(θ/2), s = sin(θ/2)
+//	[[c, 0, 0, is],
+//	 [0, c, -is, 0],
+//	 [0, -is, c, 0],
+//	 [is, 0, 0, c]]
+func RYY(theta float64) Gate {
+	c, s := math.Cos(theta/2), math.Sin(theta/2)
+	is := complex(0, s)
+	nis := complex(0, -s)
+	cc := complex(c, 0)
+	return &parameterized{
+		name:   fmt.Sprintf("RYY(%.4f)", theta),
+		n:      2,
+		params: []float64{theta},
+		matrix: []complex128{
+			cc, 0, 0, is,
+			0, cc, nis, 0,
+			0, nis, cc, 0,
+			is, 0, 0, cc,
+		},
+	}
+}
+
+// RZZ returns the Ising ZZ gate: exp(-i * theta/2 * Z⊗Z).
+//
+//	[[exp(-iθ/2), 0, 0, 0],
+//	 [0, exp(iθ/2), 0, 0],
+//	 [0, 0, exp(iθ/2), 0],
+//	 [0, 0, 0, exp(-iθ/2)]]
+func RZZ(theta float64) Gate {
+	em := cmplx.Exp(complex(0, -theta/2))
+	ep := cmplx.Exp(complex(0, theta/2))
+	return &parameterized{
+		name:   fmt.Sprintf("RZZ(%.4f)", theta),
+		n:      2,
+		params: []float64{theta},
+		matrix: []complex128{
+			em, 0, 0, 0,
+			0, ep, 0, 0,
+			0, 0, ep, 0,
+			0, 0, 0, em,
+		},
+	}
+}
+
 // GPI returns an IonQ native GPI gate.
 //
 //	[[0, exp(-iφ)],

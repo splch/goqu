@@ -768,6 +768,21 @@ func (p *parser) resolveGate(name string, params []float64) (gate.Gate, error) {
 			return nil, fmt.Errorf("crz requires 1 parameter, got %d", len(params))
 		}
 		return gate.CRZ(params[0]), nil
+	case "rxx":
+		if len(params) != 1 {
+			return nil, fmt.Errorf("rxx requires 1 parameter, got %d", len(params))
+		}
+		return gate.RXX(params[0]), nil
+	case "ryy":
+		if len(params) != 1 {
+			return nil, fmt.Errorf("ryy requires 1 parameter, got %d", len(params))
+		}
+		return gate.RYY(params[0]), nil
+	case "rzz":
+		if len(params) != 1 {
+			return nil, fmt.Errorf("rzz requires 1 parameter, got %d", len(params))
+		}
+		return gate.RZZ(params[0]), nil
 	case "gphase":
 		// Global phase — no qubits, just a parameter. Treat as identity for IR.
 		return gate.I, nil

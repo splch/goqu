@@ -4,7 +4,8 @@
 // Fixed gates ([I], [H], [X], [Y], [Z], [S], [Sdg], [T], [Tdg], [SX],
 // [CNOT], [CZ], [CY], [SWAP], [CCX], [CSWAP]) are package-level singletons
 // requiring zero allocation. Parameterized gates ([RX], [RY], [RZ], [Phase],
-// [U3], [CP], [CRX], [CRY], [CRZ]) are created via constructor functions.
+// [U3], [CP], [CRX], [CRY], [CRZ], [RXX], [RYY], [RZZ]) are created via
+// constructor functions.
 //
 // [Unitary] and [MustUnitary] create custom gates from user-provided matrices
 // with unitarity validation. Multi-controlled gates are built with [MCX],

@@ -16,6 +16,7 @@ func TestUnitarity(t *testing.T) {
 		RX(math.Pi / 4), RY(math.Pi / 3), RZ(math.Pi / 6),
 		Phase(math.Pi / 4), U3(math.Pi/4, math.Pi/3, math.Pi/6),
 		CP(math.Pi / 4), CRZ(math.Pi / 3), CRX(math.Pi / 4), CRY(math.Pi / 5),
+		RXX(math.Pi / 4), RYY(math.Pi / 3), RZZ(math.Pi / 6),
 		GPI(math.Pi / 4), GPI2(math.Pi / 3), MS(math.Pi/4, math.Pi/6),
 	}
 	for _, g := range gates {
@@ -56,6 +57,7 @@ func TestInverse(t *testing.T) {
 		I, H, X, Y, Z, S, Sdg, T, Tdg, SX,
 		CNOT, CZ, SWAP, CY,
 		RX(math.Pi / 4), RY(math.Pi / 3), RZ(math.Pi / 6),
+		RXX(math.Pi / 4), RYY(math.Pi / 3), RZZ(math.Pi / 6),
 	}
 	for _, g := range gates {
 		t.Run(g.Name(), func(t *testing.T) {
@@ -131,6 +133,42 @@ func TestParameterizedGates(t *testing.T) {
 	// Phase(0) = I
 	m = Phase(0).Matrix()
 	assertMatrixClose(t, "Phase(0)", m, []complex128{1, 0, 0, 1})
+
+	// RXX(0) = I (4x4)
+	m = RXX(0).Matrix()
+	assertMatrixClose(t, "RXX(0)", m, []complex128{
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1,
+	})
+
+	// RYY(0) = I (4x4)
+	m = RYY(0).Matrix()
+	assertMatrixClose(t, "RYY(0)", m, []complex128{
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1,
+	})
+
+	// RZZ(0) = I (4x4)
+	m = RZZ(0).Matrix()
+	assertMatrixClose(t, "RZZ(0)", m, []complex128{
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1,
+	})
+
+	// RZZ(pi) = diag(-i, i, i, -i)
+	m = RZZ(math.Pi).Matrix()
+	assertMatrixClose(t, "RZZ(pi)", m, []complex128{
+		-1i, 0, 0, 0,
+		0, 1i, 0, 0,
+		0, 0, 1i, 0,
+		0, 0, 0, -1i,
+	})
 }
 
 func assertMatrixClose(t *testing.T, name string, got, want []complex128) {

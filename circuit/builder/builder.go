@@ -206,6 +206,15 @@ func (b *Builder) Unitary(name string, matrix []complex128, qubits ...int) *Buil
 	return b.Apply(g, qubits...)
 }
 
+// RXX applies an Ising XX rotation gate.
+func (b *Builder) RXX(theta float64, q0, q1 int) *Builder { return b.Apply(gate.RXX(theta), q0, q1) }
+
+// RYY applies an Ising YY rotation gate.
+func (b *Builder) RYY(theta float64, q0, q1 int) *Builder { return b.Apply(gate.RYY(theta), q0, q1) }
+
+// RZZ applies an Ising ZZ rotation gate.
+func (b *Builder) RZZ(theta float64, q0, q1 int) *Builder { return b.Apply(gate.RZZ(theta), q0, q1) }
+
 // SymRX applies a symbolic RX gate.
 func (b *Builder) SymRX(theta param.Expr, q int) *Builder {
 	return b.Apply(param.SymRX(theta), q)
@@ -234,6 +243,21 @@ func (b *Builder) SymU3(theta, phi, lambda param.Expr, q int) *Builder {
 // SymCP applies a symbolic controlled-phase gate.
 func (b *Builder) SymCP(phi param.Expr, q0, q1 int) *Builder {
 	return b.Apply(param.SymCP(phi), q0, q1)
+}
+
+// SymRXX applies a symbolic Ising XX gate.
+func (b *Builder) SymRXX(theta param.Expr, q0, q1 int) *Builder {
+	return b.Apply(param.SymRXX(theta), q0, q1)
+}
+
+// SymRYY applies a symbolic Ising YY gate.
+func (b *Builder) SymRYY(theta param.Expr, q0, q1 int) *Builder {
+	return b.Apply(param.SymRYY(theta), q0, q1)
+}
+
+// SymRZZ applies a symbolic Ising ZZ gate.
+func (b *Builder) SymRZZ(theta param.Expr, q0, q1 int) *Builder {
+	return b.Apply(param.SymRZZ(theta), q0, q1)
 }
 
 // Measure adds a measurement of qubit to classical bit.
