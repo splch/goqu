@@ -380,3 +380,146 @@ measure q;
 		t.Errorf("len(Ops) = %d, want 2", len(c.Ops()))
 	}
 }
+
+func TestParse_PowModifier(t *testing.T) {
+	c, err := ParseString(`
+OPENQASM 3.0;
+include "stdgates.inc";
+qubit[1] q;
+pow(2) @ h q[0];
+`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(c.Ops()) != 1 {
+		t.Fatalf("len(Ops) = %d, want 1", len(c.Ops()))
+	}
+	// H^2 = I, so the gate should be approximately identity.
+	m := c.Ops()[0].Gate.Matrix()
+	if len(m) != 4 {
+		t.Fatalf("matrix len = %d, want 4", len(m))
+	}
+	// Check diagonal ~1, off-diagonal ~0.
+	const tol = 1e-10
+	if math.Abs(real(m[0])-1) > tol || math.Abs(real(m[3])-1) > tol {
+		t.Errorf("pow(2) @ h diagonal = (%v, %v), want (1, 1)", m[0], m[3])
+	}
+	if math.Abs(real(m[1])) > tol || math.Abs(real(m[2])) > tol {
+		t.Errorf("pow(2) @ h off-diagonal = (%v, %v), want (0, 0)", m[1], m[2])
+	}
+}
+
+func TestParse_PowZero(t *testing.T) {
+	c, err := ParseString(`
+OPENQASM 3.0;
+include "stdgates.inc";
+qubit[1] q;
+pow(0) @ x q[0];
+`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(c.Ops()) != 1 {
+		t.Fatalf("len(Ops) = %d, want 1", len(c.Ops()))
+	}
+	// X^0 = I
+	m := c.Ops()[0].Gate.Matrix()
+	const tol = 1e-10
+	if math.Abs(real(m[0])-1) > tol || math.Abs(real(m[3])-1) > tol {
+		t.Errorf("pow(0) @ x should be identity")
+	}
+}
+
+func TestParse_NegctrlModifier(t *testing.T) {
+	c, err := ParseString(`
+OPENQASM 3.0;
+include "stdgates.inc";
+qubit[2] q;
+negctrl @ x q[0], q[1];
+`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// negctrl @ x => X(q0), CNOT(q0,q1), X(q0)
+	ops := c.Ops()
+	if len(ops) != 3 {
+		t.Fatalf("len(Ops) = %d, want 3 (X + CNOT + X)", len(ops))
+	}
+	// First and last ops should be X on q[0]
+	if ops[0].Gate.Name() != "X" || ops[0].Qubits[0] != 0 {
+		t.Errorf("ops[0] = %s on %v, want X on [0]", ops[0].Gate.Name(), ops[0].Qubits)
+	}
+	if ops[2].Gate.Name() != "X" || ops[2].Qubits[0] != 0 {
+		t.Errorf("ops[2] = %s on %v, want X on [0]", ops[2].Gate.Name(), ops[2].Qubits)
+	}
+	// Middle op should be CNOT on q[0], q[1]
+	if ops[1].Gate.Name() != "CNOT" {
+		t.Errorf("ops[1].Gate.Name() = %q, want CNOT", ops[1].Gate.Name())
+	}
+}
+
+func TestParse_CtrlNegctrlMixed(t *testing.T) {
+	c, err := ParseString(`
+OPENQASM 3.0;
+include "stdgates.inc";
+qubit[3] q;
+ctrl @ negctrl @ x q[0], q[1], q[2];
+`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// ctrl @ negctrl @ x => X(q1), CCX(q0,q1,q2), X(q1)
+	ops := c.Ops()
+	if len(ops) != 3 {
+		t.Fatalf("len(Ops) = %d, want 3 (X + CCX + X)", len(ops))
+	}
+	// X sandwich on q[1] (the negctrl qubit, position 1)
+	if ops[0].Gate.Name() != "X" || ops[0].Qubits[0] != 1 {
+		t.Errorf("ops[0] = %s on %v, want X on [1]", ops[0].Gate.Name(), ops[0].Qubits)
+	}
+	if ops[2].Gate.Name() != "X" || ops[2].Qubits[0] != 1 {
+		t.Errorf("ops[2] = %s on %v, want X on [1]", ops[2].Gate.Name(), ops[2].Qubits)
+	}
+	// Middle should be CCX (Toffoli)
+	if ops[1].Gate.Name() != "CCX" {
+		t.Errorf("ops[1].Gate.Name() = %q, want CCX", ops[1].Gate.Name())
+	}
+}
+
+func TestParse_PowNonIntegerError(t *testing.T) {
+	_, err := ParseString(`
+OPENQASM 3.0;
+include "stdgates.inc";
+qubit[1] q;
+pow(0.5) @ h q[0];
+`)
+	if err == nil {
+		t.Fatal("expected error for non-integer pow exponent")
+	}
+}
+
+func TestParse_PowWithCtrl(t *testing.T) {
+	c, err := ParseString(`
+OPENQASM 3.0;
+include "stdgates.inc";
+qubit[2] q;
+ctrl @ pow(2) @ s q[0], q[1];
+`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// pow(2) @ s = Z, then ctrl @ Z = CZ (matrix-equivalent)
+	ops := c.Ops()
+	if len(ops) != 1 {
+		t.Fatalf("len(Ops) = %d, want 1", len(ops))
+	}
+	// Verify the matrix matches CZ: diag(1, 1, 1, -1)
+	m := ops[0].Gate.Matrix()
+	const tol = 1e-10
+	want := []complex128{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1}
+	for i := range want {
+		if math.Abs(real(m[i])-real(want[i])) > tol || math.Abs(imag(m[i])-imag(want[i])) > tol {
+			t.Errorf("ctrl @ pow(2) @ s matrix[%d] = %v, want %v", i, m[i], want[i])
+		}
+	}
+}

@@ -592,9 +592,16 @@ func (p *parser) parseIf() error {
 }
 
 func (p *parser) parseGateCall() error {
-	// Handle gate modifiers: ctrl @, inv @, pow(k) @
+	// Handle gate modifiers: ctrl @, negctrl @, inv @, pow(k) @
 	ctrlCount := 0
+	negctrlCount := 0
 	invCount := 0
+	powK := 0
+	hasPow := false
+	// Track which control qubit positions (0-indexed from start of qubit list)
+	// are negative controls, to sandwich with X gates.
+	var negctrlPositions []int
+	totalCtrlSoFar := 0
 	for p.peek() == token.CTRL || p.peek() == token.NEGCTRL || p.peek() == token.INV || p.peek() == token.POW {
 		modTok := p.advance() // consume modifier keyword
 		switch modTok.Type {
@@ -613,21 +620,47 @@ func (p *parser) parseGateCall() error {
 				}
 			}
 			ctrlCount += n
-		case token.INV:
-			invCount++
-		default:
-			// NEGCTRL, POW: consume parameters but don't apply.
+			totalCtrlSoFar += n
+		case token.NEGCTRL:
+			n := 1
 			if p.peek() == token.LPAREN {
 				p.advance()
-				_, err := p.parseExpr()
+				v, err := p.parseExpr()
 				if err != nil {
 					return err
 				}
+				n = int(v)
 				_, err = p.expect(token.RPAREN)
 				if err != nil {
 					return err
 				}
 			}
+			for i := range n {
+				negctrlPositions = append(negctrlPositions, totalCtrlSoFar+i)
+			}
+			negctrlCount += n
+			totalCtrlSoFar += n
+		case token.INV:
+			invCount++
+		case token.POW:
+			if p.peek() != token.LPAREN {
+				return fmt.Errorf("line %d: pow modifier requires parenthesized exponent", modTok.Line)
+			}
+			p.advance()
+			v, err := p.parseExpr()
+			if err != nil {
+				return err
+			}
+			_, err = p.expect(token.RPAREN)
+			if err != nil {
+				return err
+			}
+			k := int(math.Round(v))
+			if math.Abs(v-float64(k)) > 1e-10 {
+				return fmt.Errorf("line %d: pow modifier requires integer exponent, got %v", modTok.Line, v)
+			}
+			hasPow = true
+			powK = k
 		}
 		_, err := p.expect(token.AT)
 		if err != nil {
@@ -681,9 +714,15 @@ func (p *parser) parseGateCall() error {
 		g = opaqueGate{name: gateName, n: innerQubits, params: params}
 	}
 
-	// Apply ctrl modifier: wrap the resolved gate with control qubits.
-	if ctrlCount > 0 {
-		g = gate.Controlled(g, ctrlCount)
+	// Apply pow modifier: raise gate to integer power.
+	if hasPow {
+		g = gate.Pow(g, powK)
+	}
+
+	// Apply ctrl + negctrl modifier: wrap with total control qubits.
+	totalControls := ctrlCount + negctrlCount
+	if totalControls > 0 {
+		g = gate.Controlled(g, totalControls)
 	}
 
 	// Apply inv modifier: take inverse for each inv @ encountered.
@@ -691,7 +730,18 @@ func (p *parser) parseGateCall() error {
 		g = g.Inverse()
 	}
 
+	// Emit X gates on negctrl qubits before the operation.
+	for _, pos := range negctrlPositions {
+		p.ops = append(p.ops, ir.Operation{Gate: gate.X, Qubits: []int{qubits[pos]}})
+	}
+
 	p.ops = append(p.ops, ir.Operation{Gate: g, Qubits: qubits})
+
+	// Emit X gates on negctrl qubits after the operation.
+	for _, pos := range negctrlPositions {
+		p.ops = append(p.ops, ir.Operation{Gate: gate.X, Qubits: []int{qubits[pos]}})
+	}
+
 	return nil
 }
 
