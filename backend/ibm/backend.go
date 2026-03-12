@@ -82,6 +82,9 @@ func (b *Backend) Target() target.Target { return b.tgt }
 
 // Submit sends a circuit to IBM Quantum for execution.
 func (b *Backend) Submit(ctx context.Context, req *backend.SubmitRequest) (*backend.Job, error) {
+	if req.PulseProgram != nil {
+		return nil, fmt.Errorf("ibm: pulse programs are not supported (IBM deprecated Qiskit Pulse in Feb 2025)")
+	}
 	if req.Circuit == nil {
 		return nil, fmt.Errorf("ibm: nil circuit")
 	}

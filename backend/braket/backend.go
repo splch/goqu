@@ -101,10 +101,13 @@ func New(cfg aws.Config, opts ...Option) *Backend {
 func (b *Backend) Name() string          { return "braket." + b.device }
 func (b *Backend) Target() target.Target { return b.tgt }
 
-// Submit sends a circuit to Amazon Braket for execution.
+// Submit sends a circuit or pulse program to Amazon Braket for execution.
 func (b *Backend) Submit(ctx context.Context, req *backend.SubmitRequest) (*backend.Job, error) {
-	if req.Circuit == nil {
-		return nil, fmt.Errorf("braket: nil circuit")
+	if req.Circuit == nil && req.PulseProgram == nil {
+		return nil, fmt.Errorf("braket: either Circuit or PulseProgram must be set")
+	}
+	if req.Circuit != nil && req.PulseProgram != nil {
+		return nil, fmt.Errorf("braket: cannot set both Circuit and PulseProgram")
 	}
 	if req.Shots <= 0 {
 		return nil, fmt.Errorf("braket: shots must be positive")
@@ -116,17 +119,28 @@ func (b *Backend) Submit(ctx context.Context, req *backend.SubmitRequest) (*back
 		return nil, fmt.Errorf("braket: device ARN is required")
 	}
 
-	action, err := serializeCircuit(req.Circuit)
+	var action string
+	var err error
+	if req.PulseProgram != nil {
+		action, err = serializePulseProgram(req.PulseProgram)
+	} else {
+		action, err = serializeCircuit(req.Circuit)
+	}
 	if err != nil {
 		return nil, err
 	}
 
-	b.logger.InfoContext(ctx, "submitting to Braket",
+	logAttrs := []any{
 		slog.String("device", b.device),
 		slog.String("device_arn", b.deviceArn),
 		slog.Int("shots", req.Shots),
-		slog.Int("qubits", req.Circuit.NumQubits()),
-	)
+	}
+	if req.Circuit != nil {
+		logAttrs = append(logAttrs, slog.Int("qubits", req.Circuit.NumQubits()))
+	} else {
+		logAttrs = append(logAttrs, slog.String("type", "pulse_program"))
+	}
+	b.logger.InfoContext(ctx, "submitting to Braket", logAttrs...)
 
 	shots64 := int64(req.Shots)
 	input := &braketservice.CreateQuantumTaskInput{

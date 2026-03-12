@@ -52,6 +52,9 @@ func (b *Backend) Target() target.Target { return target.Simulator }
 
 // Submit executes the circuit synchronously and returns a completed job.
 func (b *Backend) Submit(ctx context.Context, req *backend.SubmitRequest) (*backend.Job, error) {
+	if req.PulseProgram != nil {
+		return nil, fmt.Errorf("local: pulse programs are not supported by the local simulator")
+	}
 	if req.Circuit == nil {
 		return nil, fmt.Errorf("local: nil circuit")
 	}

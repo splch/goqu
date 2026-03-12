@@ -3,12 +3,18 @@ package ionq
 
 // ionqJobRequest is the JSON body for POST /jobs.
 type ionqJobRequest struct {
-	Type     string            `json:"type"`
-	Name     string            `json:"name,omitempty"`
-	Shots    int               `json:"shots"`
-	Backend  string            `json:"backend"`
-	Metadata map[string]string `json:"metadata,omitempty"`
-	Input    ionqInput         `json:"input"`
+	Type           string              `json:"type"`
+	Name           string              `json:"name,omitempty"`
+	Shots          int                 `json:"shots"`
+	Backend        string              `json:"backend"`
+	Metadata       map[string]string   `json:"metadata,omitempty"`
+	Input          ionqInput           `json:"input"`
+	RuntimeOptions *ionqRuntimeOptions `json:"runtime_options,omitempty"`
+}
+
+// ionqRuntimeOptions holds optional runtime configuration for IonQ jobs.
+type ionqRuntimeOptions struct {
+	CustomPulseShapes map[string]any `json:"custom_pulse_shapes,omitempty"`
 }
 
 type ionqInput struct {

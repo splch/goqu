@@ -73,6 +73,9 @@ func (b *Backend) Target() target.Target { return b.tgt }
 
 // Submit sends a circuit to IonQ for execution.
 func (b *Backend) Submit(ctx context.Context, req *backend.SubmitRequest) (*backend.Job, error) {
+	if req.PulseProgram != nil {
+		return nil, fmt.Errorf("ionq: pulse programs are not supported; use ionq.PulseShapes via Options for custom pulse envelopes")
+	}
 	if req.Circuit == nil {
 		return nil, fmt.Errorf("ionq: nil circuit")
 	}
@@ -92,6 +95,22 @@ func (b *Backend) Submit(ctx context.Context, req *backend.SubmitRequest) (*back
 		Backend:  b.device,
 		Metadata: req.Metadata,
 		Input:    *input,
+	}
+
+	// Wire IonQ custom pulse shapes if provided via Options.
+	if req.Options != nil {
+		if ps, ok := req.Options["ionq.pulse_shapes"].(*PulseShapes); ok {
+			if input.Gateset != "native" {
+				return nil, fmt.Errorf("ionq: custom pulse shapes require native gateset, got %q", input.Gateset)
+			}
+			runtimeOpts, err := marshalPulseShapes(ps)
+			if err != nil {
+				return nil, fmt.Errorf("ionq: marshal pulse shapes: %w", err)
+			}
+			body.RuntimeOptions = &ionqRuntimeOptions{
+				CustomPulseShapes: runtimeOpts["custom_pulse_shapes"].(map[string]any),
+			}
+		}
 	}
 
 	b.logger.InfoContext(ctx, "submitting to IonQ",

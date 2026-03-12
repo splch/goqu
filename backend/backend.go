@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/splch/qgo/circuit/ir"
+	"github.com/splch/qgo/pulse"
 	"github.com/splch/qgo/transpile/target"
 )
 
@@ -32,11 +33,14 @@ type Backend interface {
 }
 
 // SubmitRequest contains the parameters for submitting a quantum job.
+// Exactly one of Circuit or PulseProgram must be non-nil.
 type SubmitRequest struct {
-	Circuit  *ir.Circuit
-	Shots    int
-	Name     string
-	Metadata map[string]string
+	Circuit      *ir.Circuit    // gate-level circuit (nil if PulseProgram set)
+	PulseProgram *pulse.Program // OpenPulse program (nil if Circuit set)
+	Shots        int
+	Name         string
+	Metadata     map[string]string
+	Options      map[string]any // backend-specific options (e.g., ionq.PulseShapes)
 }
 
 // Job represents a submitted quantum job.
