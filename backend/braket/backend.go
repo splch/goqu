@@ -1,7 +1,4 @@
 // Package braket implements a Backend for Amazon Braket quantum cloud.
-//
-// This is a separate Go module to isolate the AWS SDK dependency.
-// Use [New] with an aws.Config to create a backend.
 package braket
 
 import (

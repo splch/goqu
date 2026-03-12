@@ -6,7 +6,7 @@
 // probabilities, with conversion methods [Result.ToCounts] and
 // [Result.ToProbabilities].
 //
-// Implementations include the local simulator backend (backend/local),
-// the IonQ REST client (backend/ionq), and a configurable mock
-// (backend/mock).
+// Implementations: local simulator (backend/local), IonQ REST client
+// (backend/ionq), IBM Quantum Runtime (backend/ibm), Amazon Braket
+// (backend/braket), and configurable mock (backend/mock).
 package backend

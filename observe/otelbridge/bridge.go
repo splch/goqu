@@ -1,12 +1,4 @@
-// Package otelbridge provides an [observe.Hooks] implementation that creates
-// OpenTelemetry spans for all qgo operations.
-//
-// This is a leaf package with external dependencies. Core qgo packages never
-// import it — applications opt in by importing this bridge and attaching the
-// hooks to their context.
-//
-//	hooks := otelbridge.NewHooks()
-//	ctx = observe.WithHooks(ctx, hooks)
+// Package otelbridge provides OpenTelemetry span hooks for qgo operations.
 package otelbridge
 
 import (

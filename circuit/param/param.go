@@ -1,14 +1,4 @@
-// Package param provides symbolic parameters and expressions for
-// parameterized quantum circuits. It enables variational workflows
-// (VQE, QAOA) where the same circuit structure is reused with
-// different parameter values.
-//
-// Parameters are created with New and can be combined into expressions
-// using arithmetic operations. Symbolic gates wrap standard gate
-// constructors with expressions instead of float64 values.
-//
-// To execute a parameterized circuit, bind all parameters to concrete
-// values using ir.Bind before passing to a simulator or transpiler.
+// Package param provides symbolic parameters and expressions for variational circuits.
 package param
 
 import "fmt"

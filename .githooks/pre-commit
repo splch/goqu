@@ -17,8 +17,18 @@ if [ -n "$UNFORMATTED" ]; then
 fi
 
 # Scope go vet to only the packages that have staged changes.
+# Group packages by their module root (separate go.mod boundaries).
 echo "pre-commit: running go vet on changed packages..."
-PKGS=$(echo "$STAGED_GO_FILES" | xargs -n1 dirname | sort -u | sed 's|^|./|')
-echo "$PKGS" | xargs go vet
+DIRS=$(echo "$STAGED_GO_FILES" | xargs -n1 dirname | sort -u)
+for dir in $DIRS; do
+    # Walk up to find the nearest go.mod
+    mod_dir="$dir"
+    while [ "$mod_dir" != "." ] && [ ! -f "$mod_dir/go.mod" ]; do
+        mod_dir=$(dirname "$mod_dir")
+    done
+    rel="./${dir#"$mod_dir"}"
+    [ "$rel" = "./" ] && rel="."
+    ( cd "$mod_dir" && go vet "$rel" )
+done
 
 echo "pre-commit: all checks passed (skip with --no-verify for WIP commits)"

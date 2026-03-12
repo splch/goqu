@@ -1,13 +1,4 @@
-// Package pauli provides Pauli algebra types and efficient expectation value
-// computation for statevector and density matrix simulators.
-//
-// A [PauliString] represents a tensor product of single-qubit Pauli operators
-// (I, X, Y, Z) with a complex coefficient. A [PauliSum] is a linear combination
-// of PauliStrings, suitable for representing Hamiltonians.
-//
-// Expectation values are computed via symplectic-encoding tricks that avoid
-// constructing the full observable matrix. For statevectors the algorithm is
-// O(2^n) per term; for density matrices it reads only one element per row.
+// Package pauli provides Pauli algebra types and expectation value computation.
 package pauli
 
 import (
