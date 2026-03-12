@@ -9,7 +9,9 @@ import (
 	"time"
 
 	"github.com/splch/qgo/backend"
+	"github.com/splch/qgo/circuit/ir"
 	"github.com/splch/qgo/observe"
+	"github.com/splch/qgo/sweep"
 )
 
 // Manager handles concurrent job submission, polling, and result retrieval.
@@ -242,6 +244,64 @@ func (m *Manager) Watch(ctx context.Context, name string, jobID string) <-chan *
 				return
 			}
 		}
+	}()
+	return ch
+}
+
+// SweepResultOrError wraps a result from a sweep point submission.
+type SweepResultOrError struct {
+	Index    int
+	Bindings map[string]float64
+	Result   *backend.Result
+	Backend  string
+	JobID    string
+	Err      error
+}
+
+// SubmitSweep resolves the sweep, binds each parameter point to the circuit,
+// and submits each bound circuit to the named backend. Results are delivered
+// on the returned channel as they complete.
+func (m *Manager) SubmitSweep(ctx context.Context, name string, c *ir.Circuit, shots int, sw sweep.Sweep) <-chan SweepResultOrError {
+	bindings := sw.Resolve()
+	ch := make(chan SweepResultOrError, len(bindings))
+
+	var wg sync.WaitGroup
+	for i, bind := range bindings {
+		wg.Add(1)
+		go func(idx int, b map[string]float64) {
+			defer wg.Done()
+
+			// Acquire semaphore slot.
+			select {
+			case m.sem <- struct{}{}:
+				defer func() { <-m.sem }()
+			case <-ctx.Done():
+				ch <- SweepResultOrError{Index: idx, Bindings: b, Backend: name, Err: ctx.Err()}
+				return
+			}
+
+			bound, err := ir.Bind(c, b)
+			if err != nil {
+				ch <- SweepResultOrError{Index: idx, Bindings: b, Backend: name, Err: err}
+				return
+			}
+
+			result, err := m.Submit(ctx, name, &backend.SubmitRequest{
+				Circuit: bound,
+				Shots:   shots,
+			})
+			ch <- SweepResultOrError{
+				Index:    idx,
+				Bindings: b,
+				Result:   result,
+				Backend:  name,
+				Err:      err,
+			}
+		}(i, bind)
+	}
+	go func() {
+		wg.Wait()
+		close(ch)
 	}()
 	return ch
 }
