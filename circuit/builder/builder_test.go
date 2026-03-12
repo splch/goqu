@@ -244,3 +244,130 @@ func TestUnitaryEndToEnd(t *testing.T) {
 		}
 	}
 }
+
+func TestBuilderCompose(t *testing.T) {
+	// Build a sub-circuit: H(0) CNOT(0,1).
+	sub, err := New("sub", 2).H(0).CNOT(0, 1).Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Compose into a 4-qubit circuit, mapping sub's 0→2, 1→3.
+	c, err := New("main", 4).
+		X(0).
+		Compose(sub, map[int]int{0: 2, 1: 3}).
+		Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ops := c.Ops()
+	if len(ops) != 3 { // X + H + CNOT
+		t.Fatalf("len(Ops()) = %d, want 3", len(ops))
+	}
+	if ops[1].Gate.Name() != "H" || ops[1].Qubits[0] != 2 {
+		t.Errorf("ops[1] = %s on %v, want H on [2]", ops[1].Gate.Name(), ops[1].Qubits)
+	}
+	if ops[2].Qubits[0] != 2 || ops[2].Qubits[1] != 3 {
+		t.Errorf("CNOT qubits = %v, want [2,3]", ops[2].Qubits)
+	}
+}
+
+func TestBuilderComposeIdentity(t *testing.T) {
+	sub, err := New("sub", 2).H(0).X(1).Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// nil qubitMap = identity.
+	c, err := New("main", 2).
+		Compose(sub, nil).
+		Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+	ops := c.Ops()
+	if len(ops) != 2 {
+		t.Fatalf("len(Ops()) = %d, want 2", len(ops))
+	}
+	if ops[0].Gate.Name() != "H" || ops[0].Qubits[0] != 0 {
+		t.Errorf("ops[0] = %s on %v, want H on [0]", ops[0].Gate.Name(), ops[0].Qubits)
+	}
+}
+
+func TestBuilderComposeOutOfRange(t *testing.T) {
+	sub, err := New("sub", 3).X(2).Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// sub has qubit 2, builder only has 2 qubits (0,1) → error.
+	_, err = New("main", 2).
+		Compose(sub, nil).
+		Build()
+	if err == nil {
+		t.Fatal("expected error for out-of-range qubit")
+	}
+}
+
+func TestBuilderComposeInverse(t *testing.T) {
+	// Build a sub-circuit, then compose its inverse for uncomputation.
+	sub, err := New("sub", 2).H(0).CNOT(0, 1).RZ(math.Pi/4, 0).Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	c, err := New("uncomp", 2).
+		Compose(sub, nil).
+		ComposeInverse(sub, nil).
+		Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Simulate: should return to |00⟩.
+	sim := statevector.New(2)
+	if err := sim.Evolve(c); err != nil {
+		t.Fatal(err)
+	}
+	sv := sim.StateVector()
+	const eps = 1e-10
+	if cmplx.Abs(sv[0]-1) > eps {
+		t.Errorf("|00⟩ amplitude = %v, want ≈1", sv[0])
+	}
+	for i := 1; i < len(sv); i++ {
+		if cmplx.Abs(sv[i]) > eps {
+			t.Errorf("|%02b⟩ amplitude = %v, want ≈0", i, sv[i])
+		}
+	}
+}
+
+func TestBuilderComposeInverseSkipsNonUnitary(t *testing.T) {
+	sub, err := New("sub", 2).
+		WithClbits(2).
+		H(0).
+		Barrier(0, 1).
+		Reset(0).
+		Measure(0, 0).
+		Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	c, err := New("main", 2).
+		WithClbits(2).
+		ComposeInverse(sub, nil).
+		Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Only H† should remain.
+	ops := c.Ops()
+	if len(ops) != 1 {
+		t.Fatalf("len(Ops()) = %d, want 1", len(ops))
+	}
+	if ops[0].Gate.Name() != "H" {
+		t.Errorf("ops[0].Gate.Name() = %q, want H", ops[0].Gate.Name())
+	}
+}

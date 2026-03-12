@@ -384,6 +384,100 @@ func (b *Builder) Barrier(qubits ...int) *Builder {
 	return b
 }
 
+// Compose appends all operations from c into the builder, remapping qubit indices.
+// nil qubitMap uses identity mapping (c's qubit N → builder's qubit N).
+// Classical bits use identity mapping (c's clbit N → builder's clbit N).
+func (b *Builder) Compose(c *ir.Circuit, qubitMap map[int]int) *Builder {
+	if b.err != nil {
+		return b
+	}
+	for _, op := range c.Ops() {
+		qubits := make([]int, len(op.Qubits))
+		for i, q := range op.Qubits {
+			if qubitMap != nil {
+				mapped, ok := qubitMap[q]
+				if !ok {
+					b.err = fmt.Errorf("Compose: qubit %d has no mapping", q)
+					return b
+				}
+				qubits[i] = mapped
+			} else {
+				qubits[i] = q
+			}
+			b.validateQubit(qubits[i])
+			if b.err != nil {
+				return b
+			}
+		}
+		clbits := make([]int, len(op.Clbits))
+		for i, c := range op.Clbits {
+			clbits[i] = c
+			b.validateClbit(clbits[i])
+			if b.err != nil {
+				return b
+			}
+		}
+		newOp := ir.Operation{Gate: op.Gate, Qubits: qubits, Clbits: clbits}
+		if op.Condition != nil {
+			newOp.Condition = &ir.Condition{
+				Clbit: op.Condition.Clbit,
+				Value: op.Condition.Value,
+			}
+		}
+		b.ops = append(b.ops, newOp)
+	}
+	return b
+}
+
+// ComposeInverse appends the inverse of c's operations (reversed order, each gate adjointed).
+// Measurements, resets, and barriers are skipped.
+// nil qubitMap uses identity mapping.
+func (b *Builder) ComposeInverse(c *ir.Circuit, qubitMap map[int]int) *Builder {
+	if b.err != nil {
+		return b
+	}
+	ops := c.Ops()
+	for i := len(ops) - 1; i >= 0; i-- {
+		op := ops[i]
+		// Skip measurements.
+		if op.Gate == nil {
+			continue
+		}
+		// Skip resets and barriers.
+		name := op.Gate.Name()
+		if name == "reset" || name == "barrier" {
+			continue
+		}
+
+		qubits := make([]int, len(op.Qubits))
+		for j, q := range op.Qubits {
+			if qubitMap != nil {
+				mapped, ok := qubitMap[q]
+				if !ok {
+					b.err = fmt.Errorf("ComposeInverse: qubit %d has no mapping", q)
+					return b
+				}
+				qubits[j] = mapped
+			} else {
+				qubits[j] = q
+			}
+			b.validateQubit(qubits[j])
+			if b.err != nil {
+				return b
+			}
+		}
+		newOp := ir.Operation{Gate: op.Gate.Inverse(), Qubits: qubits}
+		if op.Condition != nil {
+			newOp.Condition = &ir.Condition{
+				Clbit: op.Condition.Clbit,
+				Value: op.Condition.Value,
+			}
+		}
+		b.ops = append(b.ops, newOp)
+	}
+	return b
+}
+
 // Build finalizes and returns an immutable Circuit.
 func (b *Builder) Build() (*ir.Circuit, error) {
 	if b.err != nil {
