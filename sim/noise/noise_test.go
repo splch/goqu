@@ -450,6 +450,90 @@ func TestThermalRelaxation_T2Equals2T1(t *testing.T) {
 	checkKrausComplete(t, ch)
 }
 
+func TestGeneralizedAmplitudeDamping_Completeness(t *testing.T) {
+	cases := []struct {
+		p, gamma float64
+	}{
+		{0.5, 0.1},
+		{0.8, 0.5},
+		{1.0, 0.3},
+		{0.0, 0.3},
+	}
+	for _, tc := range cases {
+		ch := GeneralizedAmplitudeDamping(tc.p, tc.gamma)
+		checkKrausComplete(t, ch)
+	}
+}
+
+func TestGeneralizedAmplitudeDamping_ReducesToAD(t *testing.T) {
+	// At p=1, GAD should match standard AmplitudeDamping
+	gamma := 0.4
+	gad := GeneralizedAmplitudeDamping(1.0, gamma)
+	ad := AmplitudeDamping(gamma)
+	gadK := gad.Kraus()
+	adK := ad.Kraus()
+	// E0 and E1 of GAD at p=1 should match AD's E0 and E1
+	for i := range 2 {
+		for j := range 4 {
+			if cmplx.Abs(gadK[i][j]-adK[i][j]) > 1e-14 {
+				t.Errorf("GAD(1,%.1f) Kraus[%d][%d]=%v, AD(%.1f) Kraus[%d][%d]=%v",
+					gamma, i, j, gadK[i][j], gamma, i, j, adK[i][j])
+			}
+		}
+	}
+	// E2 and E3 of GAD at p=1 should be zero (sqrt(1-p)=0)
+	for i := 2; i < 4; i++ {
+		for _, v := range gadK[i] {
+			if cmplx.Abs(v) > 1e-14 {
+				t.Errorf("GAD(1,%.1f) Kraus[%d] should be zero, got %v", gamma, i, v)
+			}
+		}
+	}
+}
+
+func TestGeneralizedAmplitudeDamping_ZeroGamma(t *testing.T) {
+	// gamma=0 should give identity: E0=sqrt(p)*I, E2=sqrt(1-p)*I, E1=E3=0
+	// Sum of E0†E0 + E2†E2 = p*I + (1-p)*I = I
+	// Use p=0.3 (not 0.5) so sqrt(p) != sqrt(1-p).
+	ch := GeneralizedAmplitudeDamping(0.3, 0)
+	kraus := ch.Kraus()
+	if len(kraus) != 4 {
+		t.Fatalf("expected 4 Kraus ops, got %d", len(kraus))
+	}
+	// E0 = sqrt(p)*I
+	sp := math.Sqrt(0.3)
+	e0 := kraus[0]
+	if cmplx.Abs(e0[0]-complex(sp, 0)) > 1e-14 || cmplx.Abs(e0[3]-complex(sp, 0)) > 1e-14 {
+		t.Errorf("E0 should be sqrt(p)*I, got [%v,%v;%v,%v]", e0[0], e0[1], e0[2], e0[3])
+	}
+	// E1 should be zero
+	for _, v := range kraus[1] {
+		if cmplx.Abs(v) > 1e-14 {
+			t.Error("E1 should be zero at gamma=0")
+		}
+	}
+	// E2 = sqrt(1-p)*I
+	s1p := math.Sqrt(0.7)
+	e2 := kraus[2]
+	if cmplx.Abs(e2[0]-complex(s1p, 0)) > 1e-14 || cmplx.Abs(e2[3]-complex(s1p, 0)) > 1e-14 {
+		t.Errorf("E2 should be sqrt(1-p)*I, got [%v,%v;%v,%v]", e2[0], e2[1], e2[2], e2[3])
+	}
+	// E3 should be zero
+	for _, v := range kraus[3] {
+		if cmplx.Abs(v) > 1e-14 {
+			t.Error("E3 should be zero at gamma=0")
+		}
+	}
+	checkKrausComplete(t, ch)
+}
+
+func TestGeneralizedAmplitudeDamping_Panic(t *testing.T) {
+	expectPanic(t, "p<0", func() { GeneralizedAmplitudeDamping(-0.1, 0.5) })
+	expectPanic(t, "p>1", func() { GeneralizedAmplitudeDamping(1.1, 0.5) })
+	expectPanic(t, "gamma<0", func() { GeneralizedAmplitudeDamping(0.5, -0.1) })
+	expectPanic(t, "gamma>1", func() { GeneralizedAmplitudeDamping(0.5, 1.1) })
+}
+
 func TestAmplitudeDamping_HalfGamma(t *testing.T) {
 	ch := AmplitudeDamping(0.5)
 	kraus := ch.Kraus()

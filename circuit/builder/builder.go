@@ -192,6 +192,19 @@ func (b *Builder) U3(theta, phi, lambda float64, q int) *Builder {
 	return b.Apply(gate.U3(theta, phi, lambda), q)
 }
 
+// StatePrep adds a state preparation gate.
+func (b *Builder) StatePrep(amplitudes []complex128, qubits ...int) *Builder {
+	if b.err != nil {
+		return b
+	}
+	g, err := gate.StatePrep(amplitudes)
+	if err != nil {
+		b.err = err
+		return b
+	}
+	return b.Apply(g, qubits...)
+}
+
 // Unitary applies a custom unitary gate created from the given matrix.
 // The name is used for display; the matrix must be a valid unitary (2x2, 4x4, or 8x8).
 func (b *Builder) Unitary(name string, matrix []complex128, qubits ...int) *Builder {

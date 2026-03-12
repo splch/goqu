@@ -16,6 +16,9 @@ const (
 	BasisZYZ EulerBasis = iota // RZ · RY · RZ (default, Quantinuum-native)
 	BasisZXZ                   // RZ · RX · RZ
 	BasisZSX                   // IBM-native: {RZ, SX, X}
+	BasisXYX                   // RX · RY · RX
+	BasisXZX                   // RX · RZ · RX
+	BasisU3                    // U3(θ,φ,λ) single gate
 )
 
 // BasisForTarget selects the optimal Euler convention for a target's basis gates.
@@ -33,6 +36,12 @@ func BasisForTarget(basisGates []string) EulerBasis {
 	if basis["RX"] && basis["RZ"] {
 		return BasisZXZ
 	}
+	if basis["U3"] {
+		return BasisU3
+	}
+	if basis["RX"] && basis["RY"] {
+		return BasisXYX
+	}
 	return BasisZYZ
 }
 
@@ -46,6 +55,12 @@ func EulerDecomposeForBasis(g gate.Gate, qubit int, basis EulerBasis) []ir.Opera
 		return eulerZSX(g.Matrix(), qubit)
 	case BasisZXZ:
 		return eulerZXZ(g.Matrix(), qubit)
+	case BasisXYX:
+		return eulerXYX(g.Matrix(), qubit)
+	case BasisXZX:
+		return eulerXZX(g.Matrix(), qubit)
+	case BasisU3:
+		return eulerU3(g.Matrix(), qubit)
 	default:
 		return EulerDecompose(g, qubit)
 	}
@@ -251,4 +266,87 @@ func eulerZSX(m []complex128, qubit int) []ir.Operation {
 		return nil
 	}
 	return ops
+}
+
+// EulerXYX decomposes a 2×2 unitary U into Rx(alpha)·Ry(beta)·Rx(gamma)
+// plus a global phase. Uses conjugation: XYX angles of U = ZYZ angles of Ry(-π/2)·U·Ry(π/2).
+func EulerXYX(m []complex128) (alpha, beta, gamma, phase float64) {
+	ry := ryMat(math.Pi / 2)
+	ryInv := ryMat(-math.Pi / 2)
+	mp := matMul2(ryInv, matMul2(m, ry))
+	return EulerZYZ(mp)
+}
+
+// EulerXZX decomposes a 2×2 unitary U into Rx(alpha)·Rz(beta)·Rx(gamma)
+// plus a global phase. Uses conjugation: XZX angles of U = ZXZ angles of H·U·H.
+func EulerXZX(m []complex128) (alpha, beta, gamma, phase float64) {
+	h := hMat()
+	mp := matMul2(h, matMul2(m, h))
+	return EulerZXZ(mp)
+}
+
+// eulerXYX decomposes a 2×2 unitary into RX·RY·RX operations.
+func eulerXYX(m []complex128, qubit int) []ir.Operation {
+	if IsIdentity(m, 2, 1e-10) {
+		return nil
+	}
+	alpha, beta, gamma, _ := EulerXYX(m)
+
+	var ops []ir.Operation
+	if !mathutil.NearZeroMod2Pi(gamma) {
+		ops = append(ops, ir.Operation{Gate: gate.RX(mathutil.NormalizeAngle(gamma)), Qubits: []int{qubit}})
+	}
+	if !mathutil.NearZeroMod2Pi(beta) {
+		ops = append(ops, ir.Operation{Gate: gate.RY(mathutil.NormalizeAngle(beta)), Qubits: []int{qubit}})
+	}
+	if !mathutil.NearZeroMod2Pi(alpha) {
+		ops = append(ops, ir.Operation{Gate: gate.RX(mathutil.NormalizeAngle(alpha)), Qubits: []int{qubit}})
+	}
+	if len(ops) == 0 {
+		return nil
+	}
+	return ops
+}
+
+// eulerXZX decomposes a 2×2 unitary into RX·RZ·RX operations.
+func eulerXZX(m []complex128, qubit int) []ir.Operation {
+	if IsIdentity(m, 2, 1e-10) {
+		return nil
+	}
+	alpha, beta, gamma, _ := EulerXZX(m)
+
+	var ops []ir.Operation
+	if !mathutil.NearZeroMod2Pi(gamma) {
+		ops = append(ops, ir.Operation{Gate: gate.RX(mathutil.NormalizeAngle(gamma)), Qubits: []int{qubit}})
+	}
+	if !mathutil.NearZeroMod2Pi(beta) {
+		ops = append(ops, ir.Operation{Gate: gate.RZ(mathutil.NormalizeAngle(beta)), Qubits: []int{qubit}})
+	}
+	if !mathutil.NearZeroMod2Pi(alpha) {
+		ops = append(ops, ir.Operation{Gate: gate.RX(mathutil.NormalizeAngle(alpha)), Qubits: []int{qubit}})
+	}
+	if len(ops) == 0 {
+		return nil
+	}
+	return ops
+}
+
+// eulerU3 decomposes a 2×2 unitary into a single U3 gate (or Phase for diagonal).
+func eulerU3(m []complex128, qubit int) []ir.Operation {
+	if IsIdentity(m, 2, 1e-10) {
+		return nil
+	}
+	alpha, beta, gamma, _ := EulerZYZ(m)
+	if mathutil.NearZeroMod2Pi(beta) {
+		angle := mathutil.NormalizeAngle(alpha + gamma)
+		if mathutil.NearZeroMod2Pi(angle) {
+			return nil
+		}
+		return []ir.Operation{{Gate: gate.Phase(angle), Qubits: []int{qubit}}}
+	}
+	return []ir.Operation{{Gate: gate.U3(
+		mathutil.NormalizeAngle(beta),
+		mathutil.NormalizeAngle(alpha),
+		mathutil.NormalizeAngle(gamma),
+	), Qubits: []int{qubit}}}
 }

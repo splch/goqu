@@ -53,6 +53,12 @@ func (s *Sim) RunDynamic(c *ir.Circuit, shots int) (map[string]int, error) {
 				if outcome == 1 {
 					s.applyGate1(op.Qubits[0], gate.X.Matrix())
 				}
+				if s.noise != nil {
+					ch := s.noise.Lookup("reset", op.Qubits)
+					if ch != nil {
+						s.applyChannel(ch, op.Qubits)
+					}
+				}
 				continue
 			}
 

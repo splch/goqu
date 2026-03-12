@@ -671,6 +671,88 @@ func TestExpectPauliSum_MismatchedQubits(t *testing.T) {
 	sim.ExpectPauliSum(sum)
 }
 
+func TestEvolve_Reset(t *testing.T) {
+	t.Run("X_then_Reset", func(t *testing.T) {
+		// X(0) puts qubit in |1>, Reset(0) should bring it back to |0>.
+		c, err := builder.New("xreset", 1).X(0).Reset(0).Build()
+		if err != nil {
+			t.Fatal(err)
+		}
+		sim := New(1)
+		if err := sim.Evolve(c); err != nil {
+			t.Fatal(err)
+		}
+		sv := sim.StateVector()
+		want := []complex128{1, 0}
+		assertStateClose(t, sv, want)
+	})
+
+	t.Run("H_then_Reset", func(t *testing.T) {
+		// H(0) puts qubit in |+> = (|0>+|1>)/sqrt(2), Reset should give |0> with norm 1.
+		c, err := builder.New("hreset", 1).H(0).Reset(0).Build()
+		if err != nil {
+			t.Fatal(err)
+		}
+		sim := New(1)
+		if err := sim.Evolve(c); err != nil {
+			t.Fatal(err)
+		}
+		sv := sim.StateVector()
+		want := []complex128{1, 0}
+		assertStateClose(t, sv, want)
+	})
+
+	t.Run("Bell_Reset_Qubit0", func(t *testing.T) {
+		// H(0), CNOT(0,1) -> (|00>+|11>)/sqrt(2)
+		// Reset(0) should give: qubit 0 = |0>, qubit 1 mixed.
+		// After reset: |00> with prob 1/2 and |01> with prob 1/2 -> but in Evolve
+		// (deterministic), amplitude for |00> gets norm of (1/sqrt2, 0) pair = 1/sqrt2,
+		// and amplitude for |01> gets norm of (0, 1/sqrt2) pair = 1/sqrt2.
+		// Result: state = 1/sqrt2 |00> + 1/sqrt2 |10> (qubit 1 is bit 1).
+		// Wait: index mapping. |00>=0, |01>=1 (q0=1), |10>=2 (q1=1), |11>=3.
+		// Bell state: sv[0]=1/sqrt2, sv[3]=1/sqrt2.
+		// Reset qubit 0: pairs are (i0, i1) where i0 has q0=0, i1 has q0=1.
+		//   pair (0, 1): a0=1/sqrt2, a1=0 -> norm=1/sqrt2 -> state[0]=1/sqrt2, state[1]=0
+		//   pair (2, 3): a0=0, a1=1/sqrt2 -> norm=1/sqrt2 -> state[2]=1/sqrt2, state[3]=0
+		c, err := builder.New("bellreset", 2).H(0).CNOT(0, 1).Reset(0).Build()
+		if err != nil {
+			t.Fatal(err)
+		}
+		sim := New(2)
+		if err := sim.Evolve(c); err != nil {
+			t.Fatal(err)
+		}
+		sv := sim.StateVector()
+		s2 := 1.0 / math.Sqrt2
+		want := []complex128{complex(s2, 0), 0, complex(s2, 0), 0}
+		assertStateClose(t, sv, want)
+
+		// Verify normalization.
+		var total float64
+		for _, a := range sv {
+			total += real(a)*real(a) + imag(a)*imag(a)
+		}
+		if math.Abs(total-1.0) > eps {
+			t.Errorf("norm = %f, want 1.0", total)
+		}
+	})
+
+	t.Run("Reset_on_zero", func(t *testing.T) {
+		// Reset on |0> should leave state unchanged.
+		c, err := builder.New("reset0", 1).Reset(0).Build()
+		if err != nil {
+			t.Fatal(err)
+		}
+		sim := New(1)
+		if err := sim.Evolve(c); err != nil {
+			t.Fatal(err)
+		}
+		sv := sim.StateVector()
+		want := []complex128{1, 0}
+		assertStateClose(t, sv, want)
+	})
+}
+
 func TestParallelThreshold_17Q(t *testing.T) {
 	c, err := builder.New("par17", 17).
 		H(0).
@@ -693,5 +775,105 @@ func TestParallelThreshold_17Q(t *testing.T) {
 	// |11...0> = bit0=1, bit1=1 = index 3
 	if math.Abs(cmplx.Abs(sv[3])-s2) > eps {
 		t.Errorf("|sv[3]| = %f, want %f", cmplx.Abs(sv[3]), s2)
+	}
+}
+
+// --- StatePrep tests ---
+
+func TestStatePrep_FastPath_Plus(t *testing.T) {
+	// Full-state prep on 1 qubit: |+> via fast path.
+	s2 := 1.0 / math.Sqrt2
+	c, err := builder.New("sp1", 1).
+		StatePrep([]complex128{complex(s2, 0), complex(s2, 0)}, 0).
+		Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+	sim := New(1)
+	if err := sim.Evolve(c); err != nil {
+		t.Fatal(err)
+	}
+	sv := sim.StateVector()
+	want := []complex128{complex(s2, 0), complex(s2, 0)}
+	assertStateClose(t, sv, want)
+}
+
+func TestStatePrep_FastPath_Bell(t *testing.T) {
+	// Full-state prep on 2 qubits: Bell state via fast path.
+	s2 := 1.0 / math.Sqrt2
+	c, err := builder.New("sp-bell", 2).
+		StatePrep([]complex128{complex(s2, 0), 0, 0, complex(s2, 0)}, 0, 1).
+		Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+	sim := New(2)
+	if err := sim.Evolve(c); err != nil {
+		t.Fatal(err)
+	}
+	sv := sim.StateVector()
+	want := []complex128{complex(s2, 0), 0, 0, complex(s2, 0)}
+	assertStateClose(t, sv, want)
+}
+
+func TestStatePrep_Decompose_1Q(t *testing.T) {
+	// Test the decomposition path: create a 2-qubit circuit but only state-prep qubit 1.
+	// Use builder.Apply with a 1-qubit StatePrep on qubit 1.
+	s2 := 1.0 / math.Sqrt2
+	g := gate.MustStatePrep([]complex128{complex(s2, 0), complex(s2, 0)})
+	c, err := builder.New("sp-decompose", 2).
+		Apply(g, 1).
+		Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+	sim := New(2)
+	if err := sim.Evolve(c); err != nil {
+		t.Fatal(err)
+	}
+	sv := sim.StateVector()
+	// qubit 0 = |0>, qubit 1 = |+> = 1/sqrt2(|0>+|1>)
+	// |00> + |10> / sqrt(2): idx 0 and idx 2 (bit 1 set = qubit 1)
+	want := []complex128{complex(s2, 0), 0, complex(s2, 0), 0}
+	assertStateClose(t, sv, want)
+}
+
+func TestStatePrep_One(t *testing.T) {
+	// Prepare |1> state.
+	c, err := builder.New("sp1", 1).
+		StatePrep([]complex128{0, 1}, 0).
+		Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+	sim := New(1)
+	if err := sim.Evolve(c); err != nil {
+		t.Fatal(err)
+	}
+	sv := sim.StateVector()
+	want := []complex128{0, 1}
+	assertStateClose(t, sv, want)
+}
+
+func TestStatePrep_Normalized(t *testing.T) {
+	// Prepare an arbitrary 1-qubit state and verify normalization.
+	s2 := 1.0 / math.Sqrt2
+	c, err := builder.New("sp-arb", 1).
+		StatePrep([]complex128{complex(s2, 0), complex(0, s2)}, 0).
+		Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+	sim := New(1)
+	if err := sim.Evolve(c); err != nil {
+		t.Fatal(err)
+	}
+	sv := sim.StateVector()
+	var norm float64
+	for _, v := range sv {
+		norm += real(v)*real(v) + imag(v)*imag(v)
+	}
+	if math.Abs(norm-1.0) > eps {
+		t.Errorf("norm = %f, want 1.0", norm)
 	}
 }

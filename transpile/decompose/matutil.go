@@ -182,6 +182,19 @@ func rzMat(theta float64) []complex128 {
 	}
 }
 
+// hMat returns the 2×2 Hadamard matrix.
+func hMat() []complex128 {
+	s := 1.0 / math.Sqrt(2)
+	return []complex128{complex(s, 0), complex(s, 0), complex(s, 0), complex(-s, 0)}
+}
+
+// ryMat returns the 2×2 Ry(theta) matrix.
+func ryMat(theta float64) []complex128 {
+	c := math.Cos(theta / 2)
+	s := math.Sin(theta / 2)
+	return []complex128{complex(c, 0), complex(-s, 0), complex(s, 0), complex(c, 0)}
+}
+
 // MatScale multiplies every element of m by scalar s.
 func MatScale(m []complex128, s complex128) []complex128 {
 	out := make([]complex128, len(m))

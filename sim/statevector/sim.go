@@ -74,6 +74,42 @@ func (s *Sim) Evolve(c *ir.Circuit) error {
 		if op.Gate == nil || op.Gate.Name() == "barrier" {
 			continue
 		}
+		if op.Gate.Name() == "reset" {
+			s.resetQubit(op.Qubits[0])
+			continue
+		}
+		if sp, ok := op.Gate.(gate.StatePrepable); ok {
+			amps := sp.Amplitudes()
+			// Fast path: full-state preparation on qubits [0..n-1].
+			if len(op.Qubits) == s.numQubits {
+				allInOrder := true
+				for i, q := range op.Qubits {
+					if q != i {
+						allInOrder = false
+						break
+					}
+				}
+				if allInOrder {
+					copy(s.state, amps)
+					continue
+				}
+			}
+			// Slow path: decompose into 1Q/2Q gates and apply.
+			applied := op.Gate.Decompose(op.Qubits)
+			for _, a := range applied {
+				m := a.Gate.Matrix()
+				if m == nil {
+					continue
+				}
+				switch a.Gate.Qubits() {
+				case 1:
+					s.applyGate1(a.Qubits[0], m)
+				case 2:
+					s.dispatchGate2(a.Gate, a.Qubits[0], a.Qubits[1])
+				}
+			}
+			continue
+		}
 		switch op.Gate.Qubits() {
 		case 1:
 			s.applyGate1(op.Qubits[0], op.Gate.Matrix())
@@ -90,6 +126,28 @@ func (s *Sim) Evolve(c *ir.Circuit) error {
 		}
 	}
 	return nil
+}
+
+// resetQubit deterministically resets a qubit to |0⟩ by moving all probability
+// from the |1⟩ subspace to the |0⟩ subspace. No randomness involved.
+func (s *Sim) resetQubit(qubit int) {
+	halfBlock := 1 << qubit
+	block := halfBlock << 1
+	for b0 := 0; b0 < len(s.state); b0 += block {
+		for offset := range halfBlock {
+			i0 := b0 + offset    // qubit = 0
+			i1 := i0 + halfBlock // qubit = 1
+			a0, a1 := s.state[i0], s.state[i1]
+			norm := math.Sqrt(real(a0)*real(a0) + imag(a0)*imag(a0) +
+				real(a1)*real(a1) + imag(a1)*imag(a1))
+			if norm > 1e-15 {
+				s.state[i0] = complex(norm, 0)
+			} else {
+				s.state[i0] = 0
+			}
+			s.state[i1] = 0
+		}
+	}
 }
 
 // applyGate1 applies a single-qubit gate using the stride pattern.

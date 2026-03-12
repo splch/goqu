@@ -293,6 +293,12 @@ func gateLabels(op ir.Operation, cfg *config) []string {
 		return labels
 	case "reset":
 		return []string{"|0>"}
+	case "StatePrep", "StatePrep†":
+		labels := make([]string, len(qubits))
+		for i := range labels {
+			labels[i] = "Prep"
+		}
+		return labels
 	}
 
 	// Check for multi-controlled gates via ControlledGate interface.

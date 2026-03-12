@@ -171,6 +171,38 @@ func PhaseFlip(p float64) Channel {
 	}
 }
 
+// GeneralizedAmplitudeDamping returns a generalized amplitude damping channel.
+// p is the thermal population probability [0,1], gamma is the damping rate [0,1].
+// At p=1 this reduces to standard AmplitudeDamping; at p=0 it gives reverse (excitation).
+// Kraus operators:
+//
+//	E0 = sqrt(p)   * [[1,0],[0,sqrt(1-gamma)]]
+//	E1 = sqrt(p)   * [[0,sqrt(gamma)],[0,0]]
+//	E2 = sqrt(1-p) * [[sqrt(1-gamma),0],[0,1]]
+//	E3 = sqrt(1-p) * [[0,0],[sqrt(gamma),0]]
+func GeneralizedAmplitudeDamping(p, gamma float64) Channel {
+	if p < 0 || p > 1 {
+		panic(fmt.Sprintf("noise.GeneralizedAmplitudeDamping: p=%f out of range [0,1]", p))
+	}
+	if gamma < 0 || gamma > 1 {
+		panic(fmt.Sprintf("noise.GeneralizedAmplitudeDamping: gamma=%f out of range [0,1]", gamma))
+	}
+	sp := complex(math.Sqrt(p), 0)
+	s1p := complex(math.Sqrt(1-p), 0)
+	sg := complex(math.Sqrt(gamma), 0)
+	s1g := complex(math.Sqrt(1-gamma), 0)
+	return &channel{
+		name: fmt.Sprintf("generalized_amplitude_damping(%.4f,%.4f)", p, gamma),
+		nq:   1,
+		kraus: [][]complex128{
+			{sp, 0, 0, sp * s1g},   // E0 = sqrt(p) * [[1,0],[0,sqrt(1-gamma)]]
+			{0, sp * sg, 0, 0},     // E1 = sqrt(p) * [[0,sqrt(gamma)],[0,0]]
+			{s1p * s1g, 0, 0, s1p}, // E2 = sqrt(1-p) * [[sqrt(1-gamma),0],[0,1]]
+			{0, 0, s1p * sg, 0},    // E3 = sqrt(1-p) * [[0,0],[sqrt(gamma),0]]
+		},
+	}
+}
+
 // ThermalRelaxation returns a combined T1/T2 relaxation channel.
 // t1 is the relaxation time, t2 is the dephasing time, time is the gate duration.
 // Requires t2 <= 2*t1, and t1, t2 > 0, time >= 0.

@@ -547,6 +547,181 @@ func TestExpectPauliSum_Mismatched(t *testing.T) {
 	dm.ExpectPauliSum(sum)
 }
 
+func TestEvolve_Reset(t *testing.T) {
+	t.Run("X_then_Reset", func(t *testing.T) {
+		// X(0) puts qubit in |1>, Reset(0) should bring it back to |0>.
+		c, _ := builder.New("xreset", 1).X(0).Reset(0).Build()
+		dm := New(1)
+		if err := dm.Evolve(c); err != nil {
+			t.Fatal(err)
+		}
+		rho := dm.DensityMatrix()
+		// Should be |0><0|.
+		if math.Abs(real(rho[0])-1.0) > 1e-10 {
+			t.Errorf("rho[0][0] = %v, want 1.0", rho[0])
+		}
+		for i := 1; i < len(rho); i++ {
+			if cmplx.Abs(rho[i]) > 1e-10 {
+				t.Errorf("rho[%d] = %v, want 0", i, rho[i])
+			}
+		}
+	})
+
+	t.Run("H_then_Reset", func(t *testing.T) {
+		// H(0) gives |+><+| = [[0.5, 0.5],[0.5, 0.5]].
+		// Reset should give |0><0|.
+		c, _ := builder.New("hreset", 1).H(0).Reset(0).Build()
+		dm := New(1)
+		if err := dm.Evolve(c); err != nil {
+			t.Fatal(err)
+		}
+		rho := dm.DensityMatrix()
+		if math.Abs(real(rho[0])-1.0) > 1e-10 {
+			t.Errorf("rho[0][0] = %v, want 1.0", rho[0])
+		}
+		for i := 1; i < len(rho); i++ {
+			if cmplx.Abs(rho[i]) > 1e-10 {
+				t.Errorf("rho[%d] = %v, want 0", i, rho[i])
+			}
+		}
+	})
+
+	t.Run("Bell_Reset_Qubit0", func(t *testing.T) {
+		// Bell state (|00>+|11>)/sqrt(2) then Reset(0).
+		// ρ = 0.5*(|00><00| + |00><11| + |11><00| + |11><11|)
+		// After reset qubit 0: ρ' = |0><0|_q0 ⊗ Tr_q0(ρ) = |0><0|_q0 ⊗ 0.5*(|0><0| + |1><1|)
+		// = 0.5*(|00><00| + |01><01|)
+		// i.e., rho[0,0]=0.5, rho[2*4+2]=rho[10]=0.5 (index for |10><10| in 2q, NO).
+		// Wait: 2-qubit density matrix is 4x4. Index (r,c) = r*4+c.
+		// |00>=0, |01>=1 (q0=1), |10>=2 (q1=1), |11>=3
+		// After reset: rho[0*4+0]=0.5 (|00><00|), rho[2*4+2]=0.5 (|10><10|)
+		c, _ := builder.New("bellreset", 2).H(0).CNOT(0, 1).Reset(0).Build()
+		dm := New(2)
+		if err := dm.Evolve(c); err != nil {
+			t.Fatal(err)
+		}
+		rho := dm.DensityMatrix()
+		dim := 4
+		// Check diagonal: [0.5, 0, 0.5, 0]
+		expectedDiag := []float64{0.5, 0, 0.5, 0}
+		for i := range dim {
+			got := real(rho[i*dim+i])
+			if math.Abs(got-expectedDiag[i]) > 1e-10 {
+				t.Errorf("rho[%d][%d] = %v, want %v", i, i, got, expectedDiag[i])
+			}
+		}
+		// All off-diagonal should be zero (mixed state).
+		for r := range dim {
+			for c := range dim {
+				if r != c {
+					if cmplx.Abs(rho[r*dim+c]) > 1e-10 {
+						t.Errorf("rho[%d][%d] = %v, want 0", r, c, rho[r*dim+c])
+					}
+				}
+			}
+		}
+		// Trace should be 1.
+		var tr float64
+		for i := range dim {
+			tr += real(rho[i*dim+i])
+		}
+		if math.Abs(tr-1.0) > 1e-10 {
+			t.Errorf("Tr(rho) = %v, want 1.0", tr)
+		}
+	})
+
+	t.Run("Reset_on_zero", func(t *testing.T) {
+		// Reset on |0> should leave state unchanged.
+		c, _ := builder.New("reset0", 1).Reset(0).Build()
+		dm := New(1)
+		if err := dm.Evolve(c); err != nil {
+			t.Fatal(err)
+		}
+		rho := dm.DensityMatrix()
+		if math.Abs(real(rho[0])-1.0) > 1e-10 {
+			t.Errorf("rho[0][0] = %v, want 1.0", rho[0])
+		}
+		for i := 1; i < len(rho); i++ {
+			if cmplx.Abs(rho[i]) > 1e-10 {
+				t.Errorf("rho[%d] = %v, want 0", i, rho[i])
+			}
+		}
+	})
+}
+
+// --- StatePrep tests ---
+
+func TestStatePrep_FastPath_Plus(t *testing.T) {
+	// Full-state prep on 1 qubit: |+> via fast path.
+	s2 := 1.0 / math.Sqrt2
+	c, err := builder.New("sp1", 1).
+		StatePrep([]complex128{complex(s2, 0), complex(s2, 0)}, 0).
+		Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+	dm := New(1)
+	if err := dm.Evolve(c); err != nil {
+		t.Fatal(err)
+	}
+	rho := dm.DensityMatrix()
+	// |+><+| = [[0.5, 0.5], [0.5, 0.5]]
+	expected := []complex128{0.5, 0.5, 0.5, 0.5}
+	for i, want := range expected {
+		if cmplx.Abs(rho[i]-want) > 1e-10 {
+			t.Errorf("rho[%d] = %v, want %v", i, rho[i], want)
+		}
+	}
+}
+
+func TestStatePrep_FastPath_Bell(t *testing.T) {
+	// Full-state prep on 2 qubits: Bell state via fast path.
+	s2 := 1.0 / math.Sqrt2
+	c, err := builder.New("sp-bell", 2).
+		StatePrep([]complex128{complex(s2, 0), 0, 0, complex(s2, 0)}, 0, 1).
+		Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+	dm := New(2)
+	if err := dm.Evolve(c); err != nil {
+		t.Fatal(err)
+	}
+
+	// Compare with statevector approach: rho = |psi><psi|.
+	psi := []complex128{complex(s2, 0), 0, 0, complex(s2, 0)}
+	rho := dm.DensityMatrix()
+	dim := 4
+	for i := range dim {
+		for j := range dim {
+			want := psi[i] * conj(psi[j])
+			got := rho[i*dim+j]
+			if cmplx.Abs(got-want) > 1e-10 {
+				t.Errorf("rho[%d][%d] = %v, want %v", i, j, got, want)
+			}
+		}
+	}
+}
+
+func TestStatePrep_Purity(t *testing.T) {
+	// State prep should produce a pure state (purity = 1).
+	s2 := 1.0 / math.Sqrt2
+	c, err := builder.New("sp-purity", 1).
+		StatePrep([]complex128{complex(s2, 0), complex(s2, 0)}, 0).
+		Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+	dm := New(1)
+	if err := dm.Evolve(c); err != nil {
+		t.Fatal(err)
+	}
+	p := dm.Purity()
+	if math.Abs(p-1.0) > 1e-10 {
+		t.Errorf("purity = %v, want 1.0 for pure state", p)
+	}
+}
+
 func TestNoiseAccumulation(t *testing.T) {
 	nm := noise.New()
 	nm.AddDefaultError(1, noise.Depolarizing1Q(0.1))

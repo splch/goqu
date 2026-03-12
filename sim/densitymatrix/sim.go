@@ -78,6 +78,53 @@ func (s *Sim) Evolve(c *ir.Circuit) error {
 		if op.Gate == nil || op.Gate.Name() == "barrier" {
 			continue
 		}
+		if op.Gate.Name() == "reset" {
+			s.resetQubit(op.Qubits[0])
+			if s.noise != nil {
+				ch := s.noise.Lookup("reset", op.Qubits)
+				if ch != nil {
+					s.applyChannel(ch, op.Qubits)
+				}
+			}
+			continue
+		}
+		if sp, ok := op.Gate.(gate.StatePrepable); ok {
+			amps := sp.Amplitudes()
+			// Fast path: full-state preparation on qubits [0..n-1].
+			if len(op.Qubits) == s.numQubits {
+				allInOrder := true
+				for i, q := range op.Qubits {
+					if q != i {
+						allInOrder = false
+						break
+					}
+				}
+				if allInOrder {
+					// Set rho = |psi><psi|.
+					for r := range s.dim {
+						for c := range s.dim {
+							s.rho[r*s.dim+c] = amps[r] * conj(amps[c])
+						}
+					}
+					continue
+				}
+			}
+			// Slow path: decompose into 1Q/2Q gates and apply.
+			applied := op.Gate.Decompose(op.Qubits)
+			for _, a := range applied {
+				am := a.Gate.Matrix()
+				if am == nil {
+					continue
+				}
+				switch a.Gate.Qubits() {
+				case 1:
+					s.applyGate1(a.Qubits[0], am)
+				case 2:
+					s.applyGate2(a.Qubits[0], a.Qubits[1], am)
+				}
+			}
+			continue
+		}
 		m := op.Gate.Matrix()
 		if m == nil {
 			continue
@@ -117,6 +164,32 @@ func (s *Sim) Evolve(c *ir.Circuit) error {
 		}
 	}
 	return nil
+}
+
+// resetQubit resets a qubit to |0⟩ via partial trace and tensor with |0⟩⟨0|.
+// Implements ρ' = |0⟩⟨0|_q ⊗ Tr_q(ρ).
+func (s *Sim) resetQubit(qubit int) {
+	mask := 1 << qubit
+	// Add |1⟩⟨1| block contributions to |0⟩⟨0| block.
+	for r := range s.dim {
+		if (r>>qubit)&1 != 0 {
+			continue
+		}
+		for c := range s.dim {
+			if (c>>qubit)&1 != 0 {
+				continue
+			}
+			s.rho[r*s.dim+c] += s.rho[(r|mask)*s.dim+(c|mask)]
+		}
+	}
+	// Zero out all rows/cols where qubit = 1.
+	for r := range s.dim {
+		for c := range s.dim {
+			if (r>>qubit)&1 == 1 || (c>>qubit)&1 == 1 {
+				s.rho[r*s.dim+c] = 0
+			}
+		}
+	}
 }
 
 // applyChannel applies a noise channel ρ' = Σ_k E_k ρ E_k†.
