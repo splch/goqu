@@ -1,6 +1,7 @@
 package ionq
 
 import (
+	"encoding/json"
 	"math"
 	"math/rand"
 	"testing"
@@ -267,6 +268,58 @@ func FuzzRadiansToTurns(f *testing.F) {
 		if math.Abs(reconstructed-rad) > 1e-10 {
 			t.Errorf("radiansToTurns(%v) = %v, but %v * 2pi = %v (want %v)",
 				rad, turns, turns, reconstructed, rad)
+		}
+	})
+}
+
+// FuzzMarshalPulseShapes builds random PulseShapes and marshals them.
+// Must not panic and must produce valid JSON.
+func FuzzMarshalPulseShapes(f *testing.F) {
+	f.Add(uint8(1), uint32(42))
+	f.Add(uint8(2), uint32(0))
+	f.Add(uint8(3), uint32(123))
+
+	f.Fuzz(func(t *testing.T, nPairs uint8, seed uint32) {
+		if nPairs == 0 || nPairs > 6 {
+			return
+		}
+
+		rng := rand.New(rand.NewSource(int64(seed)))
+		pairs := make([]PulsePair, nPairs)
+		for i := range pairs {
+			nAmps := rng.Intn(10) + 1
+			amps := make([]float64, nAmps)
+			for j := range amps {
+				amps[j] = rng.Float64() * 2
+			}
+			pairs[i] = PulsePair{
+				Q0:              rng.Intn(8),
+				Q1:              rng.Intn(8),
+				Amplitudes:      amps,
+				DurationUsec:    0.1 + rng.Float64()*100,
+				Scale:           rng.Float64(),
+				NearestModesIdx: [2]int{rng.Intn(5), rng.Intn(5)},
+				RelDet:          [2]float64{rng.Float64(), rng.Float64()},
+			}
+		}
+
+		ps, err := NewPulseShapes(rng.Intn(100), "fuzz", pairs...)
+		if err != nil {
+			return
+		}
+
+		result, err := marshalPulseShapes(ps)
+		if err != nil {
+			t.Fatalf("marshalPulseShapes failed: %v", err)
+		}
+
+		// Must marshal to valid JSON.
+		data, err := json.Marshal(result)
+		if err != nil {
+			t.Fatalf("json.Marshal failed: %v", err)
+		}
+		if len(data) == 0 {
+			t.Error("empty JSON output")
 		}
 	})
 }
