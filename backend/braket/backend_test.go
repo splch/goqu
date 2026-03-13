@@ -157,7 +157,7 @@ func TestDeviceTargetMapping(t *testing.T) {
 	}{
 		{"ionq.forte", "IonQ Forte"},
 		{"iqm.garnet", "iqm.garnet"},
-		{"rigetti.ankaa", "rigetti.ankaa"},
+		{"rigetti.ankaa", "Rigetti Ankaa-3"},
 		{"sv1", "Simulator"},
 		{"unknown", "Simulator"},
 	}

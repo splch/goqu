@@ -46,7 +46,7 @@ func (tp *tokenProvider) getToken(ctx context.Context) (string, error) {
 		return tp.token, nil
 	}
 
-	body, err := json.Marshal(loginRequest{
+	body, err := json.Marshal(loginRequest{ // #nosec G117 -- password is sent intentionally to the auth endpoint
 		Email:    tp.email,
 		Password: tp.password,
 	})
