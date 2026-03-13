@@ -205,4 +205,3 @@ func singleGateCircuit(g gate.Gate, nQubits int) *ir.Circuit {
 		{Gate: g, Qubits: qubits},
 	}, nil)
 }
-

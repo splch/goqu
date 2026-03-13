@@ -208,5 +208,3 @@ func buildGroverIterate(statePrep *ir.Circuit, oracle grover.Oracle, n int) (*ir
 
 	return b.Build()
 }
-
-

@@ -181,7 +181,7 @@ func Run(ctx context.Context, cfg Config) (*Result, error) {
 }
 
 // buildOrderFindingCircuit constructs the QPE-based order-finding circuit.
-func buildOrderFindingCircuit(a, N, nPhase, nTarget int) (*ir.Circuit, error) {
+func buildOrderFindingCircuit(a, modulus, nPhase, nTarget int) (*ir.Circuit, error) {
 	nTotal := nPhase + nTarget
 
 	b := builder.New("Shor", nTotal)
@@ -197,7 +197,7 @@ func buildOrderFindingCircuit(a, N, nPhase, nTarget int) (*ir.Circuit, error) {
 	// Controlled modular exponentiation.
 	for k := range nPhase {
 		power := 1 << (nPhase - 1 - k)
-		modCirc := modExpCircuit(a, power, N, nTarget)
+		modCirc := modExpCircuit(a, power, modulus, nTarget)
 
 		// Apply controlled version: phase qubit k controls the mod-exp circuit.
 		for _, op := range modCirc.Ops() {
@@ -223,7 +223,6 @@ func buildOrderFindingCircuit(a, N, nPhase, nTarget int) (*ir.Circuit, error) {
 
 	return b.Build()
 }
-
 
 // continuedFraction extracts the period from a phase measurement.
 // phase = s/r where s is some integer. We use continued fraction

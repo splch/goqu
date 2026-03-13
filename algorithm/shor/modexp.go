@@ -6,19 +6,19 @@ import (
 )
 
 // modExpCircuit builds a circuit for |x> -> |(a^power mod N) * x mod N>.
-func modExpCircuit(a, power, N, nTarget int) *ir.Circuit {
-	mult := modPow(a, power, N)
-	return multiplyModCircuit(mult, N, nTarget)
+func modExpCircuit(a, power, modulus, nTarget int) *ir.Circuit {
+	mult := modPow(a, power, modulus)
+	return multiplyModCircuit(mult, modulus, nTarget)
 }
 
 // multiplyModCircuit builds a circuit for |x> -> |mult * x mod N>.
 // For small N (suitable for simulation), it decomposes the permutation
 // into transpositions and implements each using multi-controlled X gates
 // via a Gray code path.
-func multiplyModCircuit(mult, N, nTarget int) *ir.Circuit {
+func multiplyModCircuit(mult, modulus, nTarget int) *ir.Circuit {
 	b := builder.New("ModMul", nTarget)
 
-	if mult%N <= 1 {
+	if mult%modulus <= 1 {
 		return mustBuild(b)
 	}
 
@@ -26,8 +26,8 @@ func multiplyModCircuit(mult, N, nTarget int) *ir.Circuit {
 	dim := 1 << nTarget
 	perm := make([]int, dim)
 	for x := range dim {
-		if x > 0 && x < N {
-			perm[x] = (mult * x) % N
+		if x > 0 && x < modulus {
+			perm[x] = (mult * x) % modulus
 		} else {
 			perm[x] = x
 		}
@@ -112,7 +112,7 @@ func applyTransposition(b *builder.Builder, s1, s2, n int) {
 	// we undo those to leave only the (s1, s2) transposition.
 	cur = s2
 	for i := len(bits) - 2; i >= 0; i-- {
-		cur = cur ^ (1 << bits[i])
+		cur ^= (1 << bits[i])
 		applySingleBitSwap(b, cur, bits[i], n)
 	}
 }

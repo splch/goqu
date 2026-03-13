@@ -189,5 +189,3 @@ func BooleanOracle(f func(int) bool, numQubits int) Oracle {
 	}
 	return PhaseOracle(targets, numQubits)
 }
-
-

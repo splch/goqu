@@ -130,4 +130,3 @@ func parseSecret(bs string) int {
 	val, _ := strconv.ParseInt(bs, 2, 64)
 	return int(val)
 }
-

@@ -190,4 +190,3 @@ func buildGroverIterate(oracle grover.Oracle, n int) (*ir.Circuit, error) {
 
 	return b.Build()
 }
-
