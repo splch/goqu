@@ -1,5 +1,7 @@
 # Goqu
 
+<img height="256" alt="image" src="https://github.com/user-attachments/assets/42cf36fb-33d3-43d9-9176-c28dd5909958" />
+
 A zero-dependency quantum computing SDK for Go.
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/splch/goqu.svg)](https://pkg.go.dev/github.com/splch/goqu)
