@@ -55,8 +55,7 @@ func TestHermitianEig_PauliZ(t *testing.T) {
 }
 
 func TestHermitianEig_Complex(t *testing.T) {
-	// [[2, 1+i], [1-i, 3]] -> eigenvalues (5+sqrt(5))/2 and (5-sqrt(5))/2
-	// Wait, let me compute: trace=5, det=6-2=4. Eigenvalues: (5 +/- sqrt(25-16))/2 = (5+/-3)/2 = 4, 1
+	// [[2, 1+i], [1-i, 3]]: trace=5, det=6-2=4. Eigenvalues: (5 +/- sqrt(25-16))/2 = (5+/-3)/2 = 4, 1
 	m := []complex128{2, 1 + 1i, 1 - 1i, 3}
 	evals, evecs := hermitianEig(m, 2)
 

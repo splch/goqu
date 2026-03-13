@@ -197,13 +197,7 @@ func TestDet2x2_PauliX(t *testing.T) {
 func TestDet2x2_PauliY(t *testing.T) {
 	y := []complex128{0, -1i, 1i, 0}
 	d := Det2x2(y)
-	// det(Y) = 0*0 - (-i)(i) = -(i)(-i) = -(i^2)(-1) = -(-1) Wait: det = ad - bc = 0 - (-i)(i) = -((-i)(i)) = -(i*(-i)) hmm
-	// det = 0*0 - (-1i)*(1i) = -((-1i)*(1i)) = -((-1)(i^2)) = -(-1)(-1) = -(1) = ... let me compute:
-	// a=0, b=-i, c=i, d=0 => det = 0*0 - (-i)*(i) = -(-i*i) = -(-i^2) = -(1) = hmm
-	// Actually: ad - bc = 0 - (-i)(i) = i*i = i^2 = -1... wait:
-	// bc = (-i)(i) = -i^2 = -(-1) = 1, so det = 0 - 1 = -1.
-	// Wait no: det = ad - bc = (0)(0) - (-1i)(1i) = 0 - (-1i)(1i)
-	// (-1i)(1i) = -1*i*1*i = -i^2 = 1, so det = -1.
+	// det(Y) = ad - bc = (0)(0) - (-i)(i) = 0 - (-i^2) = 0 - 1 = -1.
 	if cmplx.Abs(d-(-1)) > tol {
 		t.Errorf("det(Y) = %v, want -1", d)
 	}
@@ -392,8 +386,7 @@ func TestGlobalPhase_MinusI(t *testing.T) {
 	if !ok {
 		t.Fatal("GlobalPhase(I, -I) returned false")
 	}
-	// a = e^{i*pi} * b would mean I = e^{i*pi}*(-I) = (-1)(-I) = I. Hmm.
-	// Actually: a/b element-wise = 1/(-1) = -1, so phase = pi.
+	// a/b element-wise = 1/(-1) = -1, so phase = pi.
 	if math.Abs(math.Abs(phi)-math.Pi) > tol*100 {
 		t.Errorf("GlobalPhase(I, -I) phase = %v, want ±pi", phi)
 	}

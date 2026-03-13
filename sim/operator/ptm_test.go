@@ -48,8 +48,7 @@ func TestKrausToPTM_Depolarizing(t *testing.T) {
 }
 
 func TestKrausToPTM_BitFlip(t *testing.T) {
-	// Bit-flip channel with probability p: PTM = diag(1, 1-2p, -(1-2p), 1-2p)
-	// Wait, let me think more carefully.
+	// Bit-flip channel with probability p.
 	// BitFlip(p): sqrt(1-p)*I + sqrt(p)*X
 	// E(I) = I, E(X) = X, E(Y) = (1-2p)*Y, E(Z) = (1-2p)*Z
 	// R[I,I] = Tr(I*E(I))/2 = Tr(I)/2 = 1

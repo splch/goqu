@@ -8,8 +8,7 @@ import (
 )
 
 func TestDAGFrontLayer(t *testing.T) {
-	// H(0), CNOT(0,1), X(1) — H and X should be in front layer (X depends on nothing on q1 before CNOT).
-	// Actually: H(0) is on q0, CNOT(0,1) is on q0 and q1, X(1) is on q1.
+	// H(0) is on q0, CNOT(0,1) is on q0 and q1, X(1) is on q1.
 	// qubitOps[0] = [0, 1], qubitOps[1] = [1, 2]
 	// predCount: op0=0, op1=1(from q0), op2=1(from q1)
 	// Front: [0] only

@@ -42,10 +42,7 @@ func TestKrausToChoi_Identity(t *testing.T) {
 
 	// For identity channel on 1 qubit:
 	// Choi = |Phi+><Phi+| where |Phi+> = (|00> + |11>)/sqrt(2)
-	// In our convention with vec(I), the Choi matrix is:
-	// Lambda[ik,jl] = delta_ij * delta_kl
-	// which for dim=2 is a 4x4 matrix with 1s at (0,0), (0,3), (3,0), (3,3)
-	// Actually: vec(I) = [1, 0, 0, 1] (column-stacked), outer product:
+	// vec(I) = [1, 0, 0, 1] (column-stacked), outer product:
 	// [1,0,0,1]^T [1,0,0,1]* = [[1,0,0,1],[0,0,0,0],[0,0,0,0],[1,0,0,1]]
 	expected := []complex128{
 		1, 0, 0, 1,
@@ -143,7 +140,7 @@ func TestChoiToKraus_ReconstructsSuperOp(t *testing.T) {
 func TestKrausToSuperOp_Depolarizing(t *testing.T) {
 	// Depolarizing channel with p: E(rho) = (1-p)*rho + (p/3)*(X rho X + Y rho Y + Z rho Z)
 	// SuperOp: S = (1-4p/3)*I_4 + (4p/3) * (I_4 projected to identity-component)
-	// Actually verify by applying to known density matrices.
+	// Verify by applying to known density matrices.
 	p := 0.3
 	ch := noise.Depolarizing1Q(p)
 	k := FromChannel(ch)

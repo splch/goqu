@@ -31,4 +31,8 @@
 //   - [algorithm/textbook] — Bernstein-Vazirani, Deutsch-Jozsa, Simon's
 //   - [algorithm/shor] — Shor's factoring algorithm
 //   - [algorithm/hhl] — HHL linear systems solver
+//
+// Error mitigation:
+//
+//   - [algorithm/mitigation] — error mitigation (ZNE, readout, Pauli twirling, DD, PEC, CDR, TREX)
 package algorithm
