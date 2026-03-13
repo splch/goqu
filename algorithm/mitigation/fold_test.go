@@ -12,8 +12,7 @@ import (
 )
 
 func TestFoldCircuit_UnitaryGateCount(t *testing.T) {
-	// 3-gate circuit folded at scale 3: should have 3 + 2*(3-1)/2 * 3... wait
-	// C → C C† C means original + inverse + original = 3*original gates
+	// C → C C† C means original + inverse + original = 3*original gates.
 	// Scale factor s: gate count = s * original
 	circ, err := builder.New("test", 2).
 		H(0).

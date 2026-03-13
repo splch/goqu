@@ -25,8 +25,6 @@ func TestProcessFidelity_Identity(t *testing.T) {
 
 func TestAverageGateFidelity_Depolarizing(t *testing.T) {
 	// For single-qubit depolarizing channel with parameter p:
-	// F_pro = (1-p) + p/3 * (0+0+0) = 1 - p + p * (Tr(I)^2 + Tr(X)^2 + Tr(Y)^2 + Tr(Z)^2 - Tr(I)^2) / (3*4)
-	// Actually, let's compute directly:
 	// Kraus operators: sqrt(1-p)*I, sqrt(p/3)*X, sqrt(p/3)*Y, sqrt(p/3)*Z
 	// F_pro = (1/d^2) * sum_k |Tr(E_k)|^2
 	// = (1/4) * ((1-p)*|Tr(I)|^2 + (p/3)*|Tr(X)|^2 + (p/3)*|Tr(Y)|^2 + (p/3)*|Tr(Z)|^2)

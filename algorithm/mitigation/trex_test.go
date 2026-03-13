@@ -71,13 +71,8 @@ func TestCalibrateTREX(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// The calibrated flip rates should reflect the readout error.
-	// For the all-zero state, the average flip rate = average of p01 and p10
-	// weighted by twirl probabilities: f_q ≈ (p01 + p10) / 2
-	// (since half the time we prepare 0 and half the time we flip to 1).
-	// Actually it's simpler: the twirl calibration measures f_q from the
-	// all-zero state. After twirled readout, roughly p01/2 of the time
-	// we get the wrong answer.
+	// The twirl calibration measures f_q from the all-zero state.
+	// After twirled readout, roughly p01/2 of the time we get the wrong answer.
 
 	// Just check the correction formula works.
 	rawValue := 0.9 // some noisy expectation

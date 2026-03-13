@@ -29,8 +29,7 @@ func TestExtrapolateLinear_TwoPoints(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// y = 0.9 - 0.1x → y(0) = 0.9... wait: slope = (0.6-0.8)/(3-1) = -0.1
-	// intercept = 0.8 - (-0.1)*1 = 0.9
+	// slope = (0.6-0.8)/(3-1) = -0.1, intercept = 0.8 - (-0.1)*1 = 0.9
 	if math.Abs(got-0.9) > 1e-10 {
 		t.Errorf("linear extrapolation = %f, want 0.9", got)
 	}

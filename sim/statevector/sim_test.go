@@ -300,9 +300,7 @@ func TestGate2_CNOT_NonAdjacent(t *testing.T) {
 }
 
 func TestGate2_CZ(t *testing.T) {
-	// CZ on |1,+>: H(1) X(0) -> |1,+>, then CZ(0,1) -> |1,->
-	// Start: |00>, X(0) -> |01> (qubit 0 = 1), H(1) -> |0>(1/sqrt2)(|0>+|1>)
-	// Actually, let's do: H(0) to get |+0>, X(1) to get |+1>, CZ(0,1)
+	// H(0) to get |+0>, X(1) to get |+1>, CZ(0,1).
 	// |+1> = 1/sqrt2 (|01> + |11>), CZ negates |11>: 1/sqrt2 (|01> - |11>) = |−1>
 	c, err := builder.New("cz", 2).
 		H(0).
@@ -488,14 +486,8 @@ func TestGate3_CCX_NonAdjacent(t *testing.T) {
 }
 
 func TestGate3_CSWAP(t *testing.T) {
-	// CSWAP(0,1,2): control=q0, swap q1 and q2
-	// |101> (q0=1, q2=1) -> CSWAP -> |011> (q0=1, q1=1)
-	// Wait, CSWAP matrix: when control (bit2=q0) is set, swap q1 and q2.
-	// Let's set up |101>: X(0), X(2) -> index = 1+4 = 5
-	// CSWAP(0,1,2): control=q0(bit2), q1(bit1), q2(bit0)
-	// |101> has q0=1,q1=0,q2=1 -> swap q1,q2 -> q0=1,q1=1,q2=0 = |110> = idx 3
-	// Actually in our convention: bit2(MSB)=q0, bit1=q1, bit0(LSB)=q2
-	// But state index: bit at position q means qubit q is set.
+	// CSWAP(0,1,2): control=q0, swap q1 and q2.
+	// State index: bit at position q means qubit q is set.
 	// |101>: q0=1, q1=0, q2=1 -> index = (1<<0)|(1<<2) = 5
 	// After CSWAP: q0=1, q1=1, q2=0 -> index = (1<<0)|(1<<1) = 3
 	c, err := builder.New("cswap", 3).
@@ -709,7 +701,7 @@ func TestEvolve_Reset(t *testing.T) {
 		// (deterministic), amplitude for |00> gets norm of (1/sqrt2, 0) pair = 1/sqrt2,
 		// and amplitude for |01> gets norm of (0, 1/sqrt2) pair = 1/sqrt2.
 		// Result: state = 1/sqrt2 |00> + 1/sqrt2 |10> (qubit 1 is bit 1).
-		// Wait: index mapping. |00>=0, |01>=1 (q0=1), |10>=2 (q1=1), |11>=3.
+		// Index mapping: |00>=0, |01>=1 (q0=1), |10>=2 (q1=1), |11>=3.
 		// Bell state: sv[0]=1/sqrt2, sv[3]=1/sqrt2.
 		// Reset qubit 0: pairs are (i0, i1) where i0 has q0=0, i1 has q0=1.
 		//   pair (0, 1): a0=1/sqrt2, a1=0 -> norm=1/sqrt2 -> state[0]=1/sqrt2, state[1]=0

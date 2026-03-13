@@ -144,8 +144,7 @@ func TestControlledSWAP(t *testing.T) {
 	sim := statevector.New(3)
 	sim.Evolve(c)
 	sv := sim.StateVector()
-	// |110> = index 3 (q0=1, q1=1, q2=0 -> bit pattern: 011 = 3)
-	// Wait: q0=bit0, q1=bit1, q2=bit2.
+	// q0=bit0, q1=bit1, q2=bit2.
 	// |101> means q0=1, q1=0, q2=1 -> index = 1 + 4 = 5.
 	// After CSWAP with control=q0: swap q1 and q2.
 	// q1 gets q2's value (1), q2 gets q1's value (0).

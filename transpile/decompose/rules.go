@@ -303,10 +303,7 @@ func decomposeToIonQ(g gate.Gate, qubits []int, _ map[string]bool) []ir.Operatio
 func decompose1qToIonQ(g gate.Gate, qubits []int) []ir.Operation {
 	q := qubits[0]
 
-	// Use Euler decomposition then convert RZ/RY to GPI/GPI2.
-	// RZ(θ) = GPI2(0)·GPI(θ/2)·GPI2(0)... but simpler:
-	// RZ(θ) = GPI(θ/2)·GPI(0) (up to global phase)
-	// Actually: GPI2(φ) is a π/2 rotation about axis at angle φ in XY plane.
+	// GPI2(φ) is a π/2 rotation about axis at angle φ in XY plane.
 	// For IonQ native: single-qubit gates are combinations of GPI and GPI2.
 
 	switch g {

@@ -590,10 +590,9 @@ func TestEvolve_Reset(t *testing.T) {
 		// Bell state (|00>+|11>)/sqrt(2) then Reset(0).
 		// ρ = 0.5*(|00><00| + |00><11| + |11><00| + |11><11|)
 		// After reset qubit 0: ρ' = |0><0|_q0 ⊗ Tr_q0(ρ) = |0><0|_q0 ⊗ 0.5*(|0><0| + |1><1|)
-		// = 0.5*(|00><00| + |01><01|)
-		// i.e., rho[0,0]=0.5, rho[2*4+2]=rho[10]=0.5 (index for |10><10| in 2q, NO).
-		// Wait: 2-qubit density matrix is 4x4. Index (r,c) = r*4+c.
-		// |00>=0, |01>=1 (q0=1), |10>=2 (q1=1), |11>=3
+		// = 0.5*(|00><00| + |10><10|)
+		// 2-qubit density matrix is 4x4. Index (r,c) = r*4+c.
+		// |00>=0, |01>=1 (q0=1), |10>=2 (q1=1), |11>=3.
 		// After reset: rho[0*4+0]=0.5 (|00><00|), rho[2*4+2]=0.5 (|10><10|)
 		c, _ := builder.New("bellreset", 2).H(0).CNOT(0, 1).Reset(0).Build()
 		dm := New(2)
