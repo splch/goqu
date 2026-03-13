@@ -415,8 +415,8 @@ func TestSubmitNilCircuit(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error for nil circuit")
 	}
-	if !strings.Contains(err.Error(), "nil circuit") {
-		t.Errorf("error = %q, expected to contain 'nil circuit'", err.Error())
+	if !strings.Contains(err.Error(), "Circuit or PulseProgram must be set") {
+		t.Errorf("error = %q, expected to contain 'Circuit or PulseProgram must be set'", err.Error())
 	}
 }
 
