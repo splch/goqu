@@ -60,6 +60,42 @@ func FormatQASM(v float64) string {
 	return formatFraction(num, denom, "pi")
 }
 
+// FormatLaTeX formats an angle using LaTeX math notation for pi fractions.
+// Produces \pi, \frac{\pi}{4}, \frac{3\pi}{4}, etc.
+// Falls back to "%.4g" for non-pi-fraction values.
+func FormatLaTeX(v float64) string {
+	if math.Abs(v) < tol {
+		return "0"
+	}
+	num, denom, ok := piFraction(v)
+	if !ok {
+		return fmt.Sprintf("%.4g", v)
+	}
+	return formatLaTeXFraction(num, denom)
+}
+
+// formatLaTeXFraction renders a pi fraction in LaTeX math notation.
+func formatLaTeXFraction(num, denom int) string {
+	if denom == 1 {
+		if num == 1 {
+			return `\pi`
+		}
+		if num == -1 {
+			return `-\pi`
+		}
+	}
+	sign := ""
+	if num < 0 {
+		sign = "-"
+		num = -num
+	}
+	numerator := `\pi`
+	if num != 1 {
+		numerator = fmt.Sprintf(`%d\pi`, num)
+	}
+	return fmt.Sprintf(`%s\frac{%s}{%d}`, sign, numerator, denom)
+}
+
 // formatFraction renders n*sym/d as a human-readable string.
 func formatFraction(num, denom int, sym string) string {
 	if denom == 1 {
