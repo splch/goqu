@@ -166,6 +166,17 @@ Run benchmarks locally:
 go test -bench=. ./sim/statevector/
 ```
 
+## Notebooks
+
+Interactive Jupyter notebooks in [`notebooks/`](notebooks/) let you explore goqu
+with [gonb](https://github.com/janpfeifer/gonb) (Go Jupyter kernel).
+
+```
+pip install jupyter
+go install github.com/janpfeifer/gonb@latest && gonb --install
+cd notebooks && jupyter notebook
+```
+
 ## Documentation
 
 [API Reference (pkg.go.dev)](https://pkg.go.dev/github.com/splch/goqu)
