@@ -225,8 +225,12 @@ func RunPEC(ctx context.Context, cfg PECConfig) (*PECResult, error) {
 // extractDepolarizingParam extracts the depolarizing parameter p from a noise
 // channel. Returns (p, true) if the channel is depolarizing, (0, false) otherwise.
 //
-// For a 1Q depolarizing channel: Kraus[0] = sqrt(1-p)·I, so p = 1 - |K0[0]|².
+// For a 1Q depolarizing channel: Kraus[0] = sqrt(1-p)·I, so p = 1 - |K0[0,0]|².
 // For a 2Q depolarizing channel: Kraus[0] = sqrt(1-p)·I⊗I, same extraction.
+//
+// Validates that K₁…K_{d²-1} are each proportional to a Pauli with equal weight
+// sqrt(p/(d²-1)), confirming the channel is depolarizing and not merely a channel
+// whose first Kraus operator happens to be proportional to identity.
 func extractDepolarizingParam(ch noise.Channel) (float64, bool) {
 	kraus := ch.Kraus()
 	nq := ch.Qubits()
@@ -269,5 +273,26 @@ func extractDepolarizingParam(ch noise.Channel) (float64, bool) {
 	if p < 0 {
 		p = 0
 	}
+
+	// Verify remaining Kraus operators have equal Frobenius norm consistent
+	// with depolarizing: each should satisfy ||K_k||_F² = p·dim/(d²-1),
+	// since Tr(σ†σ) = dim for any d×d Pauli.
+	if p > 1e-15 {
+		expectedNormSq := p * float64(dim) / float64(dim*dim-1)
+		for i := 1; i < len(kraus); i++ {
+			ki := kraus[i]
+			if len(ki) != dim*dim {
+				return 0, false
+			}
+			normSq := 0.0
+			for _, v := range ki {
+				normSq += real(v)*real(v) + imag(v)*imag(v)
+			}
+			if math.Abs(normSq-expectedNormSq) > 1e-8 {
+				return 0, false
+			}
+		}
+	}
+
 	return p, true
 }

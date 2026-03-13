@@ -48,7 +48,7 @@ func TestFoldCircuit_UnitaryGateCount(t *testing.T) {
 	}
 }
 
-func TestFoldCircuit_IdentityInsertionGateCount(t *testing.T) {
+func TestFoldCircuit_LocalFoldingGateCount(t *testing.T) {
 	circ, err := builder.New("test", 2).
 		H(0).
 		CNOT(0, 1).
@@ -69,7 +69,7 @@ func TestFoldCircuit_IdentityInsertionGateCount(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		folded, err := mitigation.FoldCircuit(circ, tt.scale, mitigation.IdentityInsertion)
+		folded, err := mitigation.FoldCircuit(circ, tt.scale, mitigation.LocalFolding)
 		if err != nil {
 			t.Fatalf("scale %d: %v", tt.scale, err)
 		}
@@ -107,7 +107,7 @@ func TestFoldCircuit_PreservesUnitary(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	for _, method := range []mitigation.ScaleMethod{mitigation.UnitaryFolding, mitigation.IdentityInsertion} {
+	for _, method := range []mitigation.ScaleMethod{mitigation.UnitaryFolding, mitigation.LocalFolding} {
 		for _, scale := range []int{3, 5} {
 			folded, err := mitigation.FoldCircuit(circ, scale, method)
 			if err != nil {

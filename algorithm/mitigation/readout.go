@@ -112,11 +112,6 @@ func CalibrateReadoutPerQubit(ctx context.Context, numQubits, shots int, exec Ba
 	}
 	qcals := make([]qubitCal, numQubits)
 
-	// Initialize with ideal values.
-	for i := range qcals {
-		qcals[i] = qubitCal{p00: 1, p01: 0, p10: 0, p11: 1}
-	}
-
 	if total0 > 0 {
 		for bs, c := range counts0 {
 			idx := bitstringToInt(bs)
@@ -128,11 +123,6 @@ func CalibrateReadoutPerQubit(ctx context.Context, numQubits, shots int, exec Ba
 					qcals[q].p00 += frac // prepared 0, measured 0
 				}
 			}
-		}
-		// We accumulated on top of initial values, subtract 1.
-		for q := range numQubits {
-			qcals[q].p00 -= 1
-			qcals[q].p01 -= 0
 		}
 	}
 
@@ -147,11 +137,6 @@ func CalibrateReadoutPerQubit(ctx context.Context, numQubits, shots int, exec Ba
 					qcals[q].p10 += frac // prepared 1, measured 0
 				}
 			}
-		}
-		// We accumulated on top of initial values, subtract 1.
-		for q := range numQubits {
-			qcals[q].p11 -= 1
-			qcals[q].p10 -= 0
 		}
 	}
 

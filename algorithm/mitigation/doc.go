@@ -17,7 +17,7 @@
 //	result, err := mitigation.RunZNE(ctx, mitigation.ZNEConfig{
 //	    Circuit:      circ,
 //	    Executor:     mitigation.DensityMatrixExecutor(hamiltonian, noiseModel),
-//	    ScaleFactors: []float64{1, 2, 3},
+//	    ScaleFactors: []float64{1, 3, 5},
 //	    Extrapolator: mitigation.LinearExtrapolator,
 //	})
 //

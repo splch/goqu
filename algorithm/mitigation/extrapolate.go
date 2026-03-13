@@ -115,9 +115,14 @@ func extrapolatePolynomial(x, y []float64) (float64, error) {
 	return coeffs[0], nil
 }
 
-// extrapolateExponential fits y = a + b·exp(c·x) and returns a.
+// extrapolateExponential fits y = a + b·exp(c·x) and returns a + b (the value at x=0).
 // Uses Richardson-like approach: estimate asymptote from the data,
 // then linearize log(y - a) = log(b) + c·x.
+//
+// The asymptote formula assumes the first three x-values are evenly spaced,
+// which holds for the default ZNE scale factors (1, 3, 5, ...). For
+// non-uniform spacing, the estimate degrades and linear extrapolation
+// may be more reliable.
 func extrapolateExponential(x, y []float64) (float64, error) {
 	n := len(x)
 	if n < 3 {
@@ -125,6 +130,7 @@ func extrapolateExponential(x, y []float64) (float64, error) {
 	}
 
 	// Estimate asymptote 'a' using the first three points.
+	// Valid when x[0], x[1], x[2] are evenly spaced.
 	// For y_i = a + b*exp(c*x_i), if points are evenly spaced in x:
 	// a ≈ (y0*y2 - y1^2) / (y0 + y2 - 2*y1)
 	// We use the first three points since ZNE scale factors are typically

@@ -11,16 +11,15 @@ type ScaleMethod int
 
 const (
 	// UnitaryFolding scales noise by appending C†C pairs to the full circuit:
-	// C → C (C† C)^(s-1). Preserves the logical unitary.
+	// C → C (C† C)^((s-1)/2). Preserves the logical unitary.
 	UnitaryFolding ScaleMethod = iota
-	// IdentityInsertion scales noise by replacing each gate G with
-	// G (G† G)^(s-1). Preserves the logical unitary per gate.
-	IdentityInsertion
+	// LocalFolding scales noise by replacing each gate G with
+	// G (G† G)^((s-1)/2). Preserves the logical unitary per gate.
+	LocalFolding
 )
 
 // FoldCircuit returns a new circuit with noise scaled by scaleFactor.
-// scaleFactor must be a positive odd integer (1, 3, 5, ...) for UnitaryFolding,
-// or any positive odd integer for IdentityInsertion.
+// scaleFactor must be a positive odd integer (1, 3, 5, ...).
 // A scaleFactor of 1 returns an unmodified copy.
 func FoldCircuit(circuit *ir.Circuit, scaleFactor int, method ScaleMethod) (*ir.Circuit, error) {
 	if scaleFactor < 1 || scaleFactor%2 == 0 {
@@ -35,8 +34,8 @@ func FoldCircuit(circuit *ir.Circuit, scaleFactor int, method ScaleMethod) (*ir.
 	switch method {
 	case UnitaryFolding:
 		return foldUnitary(circuit, scaleFactor)
-	case IdentityInsertion:
-		return foldIdentityInsertion(circuit, scaleFactor)
+	case LocalFolding:
+		return foldLocalFolding(circuit, scaleFactor)
 	default:
 		return nil, fmt.Errorf("mitigation.FoldCircuit: unknown method %d", method)
 	}
@@ -64,9 +63,9 @@ func foldUnitary(circuit *ir.Circuit, scaleFactor int) (*ir.Circuit, error) {
 	return result, nil
 }
 
-// foldIdentityInsertion implements per-gate folding:
+// foldLocalFolding implements per-gate folding:
 // each gate G → G (G† G)^((s-1)/2).
-func foldIdentityInsertion(circuit *ir.Circuit, scaleFactor int) (*ir.Circuit, error) {
+func foldLocalFolding(circuit *ir.Circuit, scaleFactor int) (*ir.Circuit, error) {
 	nPairs := (scaleFactor - 1) / 2
 	ops := circuit.Ops()
 	result := make([]ir.Operation, 0, len(ops)*scaleFactor)

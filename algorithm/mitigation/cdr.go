@@ -261,16 +261,28 @@ func rxClifford(k int) gate.Gate {
 		return gate.SX
 	case 2:
 		return gate.X
+	case 3:
+		// RX(3π/2) = RX(-π/2) = SX†; no named gate, use parameterized form.
+		return gate.RX(3 * math.Pi / 2)
 	default:
-		// RX(3π/2) = RX(-π/2) = SX†
-		return gate.RX(float64(k) * math.Pi / 2)
+		return gate.I
 	}
 }
 
 // ryClifford returns the Clifford gate equivalent to RY(k·π/2).
 func ryClifford(k int) gate.Gate {
-	// RY at multiples of π/2 are Clifford.
-	return gate.RY(float64(k) * math.Pi / 2)
+	switch k {
+	case 0:
+		return gate.I
+	case 1:
+		return gate.RY(math.Pi / 2)
+	case 2:
+		return gate.Y
+	case 3:
+		return gate.RY(3 * math.Pi / 2)
+	default:
+		return gate.I
+	}
 }
 
 // idealExpectation computes ⟨ψ|H|ψ⟩ for a circuit using ideal statevector sim.
