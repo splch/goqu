@@ -44,6 +44,7 @@ fmt.Println(counts) // map[00:~512 11:~512]
 | **7 simulators** | Statevector (up to 28 qubits), density matrix, Clifford, pulse-level, Pauli, noise channels, operator theory |
 | **7 hardware backends** | IonQ, IBM Quantum, Google, AWS Braket, Rigetti, Quantinuum, and local |
 | **Transpilation** | SABRE routing, gate decomposition (Euler, KAK, Barenco), 4 optimization levels, equivalence verification |
+| **Algorithms** | Grover, Shor, VQE, QAOA, QPE, HHL, amplitude estimation, Trotterization, VQC, textbook algorithms |
 | **Pulse programming** | OpenPulse model with 5 waveform types, gate-to-pulse calibration, OpenQASM 3.0 parsing |
 | **Serialization** | OpenQASM 2.0 & 3.0 round-trip, Quil emission |
 | **Visualization** | ASCII, SVG, and LaTeX circuit diagrams |
