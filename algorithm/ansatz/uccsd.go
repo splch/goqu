@@ -36,7 +36,7 @@ func NewUCCSD(numQubits, numElectrons int) *UCCSD {
 	}
 
 	// Enumerate single excitations.
-	var singles [][2]int
+	singles := make([][2]int, 0, len(occupied)*len(virtual))
 	for _, occ := range occupied {
 		for _, virt := range virtual {
 			singles = append(singles, [2]int{occ, virt})
