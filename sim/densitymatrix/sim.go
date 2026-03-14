@@ -81,6 +81,14 @@ func (s *Sim) Evolve(c *ir.Circuit) error {
 		if op.Gate == nil || op.Gate.Name() == "barrier" {
 			continue
 		}
+		if op.Gate.Name() == "delay" {
+			if s.noise != nil {
+				if ch := s.noise.Lookup("delay", op.Qubits); ch != nil {
+					s.applyChannel(ch, op.Qubits)
+				}
+			}
+			continue
+		}
 		if op.Gate.Name() == "reset" {
 			s.resetQubit(op.Qubits[0])
 			if s.noise != nil {

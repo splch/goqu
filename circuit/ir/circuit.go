@@ -85,8 +85,11 @@ func (c *Circuit) Stats() Stats {
 			if len(op.Gate.Params()) > 0 {
 				s.Params += len(op.Gate.Params())
 			}
-			if op.Gate.Name() == "reset" {
+			switch op.Gate.Name() {
+			case "reset":
 				s.Resets++
+			case "delay":
+				s.Delays++
 			}
 		}
 		if op.Condition != nil {
@@ -184,6 +187,7 @@ type Stats struct {
 	Params           int
 	Measurements     int
 	Resets           int
+	Delays           int
 	ConditionalGates int
 	Dynamic          bool
 }

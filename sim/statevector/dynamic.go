@@ -44,7 +44,7 @@ func (s *Sim) RunDynamic(c *ir.Circuit, shots int) (map[string]int, error) {
 			}
 
 			name := op.Gate.Name()
-			if name == "barrier" {
+			if name == "barrier" || name == "delay" {
 				continue
 			}
 

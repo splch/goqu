@@ -80,8 +80,8 @@ func convertOp(op ir.Operation) ([]nativeOp, error) {
 	case name == "I":
 		return nil, nil
 
-	// Barrier — skip (not a physical gate).
-	case name == "barrier":
+	// Barrier and delay — skip (not physical gates).
+	case name == "barrier", name == "delay":
 		return nil, nil
 
 	// H: PhasedXZ(x=1, z=1, a=0)

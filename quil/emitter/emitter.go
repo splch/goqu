@@ -88,6 +88,8 @@ func (e *emitter) emitOp(op ir.Operation) error {
 	case "reset":
 		e.writef("RESET %d\n", op.Qubits[0])
 		return nil
+	case "delay":
+		return nil // Quil has no delay instruction; skip silently.
 	}
 
 	// Check for multi-controlled gates: emit CONTROLLED modifier syntax.

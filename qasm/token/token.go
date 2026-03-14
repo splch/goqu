@@ -63,6 +63,7 @@ const (
 	MEASURE
 	RESET
 	BARRIER
+	DELAY
 	IF
 	ELSE
 	FOR
@@ -108,7 +109,7 @@ var tokenNames = map[Type]string{
 	LSHIFT: "<<", RSHIFT: ">>", AMPAMP: "&&", PIPEPIPE: "||",
 	OPENQASM: "OPENQASM", INCLUDE: "include", GATE: "gate",
 	QUBIT: "qubit", BIT: "bit", QREG: "qreg", CREG: "creg",
-	MEASURE: "measure", RESET: "reset", BARRIER: "barrier",
+	MEASURE: "measure", RESET: "reset", BARRIER: "barrier", DELAY: "delay",
 	IF: "if", ELSE: "else", FOR: "for", WHILE: "while",
 	IN: "in", RETURN: "return", DEF: "def",
 	CONST: "const", INPUT: "input", OUTPUT: "output",
@@ -147,6 +148,7 @@ var Keywords = map[string]Type{
 	"measure":  MEASURE,
 	"reset":    RESET,
 	"barrier":  BARRIER,
+	"delay":    DELAY,
 	"if":       IF,
 	"else":     ELSE,
 	"for":      FOR,

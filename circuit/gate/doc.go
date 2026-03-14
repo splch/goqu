@@ -10,6 +10,7 @@
 // [Unitary] and [MustUnitary] create custom gates from user-provided matrices
 // with unitarity validation. Multi-controlled gates are built with [MCX],
 // [MCZ], [MCP], and [Controlled]. IonQ native gates: [GPI], [GPI2], [MS].
+// Pseudo-gates: [Reset] resets a qubit; [Delay] idles a qubit for a duration.
 //
 // Gate matrices are stored as flat []complex128 slices in row-major order.
 // For two-qubit gates the convention is: row bit 1 (MSB) = q0, bit 0 (LSB) = q1.

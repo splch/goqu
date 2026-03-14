@@ -267,3 +267,55 @@ func TestRadiansToTurns(t *testing.T) {
 		}
 	}
 }
+
+func TestDelayDroppedInQIS(t *testing.T) {
+	// NOP is native-only; delays in QIS circuits should be silently dropped.
+	c := ir.New("delay-qis", 1, 0, []ir.Operation{
+		{Gate: gate.H, Qubits: []int{0}},
+		{Gate: gate.Delay(500, gate.UnitUs), Qubits: []int{0}},
+		{Gate: gate.X, Qubits: []int{0}},
+	}, nil)
+
+	input, err := marshalCircuit(c)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if input.Gateset != "qis" {
+		t.Errorf("gateset = %q, want %q", input.Gateset, "qis")
+	}
+	// Delay should be dropped, leaving only H and X.
+	if len(input.Circuit) != 2 {
+		t.Fatalf("gates = %d, want 2 (delay should be dropped in QIS)", len(input.Circuit))
+	}
+	if input.Circuit[0].Gate != "h" {
+		t.Errorf("gate[0] = %q, want h", input.Circuit[0].Gate)
+	}
+	if input.Circuit[1].Gate != "x" {
+		t.Errorf("gate[1] = %q, want x", input.Circuit[1].Gate)
+	}
+}
+
+func TestDelayToNOPNativeGateset(t *testing.T) {
+	// Delay should also work in native gateset circuits.
+	c := ir.New("delay-native", 1, 0, []ir.Operation{
+		{Gate: gate.GPI(0), Qubits: []int{0}},
+		{Gate: gate.Delay(100, gate.UnitNs), Qubits: []int{0}},
+		{Gate: gate.GPI(0), Qubits: []int{0}},
+	}, nil)
+
+	input, err := marshalCircuit(c)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if input.Gateset != "native" {
+		t.Errorf("gateset = %q, want %q", input.Gateset, "native")
+	}
+	nop := input.Circuit[1]
+	if nop.Gate != "nop" {
+		t.Errorf("gate = %q, want %q", nop.Gate, "nop")
+	}
+	// 100 ns = 0.1 microseconds.
+	if nop.Time == nil || math.Abs(*nop.Time-0.1) > 1e-10 {
+		t.Errorf("nop.time = %v, want 0.1", nop.Time)
+	}
+}

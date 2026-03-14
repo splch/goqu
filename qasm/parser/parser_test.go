@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/splch/goqu/circuit/gate"
 )
 
 func TestParseBell(t *testing.T) {
@@ -177,6 +179,57 @@ cx q[0], q[1];
 	}
 	if c.Ops()[1].Gate.Name() != "barrier" {
 		t.Errorf("Ops[1].Gate.Name() = %q, want barrier", c.Ops()[1].Gate.Name())
+	}
+}
+
+func TestParseDelay(t *testing.T) {
+	c, err := ParseString(`
+OPENQASM 3.0;
+include "stdgates.inc";
+qubit[2] q;
+delay[100ns] q[0];
+delay[2.5us] q[1];
+h q[0];
+`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ops := c.Ops()
+	if ops[0].Gate.Name() != "delay" {
+		t.Errorf("Ops[0].Gate.Name() = %q, want delay", ops[0].Gate.Name())
+	}
+	d0, ok := ops[0].Gate.(gate.Delayable)
+	if !ok {
+		t.Fatal("delay gate should implement Delayable")
+	}
+	if d0.Duration() != 100 || d0.Unit() != "ns" {
+		t.Errorf("delay[0] = (%g, %q), want (100, ns)", d0.Duration(), d0.Unit())
+	}
+	d1, ok := ops[1].Gate.(gate.Delayable)
+	if !ok {
+		t.Fatal("delay gate should implement Delayable")
+	}
+	if d1.Duration() != 2.5 || d1.Unit() != "us" {
+		t.Errorf("delay[1] = (%g, %q), want (2.5, us)", d1.Duration(), d1.Unit())
+	}
+}
+
+func TestParseDelayDefaultUnit(t *testing.T) {
+	c, err := ParseString(`
+OPENQASM 3.0;
+include "stdgates.inc";
+qubit[1] q;
+delay[10] q[0];
+`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	d, ok := c.Ops()[0].Gate.(gate.Delayable)
+	if !ok {
+		t.Fatal("delay gate should implement Delayable")
+	}
+	if d.Unit() != "dt" {
+		t.Errorf("default unit = %q, want dt", d.Unit())
 	}
 }
 

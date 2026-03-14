@@ -57,6 +57,11 @@ func emitOp(sb *strings.Builder, op ir.Operation) error {
 	case "reset":
 		fmt.Fprintf(sb, "reset q[%d];\n", op.Qubits[0])
 		return nil
+	case "delay":
+		if d, ok := op.Gate.(gate.Delayable); ok {
+			fmt.Fprintf(sb, "delay[%g%s] q[%d];\n", d.Duration(), d.Unit(), op.Qubits[0])
+		}
+		return nil
 	}
 
 	// Error on multi-controlled gates (require prior decomposition).

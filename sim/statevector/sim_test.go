@@ -869,3 +869,22 @@ func TestStatePrep_Normalized(t *testing.T) {
 		t.Errorf("norm = %f, want 1.0", norm)
 	}
 }
+
+func TestEvolve_DelayIsNoOp(t *testing.T) {
+	// H(0) then Delay then nothing else — state should be |+>.
+	c, err := builder.New("hdelay", 1).
+		H(0).
+		Delay(0, 100, gate.UnitNs).
+		Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+	sim := New(1)
+	if err := sim.Evolve(c); err != nil {
+		t.Fatal(err)
+	}
+	sv := sim.StateVector()
+	inv := 1.0 / math.Sqrt(2)
+	want := []complex128{complex(inv, 0), complex(inv, 0)}
+	assertStateClose(t, sv, want)
+}

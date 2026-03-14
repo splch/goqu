@@ -22,7 +22,7 @@ func ValidateTarget(c *ir.Circuit, t target.Target) (*ir.Circuit, error) {
 			continue // measurement or other non-gate op
 		}
 		name := op.Gate.Name()
-		if name == "barrier" {
+		if name == "barrier" || name == "delay" {
 			continue
 		}
 

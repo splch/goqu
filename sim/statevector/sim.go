@@ -77,7 +77,7 @@ func (s *Sim) Evolve(c *ir.Circuit) error {
 	}
 	s.state[0] = 1
 	for _, op := range c.Ops() {
-		if op.Gate == nil || op.Gate.Name() == "barrier" {
+		if op.Gate == nil || op.Gate.Name() == "barrier" || op.Gate.Name() == "delay" {
 			continue
 		}
 		if op.Gate.Name() == "reset" {

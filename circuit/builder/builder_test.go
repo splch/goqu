@@ -371,3 +371,31 @@ func TestBuilderComposeInverseSkipsNonUnitary(t *testing.T) {
 		t.Errorf("ops[0].Gate.Name() = %q, want H", ops[0].Gate.Name())
 	}
 }
+
+func TestDelay(t *testing.T) {
+	c, err := New("delay_test", 2).
+		H(0).
+		Delay(0, 100, gate.UnitNs).
+		X(1).
+		Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+	ops := c.Ops()
+	if len(ops) != 3 {
+		t.Fatalf("len(Ops()) = %d, want 3", len(ops))
+	}
+	if ops[1].Gate.Name() != "delay" {
+		t.Errorf("ops[1].Gate.Name() = %q, want delay", ops[1].Gate.Name())
+	}
+	if ops[1].Qubits[0] != 0 {
+		t.Errorf("delay qubit = %d, want 0", ops[1].Qubits[0])
+	}
+}
+
+func TestDelayInvalidQubit(t *testing.T) {
+	_, err := New("bad", 1).Delay(5, 100, gate.UnitNs).Build()
+	if err == nil {
+		t.Error("expected error for out-of-range qubit")
+	}
+}

@@ -285,6 +285,11 @@ func gateLabels(op ir.Operation, cfg *config) []string {
 		return []string{"@", "@", "X"}
 	case "CSWAP":
 		return []string{"@", "x", "x"}
+	case "delay":
+		if d, ok := op.Gate.(gate.Delayable); ok {
+			return []string{fmt.Sprintf("D(%g%s)", d.Duration(), d.Unit())}
+		}
+		return []string{"D"}
 	case "barrier":
 		labels := make([]string, len(qubits))
 		for i := range labels {
