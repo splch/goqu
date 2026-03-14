@@ -1,4 +1,4 @@
-//go:build !metal
+//go:build !darwin
 
 package metal
 
