@@ -203,6 +203,65 @@ func classProb(cfg Config, ansatzCirc *ir.Circuit, bindings map[string]float64, 
 	return 1 - p0, nil
 }
 
+// RotationType specifies the rotation gate for AngleEmbedding.
+type RotationType int
+
+const (
+	// RotRX uses RX gates (default, matches PennyLane).
+	RotRX RotationType = iota
+	// RotRY uses RY gates.
+	RotRY
+	// RotRZ uses RZ gates.
+	RotRZ
+)
+
+// AngleEmbedding returns a feature map that encodes each feature as a
+// rotation angle on the corresponding qubit. If there are fewer features
+// than qubits, the remaining qubits receive no gate.
+func AngleEmbedding(rot RotationType) FeatureMap {
+	return func(b *builder.Builder, features []float64, qubits []int) {
+		for i, q := range qubits {
+			if i >= len(features) {
+				break
+			}
+			switch rot {
+			case RotRX:
+				b.RX(features[i], q)
+			case RotRY:
+				b.RY(features[i], q)
+			case RotRZ:
+				b.RZ(features[i], q)
+			}
+		}
+	}
+}
+
+// AmplitudeEmbedding returns a feature map that encodes a feature vector
+// into quantum state amplitudes using the StatePrep gate. Features are
+// zero-padded to length 2^n and normalized to unit L2 norm.
+func AmplitudeEmbedding() FeatureMap {
+	return func(b *builder.Builder, features []float64, qubits []int) {
+		n := len(qubits)
+		dim := 1 << n
+
+		amplitudes := make([]complex128, dim)
+		var normSq float64
+		for i := 0; i < dim && i < len(features); i++ {
+			normSq += features[i] * features[i]
+		}
+		if normSq == 0 {
+			amplitudes[0] = 1 // default to |0...0⟩
+		} else {
+			invNorm := 1.0 / math.Sqrt(normSq)
+			for i := 0; i < dim && i < len(features); i++ {
+				amplitudes[i] = complex(features[i]*invNorm, 0)
+			}
+		}
+
+		b.StatePrep(amplitudes, qubits...)
+	}
+}
+
 // ZFeatureMap returns a feature map that applies H and RZ(feature) on each qubit.
 // The encoding is repeated depth times.
 func ZFeatureMap(depth int) FeatureMap {
