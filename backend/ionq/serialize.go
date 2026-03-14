@@ -40,20 +40,13 @@ func marshalCircuit(c *ir.Circuit) (*ionqInput, error) {
 			continue
 		}
 
-		// Convert delay to IonQ NOP (time in microseconds).
-		if name == "delay" {
-			if d, ok := op.Gate.(gate.Delayable); ok {
-				us := d.Seconds() * 1e6
-				gates = append(gates, ionqGate{Gate: "nop", Time: &us})
-			}
-			continue
-		}
-
-		g, err := marshalGate(op, gateset)
+		g, ok, err := marshalGate(op, gateset)
 		if err != nil {
 			return nil, err
 		}
-		gates = append(gates, g)
+		if ok {
+			gates = append(gates, g)
+		}
 	}
 
 	return &ionqInput{
@@ -93,11 +86,24 @@ func detectGateset(c *ir.Circuit) (string, error) {
 }
 
 // marshalGate converts a single operation to an IonQ gate entry.
-func marshalGate(op ir.Operation, gateset string) (ionqGate, error) {
-	if gateset == "native" {
-		return marshalNativeGate(op)
+// Delays become NOP in native mode; they are dropped in QIS mode.
+func marshalGate(op ir.Operation, gateset string) (ionqGate, bool, error) {
+	if op.Gate.Name() == "delay" {
+		if gateset != "native" {
+			return ionqGate{}, false, nil
+		}
+		if d, ok := op.Gate.(gate.Delayable); ok {
+			us := d.Seconds() * 1e6
+			return ionqGate{Gate: "nop", Time: &us}, true, nil
+		}
+		return ionqGate{Gate: "nop"}, true, nil
 	}
-	return marshalQISGate(op)
+	if gateset == "native" {
+		g, err := marshalNativeGate(op)
+		return g, true, err
+	}
+	g, err := marshalQISGate(op)
+	return g, true, err
 }
 
 func marshalQISGate(op ir.Operation) (ionqGate, error) {

@@ -268,9 +268,9 @@ func TestRadiansToTurns(t *testing.T) {
 	}
 }
 
-func TestDelayToNOP(t *testing.T) {
-	// A circuit with QIS gates and a Delay should serialize the Delay as an IonQ NOP.
-	c := ir.New("delay-nop", 1, 0, []ir.Operation{
+func TestDelayDroppedInQIS(t *testing.T) {
+	// NOP is native-only; delays in QIS circuits should be silently dropped.
+	c := ir.New("delay-qis", 1, 0, []ir.Operation{
 		{Gate: gate.H, Qubits: []int{0}},
 		{Gate: gate.Delay(500, gate.UnitUs), Qubits: []int{0}},
 		{Gate: gate.X, Qubits: []int{0}},
@@ -283,16 +283,15 @@ func TestDelayToNOP(t *testing.T) {
 	if input.Gateset != "qis" {
 		t.Errorf("gateset = %q, want %q", input.Gateset, "qis")
 	}
-	if len(input.Circuit) != 3 {
-		t.Fatalf("gates = %d, want 3", len(input.Circuit))
+	// Delay should be dropped, leaving only H and X.
+	if len(input.Circuit) != 2 {
+		t.Fatalf("gates = %d, want 2 (delay should be dropped in QIS)", len(input.Circuit))
 	}
-	nop := input.Circuit[1]
-	if nop.Gate != "nop" {
-		t.Errorf("gate = %q, want %q", nop.Gate, "nop")
+	if input.Circuit[0].Gate != "h" {
+		t.Errorf("gate[0] = %q, want h", input.Circuit[0].Gate)
 	}
-	// 500 us = 500 microseconds.
-	if nop.Time == nil || math.Abs(*nop.Time-500) > 1e-6 {
-		t.Errorf("nop.time = %v, want 500", nop.Time)
+	if input.Circuit[1].Gate != "x" {
+		t.Errorf("gate[1] = %q, want x", input.Circuit[1].Gate)
 	}
 }
 
