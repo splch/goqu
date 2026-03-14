@@ -11,8 +11,11 @@ import (
 
 	"github.com/splch/goqu/circuit/gate"
 	"github.com/splch/goqu/circuit/ir"
+	"github.com/splch/goqu/sim"
 	"github.com/splch/goqu/sim/pauli"
 )
+
+var _ sim.Simulator = (*Sim)(nil)
 
 // Sim simulates a circuit via full statevector evolution.
 type Sim struct {
@@ -60,6 +63,9 @@ func (s *Sim) StateVector() []complex128 {
 	copy(out, s.state)
 	return out
 }
+
+// Close is a no-op for the CPU statevector simulator. It satisfies sim.Simulator.
+func (s *Sim) Close() error { return nil }
 
 // Evolve applies all gate operations without measuring, leaving the statevector accessible.
 func (s *Sim) Evolve(c *ir.Circuit) error {

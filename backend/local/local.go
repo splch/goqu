@@ -12,6 +12,7 @@ import (
 
 	"github.com/splch/goqu/backend"
 	"github.com/splch/goqu/observe"
+	"github.com/splch/goqu/sim"
 	"github.com/splch/goqu/sim/pulsesim"
 	"github.com/splch/goqu/sim/statevector"
 	"github.com/splch/goqu/transpile/target"
@@ -19,11 +20,16 @@ import (
 
 var _ backend.Backend = (*Backend)(nil)
 
+// SimFactory creates a Simulator for the given number of qubits.
+// The default factory creates a CPU statevector simulator.
+type SimFactory func(numQubits int) (sim.Simulator, error)
+
 // Backend runs circuits on the local statevector simulator.
 type Backend struct {
-	maxQubits int
-	results   sync.Map // jobID → *backend.Result
-	logger    *slog.Logger
+	maxQubits  int
+	simFactory SimFactory
+	results    sync.Map // jobID → *backend.Result
+	logger     *slog.Logger
 }
 
 // Option configures a local Backend.
@@ -39,9 +45,21 @@ func WithLogger(l *slog.Logger) Option {
 	return func(b *Backend) { b.logger = l }
 }
 
+// WithSimulator sets a custom simulator factory. This allows plugging in
+// alternative simulators (e.g., GPU-accelerated) while keeping the same backend API.
+func WithSimulator(f SimFactory) Option {
+	return func(b *Backend) { b.simFactory = f }
+}
+
 // New creates a local simulator backend.
 func New(opts ...Option) *Backend {
-	b := &Backend{maxQubits: 28, logger: slog.Default()}
+	b := &Backend{
+		maxQubits: 28,
+		simFactory: func(numQubits int) (sim.Simulator, error) {
+			return statevector.New(numQubits), nil
+		},
+		logger: slog.Default(),
+	}
 	for _, opt := range opts {
 		opt(b)
 	}
@@ -92,8 +110,15 @@ func (b *Backend) Submit(ctx context.Context, req *backend.SubmitRequest) (*back
 	)
 
 	start := time.Now()
-	sim := statevector.New(nq)
-	counts, err := sim.Run(req.Circuit, req.Shots)
+	s, sErr := b.simFactory(nq)
+	if sErr != nil {
+		if simDone != nil {
+			simDone(sErr)
+		}
+		return nil, fmt.Errorf("local: %w", sErr)
+	}
+	defer func() { _ = s.Close() }()
+	counts, err := s.Run(req.Circuit, req.Shots)
 	elapsed := time.Since(start)
 
 	if simDone != nil {
