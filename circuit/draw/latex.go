@@ -150,6 +150,12 @@ func latexGateCommands(p placement) map[int]string {
 		d := qubits[2] - qubits[1]
 		cmds[qubits[1]] = fmt.Sprintf(`\swap{%d}`, d)
 		cmds[qubits[2]] = `\targX{}`
+	case "delay":
+		label := `\text{D}`
+		if d, ok := op.Gate.(gate.Delayable); ok {
+			label = fmt.Sprintf(`\text{D(%g%s)}`, d.Duration(), d.Unit())
+		}
+		cmds[qubits[0]] = latexGateBox(label, condPrefix)
 	case "barrier":
 		// Vertical dashed line on first qubit.
 		cmds[qubits[0]] = `\slice{}`

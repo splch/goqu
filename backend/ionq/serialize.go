@@ -5,6 +5,7 @@ import (
 	"math"
 	"strings"
 
+	"github.com/splch/goqu/circuit/gate"
 	"github.com/splch/goqu/circuit/ir"
 )
 
@@ -39,6 +40,15 @@ func marshalCircuit(c *ir.Circuit) (*ionqInput, error) {
 			continue
 		}
 
+		// Convert delay to IonQ NOP (time in microseconds).
+		if name == "delay" {
+			if d, ok := op.Gate.(gate.Delayable); ok {
+				us := d.Seconds() * 1e6
+				gates = append(gates, ionqGate{Gate: "nop", Time: &us})
+			}
+			continue
+		}
+
 		g, err := marshalGate(op, gateset)
 		if err != nil {
 			return nil, err
@@ -61,7 +71,7 @@ func detectGateset(c *ir.Circuit) (string, error) {
 			continue
 		}
 		name := basisName(op.Gate.Name())
-		if name == "barrier" || name == "I" {
+		if name == "barrier" || name == "I" || name == "delay" {
 			continue
 		}
 		switch {

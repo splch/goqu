@@ -46,6 +46,14 @@ func (s *Sim) RunDynamic(c *ir.Circuit, shots int) (map[string]int, error) {
 			if name == "barrier" {
 				continue
 			}
+			if name == "delay" {
+				if s.noise != nil {
+					if ch := s.noise.Lookup("delay", op.Qubits); ch != nil {
+						s.applyChannel(ch, op.Qubits)
+					}
+				}
+				continue
+			}
 
 			// Reset: measure then flip if |1>.
 			if name == "reset" {

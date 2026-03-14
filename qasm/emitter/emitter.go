@@ -97,6 +97,11 @@ func (e *emitter) emitOp(op ir.Operation) error {
 	case "reset":
 		e.writef("reset q[%d];\n", op.Qubits[0])
 		return nil
+	case "delay":
+		if d, ok := op.Gate.(gate.Delayable); ok {
+			e.writef("delay[%g%s] q[%d];\n", d.Duration(), d.Unit(), op.Qubits[0])
+		}
+		return nil
 	}
 
 	// Check for multi-controlled gates: emit ctrl(N) @ syntax.

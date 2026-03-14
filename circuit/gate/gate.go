@@ -33,6 +33,14 @@ type Bindable interface {
 	IsBound() bool
 }
 
+// Delayable is optionally implemented by delay instructions to expose
+// duration metadata beyond what Params() provides.
+type Delayable interface {
+	Duration() float64 // raw numeric duration value
+	Unit() string      // time unit: "ns", "us", "ms", "s", "dt"
+	Seconds() float64  // duration converted to seconds (panics for "dt")
+}
+
 // Applied pairs a Gate with specific qubit indices.
 type Applied struct {
 	Gate   Gate

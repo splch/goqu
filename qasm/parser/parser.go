@@ -154,6 +154,8 @@ func (p *parser) parseStatement() error {
 		return p.parseReset()
 	case token.BARRIER:
 		return p.parseBarrier()
+	case token.DELAY:
+		return p.parseDelay()
 	case token.IF:
 		return p.parseIf()
 	case token.IDENT:
@@ -506,6 +508,51 @@ func (p *parser) parseBarrier() error {
 		Gate:   barrierGate{n: len(qubits)},
 		Qubits: qubits,
 	})
+	return nil
+}
+
+func (p *parser) parseDelay() error {
+	p.advance() // consume 'delay'
+
+	// Expect duration designator: [<number><unit>]
+	if _, err := p.expect(token.LBRACKET); err != nil {
+		return err
+	}
+	dur, err := p.parseExpr()
+	if err != nil {
+		return err
+	}
+
+	// Optional time unit suffix (ns, us, ms, s, dt). Default: dt.
+	unit := gate.UnitDt
+	if p.peek() == token.IDENT {
+		t := p.advance()
+		switch t.Literal {
+		case "ns", "us", "ms", "s", "dt":
+			unit = t.Literal
+		default:
+			return fmt.Errorf("line %d:%d: unknown delay unit %q", t.Line, t.Col, t.Literal)
+		}
+	}
+
+	if _, err := p.expect(token.RBRACKET); err != nil {
+		return err
+	}
+
+	qubits, err := p.parseQubitArgs()
+	if err != nil {
+		return err
+	}
+	if _, err := p.expect(token.SEMICOLON); err != nil {
+		return err
+	}
+
+	for _, q := range qubits {
+		p.ops = append(p.ops, ir.Operation{
+			Gate:   gate.Delay(dur, unit),
+			Qubits: []int{q},
+		})
+	}
 	return nil
 }
 

@@ -290,3 +290,68 @@ func TestGateProperties(t *testing.T) {
 		t.Errorf("RX(1.5).Params() = %v, want [1.5]", rx.Params())
 	}
 }
+
+func TestDelay(t *testing.T) {
+	d := Delay(100, UnitNs)
+	if d.Name() != "delay" {
+		t.Errorf("Name() = %q, want delay", d.Name())
+	}
+	if d.Qubits() != 1 {
+		t.Errorf("Qubits() = %d, want 1", d.Qubits())
+	}
+	if d.Matrix() != nil {
+		t.Error("Matrix() should be nil for delay")
+	}
+	if p := d.Params(); len(p) != 1 || p[0] != 100 {
+		t.Errorf("Params() = %v, want [100]", p)
+	}
+	if d.Inverse().Name() != "delay" {
+		t.Error("Inverse() should return self")
+	}
+	if d.Decompose([]int{0}) != nil {
+		t.Error("Decompose() should return nil")
+	}
+
+	// Delayable interface.
+	dl, ok := d.(Delayable)
+	if !ok {
+		t.Fatal("Delay gate should implement Delayable")
+	}
+	if dl.Duration() != 100 {
+		t.Errorf("Duration() = %g, want 100", dl.Duration())
+	}
+	if dl.Unit() != UnitNs {
+		t.Errorf("Unit() = %q, want %q", dl.Unit(), UnitNs)
+	}
+	if math.Abs(dl.Seconds()-100e-9) > 1e-20 {
+		t.Errorf("Seconds() = %g, want 1e-7", dl.Seconds())
+	}
+}
+
+func TestDelaySeconds(t *testing.T) {
+	tests := []struct {
+		dur  float64
+		unit string
+		want float64
+	}{
+		{1, UnitS, 1},
+		{1, UnitMs, 1e-3},
+		{1, UnitUs, 1e-6},
+		{1, UnitNs, 1e-9},
+	}
+	for _, tc := range tests {
+		d := Delay(tc.dur, tc.unit).(Delayable)
+		if math.Abs(d.Seconds()-tc.want) > 1e-20 {
+			t.Errorf("Delay(%g, %q).Seconds() = %g, want %g", tc.dur, tc.unit, d.Seconds(), tc.want)
+		}
+	}
+}
+
+func TestDelaySecondsPanicDt(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Error("Delay with dt unit should panic on Seconds()")
+		}
+	}()
+	Delay(1, UnitDt).(Delayable).Seconds()
+}

@@ -106,7 +106,7 @@ func Inverse(c *Circuit) *Circuit {
 		}
 		// Drop resets and barriers.
 		name := op.Gate.Name()
-		if name == "reset" || name == "barrier" {
+		if name == "reset" || name == "barrier" || name == "delay" {
 			continue
 		}
 		result = append(result, Operation{

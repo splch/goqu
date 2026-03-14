@@ -403,6 +403,20 @@ func (b *Builder) Reset(qubit int) *Builder {
 	return b
 }
 
+// Delay idles a qubit for the given duration.
+// The unit should be one of the gate.Unit* constants (e.g., gate.UnitNs).
+func (b *Builder) Delay(qubit int, duration float64, unit string) *Builder {
+	if b.err != nil {
+		return b
+	}
+	b.validateQubit(qubit)
+	if b.err != nil {
+		return b
+	}
+	b.ops = append(b.ops, ir.Operation{Gate: gate.Delay(duration, unit), Qubits: []int{qubit}})
+	return b
+}
+
 // If adds a classically-conditioned gate. The gate is applied only when clbit == value.
 func (b *Builder) If(clbit, value int, g gate.Gate, qubits ...int) *Builder {
 	if b.err != nil {
@@ -538,9 +552,9 @@ func (b *Builder) ComposeInverse(c *ir.Circuit, qubitMap map[int]int) *Builder {
 		if op.Gate == nil {
 			continue
 		}
-		// Skip resets and barriers.
+		// Skip resets, barriers, and delays.
 		name := op.Gate.Name()
-		if name == "reset" || name == "barrier" {
+		if name == "reset" || name == "barrier" || name == "delay" {
 			continue
 		}
 

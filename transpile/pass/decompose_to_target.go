@@ -25,6 +25,10 @@ func DecomposeToTarget(c *ir.Circuit, t target.Target) (*ir.Circuit, error) {
 		if op.Gate.Name() == "barrier" {
 			continue
 		}
+		if op.Gate.Name() == "delay" {
+			result = append(result, op)
+			continue
+		}
 
 		bname := transpile.BasisName(op.Gate)
 		if t.HasBasisGate(bname) {

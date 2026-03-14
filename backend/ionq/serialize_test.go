@@ -267,3 +267,56 @@ func TestRadiansToTurns(t *testing.T) {
 		}
 	}
 }
+
+func TestDelayToNOP(t *testing.T) {
+	// A circuit with QIS gates and a Delay should serialize the Delay as an IonQ NOP.
+	c := ir.New("delay-nop", 1, 0, []ir.Operation{
+		{Gate: gate.H, Qubits: []int{0}},
+		{Gate: gate.Delay(500, gate.UnitUs), Qubits: []int{0}},
+		{Gate: gate.X, Qubits: []int{0}},
+	}, nil)
+
+	input, err := marshalCircuit(c)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if input.Gateset != "qis" {
+		t.Errorf("gateset = %q, want %q", input.Gateset, "qis")
+	}
+	if len(input.Circuit) != 3 {
+		t.Fatalf("gates = %d, want 3", len(input.Circuit))
+	}
+	nop := input.Circuit[1]
+	if nop.Gate != "nop" {
+		t.Errorf("gate = %q, want %q", nop.Gate, "nop")
+	}
+	// 500 us = 500 microseconds.
+	if nop.Time == nil || math.Abs(*nop.Time-500) > 1e-6 {
+		t.Errorf("nop.time = %v, want 500", nop.Time)
+	}
+}
+
+func TestDelayToNOPNativeGateset(t *testing.T) {
+	// Delay should also work in native gateset circuits.
+	c := ir.New("delay-native", 1, 0, []ir.Operation{
+		{Gate: gate.GPI(0), Qubits: []int{0}},
+		{Gate: gate.Delay(100, gate.UnitNs), Qubits: []int{0}},
+		{Gate: gate.GPI(0), Qubits: []int{0}},
+	}, nil)
+
+	input, err := marshalCircuit(c)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if input.Gateset != "native" {
+		t.Errorf("gateset = %q, want %q", input.Gateset, "native")
+	}
+	nop := input.Circuit[1]
+	if nop.Gate != "nop" {
+		t.Errorf("gate = %q, want %q", nop.Gate, "nop")
+	}
+	// 100 ns = 0.1 microseconds.
+	if nop.Time == nil || math.Abs(*nop.Time-0.1) > 1e-10 {
+		t.Errorf("nop.time = %v, want 0.1", nop.Time)
+	}
+}

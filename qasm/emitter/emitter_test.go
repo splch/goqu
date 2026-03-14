@@ -235,3 +235,35 @@ func TestRoundTripParameterized(t *testing.T) {
 		t.Errorf("Ops count mismatch: %d vs %d", len(c.Ops()), len(c2.Ops()))
 	}
 }
+
+func TestEmitDelay(t *testing.T) {
+	c, err := builder.New("delay", 1).
+		Delay(0, 100, gate.UnitNs).
+		Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+	out, err := EmitString(c)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(out, "delay[100ns]") {
+		t.Errorf("expected delay[100ns] in output, got:\n%s", out)
+	}
+
+	// Round-trip.
+	c2, err := parser.ParseString(out)
+	if err != nil {
+		t.Fatalf("re-parse error: %v\nEmitted:\n%s", err, out)
+	}
+	if len(c2.Ops()) != 1 || c2.Ops()[0].Gate.Name() != "delay" {
+		t.Errorf("round-trip failed: %d ops", len(c2.Ops()))
+	}
+	d, ok := c2.Ops()[0].Gate.(gate.Delayable)
+	if !ok {
+		t.Fatal("round-tripped gate should implement Delayable")
+	}
+	if d.Duration() != 100 || d.Unit() != "ns" {
+		t.Errorf("round-trip delay = (%g, %q), want (100, ns)", d.Duration(), d.Unit())
+	}
+}
