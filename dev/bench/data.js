@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1773431924714,
+  "lastUpdate": 1773519606949,
   "repoUrl": "https://github.com/splch/goqu",
   "entries": {
     "Benchmark": [
@@ -16416,6 +16416,870 @@ window.BENCHMARK_DATA = {
             "value": 59,
             "unit": "allocs/op",
             "extra": "20 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "25377399+splch@users.noreply.github.com",
+            "name": "Spencer Churchill",
+            "username": "splch"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "79b520df9d808a1a717f49f1bc1519221e998ad8",
+          "message": "Merge pull request #18 from splch/feat/gpu-acceleration\n\nFeat/gpu acceleration",
+          "timestamp": "2026-03-14T13:18:52-07:00",
+          "tree_id": "29f99ac9460f2b6079def00de9684e14e37b288a",
+          "url": "https://github.com/splch/goqu/commit/79b520df9d808a1a717f49f1bc1519221e998ad8"
+        },
+        "date": 1773519606033,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkSimulate16 (github.com/splch/goqu/sim/statevector)",
+            "value": 676626,
+            "unit": "ns/op\t 1049891 B/op\t       3 allocs/op",
+            "extra": "1778 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSimulate16 (github.com/splch/goqu/sim/statevector) - ns/op",
+            "value": 676626,
+            "unit": "ns/op",
+            "extra": "1778 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSimulate16 (github.com/splch/goqu/sim/statevector) - B/op",
+            "value": 1049891,
+            "unit": "B/op",
+            "extra": "1778 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSimulate16 (github.com/splch/goqu/sim/statevector) - allocs/op",
+            "value": 3,
+            "unit": "allocs/op",
+            "extra": "1778 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSimulate16 (github.com/splch/goqu/sim/statevector)",
+            "value": 672523,
+            "unit": "ns/op\t 1049889 B/op\t       3 allocs/op",
+            "extra": "1771 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSimulate16 (github.com/splch/goqu/sim/statevector) - ns/op",
+            "value": 672523,
+            "unit": "ns/op",
+            "extra": "1771 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSimulate16 (github.com/splch/goqu/sim/statevector) - B/op",
+            "value": 1049889,
+            "unit": "B/op",
+            "extra": "1771 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSimulate16 (github.com/splch/goqu/sim/statevector) - allocs/op",
+            "value": 3,
+            "unit": "allocs/op",
+            "extra": "1771 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSimulate16 (github.com/splch/goqu/sim/statevector)",
+            "value": 679154,
+            "unit": "ns/op\t 1049892 B/op\t       3 allocs/op",
+            "extra": "1719 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSimulate16 (github.com/splch/goqu/sim/statevector) - ns/op",
+            "value": 679154,
+            "unit": "ns/op",
+            "extra": "1719 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSimulate16 (github.com/splch/goqu/sim/statevector) - B/op",
+            "value": 1049892,
+            "unit": "B/op",
+            "extra": "1719 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSimulate16 (github.com/splch/goqu/sim/statevector) - allocs/op",
+            "value": 3,
+            "unit": "allocs/op",
+            "extra": "1719 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSimulate16 (github.com/splch/goqu/sim/statevector)",
+            "value": 702295,
+            "unit": "ns/op\t 1049897 B/op\t       3 allocs/op",
+            "extra": "1711 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSimulate16 (github.com/splch/goqu/sim/statevector) - ns/op",
+            "value": 702295,
+            "unit": "ns/op",
+            "extra": "1711 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSimulate16 (github.com/splch/goqu/sim/statevector) - B/op",
+            "value": 1049897,
+            "unit": "B/op",
+            "extra": "1711 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSimulate16 (github.com/splch/goqu/sim/statevector) - allocs/op",
+            "value": 3,
+            "unit": "allocs/op",
+            "extra": "1711 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSimulate16 (github.com/splch/goqu/sim/statevector)",
+            "value": 700503,
+            "unit": "ns/op\t 1049898 B/op\t       3 allocs/op",
+            "extra": "1726 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSimulate16 (github.com/splch/goqu/sim/statevector) - ns/op",
+            "value": 700503,
+            "unit": "ns/op",
+            "extra": "1726 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSimulate16 (github.com/splch/goqu/sim/statevector) - B/op",
+            "value": 1049898,
+            "unit": "B/op",
+            "extra": "1726 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSimulate16 (github.com/splch/goqu/sim/statevector) - allocs/op",
+            "value": 3,
+            "unit": "allocs/op",
+            "extra": "1726 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT16 (github.com/splch/goqu/sim/statevector)",
+            "value": 45516,
+            "unit": "ns/op\t      80 B/op\t       1 allocs/op",
+            "extra": "26289 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT16 (github.com/splch/goqu/sim/statevector) - ns/op",
+            "value": 45516,
+            "unit": "ns/op",
+            "extra": "26289 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT16 (github.com/splch/goqu/sim/statevector) - B/op",
+            "value": 80,
+            "unit": "B/op",
+            "extra": "26289 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT16 (github.com/splch/goqu/sim/statevector) - allocs/op",
+            "value": 1,
+            "unit": "allocs/op",
+            "extra": "26289 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT16 (github.com/splch/goqu/sim/statevector)",
+            "value": 45477,
+            "unit": "ns/op\t      80 B/op\t       1 allocs/op",
+            "extra": "26341 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT16 (github.com/splch/goqu/sim/statevector) - ns/op",
+            "value": 45477,
+            "unit": "ns/op",
+            "extra": "26341 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT16 (github.com/splch/goqu/sim/statevector) - B/op",
+            "value": 80,
+            "unit": "B/op",
+            "extra": "26341 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT16 (github.com/splch/goqu/sim/statevector) - allocs/op",
+            "value": 1,
+            "unit": "allocs/op",
+            "extra": "26341 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT16 (github.com/splch/goqu/sim/statevector)",
+            "value": 45584,
+            "unit": "ns/op\t      80 B/op\t       1 allocs/op",
+            "extra": "25635 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT16 (github.com/splch/goqu/sim/statevector) - ns/op",
+            "value": 45584,
+            "unit": "ns/op",
+            "extra": "25635 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT16 (github.com/splch/goqu/sim/statevector) - B/op",
+            "value": 80,
+            "unit": "B/op",
+            "extra": "25635 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT16 (github.com/splch/goqu/sim/statevector) - allocs/op",
+            "value": 1,
+            "unit": "allocs/op",
+            "extra": "25635 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT16 (github.com/splch/goqu/sim/statevector)",
+            "value": 47648,
+            "unit": "ns/op\t      80 B/op\t       1 allocs/op",
+            "extra": "26194 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT16 (github.com/splch/goqu/sim/statevector) - ns/op",
+            "value": 47648,
+            "unit": "ns/op",
+            "extra": "26194 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT16 (github.com/splch/goqu/sim/statevector) - B/op",
+            "value": 80,
+            "unit": "B/op",
+            "extra": "26194 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT16 (github.com/splch/goqu/sim/statevector) - allocs/op",
+            "value": 1,
+            "unit": "allocs/op",
+            "extra": "26194 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT16 (github.com/splch/goqu/sim/statevector)",
+            "value": 45493,
+            "unit": "ns/op\t      80 B/op\t       1 allocs/op",
+            "extra": "26271 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT16 (github.com/splch/goqu/sim/statevector) - ns/op",
+            "value": 45493,
+            "unit": "ns/op",
+            "extra": "26271 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT16 (github.com/splch/goqu/sim/statevector) - B/op",
+            "value": 80,
+            "unit": "B/op",
+            "extra": "26271 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT16 (github.com/splch/goqu/sim/statevector) - allocs/op",
+            "value": 1,
+            "unit": "allocs/op",
+            "extra": "26271 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT20 (github.com/splch/goqu/sim/statevector)",
+            "value": 742612,
+            "unit": "ns/op\t     192 B/op\t       4 allocs/op",
+            "extra": "1585 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT20 (github.com/splch/goqu/sim/statevector) - ns/op",
+            "value": 742612,
+            "unit": "ns/op",
+            "extra": "1585 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT20 (github.com/splch/goqu/sim/statevector) - B/op",
+            "value": 192,
+            "unit": "B/op",
+            "extra": "1585 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT20 (github.com/splch/goqu/sim/statevector) - allocs/op",
+            "value": 4,
+            "unit": "allocs/op",
+            "extra": "1585 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT20 (github.com/splch/goqu/sim/statevector)",
+            "value": 738078,
+            "unit": "ns/op\t     192 B/op\t       4 allocs/op",
+            "extra": "1610 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT20 (github.com/splch/goqu/sim/statevector) - ns/op",
+            "value": 738078,
+            "unit": "ns/op",
+            "extra": "1610 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT20 (github.com/splch/goqu/sim/statevector) - B/op",
+            "value": 192,
+            "unit": "B/op",
+            "extra": "1610 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT20 (github.com/splch/goqu/sim/statevector) - allocs/op",
+            "value": 4,
+            "unit": "allocs/op",
+            "extra": "1610 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT20 (github.com/splch/goqu/sim/statevector)",
+            "value": 738146,
+            "unit": "ns/op\t     192 B/op\t       4 allocs/op",
+            "extra": "1585 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT20 (github.com/splch/goqu/sim/statevector) - ns/op",
+            "value": 738146,
+            "unit": "ns/op",
+            "extra": "1585 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT20 (github.com/splch/goqu/sim/statevector) - B/op",
+            "value": 192,
+            "unit": "B/op",
+            "extra": "1585 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT20 (github.com/splch/goqu/sim/statevector) - allocs/op",
+            "value": 4,
+            "unit": "allocs/op",
+            "extra": "1585 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT20 (github.com/splch/goqu/sim/statevector)",
+            "value": 744794,
+            "unit": "ns/op\t     192 B/op\t       4 allocs/op",
+            "extra": "1585 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT20 (github.com/splch/goqu/sim/statevector) - ns/op",
+            "value": 744794,
+            "unit": "ns/op",
+            "extra": "1585 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT20 (github.com/splch/goqu/sim/statevector) - B/op",
+            "value": 192,
+            "unit": "B/op",
+            "extra": "1585 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT20 (github.com/splch/goqu/sim/statevector) - allocs/op",
+            "value": 4,
+            "unit": "allocs/op",
+            "extra": "1585 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT20 (github.com/splch/goqu/sim/statevector)",
+            "value": 741003,
+            "unit": "ns/op\t     192 B/op\t       4 allocs/op",
+            "extra": "1616 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT20 (github.com/splch/goqu/sim/statevector) - ns/op",
+            "value": 741003,
+            "unit": "ns/op",
+            "extra": "1616 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT20 (github.com/splch/goqu/sim/statevector) - B/op",
+            "value": 192,
+            "unit": "B/op",
+            "extra": "1616 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCNOT20 (github.com/splch/goqu/sim/statevector) - allocs/op",
+            "value": 4,
+            "unit": "allocs/op",
+            "extra": "1616 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCP16 (github.com/splch/goqu/sim/statevector)",
+            "value": 63120,
+            "unit": "ns/op\t      80 B/op\t       1 allocs/op",
+            "extra": "18963 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCP16 (github.com/splch/goqu/sim/statevector) - ns/op",
+            "value": 63120,
+            "unit": "ns/op",
+            "extra": "18963 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCP16 (github.com/splch/goqu/sim/statevector) - B/op",
+            "value": 80,
+            "unit": "B/op",
+            "extra": "18963 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCP16 (github.com/splch/goqu/sim/statevector) - allocs/op",
+            "value": 1,
+            "unit": "allocs/op",
+            "extra": "18963 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCP16 (github.com/splch/goqu/sim/statevector)",
+            "value": 63259,
+            "unit": "ns/op\t      80 B/op\t       1 allocs/op",
+            "extra": "18849 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCP16 (github.com/splch/goqu/sim/statevector) - ns/op",
+            "value": 63259,
+            "unit": "ns/op",
+            "extra": "18849 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCP16 (github.com/splch/goqu/sim/statevector) - B/op",
+            "value": 80,
+            "unit": "B/op",
+            "extra": "18849 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCP16 (github.com/splch/goqu/sim/statevector) - allocs/op",
+            "value": 1,
+            "unit": "allocs/op",
+            "extra": "18849 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCP16 (github.com/splch/goqu/sim/statevector)",
+            "value": 63575,
+            "unit": "ns/op\t      80 B/op\t       1 allocs/op",
+            "extra": "18945 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCP16 (github.com/splch/goqu/sim/statevector) - ns/op",
+            "value": 63575,
+            "unit": "ns/op",
+            "extra": "18945 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCP16 (github.com/splch/goqu/sim/statevector) - B/op",
+            "value": 80,
+            "unit": "B/op",
+            "extra": "18945 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCP16 (github.com/splch/goqu/sim/statevector) - allocs/op",
+            "value": 1,
+            "unit": "allocs/op",
+            "extra": "18945 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCP16 (github.com/splch/goqu/sim/statevector)",
+            "value": 63184,
+            "unit": "ns/op\t      80 B/op\t       1 allocs/op",
+            "extra": "18990 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCP16 (github.com/splch/goqu/sim/statevector) - ns/op",
+            "value": 63184,
+            "unit": "ns/op",
+            "extra": "18990 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCP16 (github.com/splch/goqu/sim/statevector) - B/op",
+            "value": 80,
+            "unit": "B/op",
+            "extra": "18990 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCP16 (github.com/splch/goqu/sim/statevector) - allocs/op",
+            "value": 1,
+            "unit": "allocs/op",
+            "extra": "18990 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCP16 (github.com/splch/goqu/sim/statevector)",
+            "value": 63170,
+            "unit": "ns/op\t      80 B/op\t       1 allocs/op",
+            "extra": "18988 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCP16 (github.com/splch/goqu/sim/statevector) - ns/op",
+            "value": 63170,
+            "unit": "ns/op",
+            "extra": "18988 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCP16 (github.com/splch/goqu/sim/statevector) - B/op",
+            "value": 80,
+            "unit": "B/op",
+            "extra": "18988 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCP16 (github.com/splch/goqu/sim/statevector) - allocs/op",
+            "value": 1,
+            "unit": "allocs/op",
+            "extra": "18988 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkMS16 (github.com/splch/goqu/sim/statevector)",
+            "value": 257178,
+            "unit": "ns/op\t      80 B/op\t       1 allocs/op",
+            "extra": "4654 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkMS16 (github.com/splch/goqu/sim/statevector) - ns/op",
+            "value": 257178,
+            "unit": "ns/op",
+            "extra": "4654 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkMS16 (github.com/splch/goqu/sim/statevector) - B/op",
+            "value": 80,
+            "unit": "B/op",
+            "extra": "4654 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkMS16 (github.com/splch/goqu/sim/statevector) - allocs/op",
+            "value": 1,
+            "unit": "allocs/op",
+            "extra": "4654 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkMS16 (github.com/splch/goqu/sim/statevector)",
+            "value": 256949,
+            "unit": "ns/op\t      80 B/op\t       1 allocs/op",
+            "extra": "4641 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkMS16 (github.com/splch/goqu/sim/statevector) - ns/op",
+            "value": 256949,
+            "unit": "ns/op",
+            "extra": "4641 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkMS16 (github.com/splch/goqu/sim/statevector) - B/op",
+            "value": 80,
+            "unit": "B/op",
+            "extra": "4641 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkMS16 (github.com/splch/goqu/sim/statevector) - allocs/op",
+            "value": 1,
+            "unit": "allocs/op",
+            "extra": "4641 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkMS16 (github.com/splch/goqu/sim/statevector)",
+            "value": 257478,
+            "unit": "ns/op\t      80 B/op\t       1 allocs/op",
+            "extra": "4644 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkMS16 (github.com/splch/goqu/sim/statevector) - ns/op",
+            "value": 257478,
+            "unit": "ns/op",
+            "extra": "4644 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkMS16 (github.com/splch/goqu/sim/statevector) - B/op",
+            "value": 80,
+            "unit": "B/op",
+            "extra": "4644 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkMS16 (github.com/splch/goqu/sim/statevector) - allocs/op",
+            "value": 1,
+            "unit": "allocs/op",
+            "extra": "4644 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkMS16 (github.com/splch/goqu/sim/statevector)",
+            "value": 256332,
+            "unit": "ns/op\t      80 B/op\t       1 allocs/op",
+            "extra": "4681 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkMS16 (github.com/splch/goqu/sim/statevector) - ns/op",
+            "value": 256332,
+            "unit": "ns/op",
+            "extra": "4681 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkMS16 (github.com/splch/goqu/sim/statevector) - B/op",
+            "value": 80,
+            "unit": "B/op",
+            "extra": "4681 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkMS16 (github.com/splch/goqu/sim/statevector) - allocs/op",
+            "value": 1,
+            "unit": "allocs/op",
+            "extra": "4681 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkMS16 (github.com/splch/goqu/sim/statevector)",
+            "value": 257278,
+            "unit": "ns/op\t      80 B/op\t       1 allocs/op",
+            "extra": "4615 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkMS16 (github.com/splch/goqu/sim/statevector) - ns/op",
+            "value": 257278,
+            "unit": "ns/op",
+            "extra": "4615 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkMS16 (github.com/splch/goqu/sim/statevector) - B/op",
+            "value": 80,
+            "unit": "B/op",
+            "extra": "4615 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkMS16 (github.com/splch/goqu/sim/statevector) - allocs/op",
+            "value": 1,
+            "unit": "allocs/op",
+            "extra": "4615 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolve8Q (github.com/splch/goqu/sim/densitymatrix)",
+            "value": 4168354,
+            "unit": "ns/op\t 1049520 B/op\t       3 allocs/op",
+            "extra": "288 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolve8Q (github.com/splch/goqu/sim/densitymatrix) - ns/op",
+            "value": 4168354,
+            "unit": "ns/op",
+            "extra": "288 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolve8Q (github.com/splch/goqu/sim/densitymatrix) - B/op",
+            "value": 1049520,
+            "unit": "B/op",
+            "extra": "288 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolve8Q (github.com/splch/goqu/sim/densitymatrix) - allocs/op",
+            "value": 3,
+            "unit": "allocs/op",
+            "extra": "288 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolve8Q (github.com/splch/goqu/sim/densitymatrix)",
+            "value": 4239033,
+            "unit": "ns/op\t 1049521 B/op\t       3 allocs/op",
+            "extra": "286 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolve8Q (github.com/splch/goqu/sim/densitymatrix) - ns/op",
+            "value": 4239033,
+            "unit": "ns/op",
+            "extra": "286 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolve8Q (github.com/splch/goqu/sim/densitymatrix) - B/op",
+            "value": 1049521,
+            "unit": "B/op",
+            "extra": "286 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolve8Q (github.com/splch/goqu/sim/densitymatrix) - allocs/op",
+            "value": 3,
+            "unit": "allocs/op",
+            "extra": "286 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolve8Q (github.com/splch/goqu/sim/densitymatrix)",
+            "value": 4171891,
+            "unit": "ns/op\t 1049521 B/op\t       3 allocs/op",
+            "extra": "284 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolve8Q (github.com/splch/goqu/sim/densitymatrix) - ns/op",
+            "value": 4171891,
+            "unit": "ns/op",
+            "extra": "284 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolve8Q (github.com/splch/goqu/sim/densitymatrix) - B/op",
+            "value": 1049521,
+            "unit": "B/op",
+            "extra": "284 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolve8Q (github.com/splch/goqu/sim/densitymatrix) - allocs/op",
+            "value": 3,
+            "unit": "allocs/op",
+            "extra": "284 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolve8Q (github.com/splch/goqu/sim/densitymatrix)",
+            "value": 4168531,
+            "unit": "ns/op\t 1049522 B/op\t       3 allocs/op",
+            "extra": "286 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolve8Q (github.com/splch/goqu/sim/densitymatrix) - ns/op",
+            "value": 4168531,
+            "unit": "ns/op",
+            "extra": "286 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolve8Q (github.com/splch/goqu/sim/densitymatrix) - B/op",
+            "value": 1049522,
+            "unit": "B/op",
+            "extra": "286 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolve8Q (github.com/splch/goqu/sim/densitymatrix) - allocs/op",
+            "value": 3,
+            "unit": "allocs/op",
+            "extra": "286 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolve8Q (github.com/splch/goqu/sim/densitymatrix)",
+            "value": 4193404,
+            "unit": "ns/op\t 1049521 B/op\t       3 allocs/op",
+            "extra": "286 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolve8Q (github.com/splch/goqu/sim/densitymatrix) - ns/op",
+            "value": 4193404,
+            "unit": "ns/op",
+            "extra": "286 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolve8Q (github.com/splch/goqu/sim/densitymatrix) - B/op",
+            "value": 1049521,
+            "unit": "B/op",
+            "extra": "286 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolve8Q (github.com/splch/goqu/sim/densitymatrix) - allocs/op",
+            "value": 3,
+            "unit": "allocs/op",
+            "extra": "286 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolveNoisy8Q (github.com/splch/goqu/sim/densitymatrix)",
+            "value": 58410955,
+            "unit": "ns/op\t26215690 B/op\t      60 allocs/op",
+            "extra": "19 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolveNoisy8Q (github.com/splch/goqu/sim/densitymatrix) - ns/op",
+            "value": 58410955,
+            "unit": "ns/op",
+            "extra": "19 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolveNoisy8Q (github.com/splch/goqu/sim/densitymatrix) - B/op",
+            "value": 26215690,
+            "unit": "B/op",
+            "extra": "19 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolveNoisy8Q (github.com/splch/goqu/sim/densitymatrix) - allocs/op",
+            "value": 60,
+            "unit": "allocs/op",
+            "extra": "19 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolveNoisy8Q (github.com/splch/goqu/sim/densitymatrix)",
+            "value": 58691506,
+            "unit": "ns/op\t26215644 B/op\t      60 allocs/op",
+            "extra": "20 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolveNoisy8Q (github.com/splch/goqu/sim/densitymatrix) - ns/op",
+            "value": 58691506,
+            "unit": "ns/op",
+            "extra": "20 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolveNoisy8Q (github.com/splch/goqu/sim/densitymatrix) - B/op",
+            "value": 26215644,
+            "unit": "B/op",
+            "extra": "20 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolveNoisy8Q (github.com/splch/goqu/sim/densitymatrix) - allocs/op",
+            "value": 60,
+            "unit": "allocs/op",
+            "extra": "20 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolveNoisy8Q (github.com/splch/goqu/sim/densitymatrix)",
+            "value": 59612511,
+            "unit": "ns/op\t26215634 B/op\t      59 allocs/op",
+            "extra": "19 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolveNoisy8Q (github.com/splch/goqu/sim/densitymatrix) - ns/op",
+            "value": 59612511,
+            "unit": "ns/op",
+            "extra": "19 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolveNoisy8Q (github.com/splch/goqu/sim/densitymatrix) - B/op",
+            "value": 26215634,
+            "unit": "B/op",
+            "extra": "19 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolveNoisy8Q (github.com/splch/goqu/sim/densitymatrix) - allocs/op",
+            "value": 59,
+            "unit": "allocs/op",
+            "extra": "19 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolveNoisy8Q (github.com/splch/goqu/sim/densitymatrix)",
+            "value": 59371963,
+            "unit": "ns/op\t26215619 B/op\t      59 allocs/op",
+            "extra": "19 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolveNoisy8Q (github.com/splch/goqu/sim/densitymatrix) - ns/op",
+            "value": 59371963,
+            "unit": "ns/op",
+            "extra": "19 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolveNoisy8Q (github.com/splch/goqu/sim/densitymatrix) - B/op",
+            "value": 26215619,
+            "unit": "B/op",
+            "extra": "19 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolveNoisy8Q (github.com/splch/goqu/sim/densitymatrix) - allocs/op",
+            "value": 59,
+            "unit": "allocs/op",
+            "extra": "19 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolveNoisy8Q (github.com/splch/goqu/sim/densitymatrix)",
+            "value": 59241500,
+            "unit": "ns/op\t26215624 B/op\t      59 allocs/op",
+            "extra": "19 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolveNoisy8Q (github.com/splch/goqu/sim/densitymatrix) - ns/op",
+            "value": 59241500,
+            "unit": "ns/op",
+            "extra": "19 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolveNoisy8Q (github.com/splch/goqu/sim/densitymatrix) - B/op",
+            "value": 26215624,
+            "unit": "B/op",
+            "extra": "19 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkEvolveNoisy8Q (github.com/splch/goqu/sim/densitymatrix) - allocs/op",
+            "value": 59,
+            "unit": "allocs/op",
+            "extra": "19 times\n4 procs"
           }
         ]
       }
