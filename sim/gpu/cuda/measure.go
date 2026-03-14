@@ -94,6 +94,9 @@ import (
 
 // run executes the circuit and samples measurement results on the GPU.
 func run(s *Sim, c *ir.Circuit, shots int) (map[string]int, error) {
+	if c.IsDynamic() {
+		return nil, fmt.Errorf("cuda: dynamic circuits not supported")
+	}
 	if err := evolve(s, c); err != nil {
 		return nil, err
 	}

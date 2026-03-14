@@ -48,6 +48,7 @@ static custatevecStatus_t goGetWorkspaceSize(
 import "C"
 import (
 	"fmt"
+	"math"
 	"unsafe"
 
 	"github.com/splch/goqu/circuit/gate"
@@ -137,8 +138,10 @@ func evolve(s *Sim, c *ir.Circuit) error {
 		}
 		if op.Gate.Name() == "reset" {
 			// Transfer to host, reset qubit, transfer back.
-			// TODO: implement GPU-side reset for better performance.
-			return fmt.Errorf("cuda: reset gate not yet supported in GPU simulator")
+			host := copyToHost(s.devicePtr)
+			resetQubitCPU(host, s.numQubits, op.Qubits[0])
+			C.goMemcpyH2D(s.devicePtr.ptr, unsafe.Pointer(&host[0]), C.size_t(len(host)*16))
+			continue
 		}
 		if _, ok := op.Gate.(gate.StatePrepable); ok {
 			// State prep: copy amplitudes directly to GPU.
@@ -196,6 +199,28 @@ func evolve(s *Sim, c *ir.Circuit) error {
 		}
 	}
 	return nil
+}
+
+// resetQubitCPU deterministically resets a qubit to |0⟩ on the host side.
+func resetQubitCPU(state []complex128, numQubits, qubit int) {
+	halfBlock := 1 << qubit
+	block := halfBlock << 1
+	nAmps := 1 << numQubits
+	for b0 := 0; b0 < nAmps; b0 += block {
+		for offset := range halfBlock {
+			i0 := b0 + offset
+			i1 := i0 + halfBlock
+			a0, a1 := state[i0], state[i1]
+			norm := math.Sqrt(real(a0)*real(a0) + imag(a0)*imag(a0) +
+				real(a1)*real(a1) + imag(a1)*imag(a1))
+			if norm > 1e-15 {
+				state[i0] = complex(norm, 0)
+			} else {
+				state[i0] = 0
+			}
+			state[i1] = 0
+		}
+	}
 }
 
 // newSim creates a GPU simulator with cuStateVec.
