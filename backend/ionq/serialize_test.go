@@ -151,6 +151,36 @@ func TestMarshalNativeGates(t *testing.T) {
 	}
 }
 
+func TestMarshalNOPGate(t *testing.T) {
+	c := ir.New("nop-test", 2, 0, []ir.Operation{
+		{Gate: gate.GPI(0), Qubits: []int{0}},
+		{Gate: gate.NOP(1.5), Qubits: nil},
+		{Gate: gate.GPI(0), Qubits: []int{1}},
+	}, nil)
+
+	input, err := marshalCircuit(c)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if input.Gateset != "native" {
+		t.Errorf("gateset = %q, want %q", input.Gateset, "native")
+	}
+	if len(input.Circuit) != 3 {
+		t.Fatalf("gates = %d, want 3", len(input.Circuit))
+	}
+
+	nop := input.Circuit[1]
+	if nop.Gate != "nop" {
+		t.Errorf("gate = %q, want %q", nop.Gate, "nop")
+	}
+	if nop.Time == nil || *nop.Time != 1.5 {
+		t.Errorf("nop.time = %v, want 1.5", nop.Time)
+	}
+	if nop.Target != nil {
+		t.Errorf("nop.target = %v, want nil", nop.Target)
+	}
+}
+
 func TestMarshalMixedGatesError(t *testing.T) {
 	c := ir.New("mixed", 2, 0, []ir.Operation{
 		{Gate: gate.H, Qubits: []int{0}},

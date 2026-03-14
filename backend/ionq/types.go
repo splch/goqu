@@ -32,6 +32,7 @@ type ionqGate struct {
 	Phase    *float64  `json:"phase,omitempty"`    // turns, for native gates
 	Phases   []float64 `json:"phases,omitempty"`   // turns, for MS gate
 	Angle    *float64  `json:"angle,omitempty"`    // turns, for MS/ZZ gate
+	Time     *float64  `json:"time,omitempty"`     // microseconds, for NOP gate
 }
 
 // ionqJobResponse is returned by POST /jobs.

@@ -288,6 +288,17 @@ func GPI2(phi float64) Gate {
 	}
 }
 
+// NOP returns an IonQ native NOP (no-operation) timing gate.
+// It is a 0-qubit instruction analogous to Delay; time is in microseconds.
+func NOP(time float64) Gate {
+	return &parameterized{
+		name:   fmt.Sprintf("NOP(%.4f)", time),
+		n:      0,
+		params: []float64{time},
+		matrix: []complex128{1}, // 2^0 × 2^0 identity
+	}
+}
+
 // MS returns an IonQ native Mølmer-Sørensen gate.
 func MS(phi0, phi1 float64) Gate {
 	inv := complex(s2, 0)

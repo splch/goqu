@@ -10,7 +10,7 @@ import (
 
 // nativeGates are IonQ hardware-level gate names.
 var nativeGates = map[string]bool{
-	"GPI": true, "GPI2": true, "MS": true, "ZZ": true,
+	"GPI": true, "GPI2": true, "MS": true, "ZZ": true, "NOP": true,
 }
 
 // qisGates are the abstract gates supported by IonQ's QIS gateset.
@@ -164,6 +164,12 @@ func marshalNativeGate(op ir.Operation) (ionqGate, error) {
 			Targets: []int{op.Qubits[0], op.Qubits[1]},
 			Angle:   &angle,
 		}, nil
+	case "NOP":
+		time := 0.0
+		if len(params) > 0 {
+			time = params[0]
+		}
+		return ionqGate{Gate: "nop", Time: &time}, nil
 	default:
 		return ionqGate{}, fmt.Errorf("ionq: gate %q not supported in native gateset", op.Gate.Name())
 	}

@@ -8,6 +8,8 @@ import (
 	"github.com/splch/goqu/algorithm/ansatz"
 	"github.com/splch/goqu/algorithm/optim"
 	"github.com/splch/goqu/algorithm/vqc"
+	"github.com/splch/goqu/circuit/builder"
+	"github.com/splch/goqu/sim/statevector"
 )
 
 func TestKernel_Diagonal(t *testing.T) {
@@ -196,4 +198,107 @@ func TestKernel_ZZFeatureMap(t *testing.T) {
 	if mat[0][1] < 0 || mat[0][1] > 1 {
 		t.Errorf("K[0][1] = %f, want in [0, 1]", mat[0][1])
 	}
+}
+
+func TestAngleEmbedding(t *testing.T) {
+	rotations := []struct {
+		name string
+		rot  vqc.RotationType
+	}{
+		{"RX", vqc.RotRX},
+		{"RY", vqc.RotRY},
+		{"RZ", vqc.RotRZ},
+	}
+	for _, r := range rotations {
+		t.Run(r.name, func(t *testing.T) {
+			cfg := vqc.KernelConfig{NumQubits: 2, FeatureMap: vqc.AngleEmbedding(r.rot)}
+			data := [][]float64{{0.1, 0.2}, {0.5, 0.8}, {1.0, 1.5}}
+
+			mat, err := vqc.KernelMatrix(context.Background(), cfg, data)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			// Diagonal must be 1.
+			for i := range data {
+				if math.Abs(mat[i][i]-1.0) > 1e-6 {
+					t.Errorf("K[%d][%d] = %f, want 1.0", i, i, mat[i][i])
+				}
+			}
+			// Symmetry.
+			for i := range data {
+				for j := range data {
+					if math.Abs(mat[i][j]-mat[j][i]) > 1e-6 {
+						t.Errorf("K[%d][%d]=%f != K[%d][%d]=%f", i, j, mat[i][j], j, i, mat[j][i])
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestAmplitudeEmbedding(t *testing.T) {
+	t.Run("basis_state", func(t *testing.T) {
+		// Embedding [1, 0, 0, 0] on 2 qubits should give |00⟩.
+		fm := vqc.AmplitudeEmbedding()
+		b := builder.New("test", 2)
+		fm(b, []float64{1, 0, 0, 0}, []int{0, 1})
+		circ, err := b.Build()
+		if err != nil {
+			t.Fatal(err)
+		}
+		sim := statevector.New(2)
+		if err := sim.Evolve(circ); err != nil {
+			t.Fatal(err)
+		}
+		sv := sim.StateVector()
+		// |00⟩ should have amplitude ≈ 1.
+		if math.Abs(real(sv[0])-1.0) > 1e-6 || math.Abs(imag(sv[0])) > 1e-6 {
+			t.Errorf("sv[0] = %v, want 1+0i", sv[0])
+		}
+	})
+
+	t.Run("uniform", func(t *testing.T) {
+		// Embedding [1, 1, 1, 1] should normalize to [0.5, 0.5, 0.5, 0.5].
+		fm := vqc.AmplitudeEmbedding()
+		b := builder.New("test", 2)
+		fm(b, []float64{1, 1, 1, 1}, []int{0, 1})
+		circ, err := b.Build()
+		if err != nil {
+			t.Fatal(err)
+		}
+		sim := statevector.New(2)
+		if err := sim.Evolve(circ); err != nil {
+			t.Fatal(err)
+		}
+		sv := sim.StateVector()
+		// Each amplitude should be ≈ 0.5.
+		for i, a := range sv {
+			if math.Abs(real(a)-0.5) > 1e-6 {
+				t.Errorf("sv[%d] = %v, want ≈ 0.5", i, a)
+			}
+		}
+	})
+
+	t.Run("padding", func(t *testing.T) {
+		// Fewer features than 2^n: should zero-pad and normalize.
+		fm := vqc.AmplitudeEmbedding()
+		b := builder.New("test", 2)
+		fm(b, []float64{3, 4}, []int{0, 1}) // norm = 5, normalized = [0.6, 0.8, 0, 0]
+		circ, err := b.Build()
+		if err != nil {
+			t.Fatal(err)
+		}
+		sim := statevector.New(2)
+		if err := sim.Evolve(circ); err != nil {
+			t.Fatal(err)
+		}
+		sv := sim.StateVector()
+		if math.Abs(real(sv[0])-0.6) > 1e-6 {
+			t.Errorf("sv[0] = %v, want ≈ 0.6", sv[0])
+		}
+		if math.Abs(real(sv[1])-0.8) > 1e-6 {
+			t.Errorf("sv[1] = %v, want ≈ 0.8", sv[1])
+		}
+	})
 }
