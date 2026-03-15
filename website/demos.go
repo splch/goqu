@@ -341,7 +341,7 @@ func demoQPE(phase float64, numBits int, shots int) (*DemoResult, error) {
 func demoShorCircuit(shots int) (*DemoResult, error) {
 	// Build a period-finding circuit for a=2, N=15 (classic textbook example)
 	// We show the circuit structure rather than running full Shor's
-	b := builder.New("period-finding", 8)
+	b := builder.New("period-finding", 8).WithClbits(4)
 
 	// Phase register: qubits 0-3 (4 counting qubits)
 	for q := 0; q < 4; q++ {
