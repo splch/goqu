@@ -158,6 +158,12 @@ func (p *parser) parseStatement() error {
 		return p.parseDelay()
 	case token.IF:
 		return p.parseIf()
+	case token.WHILE:
+		return p.parseWhile()
+	case token.FOR:
+		return p.parseFor()
+	case token.SWITCH:
+		return p.parseSwitch()
 	case token.IDENT:
 		// Check if it's an assignment "ident = measure ..." or "ident[i] = measure ..."
 		if p.isAssignment() {
@@ -556,48 +562,45 @@ func (p *parser) parseDelay() error {
 	return nil
 }
 
-func (p *parser) parseIf() error {
-	p.advance() // consume 'if'
+// parseCondition parses "(ident == value)" or "(ident[idx] == value)" and resolves the clbit.
+func (p *parser) parseCondition() (ir.Condition, error) {
 	_, err := p.expect(token.LPAREN)
 	if err != nil {
-		return err
+		return ir.Condition{}, err
 	}
 
-	// Parse condition: ident == value or ident[idx] == value.
 	condReg, err := p.expect(token.IDENT)
 	if err != nil {
-		return err
+		return ir.Condition{}, err
 	}
 	regName := condReg.Literal
 
-	// Optional index.
 	bitIdx := -1
 	if p.peek() == token.LBRACKET {
-		p.advance() // consume [
+		p.advance()
 		v, err2 := p.parseExpr()
 		if err2 != nil {
-			return err2
+			return ir.Condition{}, err2
 		}
 		bitIdx = int(v)
 		if _, err2 = p.expect(token.RBRACKET); err2 != nil {
-			return err2
+			return ir.Condition{}, err2
 		}
 	}
 
 	_, err = p.expect(token.EQEQ)
 	if err != nil {
-		return err
+		return ir.Condition{}, err
 	}
 	val, err := p.parseExpr()
 	if err != nil {
-		return err
+		return ir.Condition{}, err
 	}
 	_, err = p.expect(token.RPAREN)
 	if err != nil {
-		return err
+		return ir.Condition{}, err
 	}
 
-	// Resolve classical bit index.
 	clbit := 0
 	reg, ok := p.cregs[regName]
 	if ok {
@@ -608,33 +611,272 @@ func (p *parser) parseIf() error {
 		}
 	}
 
-	cond := &ir.Condition{Clbit: clbit, Value: int(val), Register: regName}
+	return ir.Condition{Clbit: clbit, Value: int(val), Register: regName}, nil
+}
 
-	// Parse body — single statement or block.
-	if p.peek() == token.LBRACE {
-		p.advance() // consume {
-		for p.peek() != token.RBRACE && p.peek() != token.EOF {
-			opsBefore := len(p.ops)
-			if err := p.parseStatement(); err != nil {
-				return err
-			}
-			// Attach condition to newly added ops.
-			for i := opsBefore; i < len(p.ops); i++ {
-				p.ops[i].Condition = cond
-			}
+// parseBlock parses "{ statements }" and returns the operations.
+func (p *parser) parseBlock() ([]ir.Operation, error) {
+	_, err := p.expect(token.LBRACE)
+	if err != nil {
+		return nil, err
+	}
+	opsBefore := len(p.ops)
+	for p.peek() != token.RBRACE && p.peek() != token.EOF {
+		if err := p.parseStatement(); err != nil {
+			return nil, err
 		}
-		_, err = p.expect(token.RBRACE)
+	}
+	if _, err := p.expect(token.RBRACE); err != nil {
+		return nil, err
+	}
+	body := make([]ir.Operation, len(p.ops)-opsBefore)
+	copy(body, p.ops[opsBefore:])
+	p.ops = p.ops[:opsBefore]
+	return body, nil
+}
+
+func (p *parser) parseIf() error {
+	p.advance() // consume 'if'
+	cond, err := p.parseCondition()
+	if err != nil {
 		return err
 	}
 
-	// Single statement.
+	// Check for block or single statement.
+	if p.peek() == token.LBRACE {
+		ifBody, err := p.parseBlock()
+		if err != nil {
+			return err
+		}
+
+		// Check for else clause.
+		if p.peek() == token.ELSE {
+			p.advance() // consume 'else'
+			elseBody, err := p.parseBlock()
+			if err != nil {
+				return err
+			}
+			p.ops = append(p.ops, ir.Operation{
+				ControlFlow: &ir.ControlFlow{
+					Type:      ir.ControlFlowIfElse,
+					Condition: cond,
+					Bodies:    [][]ir.Operation{ifBody, elseBody},
+				},
+			})
+			return nil
+		}
+
+		// No else — use legacy per-op conditioning for backward compat.
+		condPtr := &ir.Condition{Clbit: cond.Clbit, Value: cond.Value, Register: cond.Register}
+		for i := range ifBody {
+			ifBody[i].Condition = condPtr
+		}
+		p.ops = append(p.ops, ifBody...)
+		return nil
+	}
+
+	// Single statement — legacy per-op conditioning.
+	condPtr := &ir.Condition{Clbit: cond.Clbit, Value: cond.Value, Register: cond.Register}
 	opsBefore := len(p.ops)
 	if err := p.parseStatement(); err != nil {
 		return err
 	}
 	for i := opsBefore; i < len(p.ops); i++ {
-		p.ops[i].Condition = cond
+		p.ops[i].Condition = condPtr
 	}
+	return nil
+}
+
+func (p *parser) parseWhile() error {
+	p.advance() // consume 'while'
+	cond, err := p.parseCondition()
+	if err != nil {
+		return err
+	}
+	body, err := p.parseBlock()
+	if err != nil {
+		return err
+	}
+	p.ops = append(p.ops, ir.Operation{
+		ControlFlow: &ir.ControlFlow{
+			Type:      ir.ControlFlowWhile,
+			Condition: cond,
+			Bodies:    [][]ir.Operation{body},
+		},
+	})
+	return nil
+}
+
+func (p *parser) parseFor() error {
+	p.advance() // consume 'for'
+
+	// OpenQASM 3.0: for int[32] i in [start:end] { body }
+	// Simplified: for ident in [start:end:step] { body }
+	// We skip the type specifier (int[32]) if present.
+	if p.peek() == token.INT_TYPE || p.peek() == token.UINT_TYPE {
+		p.advance() // consume type keyword
+		// Skip optional [size].
+		if p.peek() == token.LBRACKET {
+			p.advance()
+			if _, err := p.parseExpr(); err != nil {
+				return err
+			}
+			if _, err := p.expect(token.RBRACKET); err != nil {
+				return err
+			}
+		}
+	}
+
+	// Parse loop variable name (we don't track it; it's for QASM compat).
+	if _, err := p.expect(token.IDENT); err != nil {
+		return err
+	}
+	if _, err := p.expect(token.IN); err != nil {
+		return err
+	}
+
+	// Parse range: [start:end] or [start:end:step].
+	if _, err := p.expect(token.LBRACKET); err != nil {
+		return err
+	}
+	startVal, err := p.parseExpr()
+	if err != nil {
+		return err
+	}
+	if _, err := p.expect(token.COLON); err != nil {
+		return err
+	}
+	endVal, err := p.parseExpr()
+	if err != nil {
+		return err
+	}
+	step := 1.0
+	if p.peek() == token.COLON {
+		p.advance()
+		step, err = p.parseExpr()
+		if err != nil {
+			return err
+		}
+	}
+	if _, err := p.expect(token.RBRACKET); err != nil {
+		return err
+	}
+
+	body, err := p.parseBlock()
+	if err != nil {
+		return err
+	}
+
+	p.ops = append(p.ops, ir.Operation{
+		ControlFlow: &ir.ControlFlow{
+			Type:   ir.ControlFlowFor,
+			Bodies: [][]ir.Operation{body},
+			ForRange: &ir.ForRange{
+				Start: int(startVal),
+				End:   int(endVal),
+				Step:  int(step),
+			},
+		},
+	})
+	return nil
+}
+
+func (p *parser) parseSwitch() error {
+	p.advance() // consume 'switch'
+
+	// Parse switch argument: (ident) or (ident[idx]).
+	if _, err := p.expect(token.LPAREN); err != nil {
+		return err
+	}
+	regTok, err := p.expect(token.IDENT)
+	if err != nil {
+		return err
+	}
+	regName := regTok.Literal
+
+	// Resolve to clbits.
+	var clbits []int
+	if p.peek() == token.LBRACKET {
+		p.advance()
+		v, err2 := p.parseExpr()
+		if err2 != nil {
+			return err2
+		}
+		if _, err2 = p.expect(token.RBRACKET); err2 != nil {
+			return err2
+		}
+		reg, ok := p.cregs[regName]
+		if ok {
+			clbits = []int{reg.start + int(v)}
+		}
+	} else {
+		reg, ok := p.cregs[regName]
+		if ok {
+			clbits = make([]int, reg.size)
+			for i := range reg.size {
+				clbits[i] = reg.start + i
+			}
+		}
+	}
+
+	if _, err := p.expect(token.RPAREN); err != nil {
+		return err
+	}
+	if _, err := p.expect(token.LBRACE); err != nil {
+		return err
+	}
+
+	var cases []int
+	var bodies [][]ir.Operation
+
+	for p.peek() != token.RBRACE && p.peek() != token.EOF {
+		if p.peek() == token.CASE {
+			p.advance() // consume 'case'
+			val, err := p.parseExpr()
+			if err != nil {
+				return err
+			}
+			// Optional colon after value.
+			if p.peek() == token.COLON {
+				p.advance()
+			}
+			body, err := p.parseBlock()
+			if err != nil {
+				return err
+			}
+			cases = append(cases, int(val))
+			bodies = append(bodies, body)
+		} else if p.peek() == token.DEFAULT {
+			p.advance() // consume 'default'
+			if p.peek() == token.COLON {
+				p.advance()
+			}
+			body, err := p.parseBlock()
+			if err != nil {
+				return err
+			}
+			// Default body goes last with no corresponding case value.
+			bodies = append(bodies, body)
+		} else {
+			return fmt.Errorf("line %d: expected 'case' or 'default' in switch", p.tokens[p.pos].Line)
+		}
+	}
+
+	if _, err := p.expect(token.RBRACE); err != nil {
+		return err
+	}
+
+	p.ops = append(p.ops, ir.Operation{
+		ControlFlow: &ir.ControlFlow{
+			Type:   ir.ControlFlowSwitch,
+			Bodies: bodies,
+			SwitchArg: &ir.SwitchArg{
+				Clbits:   clbits,
+				Cases:    cases,
+				Register: regName,
+			},
+		},
+	})
 	return nil
 }
 

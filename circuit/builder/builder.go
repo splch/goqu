@@ -469,6 +469,179 @@ func (b *Builder) IfBlock(clbit, value int, fn func(*Builder)) *Builder {
 	return b
 }
 
+// IfElseBlock conditions operations on clbit == value, with an else branch.
+func (b *Builder) IfElseBlock(clbit, value int, ifBody, elseBody func(*Builder)) *Builder {
+	if b.err != nil {
+		return b
+	}
+	b.validateClbit(clbit)
+	if b.err != nil {
+		return b
+	}
+
+	ifSub := b.subBuilder()
+	ifBody(ifSub)
+	if ifSub.err != nil {
+		b.err = ifSub.err
+		return b
+	}
+
+	elseSub := b.subBuilder()
+	elseBody(elseSub)
+	if elseSub.err != nil {
+		b.err = elseSub.err
+		return b
+	}
+
+	b.ops = append(b.ops, ir.Operation{
+		ControlFlow: &ir.ControlFlow{
+			Type:      ir.ControlFlowIfElse,
+			Condition: ir.Condition{Clbit: clbit, Value: value},
+			Bodies:    [][]ir.Operation{ifSub.ops, elseSub.ops},
+		},
+	})
+	return b
+}
+
+// While executes body repeatedly while clbit == value.
+// At simulation time, iterations are capped at ir.MaxControlFlowIterations.
+func (b *Builder) While(clbit, value int, body func(*Builder)) *Builder {
+	if b.err != nil {
+		return b
+	}
+	b.validateClbit(clbit)
+	if b.err != nil {
+		return b
+	}
+
+	sub := b.subBuilder()
+	body(sub)
+	if sub.err != nil {
+		b.err = sub.err
+		return b
+	}
+
+	b.ops = append(b.ops, ir.Operation{
+		ControlFlow: &ir.ControlFlow{
+			Type:      ir.ControlFlowWhile,
+			Condition: ir.Condition{Clbit: clbit, Value: value},
+			Bodies:    [][]ir.Operation{sub.ops},
+		},
+	})
+	return b
+}
+
+// For executes body for each iteration in [start, end) with the given step.
+// The iteration count is stored in the specified clbit (least-significant bit).
+func (b *Builder) For(clbit int, start, end, step int, body func(*Builder)) *Builder {
+	if b.err != nil {
+		return b
+	}
+	b.validateClbit(clbit)
+	if b.err != nil {
+		return b
+	}
+	if step == 0 {
+		b.err = fmt.Errorf("for loop step must be non-zero")
+		return b
+	}
+
+	sub := b.subBuilder()
+	body(sub)
+	if sub.err != nil {
+		b.err = sub.err
+		return b
+	}
+
+	b.ops = append(b.ops, ir.Operation{
+		ControlFlow: &ir.ControlFlow{
+			Type:     ir.ControlFlowFor,
+			Bodies:   [][]ir.Operation{sub.ops},
+			ForRange: &ir.ForRange{Start: start, End: end, Step: step},
+		},
+	})
+	return b
+}
+
+// Switch branches on the integer value of the given classical bits.
+// cases maps integer values to body functions. defaultBody (may be nil) executes if no case matches.
+func (b *Builder) Switch(clbits []int, cases map[int]func(*Builder), defaultBody func(*Builder)) *Builder {
+	if b.err != nil {
+		return b
+	}
+	for _, c := range clbits {
+		b.validateClbit(c)
+	}
+	if b.err != nil {
+		return b
+	}
+
+	// Build ordered case values and bodies.
+	caseVals := make([]int, 0, len(cases))
+	bodies := make([][]ir.Operation, 0, len(cases)+1)
+	for val := range cases {
+		caseVals = append(caseVals, val)
+	}
+	// Sort for deterministic ordering.
+	sortInts(caseVals)
+	for _, val := range caseVals {
+		sub := b.subBuilder()
+		cases[val](sub)
+		if sub.err != nil {
+			b.err = sub.err
+			return b
+		}
+		bodies = append(bodies, sub.ops)
+	}
+	if defaultBody != nil {
+		sub := b.subBuilder()
+		defaultBody(sub)
+		if sub.err != nil {
+			b.err = sub.err
+			return b
+		}
+		bodies = append(bodies, sub.ops)
+	}
+
+	cb := make([]int, len(clbits))
+	copy(cb, clbits)
+
+	b.ops = append(b.ops, ir.Operation{
+		ControlFlow: &ir.ControlFlow{
+			Type:   ir.ControlFlowSwitch,
+			Bodies: bodies,
+			SwitchArg: &ir.SwitchArg{
+				Clbits: cb,
+				Cases:  caseVals,
+			},
+		},
+	})
+	return b
+}
+
+// subBuilder creates a child builder sharing the same qubit/clbit dimensions.
+func (b *Builder) subBuilder() *Builder {
+	return &Builder{
+		name:      b.name,
+		numQubits: b.numQubits,
+		numClbits: b.numClbits,
+		metadata:  b.metadata,
+	}
+}
+
+// sortInts sorts a slice of ints in ascending order (insertion sort, fine for small slices).
+func sortInts(a []int) {
+	for i := 1; i < len(a); i++ {
+		key := a[i]
+		j := i - 1
+		for j >= 0 && a[j] > key {
+			a[j+1] = a[j]
+			j--
+		}
+		a[j+1] = key
+	}
+}
+
 // Barrier adds a barrier instruction (no-op marker for transpilation).
 func (b *Builder) Barrier(qubits ...int) *Builder {
 	if b.err != nil {

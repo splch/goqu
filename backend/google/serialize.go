@@ -20,6 +20,9 @@ func serializeCircuit(c *ir.Circuit) (*cirqProgram, error) {
 	// Convert all operations to native ops (PhasedXZ, CZ, measure).
 	var nativeOps []nativeOp
 	for _, op := range ops {
+		if op.ControlFlow != nil {
+			return nil, fmt.Errorf("google: control flow operations not supported")
+		}
 		native, err := convertOp(op)
 		if err != nil {
 			return nil, err
