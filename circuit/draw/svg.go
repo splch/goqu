@@ -104,6 +104,22 @@ func FprintSVG(w io.Writer, c *ir.Circuit, opts ...SVGOption) error {
 
 	// Draw gates.
 	for _, p := range placements {
+		// Control flow: draw a dashed rectangle spanning all qubits.
+		if p.op.ControlFlow != nil {
+			label := controlFlowLabel(p.op.ControlFlow)
+			cx := labelWidth + (float64(p.col)+0.5)*sty.ColWidth
+			y0 := wireY(0, sty) - sty.GateHeight/2
+			y1 := wireY(nq-1, sty) + sty.GateHeight/2
+			hw := sty.GateHeight * 1.2
+			fmt.Fprintf(&sb, `<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" rx="4" fill="none" stroke="%s" stroke-width="1.5" stroke-dasharray="4,3"/>`,
+				cx-hw/2, y0, hw, y1-y0, sty.WireColor)
+			sb.WriteString("\n")
+			fmt.Fprintf(&sb, `<text x="%.1f" y="%.1f" fill="%s" text-anchor="middle" dominant-baseline="middle" font-size="%.0f">%s</text>`,
+				cx, (y0+y1)/2, sty.TextColor, sty.FontSize*0.8, label)
+			sb.WriteString("\n")
+			continue
+		}
+
 		labels := gateLabels(p.op, asciiCfg)
 		qubits := p.op.Qubits
 

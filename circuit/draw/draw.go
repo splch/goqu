@@ -74,6 +74,23 @@ func Fprint(w io.Writer, c *ir.Circuit, opts ...Option) error {
 	}
 
 	for _, p := range placements {
+		// Control flow ops span all qubits with a label.
+		if p.op.ControlFlow != nil {
+			label := controlFlowLabel(p.op.ControlFlow)
+			if len(label) > cfg.maxLabelWidth {
+				label = label[:cfg.maxLabelWidth-1] + "…"
+			}
+			for q := range nq {
+				if q == 0 {
+					grid[q][p.col] = label
+				} else {
+					grid[q][p.col] = "║"
+				}
+				multiQubit[q][p.col] = true
+			}
+			continue
+		}
+
 		labels := gateLabels(p.op, cfg)
 		// Prepend condition indicator for conditioned ops.
 		if p.op.Condition != nil {
@@ -217,6 +234,24 @@ func assignColumns(ops []ir.Operation, nq int) ([]placement, int) {
 	numCols := 0
 
 	for _, op := range ops {
+		// Control flow ops span all qubits.
+		if op.ControlFlow != nil {
+			col := 0
+			for q := range nq {
+				if nextFree[q] > col {
+					col = nextFree[q]
+				}
+			}
+			placements = append(placements, placement{op: op, col: col})
+			for q := range nq {
+				nextFree[q] = col + 1
+			}
+			if col+1 > numCols {
+				numCols = col + 1
+			}
+			continue
+		}
+
 		qubits := op.Qubits
 		if len(qubits) == 0 {
 			continue
@@ -417,4 +452,25 @@ func padRight(s string, width int) string {
 		return s
 	}
 	return s + strings.Repeat(" ", width-len(s))
+}
+
+// controlFlowLabel returns a short label for a control flow operation.
+func controlFlowLabel(cf *ir.ControlFlow) string {
+	switch cf.Type {
+	case ir.ControlFlowWhile:
+		return fmt.Sprintf("WHILE c%d=%d", cf.Condition.Clbit, cf.Condition.Value)
+	case ir.ControlFlowFor:
+		if cf.ForRange != nil {
+			return fmt.Sprintf("FOR [%d:%d)", cf.ForRange.Start, cf.ForRange.End)
+		}
+		return "FOR"
+	case ir.ControlFlowIfElse:
+		return fmt.Sprintf("IF c%d=%d", cf.Condition.Clbit, cf.Condition.Value)
+	case ir.ControlFlowSwitch:
+		if cf.SwitchArg != nil && len(cf.SwitchArg.Clbits) > 0 {
+			return fmt.Sprintf("SWITCH c%d", cf.SwitchArg.Clbits[0])
+		}
+		return "SWITCH"
+	}
+	return "CF"
 }

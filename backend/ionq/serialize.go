@@ -32,6 +32,9 @@ func marshalCircuit(c *ir.Circuit) (*ionqInput, error) {
 
 	var gates []ionqGate
 	for _, op := range c.Ops() {
+		if op.ControlFlow != nil {
+			return nil, fmt.Errorf("ionq: control flow operations not supported")
+		}
 		if op.Gate == nil {
 			continue // skip measurements
 		}

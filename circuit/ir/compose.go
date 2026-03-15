@@ -67,26 +67,7 @@ func Tensor(c1, c2 *Circuit) *Circuit {
 	copy(result, ops1)
 
 	for _, op := range ops2 {
-		shifted := Operation{Gate: op.Gate}
-		if len(op.Qubits) > 0 {
-			shifted.Qubits = make([]int, len(op.Qubits))
-			for j, q := range op.Qubits {
-				shifted.Qubits[j] = q + qShift
-			}
-		}
-		if len(op.Clbits) > 0 {
-			shifted.Clbits = make([]int, len(op.Clbits))
-			for j, c := range op.Clbits {
-				shifted.Clbits[j] = c + cShift
-			}
-		}
-		if op.Condition != nil {
-			shifted.Condition = &Condition{
-				Clbit: op.Condition.Clbit + cShift,
-				Value: op.Condition.Value,
-			}
-		}
-		result = append(result, shifted)
+		result = append(result, shiftOp(op, qShift, cShift))
 	}
 
 	name := c1.Name() + "⊗" + c2.Name()
@@ -94,12 +75,16 @@ func Tensor(c1, c2 *Circuit) *Circuit {
 }
 
 // Inverse reverses operation order and adjoints each gate.
-// Measurements, resets, and barriers are dropped (irreversible / non-unitary).
+// Measurements, resets, barriers, and control flow ops are dropped (irreversible / non-unitary).
 func Inverse(c *Circuit) *Circuit {
 	ops := c.Ops()
 	var result []Operation
 	for i := len(ops) - 1; i >= 0; i-- {
 		op := ops[i]
+		// Drop control flow operations.
+		if op.ControlFlow != nil {
+			continue
+		}
 		// Drop measurements (nil gate with clbits).
 		if op.Gate == nil {
 			continue
@@ -154,6 +139,44 @@ func remapSlice(indices []int, mapping map[int]int) ([]int, error) {
 
 // remapOp returns a copy of op with qubit/clbit indices remapped.
 func remapOp(op Operation, qubitMap, clbitMap map[int]int) (Operation, error) {
+	// Control flow operations: recurse into bodies.
+	if op.ControlFlow != nil {
+		cf := *op.ControlFlow
+		cf.Bodies = make([][]Operation, len(op.ControlFlow.Bodies))
+		for i, body := range op.ControlFlow.Bodies {
+			remapped := make([]Operation, len(body))
+			for j, bop := range body {
+				r, err := remapOp(bop, qubitMap, clbitMap)
+				if err != nil {
+					return Operation{}, err
+				}
+				remapped[j] = r
+			}
+			cf.Bodies[i] = remapped
+		}
+		// Remap condition clbit.
+		if cf.Type == ControlFlowWhile || cf.Type == ControlFlowIfElse {
+			if clbitMap != nil {
+				target, ok := clbitMap[cf.Condition.Clbit]
+				if !ok {
+					return Operation{}, fmt.Errorf("control flow condition clbit %d has no mapping", cf.Condition.Clbit)
+				}
+				cf.Condition.Clbit = target
+			}
+		}
+		// Remap switch clbits.
+		if cf.SwitchArg != nil {
+			sa := *cf.SwitchArg
+			remapped, err := remapSlice(sa.Clbits, clbitMap)
+			if err != nil {
+				return Operation{}, fmt.Errorf("switch clbit remap: %w", err)
+			}
+			sa.Clbits = remapped
+			cf.SwitchArg = &sa
+		}
+		return Operation{ControlFlow: &cf}, nil
+	}
+
 	qubits, err := remapSlice(op.Qubits, qubitMap)
 	if err != nil {
 		return Operation{}, fmt.Errorf("qubit remap: %w", err)
@@ -183,4 +206,53 @@ func remapOp(op Operation, qubitMap, clbitMap map[int]int) (Operation, error) {
 		}
 	}
 	return result, nil
+}
+
+// shiftOp returns a copy of op with all qubit/clbit indices shifted by the given offsets.
+// Used by Tensor to place operations on disjoint index spaces.
+func shiftOp(op Operation, qShift, cShift int) Operation {
+	if op.ControlFlow != nil {
+		cf := *op.ControlFlow
+		cf.Bodies = make([][]Operation, len(op.ControlFlow.Bodies))
+		for i, body := range op.ControlFlow.Bodies {
+			shifted := make([]Operation, len(body))
+			for j, bop := range body {
+				shifted[j] = shiftOp(bop, qShift, cShift)
+			}
+			cf.Bodies[i] = shifted
+		}
+		if cf.Type == ControlFlowWhile || cf.Type == ControlFlowIfElse {
+			cf.Condition.Clbit += cShift
+		}
+		if cf.SwitchArg != nil {
+			sa := *cf.SwitchArg
+			sa.Clbits = make([]int, len(cf.SwitchArg.Clbits))
+			for i, c := range cf.SwitchArg.Clbits {
+				sa.Clbits[i] = c + cShift
+			}
+			cf.SwitchArg = &sa
+		}
+		return Operation{ControlFlow: &cf}
+	}
+
+	shifted := Operation{Gate: op.Gate}
+	if len(op.Qubits) > 0 {
+		shifted.Qubits = make([]int, len(op.Qubits))
+		for j, q := range op.Qubits {
+			shifted.Qubits[j] = q + qShift
+		}
+	}
+	if len(op.Clbits) > 0 {
+		shifted.Clbits = make([]int, len(op.Clbits))
+		for j, c := range op.Clbits {
+			shifted.Clbits[j] = c + cShift
+		}
+	}
+	if op.Condition != nil {
+		shifted.Condition = &Condition{
+			Clbit: op.Condition.Clbit + cShift,
+			Value: op.Condition.Value,
+		}
+	}
+	return shifted
 }

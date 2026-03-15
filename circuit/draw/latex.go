@@ -105,6 +105,28 @@ func latexGateCommands(p placement) map[int]string {
 	cmds := make(map[int]string)
 	qubits := op.Qubits
 
+	// Control flow: spanning gate box.
+	if op.ControlFlow != nil {
+		label := controlFlowLabel(op.ControlFlow)
+		// Use a spanning \gate[N]{label} on qubit 0.
+		nq := 1
+		for _, body := range op.ControlFlow.Bodies {
+			ir.WalkOps(body, func(o ir.Operation) {
+				for _, q := range o.Qubits {
+					if q+1 > nq {
+						nq = q + 1
+					}
+				}
+			})
+		}
+		if nq > 1 {
+			cmds[0] = fmt.Sprintf(`\gate[%d]{%s}`, nq, label)
+		} else {
+			cmds[0] = fmt.Sprintf(`\gate{%s}`, label)
+		}
+		return cmds
+	}
+
 	if len(qubits) == 0 {
 		return cmds
 	}

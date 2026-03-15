@@ -68,6 +68,9 @@ const (
 	ELSE
 	FOR
 	WHILE
+	SWITCH
+	CASE
+	DEFAULT
 	IN
 	RETURN
 	DEF
@@ -110,7 +113,7 @@ var tokenNames = map[Type]string{
 	OPENQASM: "OPENQASM", INCLUDE: "include", GATE: "gate",
 	QUBIT: "qubit", BIT: "bit", QREG: "qreg", CREG: "creg",
 	MEASURE: "measure", RESET: "reset", BARRIER: "barrier", DELAY: "delay",
-	IF: "if", ELSE: "else", FOR: "for", WHILE: "while",
+	IF: "if", ELSE: "else", FOR: "for", WHILE: "while", SWITCH: "switch", CASE: "case", DEFAULT: "default",
 	IN: "in", RETURN: "return", DEF: "def",
 	CONST: "const", INPUT: "input", OUTPUT: "output",
 	CTRL: "ctrl", NEGCTRL: "negctrl", INV: "inv", POW: "pow",
@@ -153,6 +156,9 @@ var Keywords = map[string]Type{
 	"else":     ELSE,
 	"for":      FOR,
 	"while":    WHILE,
+	"switch":   SWITCH,
+	"case":     CASE,
+	"default":  DEFAULT,
 	"in":       IN,
 	"return":   RETURN,
 	"def":      DEF,

@@ -58,10 +58,11 @@ func (c *Circuit) Metadata() map[string]string {
 
 // Operation is a single step in a circuit.
 type Operation struct {
-	Gate      gate.Gate
-	Qubits    []int      // qubit indices
-	Clbits    []int      // classical bit indices (for measurement)
-	Condition *Condition // optional classical conditioning
+	Gate        gate.Gate
+	Qubits      []int        // qubit indices
+	Clbits      []int        // classical bit indices (for measurement)
+	Condition   *Condition   // optional classical conditioning
+	ControlFlow *ControlFlow // structured control flow (while/for/switch/if-else)
 }
 
 // Condition represents classical control flow (single-bit equality).
@@ -71,10 +72,63 @@ type Condition struct {
 	Register string // QASM register name (for emitter round-trip only)
 }
 
+// ControlFlowType identifies the kind of structured control flow.
+type ControlFlowType int
+
+const (
+	ControlFlowWhile ControlFlowType = iota + 1
+	ControlFlowFor
+	ControlFlowSwitch
+	ControlFlowIfElse
+)
+
+// ControlFlow represents a structured classical control flow operation.
+// When present on an Operation, Gate must be nil.
+type ControlFlow struct {
+	Type      ControlFlowType
+	Condition Condition     // condition for While and IfElse
+	Bodies    [][]Operation // While[0]=body, IfElse[0]=if/[1]=else, Switch[i]=case_i
+	ForRange  *ForRange     // iteration range for For loops
+	SwitchArg *SwitchArg    // classical bits for Switch
+}
+
+// ForRange specifies a classical for-loop iteration range [Start, End) with Step.
+type ForRange struct {
+	Start int
+	End   int // exclusive
+	Step  int
+}
+
+// SwitchArg identifies the classical value being switched on.
+type SwitchArg struct {
+	Clbits   []int  // classical bits comprising the switch value
+	Cases    []int  // integer value for each case body (parallel to Bodies)
+	Register string // QASM register name (for round-trip only)
+}
+
+// MaxControlFlowIterations caps while-loop iterations to prevent infinite loops.
+const MaxControlFlowIterations = 1000
+
 // Stats returns circuit statistics.
 func (c *Circuit) Stats() Stats {
-	s := Stats{GateCount: len(c.ops)}
-	for _, op := range c.ops {
+	s := Stats{}
+	countOps(c.ops, &s)
+	s.Depth = c.depth()
+	s.Dynamic = c.IsDynamic()
+	return s
+}
+
+// countOps accumulates statistics from a flat operation slice, recursing into control flow bodies.
+func countOps(ops []Operation, s *Stats) {
+	s.GateCount += len(ops)
+	for _, op := range ops {
+		if op.ControlFlow != nil {
+			s.ControlFlowOps++
+			for _, body := range op.ControlFlow.Bodies {
+				countOps(body, s)
+			}
+			continue
+		}
 		if op.Gate == nil && len(op.Clbits) > 0 {
 			s.Measurements++
 		}
@@ -96,9 +150,6 @@ func (c *Circuit) Stats() Stats {
 			s.ConditionalGates++
 		}
 	}
-	s.Depth = c.depth()
-	s.Dynamic = c.IsDynamic()
-	return s
 }
 
 // depth computes circuit depth by tracking the latest time step per qubit.
@@ -134,9 +185,29 @@ func (c *Circuit) depth() int {
 // Gates implementing gate.Bindable are bound; all others are copied as-is.
 // Returns an error if any symbolic gate has unbound parameters.
 func Bind(c *Circuit, bindings map[string]float64) (*Circuit, error) {
-	ops := c.Ops()
+	result, err := bindOps(c.Ops(), bindings)
+	if err != nil {
+		return nil, err
+	}
+	return New(c.Name(), c.NumQubits(), c.NumClbits(), result, c.Metadata()), nil
+}
+
+func bindOps(ops []Operation, bindings map[string]float64) ([]Operation, error) {
 	result := make([]Operation, len(ops))
 	for i, op := range ops {
+		if op.ControlFlow != nil {
+			cf := *op.ControlFlow
+			cf.Bodies = make([][]Operation, len(op.ControlFlow.Bodies))
+			for j, body := range op.ControlFlow.Bodies {
+				bound, err := bindOps(body, bindings)
+				if err != nil {
+					return nil, err
+				}
+				cf.Bodies[j] = bound
+			}
+			result[i] = Operation{ControlFlow: &cf}
+			continue
+		}
 		if op.Gate == nil {
 			result[i] = op
 			continue
@@ -156,14 +227,25 @@ func Bind(c *Circuit, bindings map[string]float64) (*Circuit, error) {
 			result[i] = op
 		}
 	}
-	return New(c.Name(), c.NumQubits(), c.NumClbits(), result, c.Metadata()), nil
+	return result, nil
 }
 
 // FreeParameters returns the names of all unbound symbolic parameters in the circuit.
 func FreeParameters(c *Circuit) []string {
 	seen := make(map[string]bool)
 	var names []string
-	for _, op := range c.Ops() {
+	collectFreeParams(c.Ops(), seen, &names)
+	return names
+}
+
+func collectFreeParams(ops []Operation, seen map[string]bool, names *[]string) {
+	for _, op := range ops {
+		if op.ControlFlow != nil {
+			for _, body := range op.ControlFlow.Bodies {
+				collectFreeParams(body, seen, names)
+			}
+			continue
+		}
 		if op.Gate == nil {
 			continue
 		}
@@ -171,12 +253,11 @@ func FreeParameters(c *Circuit) []string {
 			for _, name := range b.FreeParameters() {
 				if !seen[name] {
 					seen[name] = true
-					names = append(names, name)
+					*names = append(*names, name)
 				}
 			}
 		}
 	}
-	return names
 }
 
 // Stats holds circuit statistics.
@@ -189,11 +270,12 @@ type Stats struct {
 	Resets           int
 	Delays           int
 	ConditionalGates int
+	ControlFlowOps   int
 	Dynamic          bool
 }
 
 // IsDynamic returns true if the circuit contains mid-circuit measurements,
-// conditioned gates, or reset operations.
+// conditioned gates, reset operations, or control flow.
 func (c *Circuit) IsDynamic() bool {
 	lastGateIdx := -1
 	for i := len(c.ops) - 1; i >= 0; i-- {
@@ -203,6 +285,9 @@ func (c *Circuit) IsDynamic() bool {
 		}
 	}
 	for i, op := range c.ops {
+		if op.ControlFlow != nil {
+			return true
+		}
 		if op.Condition != nil {
 			return true
 		}
@@ -215,4 +300,36 @@ func (c *Circuit) IsDynamic() bool {
 		}
 	}
 	return false
+}
+
+// WalkOps calls fn for every leaf operation (gate/measurement) in the slice,
+// recursing into control flow bodies. Control flow ops themselves are not visited.
+func WalkOps(ops []Operation, fn func(Operation)) {
+	for _, op := range ops {
+		if op.ControlFlow != nil {
+			for _, body := range op.ControlFlow.Bodies {
+				WalkOps(body, fn)
+			}
+			continue
+		}
+		fn(op)
+	}
+}
+
+// MapOps transforms every leaf operation, recursing into control flow bodies.
+func MapOps(ops []Operation, fn func(Operation) Operation) []Operation {
+	result := make([]Operation, len(ops))
+	for i, op := range ops {
+		if op.ControlFlow != nil {
+			cf := *op.ControlFlow
+			cf.Bodies = make([][]Operation, len(op.ControlFlow.Bodies))
+			for j, body := range op.ControlFlow.Bodies {
+				cf.Bodies[j] = MapOps(body, fn)
+			}
+			result[i] = Operation{ControlFlow: &cf}
+			continue
+		}
+		result[i] = fn(op)
+	}
+	return result
 }

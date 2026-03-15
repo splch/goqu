@@ -27,6 +27,9 @@ func serializeCircuit(c *ir.Circuit) (string, error) {
 	sb.WriteString("\n")
 
 	for _, op := range c.Ops() {
+		if op.ControlFlow != nil {
+			return "", fmt.Errorf("quantinuum: control flow operations not supported")
+		}
 		if err := emitOp(&sb, op); err != nil {
 			return "", err
 		}

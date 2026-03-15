@@ -76,6 +76,11 @@ func (e *emitter) emit() error {
 }
 
 func (e *emitter) emitOp(op ir.Operation) error {
+	// Control flow operations.
+	if op.ControlFlow != nil {
+		return e.emitControlFlow(op.ControlFlow)
+	}
+
 	// Measurement: no gate, has clbits.
 	if op.Gate == nil {
 		if len(op.Clbits) > 0 {
@@ -187,6 +192,87 @@ func (e *emitter) emitControlledOp(cg gate.ControlledGate, op ir.Operation) erro
 
 	e.writef("%s @ %s %s;\n", ctrl, gateCall, strings.Join(qargs, ", "))
 	return nil
+}
+
+// emitControlFlow emits structured control flow as OpenQASM 3.0.
+func (e *emitter) emitControlFlow(cf *ir.ControlFlow) error {
+	switch cf.Type {
+	case ir.ControlFlowWhile:
+		e.emitConditionPrefix("while", cf.Condition)
+		e.writef(" {\n")
+		e.emitOps(cf.Bodies[0])
+		e.writef("}\n")
+
+	case ir.ControlFlowFor:
+		r := cf.ForRange
+		e.writef("for int i in [%d:%d", r.Start, r.End)
+		if r.Step != 1 {
+			e.writef(":%d", r.Step)
+		}
+		e.writef("] {\n")
+		e.emitOps(cf.Bodies[0])
+		e.writef("}\n")
+
+	case ir.ControlFlowIfElse:
+		e.emitConditionPrefix("if", cf.Condition)
+		e.writef(" {\n")
+		e.emitOps(cf.Bodies[0])
+		e.writef("}")
+		if len(cf.Bodies) > 1 && len(cf.Bodies[1]) > 0 {
+			e.writef(" else {\n")
+			e.emitOps(cf.Bodies[1])
+			e.writef("}")
+		}
+		e.writef("\n")
+
+	case ir.ControlFlowSwitch:
+		sa := cf.SwitchArg
+		switch {
+		case sa.Register != "":
+			e.writef("switch (%s) {\n", sa.Register)
+		case len(sa.Clbits) == 1:
+			e.writef("switch (c[%d]) {\n", sa.Clbits[0])
+		default:
+			e.writef("switch (c) {\n")
+		}
+		for i, caseVal := range sa.Cases {
+			if i < len(cf.Bodies) {
+				e.writef("case %d: {\n", caseVal)
+				e.emitOps(cf.Bodies[i])
+				e.writef("}\n")
+			}
+		}
+		// Default case.
+		if len(cf.Bodies) > len(sa.Cases) {
+			e.writef("default: {\n")
+			e.emitOps(cf.Bodies[len(cf.Bodies)-1])
+			e.writef("}\n")
+		}
+		e.writef("}\n")
+	}
+	return nil
+}
+
+// emitConditionPrefix emits "keyword (c[i] == val)" or "keyword (reg == val)".
+func (e *emitter) emitConditionPrefix(keyword string, cond ir.Condition) {
+	if cond.Register != "" {
+		e.writef("%s (%s == %d)", keyword, cond.Register, cond.Value)
+	} else {
+		e.writef("%s (c[%d] == %d)", keyword, cond.Clbit, cond.Value)
+	}
+}
+
+// emitOps emits a slice of operations (used for control flow bodies).
+func (e *emitter) emitOps(ops []ir.Operation) {
+	for _, op := range ops {
+		if e.err != nil {
+			return
+		}
+		if err := e.emitOp(op); err != nil {
+			e.err = err
+			return
+		}
+	}
 }
 
 func (e *emitter) writef(format string, args ...any) {

@@ -63,6 +63,9 @@ func (e *emitter) emit() error {
 
 	// Emit operations.
 	for _, op := range e.c.Ops() {
+		if op.ControlFlow != nil {
+			return fmt.Errorf("quil: control flow operations not supported")
+		}
 		if err := e.emitOp(op); err != nil {
 			return err
 		}
