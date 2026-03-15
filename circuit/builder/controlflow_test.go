@@ -187,7 +187,7 @@ func TestNestedControlFlow(t *testing.T) {
 func TestWhileSimulation(t *testing.T) {
 	c, err := New("while-sim", 1).
 		WithClbits(1).
-		X(0). // set qubit to |1>
+		X(0).          // set qubit to |1>
 		Measure(0, 0). // c0 = 1
 		While(0, 1, func(b *Builder) {
 			b.X(0).Measure(0, 0) // X flips to |0>, measure gives 0

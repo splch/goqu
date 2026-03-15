@@ -830,7 +830,8 @@ func (p *parser) parseSwitch() error {
 	var bodies [][]ir.Operation
 
 	for p.peek() != token.RBRACE && p.peek() != token.EOF {
-		if p.peek() == token.CASE {
+		switch p.peek() {
+		case token.CASE:
 			p.advance() // consume 'case'
 			val, err := p.parseExpr()
 			if err != nil {
@@ -846,7 +847,7 @@ func (p *parser) parseSwitch() error {
 			}
 			cases = append(cases, int(val))
 			bodies = append(bodies, body)
-		} else if p.peek() == token.DEFAULT {
+		case token.DEFAULT:
 			p.advance() // consume 'default'
 			if p.peek() == token.COLON {
 				p.advance()
@@ -857,7 +858,7 @@ func (p *parser) parseSwitch() error {
 			}
 			// Default body goes last with no corresponding case value.
 			bodies = append(bodies, body)
-		} else {
+		default:
 			return fmt.Errorf("line %d: expected 'case' or 'default' in switch", p.tokens[p.pos].Line)
 		}
 	}

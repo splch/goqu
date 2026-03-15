@@ -76,10 +76,10 @@ type Condition struct {
 type ControlFlowType int
 
 const (
-	ControlFlowWhile  ControlFlowType = iota + 1 // while (clbit == value) { body }
-	ControlFlowFor                                // for i in [start:end:step] { body }
-	ControlFlowSwitch                             // switch (clbits) { case val: body ... }
-	ControlFlowIfElse                             // if (clbit == value) { body } else { body }
+	ControlFlowWhile ControlFlowType = iota + 1
+	ControlFlowFor
+	ControlFlowSwitch
+	ControlFlowIfElse
 )
 
 // ControlFlow represents a structured classical control flow operation.

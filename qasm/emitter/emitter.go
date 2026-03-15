@@ -227,11 +227,12 @@ func (e *emitter) emitControlFlow(cf *ir.ControlFlow) error {
 
 	case ir.ControlFlowSwitch:
 		sa := cf.SwitchArg
-		if sa.Register != "" {
+		switch {
+		case sa.Register != "":
 			e.writef("switch (%s) {\n", sa.Register)
-		} else if len(sa.Clbits) == 1 {
+		case len(sa.Clbits) == 1:
 			e.writef("switch (c[%d]) {\n", sa.Clbits[0])
-		} else {
+		default:
 			e.writef("switch (c) {\n")
 		}
 		for i, caseVal := range sa.Cases {
@@ -267,7 +268,10 @@ func (e *emitter) emitOps(ops []ir.Operation) {
 		if e.err != nil {
 			return
 		}
-		e.emitOp(op)
+		if err := e.emitOp(op); err != nil {
+			e.err = err
+			return
+		}
 	}
 }
 
