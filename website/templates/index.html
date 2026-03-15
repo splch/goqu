@@ -1,0 +1,21 @@
+{{template "layout" .}}
+{{define "content"}}
+<div class="hero">
+    <h1>Learn Quantum Computing with Goqu</h1>
+    <p>A hands-on journey from classical bits to quantum circuits, powered by real quantum simulations. Every demo runs live using the Goqu quantum computing library.</p>
+</div>
+
+<div class="lesson-grid">
+    {{range $i, $l := .Lessons}}
+    <a href="/lesson/{{$l.ID}}" class="lesson-card">
+        <span class="num">{{add $i 1}}</span>
+        <h3>{{$l.Title}}</h3>
+        <p>{{$l.Desc}}</p>
+    </a>
+    {{end}}
+</div>
+
+<div style="margin-top: 2rem; text-align: center;">
+    <a href="/sandbox" class="sandbox-link" style="display: inline-block;">Open Circuit Sandbox</a>
+</div>
+{{end}}

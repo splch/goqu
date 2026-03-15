@@ -1,0 +1,106 @@
+{{template "layout" .}}
+{{define "content"}}
+<h1>3. Quantum Gates</h1>
+<p class="subtitle">{{.Lesson.Desc}}</p>
+
+<div class="objectives">
+    <h3>Learning Objectives</h3>
+    <ul>
+        <li>Learn the most common single-qubit gates and their matrix representations</li>
+        <li>Understand the Bloch sphere as a visualization of qubit states</li>
+        <li>Explore rotation gates (RX, RY, RZ) with parameters</li>
+        <li>See how gates transform quantum states</li>
+    </ul>
+</div>
+
+<h2>Quantum Gates as Matrices</h2>
+<p>Quantum gates are <strong>unitary matrices</strong> that transform qubit states. Being unitary means they preserve probability: if |α|² + |β|² = 1 before the gate, it remains 1 after.</p>
+
+<h3>Pauli Gates</h3>
+<p>The three Pauli gates are fundamental single-qubit operations:</p>
+<div class="code-example"><pre>X = [0 1]    Y = [0 -i]    Z = [1  0]
+    [1 0]        [i  0]        [0 -1]
+
+X|0⟩ = |1⟩  (bit flip)
+Y|0⟩ = i|1⟩ (bit + phase flip)
+Z|0⟩ = |0⟩  (phase flip — no effect on |0⟩)</pre></div>
+
+<h3>Hadamard Gate</h3>
+<div class="code-example"><pre>H = 1/√2 [1  1]
+          [1 -1]
+
+H|0⟩ = |+⟩ = (|0⟩ + |1⟩)/√2
+H|1⟩ = |−⟩ = (|0⟩ − |1⟩)/√2</pre></div>
+
+<h3>Phase Gates</h3>
+<div class="code-example"><pre>S = [1 0]    T = [1    0  ]
+    [0 i]        [0 e^iπ/4]
+
+S is a quarter-turn, T is an eighth-turn around the Z axis.</pre></div>
+
+<h2>The Bloch Sphere</h2>
+<p>Any single-qubit state can be visualized as a point on the <strong>Bloch sphere</strong>. The north pole is |0⟩, south pole is |1⟩, and the equator contains superposition states like |+⟩ and |−⟩.</p>
+<ul>
+    <li><strong>X gate</strong>: 180° rotation around the X axis (flips |0⟩ ↔ |1⟩)</li>
+    <li><strong>Z gate</strong>: 180° rotation around the Z axis (phase flip)</li>
+    <li><strong>H gate</strong>: 180° rotation around the X+Z axis</li>
+    <li><strong>RX(θ), RY(θ), RZ(θ)</strong>: Rotation by angle θ around the corresponding axis</li>
+</ul>
+
+<h2>Interactive Demo: Explore Gates</h2>
+<div class="demo-section">
+    <h3>Apply a gate to |0⟩</h3>
+    <form class="demo-controls">
+        <input type="hidden" name="demo" value="gate">
+        <label>Gate:
+            <select name="gate" hx-post="/api/simulate" hx-target="#gate-demo" hx-include="closest form">
+                <option value="H">Hadamard (H)</option>
+                <option value="X">Pauli-X</option>
+                <option value="Y">Pauli-Y</option>
+                <option value="Z">Pauli-Z</option>
+                <option value="S">S (√Z)</option>
+                <option value="T">T (⁴√Z)</option>
+                <option value="RX">RX(π/4)</option>
+                <option value="RY">RY(π/4)</option>
+                <option value="RZ">RZ(π/4)</option>
+            </select>
+        </label>
+        <label>Shots:
+            <input type="number" name="shots" value="1024" min="100" max="4096" step="100">
+        </label>
+        <button type="button" hx-post="/api/simulate" hx-target="#gate-demo" hx-include="closest form">Run</button>
+    </form>
+    <div id="gate-demo">
+        <div class="demo-result">
+            <div class="circuit-svg">{{.DemoSVG | safeHTML}}</div>
+            {{.DemoHist | safeHTML}}
+        </div>
+    </div>
+</div>
+
+<h2>Goqu Code</h2>
+<div class="code-example"><pre><span class="comment">// Apply various gates</span>
+c, _ := builder.New(<span class="string">"gates"</span>, 1).
+    H(0).           <span class="comment">// Hadamard</span>
+    RZ(math.Pi/4, 0). <span class="comment">// Z-rotation by π/4</span>
+    H(0).           <span class="comment">// Back through Hadamard</span>
+    MeasureAll().
+    Build()
+
+fmt.Println(draw.String(c))
+<span class="comment">// q0: -H---RZ(pi/4)---H---M--</span></pre></div>
+
+<div class="exercises">
+    <h3>Exercises</h3>
+    <ol>
+        <li>Try applying the S and T gates. What happens to the measurement probabilities? Why?</li>
+        <li>The S gate satisfies S² = Z. Verify this by thinking about the matrices.</li>
+        <li>What gate sequence would create the state (|0⟩ + i|1⟩)/√2?</li>
+    </ol>
+</div>
+
+<div class="lesson-nav">
+    {{if .PrevLesson}}<a href="/lesson/{{.PrevLesson.ID}}">← {{.PrevLesson.Title}}</a>{{end}}
+    {{if .NextLesson}}<a href="/lesson/{{.NextLesson.ID}}">Next: {{.NextLesson.Title}} →</a>{{end}}
+</div>
+{{end}}

@@ -1,0 +1,93 @@
+{{template "layout" .}}
+{{define "content"}}
+<h1>2. Qubits & Quantum States</h1>
+<p class="subtitle">{{.Lesson.Desc}}</p>
+
+<div class="objectives">
+    <h3>Learning Objectives</h3>
+    <ul>
+        <li>Understand what a qubit is and how it differs from a classical bit</li>
+        <li>Learn about superposition and probability amplitudes</li>
+        <li>Master Dirac (bra-ket) notation</li>
+        <li>See superposition in action with a live simulation</li>
+    </ul>
+</div>
+
+<h2>What is a Qubit?</h2>
+<p>A <strong>qubit</strong> (quantum bit) is the quantum analogue of a classical bit. Like a classical bit, it has two basis states: |0⟩ and |1⟩. But unlike a classical bit, a qubit can exist in a <strong>superposition</strong> of both states simultaneously.</p>
+
+<p>The general state of a qubit is:</p>
+<div class="code-example"><pre>|ψ⟩ = α|0⟩ + β|1⟩</pre></div>
+
+<p>where α and β are <strong>complex numbers</strong> called probability amplitudes, satisfying |α|² + |β|² = 1.</p>
+
+<h2>Measurement</h2>
+<p>When we <strong>measure</strong> a qubit, the superposition collapses:</p>
+<ul>
+    <li>We get outcome <strong>0</strong> with probability |α|²</li>
+    <li>We get outcome <strong>1</strong> with probability |β|²</li>
+</ul>
+<p>After measurement, the qubit is in the measured state — the superposition is destroyed. This is irreversible.</p>
+
+<h2>Dirac Notation</h2>
+<p>We use <strong>Dirac notation</strong> to describe quantum states:</p>
+<ul>
+    <li><strong>|0⟩</strong> = the "zero" state (column vector [1, 0]ᵀ)</li>
+    <li><strong>|1⟩</strong> = the "one" state (column vector [0, 1]ᵀ)</li>
+    <li><strong>|+⟩</strong> = (|0⟩ + |1⟩) / √2 — equal superposition</li>
+    <li><strong>|−⟩</strong> = (|0⟩ − |1⟩) / √2 — equal superposition with relative phase</li>
+</ul>
+
+<h2>Interactive Demo: Creating Superposition</h2>
+<div class="demo-section">
+    <h3>Apply a gate to |0⟩ and measure</h3>
+    <form class="demo-controls">
+        <input type="hidden" name="demo" value="superposition">
+        <label>Gate:
+            <select name="gate" hx-post="/api/simulate" hx-target="#qubit-demo" hx-include="closest form">
+                <option value="H">Hadamard (H)</option>
+                <option value="X">Pauli-X (NOT)</option>
+                <option value="Y">Pauli-Y</option>
+                <option value="Z">Pauli-Z</option>
+            </select>
+        </label>
+        <label>Shots:
+            <input type="number" name="shots" value="1024" min="100" max="4096" step="100">
+        </label>
+        <button type="button" hx-post="/api/simulate" hx-target="#qubit-demo" hx-include="closest form">Run</button>
+    </form>
+    <div id="qubit-demo">
+        <div class="demo-result">
+            <div class="circuit-svg">{{.DemoSVG | safeHTML}}</div>
+            {{.DemoHist | safeHTML}}
+        </div>
+    </div>
+</div>
+
+<p>The <strong>Hadamard gate</strong> (H) creates an equal superposition: H|0⟩ = |+⟩ = (|0⟩ + |1⟩)/√2. When you measure, you get |0⟩ or |1⟩ with roughly equal probability.</p>
+
+<h2>Goqu Code</h2>
+<div class="code-example"><pre><span class="comment">// Create a qubit in superposition and measure it</span>
+c, _ := builder.New(<span class="string">"superposition"</span>, 1).
+    H(0).          <span class="comment">// Apply Hadamard to qubit 0</span>
+    MeasureAll().
+    Build()
+
+sim := statevector.New(1)
+counts, _ := sim.Run(c, 1024)
+<span class="comment">// counts ≈ {"0": 512, "1": 512}</span></pre></div>
+
+<div class="exercises">
+    <h3>Exercises</h3>
+    <ol>
+        <li>Try the Pauli-X gate. What does it do to |0⟩? Why is it called the "NOT" gate?</li>
+        <li>The Pauli-Z gate: what happens when you measure after applying Z to |0⟩? Can you explain why?</li>
+        <li>If a qubit has state |ψ⟩ = (√3/2)|0⟩ + (1/2)|1⟩, what is the probability of measuring |0⟩? |1⟩?</li>
+    </ol>
+</div>
+
+<div class="lesson-nav">
+    {{if .PrevLesson}}<a href="/lesson/{{.PrevLesson.ID}}">← {{.PrevLesson.Title}}</a>{{end}}
+    {{if .NextLesson}}<a href="/lesson/{{.NextLesson.ID}}">Next: {{.NextLesson.Title}} →</a>{{end}}
+</div>
+{{end}}

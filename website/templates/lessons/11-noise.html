@@ -1,0 +1,104 @@
+{{template "layout" .}}
+{{define "content"}}
+<h1>11. Noise & Error Mitigation</h1>
+<p class="subtitle">{{.Lesson.Desc}}</p>
+
+<div class="objectives">
+    <h3>Learning Objectives</h3>
+    <ul>
+        <li>Understand why real quantum hardware is noisy</li>
+        <li>Learn about common noise channels (depolarizing, dephasing)</li>
+        <li>See how noise affects measurement results</li>
+        <li>Explore error mitigation strategies</li>
+    </ul>
+</div>
+
+<h2>Why Noise Matters</h2>
+<p>Real quantum computers operate in the <strong>NISQ era</strong> (Noisy Intermediate-Scale Quantum). Current qubits are fragile — they interact with their environment, causing <strong>decoherence</strong> that degrades quantum information.</p>
+
+<h2>Types of Noise</h2>
+<ul>
+    <li><strong>Depolarizing noise</strong>: With probability p, a random Pauli error (X, Y, or Z) is applied. This uniformly mixes the state toward the maximally mixed state.</li>
+    <li><strong>Dephasing (phase damping)</strong>: Loss of phase information without energy loss. The off-diagonal elements of the density matrix decay.</li>
+    <li><strong>Amplitude damping</strong>: Energy relaxation — the qubit decays from |1⟩ to |0⟩ over time (T1 decay).</li>
+    <li><strong>Readout errors</strong>: The measurement device misidentifies |0⟩ as |1⟩ or vice versa.</li>
+</ul>
+
+<h2>Density Matrix Simulation</h2>
+<p>Noisy quantum states can't be represented by a single state vector. Instead, we use a <strong>density matrix</strong> ρ that captures both quantum and classical uncertainty. Goqu's density matrix simulator applies noise channels after each gate.</p>
+
+<h2>Interactive Demo: Ideal vs. Noisy</h2>
+<div class="demo-section">
+    <h3>Compare ideal and noisy Bell state preparation</h3>
+    <form class="demo-controls">
+        <input type="hidden" name="demo" value="noise">
+        <label>Noise level (p):
+            <select name="level" hx-post="/api/simulate" hx-target="#noise-demo" hx-include="closest form">
+                <option value="0.01">0.01 (low)</option>
+                <option value="0.05" selected>0.05 (moderate)</option>
+                <option value="0.10">0.10 (high)</option>
+                <option value="0.20">0.20 (very high)</option>
+            </select>
+        </label>
+        <label>Shots:
+            <input type="number" name="shots" value="1024" min="100" max="4096" step="100">
+        </label>
+        <button type="button" hx-post="/api/simulate" hx-target="#noise-demo" hx-include="closest form">Run</button>
+    </form>
+    <div id="noise-demo">
+        <div class="demo-result">
+            <div class="circuit-svg">{{.DemoSVG | safeHTML}}</div>
+            {{if .DemoInfo}}<div class="state-info">{{.DemoInfo}}</div>{{end}}
+            {{.DemoHist | safeHTML}}
+        </div>
+    </div>
+</div>
+
+{{if .ExtraInfo}}
+<div class="demo-section">
+    <h3>{{.ExtraInfo}}</h3>
+    {{.ExtraHist | safeHTML}}
+</div>
+{{end}}
+
+<p>With no noise, a Bell state gives only |00⟩ and |11⟩. As noise increases, |01⟩ and |10⟩ appear — these are errors introduced by decoherence.</p>
+
+<h2>Error Mitigation</h2>
+<p>While full quantum error <em>correction</em> requires many physical qubits per logical qubit, <strong>error mitigation</strong> techniques can improve results on NISQ hardware:</p>
+<ul>
+    <li><strong>Zero-Noise Extrapolation (ZNE)</strong>: Run the circuit at multiple noise levels and extrapolate to zero noise</li>
+    <li><strong>Measurement error mitigation</strong>: Calibrate readout errors and correct the counts</li>
+    <li><strong>Dynamical decoupling</strong>: Insert identity-equivalent gate sequences to refocus errors</li>
+    <li><strong>Probabilistic error cancellation (PEC)</strong>: Decompose noisy operations into ideal operations with quasi-probability sampling</li>
+</ul>
+
+<h2>Goqu Code</h2>
+<div class="code-example"><pre><span class="comment">// Create a noisy simulation</span>
+nm := noise.New()
+nm.AddDefaultError(1, noise.Depolarizing1Q(0.05))
+nm.AddDefaultError(2, noise.Depolarizing2Q(0.05))
+
+sim := densitymatrix.New(2).WithNoise(nm)
+counts, _ := sim.Run(circuit, 1024)
+
+<span class="comment">// Zero-Noise Extrapolation</span>
+res, _ := mitigation.RunZNE(ctx, mitigation.ZNEConfig{
+    Circuit:      circuit,
+    ScaleFactors: []<span class="keyword">float64</span>{1, 3, 5},
+    Extrapolator: mitigation.LinearExtrapolator,
+})</pre></div>
+
+<div class="exercises">
+    <h3>Exercises</h3>
+    <ol>
+        <li>At what noise level does the Bell state become effectively indistinguishable from random? (Hint: all four outcomes equally likely)</li>
+        <li>Why does depolarizing noise drive the state toward the maximally mixed state (ρ = I/2ⁿ)?</li>
+        <li>Current superconducting qubits have gate errors of ~0.1-1%. How many gates can you apply before noise dominates?</li>
+    </ol>
+</div>
+
+<div class="lesson-nav">
+    {{if .PrevLesson}}<a href="/lesson/{{.PrevLesson.ID}}">← {{.PrevLesson.Title}}</a>{{end}}
+    {{if .NextLesson}}<a href="/lesson/{{.NextLesson.ID}}">Next: {{.NextLesson.Title}} →</a>{{end}}
+</div>
+{{end}}

@@ -1,0 +1,61 @@
+{{template "layout" .}}
+{{define "content"}}
+<h1>1. Classical Computing Review</h1>
+<p class="subtitle">{{.Lesson.Desc}}</p>
+
+<div class="objectives">
+    <h3>Learning Objectives</h3>
+    <ul>
+        <li>Understand classical bits and binary representation</li>
+        <li>Review Boolean logic gates (AND, OR, NOT, XOR)</li>
+        <li>See why classical computers have fundamental limitations</li>
+        <li>Motivate the need for quantum computing</li>
+    </ul>
+</div>
+
+<h2>Classical Bits</h2>
+<p>All classical computation is built on <strong>bits</strong> — the smallest unit of information. A bit is always in one of two states: <strong>0</strong> or <strong>1</strong>. Every number, image, and program on your computer is encoded as a sequence of bits.</p>
+
+<p>With <span class="math">n</span> bits, you can represent <span class="math">2<sup>n</sup></span> different values. For example, 8 bits (a byte) can represent 256 values (0 through 255).</p>
+
+<h2>Logic Gates</h2>
+<p>Classical computers process bits using <strong>logic gates</strong> — simple operations that transform input bits into output bits:</p>
+
+<ul>
+    <li><strong>NOT</strong>: Flips a bit. 0 → 1, 1 → 0</li>
+    <li><strong>AND</strong>: Output is 1 only if both inputs are 1</li>
+    <li><strong>OR</strong>: Output is 1 if at least one input is 1</li>
+    <li><strong>XOR</strong>: Output is 1 if inputs are different</li>
+</ul>
+
+<p>Every computation — from adding numbers to rendering graphics — is built from combinations of these simple gates.</p>
+
+<h2>Reversibility</h2>
+<p>An important distinction: most classical gates are <strong>irreversible</strong>. An AND gate with output 0 could have had inputs (0,0), (0,1), or (1,0) — you can't tell which. Information is lost.</p>
+
+<p>Quantum gates, as we'll see, are always <strong>reversible</strong> (unitary). This is a fundamental requirement of quantum mechanics and has deep implications for computation.</p>
+
+<h2>Why Quantum?</h2>
+<p>Classical computers are incredibly powerful, but some problems remain intractable:</p>
+<ul>
+    <li><strong>Factoring large numbers</strong>: The security of RSA encryption relies on this being hard. The best classical algorithm takes exponential time.</li>
+    <li><strong>Simulating quantum systems</strong>: A system of <span class="math">n</span> quantum particles needs <span class="math">2<sup>n</sup></span> classical numbers to describe its state.</li>
+    <li><strong>Searching unsorted data</strong>: Classically requires checking every item. Quantum computers can do it with the square root of the checks.</li>
+</ul>
+
+<p>Quantum computing exploits the principles of quantum mechanics — superposition, entanglement, and interference — to solve these problems more efficiently.</p>
+
+<div class="exercises">
+    <h3>Exercises</h3>
+    <ol>
+        <li>How many bits would you need to represent all possible states of a chess board? Think about what information you need to encode.</li>
+        <li>Why is the AND gate irreversible? Can you design a reversible version? (Hint: look up the Toffoli gate)</li>
+        <li>If a classical computer takes 2<sup>128</sup> operations to break a code, and can do 10<sup>12</sup> operations per second, how long would it take?</li>
+    </ol>
+</div>
+
+<div class="lesson-nav">
+    <span></span>
+    {{if .NextLesson}}<a href="/lesson/{{.NextLesson.ID}}">Next: {{.NextLesson.Title}} →</a>{{end}}
+</div>
+{{end}}

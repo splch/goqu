@@ -1,0 +1,169 @@
+{{template "layout" .}}
+{{define "content"}}
+<h1>Circuit Sandbox</h1>
+<p class="subtitle">Build and simulate your own quantum circuits</p>
+
+<div class="demo-section">
+    <h3>Circuit Builder</h3>
+    <p>Add gates to your circuit, then click Simulate to see the SVG diagram and measurement results.</p>
+
+    <div class="demo-controls" style="margin-bottom: 1rem;">
+        <label>Qubits:
+            <select id="sb-qubits">
+                <option value="1">1</option>
+                <option value="2" selected>2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+            </select>
+        </label>
+        <label>Shots:
+            <input type="number" id="sb-shots" value="1024" min="100" max="8192" step="100">
+        </label>
+    </div>
+
+    <div class="demo-controls" style="flex-wrap: wrap;">
+        <label>Gate:
+            <select id="sb-gate">
+                <optgroup label="Single-Qubit">
+                    <option value="H">H (Hadamard)</option>
+                    <option value="X">X (NOT)</option>
+                    <option value="Y">Y</option>
+                    <option value="Z">Z</option>
+                    <option value="S">S</option>
+                    <option value="T">T</option>
+                    <option value="RX">RX(π/4)</option>
+                    <option value="RY">RY(π/4)</option>
+                    <option value="RZ">RZ(π/4)</option>
+                </optgroup>
+                <optgroup label="Two-Qubit">
+                    <option value="CNOT">CNOT</option>
+                    <option value="CZ">CZ</option>
+                    <option value="SWAP">SWAP</option>
+                </optgroup>
+            </select>
+        </label>
+        <label>Qubit:
+            <select id="sb-qubit">
+                <option value="0">q0</option>
+                <option value="1">q1</option>
+                <option value="2">q2</option>
+                <option value="3">q3</option>
+                <option value="4">q4</option>
+                <option value="5">q5</option>
+            </select>
+        </label>
+        <label id="sb-target-label">Target:
+            <select id="sb-target">
+                <option value="0">q0</option>
+                <option value="1" selected>q1</option>
+                <option value="2">q2</option>
+                <option value="3">q3</option>
+                <option value="4">q4</option>
+                <option value="5">q5</option>
+            </select>
+        </label>
+        <button type="button" class="btn" onclick="addGate()">Add Gate</button>
+        <button type="button" class="btn" onclick="clearGates()" style="background: var(--error);">Clear</button>
+    </div>
+
+    <div style="margin: 1rem 0;">
+        <strong>Circuit gates:</strong>
+        <div id="gate-list" class="gate-list"></div>
+    </div>
+
+    <button type="button" class="btn" onclick="simulate()" style="width: 100%; padding: 0.75rem;">Simulate</button>
+
+    <div id="sandbox-result" style="margin-top: 1rem;">
+        <div class="demo-result">
+            <div class="circuit-svg">{{.DemoSVG | safeHTML}}</div>
+            {{.DemoHist | safeHTML}}
+        </div>
+    </div>
+</div>
+
+<h2>Quick Start</h2>
+<p>Try these classic circuits:</p>
+<ul>
+    <li><strong>Bell state</strong>: H(q0) → CNOT(q0, q1) — creates maximum entanglement</li>
+    <li><strong>GHZ state</strong>: H(q0) → CNOT(q0, q1) → CNOT(q1, q2) — 3-qubit entanglement</li>
+    <li><strong>Superposition</strong>: H on every qubit — equal probability of all outcomes</li>
+    <li><strong>Bit flip</strong>: X(q0) → CNOT(q0, q1) — copies qubit 0 to qubit 1</li>
+</ul>
+
+<h2>Gate Reference</h2>
+<div class="code-example"><pre>Single-qubit gates:
+  H    Hadamard: creates superposition
+  X    Pauli-X (NOT): bit flip |0⟩↔|1⟩
+  Y    Pauli-Y: bit + phase flip
+  Z    Pauli-Z: phase flip |1⟩→−|1⟩
+  S    Phase gate: |1⟩→i|1⟩ (√Z)
+  T    π/8 gate: |1⟩→e^(iπ/4)|1⟩ (⁴√Z)
+  RX   X rotation by π/4
+  RY   Y rotation by π/4
+  RZ   Z rotation by π/4
+
+Two-qubit gates:
+  CNOT  Controlled-NOT (flips target if control is |1⟩)
+  CZ    Controlled-Z (phase flip if both |1⟩)
+  SWAP  Swaps two qubits</pre></div>
+
+<script>
+let gates = ["H:0", "CNOT:0:1"];
+const twoQubitGates = ["CNOT", "CZ", "SWAP"];
+
+function updateGateDisplay() {
+    const list = document.getElementById("gate-list");
+    list.innerHTML = gates.map((g, i) =>
+        `<span class="gate-tag">${g} <span style="cursor:pointer;margin-left:4px" onclick="removeGate(${i})">×</span></span>`
+    ).join("");
+}
+
+function addGate() {
+    const gate = document.getElementById("sb-gate").value;
+    const qubit = document.getElementById("sb-qubit").value;
+    if (twoQubitGates.includes(gate)) {
+        const target = document.getElementById("sb-target").value;
+        if (qubit === target) { alert("Control and target must differ"); return; }
+        gates.push(`${gate}:${qubit}:${target}`);
+    } else {
+        gates.push(`${gate}:${qubit}`);
+    }
+    updateGateDisplay();
+}
+
+function removeGate(idx) {
+    gates.splice(idx, 1);
+    updateGateDisplay();
+}
+
+function clearGates() {
+    gates = [];
+    updateGateDisplay();
+}
+
+function simulate() {
+    const qubits = document.getElementById("sb-qubits").value;
+    const shots = document.getElementById("sb-shots").value;
+    const body = new URLSearchParams({
+        qubits: qubits,
+        shots: shots,
+        gates: gates.join(",")
+    });
+    fetch("/api/sandbox", { method: "POST", body: body })
+        .then(r => r.text())
+        .then(html => { document.getElementById("sandbox-result").innerHTML = html; });
+}
+
+// Show/hide target selector based on gate type
+document.getElementById("sb-gate").addEventListener("change", function() {
+    const show = twoQubitGates.includes(this.value);
+    document.getElementById("sb-target-label").style.display = show ? "" : "none";
+});
+
+// Initialize
+updateGateDisplay();
+document.getElementById("sb-target-label").style.display = "";
+</script>
+{{end}}
