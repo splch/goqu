@@ -1,0 +1,101 @@
+{{template "layout" .}}
+{{define "content"}}
+<h1>10. Variational Algorithms</h1>
+<p class="subtitle">{{.Lesson.Desc}}</p>
+
+<div class="objectives">
+    <h3>Learning Objectives</h3>
+    <ul>
+        <li>Understand the variational (hybrid quantum-classical) approach</li>
+        <li>Learn how VQE finds ground state energies</li>
+        <li>Learn how QAOA solves optimization problems</li>
+        <li>See how circuit parameters affect measurement outcomes</li>
+    </ul>
+</div>
+
+<h2>The Variational Approach</h2>
+<p>Many quantum algorithms designed for near-term (NISQ) hardware use a <strong>hybrid quantum-classical</strong> strategy:</p>
+<ol>
+    <li>A <strong>parameterized quantum circuit</strong> (ansatz) prepares a state |ψ(θ)⟩</li>
+    <li>The quantum computer <strong>measures</strong> an observable (e.g., energy)</li>
+    <li>A <strong>classical optimizer</strong> adjusts the parameters θ to minimize the measured value</li>
+    <li>Repeat until convergence</li>
+</ol>
+
+<h2>Variational Quantum Eigensolver (VQE)</h2>
+<p>VQE finds the ground state energy of a Hamiltonian H by minimizing ⟨ψ(θ)|H|ψ(θ)⟩. This is crucial for quantum chemistry — simulating molecules to discover new materials and drugs.</p>
+
+<h2>QAOA</h2>
+<p>The Quantum Approximate Optimization Algorithm tackles combinatorial problems like MaxCut. It alternates between a <strong>cost layer</strong> (encodes the problem) and a <strong>mixer layer</strong> (explores solutions), parameterized by angles γ and β.</p>
+
+<h2>Interactive Demo: Parameter Exploration</h2>
+<div class="demo-section">
+    <h3>Vary circuit parameters and observe changes</h3>
+    <form class="demo-controls">
+        <input type="hidden" name="demo" value="variational">
+        <label>θ (radians):
+            <select name="theta" hx-post="/api/simulate" hx-target="#var-demo" hx-include="closest form">
+                <option value="0">0</option>
+                <option value="0.785" selected>π/4 ≈ 0.79</option>
+                <option value="1.571">π/2 ≈ 1.57</option>
+                <option value="2.356">3π/4 ≈ 2.36</option>
+                <option value="3.142">π ≈ 3.14</option>
+            </select>
+        </label>
+        <label>Shots:
+            <input type="number" name="shots" value="1024" min="100" max="4096" step="100">
+        </label>
+        <button type="button" hx-post="/api/simulate" hx-target="#var-demo" hx-include="closest form">Run</button>
+    </form>
+    <div id="var-demo">
+        <div class="demo-result">
+            <div class="circuit-svg">{{.DemoSVG | safeHTML}}</div>
+            {{if .DemoInfo}}<div class="state-info">{{.DemoInfo}}</div>{{end}}
+            {{.DemoHist | safeHTML}}
+        </div>
+    </div>
+</div>
+
+<p>Notice how the expectation value ⟨ZZ⟩ changes with θ. An optimizer would search for the θ that minimizes this value.</p>
+
+<h2>Goqu Code</h2>
+<div class="code-example"><pre><span class="comment">// VQE for a simple Hamiltonian</span>
+hamiltonian, _ := pauli.NewPauliSum([]pauli.PauliString{
+    pauli.NewPauliString(-1.0, map[<span class="keyword">int</span>]pauli.Pauli{0: pauli.Z, 1: pauli.Z}, 2),
+    pauli.NewPauliString(0.5, map[<span class="keyword">int</span>]pauli.Pauli{0: pauli.X}, 2),
+})
+
+res, _ := vqe.Run(ctx, vqe.Config{
+    Hamiltonian: hamiltonian,
+    Ansatz:      ansatz.RealAmplitudes(2, 2, ansatz.Linear),
+    Optimizer:   optim.NewNelderMead(optim.NMConfig{MaxIter: 200}),
+})
+fmt.Printf(<span class="string">"Ground state energy: %.4f\n"</span>, res.Energy)
+
+<span class="comment">// QAOA for MaxCut</span>
+edges := [][2]<span class="keyword">int</span>{{"{"}}
+    {0,1}, {1,2}, {2,3}, {3,0},
+}
+cost, _ := qaoa.MaxCutHamiltonian(edges, 4)
+
+qaoaRes, _ := qaoa.Run(ctx, qaoa.Config{
+    CostHamiltonian: cost,
+    Layers:          2,
+    Optimizer:       optim.NewSPSA(optim.SPSAConfig{MaxIter: 100}),
+})
+fmt.Println(<span class="string">"Best cut:"</span>, qaoaRes.BestBitstring)</pre></div>
+
+<div class="exercises">
+    <h3>Exercises</h3>
+    <ol>
+        <li>Vary θ from 0 to π. How does the measurement distribution change? At what θ is ⟨ZZ⟩ minimized?</li>
+        <li>VQE is limited by "barren plateaus" — when gradients vanish in high-dimensional parameter spaces. Why might this happen?</li>
+        <li>For the MaxCut problem on a square graph (4 nodes, 4 edges), what is the optimal cut size?</li>
+    </ol>
+</div>
+
+<div class="lesson-nav">
+    {{if .PrevLesson}}<a href="/lesson/{{.PrevLesson.ID}}">← {{.PrevLesson.Title}}</a>{{end}}
+    {{if .NextLesson}}<a href="/lesson/{{.NextLesson.ID}}">Next: {{.NextLesson.Title}} →</a>{{end}}
+</div>
+{{end}}

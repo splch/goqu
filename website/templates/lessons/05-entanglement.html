@@ -1,0 +1,86 @@
+{{template "layout" .}}
+{{define "content"}}
+<h1>5. Entanglement & Bell States</h1>
+<p class="subtitle">{{.Lesson.Desc}}</p>
+
+<div class="objectives">
+    <h3>Learning Objectives</h3>
+    <ul>
+        <li>Understand quantum entanglement and why it's important</li>
+        <li>Learn the four Bell states and how to create them</li>
+        <li>See entangled correlations in measurement results</li>
+        <li>Explore the CNOT gate's role in creating entanglement</li>
+    </ul>
+</div>
+
+<h2>What is Entanglement?</h2>
+<p>Two qubits are <strong>entangled</strong> when their joint state cannot be written as a product of individual states. For example:</p>
+<div class="code-example"><pre>|Φ⁺⟩ = (|00⟩ + |11⟩) / √2</pre></div>
+<p>This state cannot be factored as |ψ₁⟩ ⊗ |ψ₂⟩. If you measure one qubit and get 0, the other is guaranteed to be 0 too. If you get 1, the other is also 1. This correlation holds even if the qubits are separated by vast distances.</p>
+
+<h2>The CNOT Gate</h2>
+<p>The <strong>Controlled-NOT</strong> (CNOT) is the key two-qubit gate. It flips the target qubit if and only if the control qubit is |1⟩:</p>
+<div class="code-example"><pre>CNOT|00⟩ = |00⟩    CNOT|10⟩ = |11⟩
+CNOT|01⟩ = |01⟩    CNOT|11⟩ = |10⟩</pre></div>
+
+<h2>The Four Bell States</h2>
+<p>The <strong>Bell states</strong> are the four maximally entangled two-qubit states:</p>
+<div class="code-example"><pre>|Φ⁺⟩ = (|00⟩ + |11⟩) / √2    ← H(q0), CNOT(q0,q1)
+|Φ⁻⟩ = (|00⟩ − |11⟩) / √2    ← X(q0), H(q0), CNOT(q0,q1)
+|Ψ⁺⟩ = (|01⟩ + |10⟩) / √2    ← H(q0), CNOT(q0,q1), X(q1)
+|Ψ⁻⟩ = (|01⟩ − |10⟩) / √2    ← X(q0), H(q0), CNOT(q0,q1), X(q1)</pre></div>
+
+<h2>Interactive Demo: Bell States</h2>
+<div class="demo-section">
+    <h3>Create a Bell state</h3>
+    <form class="demo-controls">
+        <input type="hidden" name="demo" value="bell">
+        <label>Bell state:
+            <select name="variant" hx-post="/api/simulate" hx-target="#bell-demo" hx-include="closest form">
+                <option value="phi+">|Φ⁺⟩ = (|00⟩ + |11⟩)/√2</option>
+                <option value="phi-">|Φ⁻⟩ = (|00⟩ − |11⟩)/√2</option>
+                <option value="psi+">|Ψ⁺⟩ = (|01⟩ + |10⟩)/√2</option>
+                <option value="psi-">|Ψ⁻⟩ = (|01⟩ − |10⟩)/√2</option>
+            </select>
+        </label>
+        <label>Shots:
+            <input type="number" name="shots" value="1024" min="100" max="4096" step="100">
+        </label>
+        <button type="button" hx-post="/api/simulate" hx-target="#bell-demo" hx-include="closest form">Run</button>
+    </form>
+    <div id="bell-demo">
+        <div class="demo-result">
+            <div class="circuit-svg">{{.DemoSVG | safeHTML}}</div>
+            {{.DemoHist | safeHTML}}
+        </div>
+    </div>
+</div>
+
+<p>Notice how the measurement results are always <strong>correlated</strong>: for |Φ⁺⟩, you only see |00⟩ and |11⟩, never |01⟩ or |10⟩. This is the hallmark of entanglement.</p>
+
+<h2>Goqu Code</h2>
+<div class="code-example"><pre><span class="comment">// Create a Bell state</span>
+c, _ := builder.New(<span class="string">"bell"</span>, 2).
+    H(0).
+    CNOT(0, 1).
+    MeasureAll().
+    Build()
+
+sim := statevector.New(2)
+counts, _ := sim.Run(c, 1024)
+<span class="comment">// counts ≈ {"00": 512, "11": 512}</span></pre></div>
+
+<div class="exercises">
+    <h3>Exercises</h3>
+    <ol>
+        <li>Create each of the four Bell states and compare their measurement histograms. What patterns do you see?</li>
+        <li>Why can't entangled qubits be used to send information faster than light? (Hint: what does a single qubit's measurement look like?)</li>
+        <li>The GHZ state extends entanglement to 3 qubits: (|000⟩ + |111⟩)/√2. How would you construct it? Try it in the <a href="/sandbox">sandbox</a>.</li>
+    </ol>
+</div>
+
+<div class="lesson-nav">
+    {{if .PrevLesson}}<a href="/lesson/{{.PrevLesson.ID}}">← {{.PrevLesson.Title}}</a>{{end}}
+    {{if .NextLesson}}<a href="/lesson/{{.NextLesson.ID}}">Next: {{.NextLesson.Title}} →</a>{{end}}
+</div>
+{{end}}

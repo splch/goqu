@@ -1,0 +1,92 @@
+{{template "layout" .}}
+{{define "content"}}
+<h1>4. Quantum Circuits & Measurement</h1>
+<p class="subtitle">{{.Lesson.Desc}}</p>
+
+<div class="objectives">
+    <h3>Learning Objectives</h3>
+    <ul>
+        <li>Understand the quantum circuit model of computation</li>
+        <li>Learn to read and build multi-qubit circuit diagrams</li>
+        <li>Understand measurement in multi-qubit systems</li>
+        <li>Build and simulate your own circuits</li>
+    </ul>
+</div>
+
+<h2>The Circuit Model</h2>
+<p>Quantum computation is expressed as a sequence of <strong>quantum gates</strong> applied to <strong>qubits</strong>, forming a <strong>circuit</strong>. Circuit diagrams read left to right:</p>
+<ul>
+    <li>Horizontal lines represent <strong>qubits</strong> (wires)</li>
+    <li>Boxes on wires represent <strong>gates</strong></li>
+    <li>Lines connecting wires represent <strong>multi-qubit gates</strong></li>
+    <li>A meter symbol (M) represents <strong>measurement</strong></li>
+</ul>
+
+<h2>Multi-Qubit States</h2>
+<p>With two qubits, we have four basis states: |00⟩, |01⟩, |10⟩, |11⟩. The general state is:</p>
+<div class="code-example"><pre>|ψ⟩ = α₀₀|00⟩ + α₀₁|01⟩ + α₁₀|10⟩ + α₁₁|11⟩</pre></div>
+<p>With <span class="math">n</span> qubits, we have <span class="math">2<sup>n</sup></span> basis states — this exponential growth is key to quantum computing's power.</p>
+
+<h2>Interactive Demo: Build a Circuit</h2>
+<div class="demo-section">
+    <h3>Select gates to apply (2 qubits)</h3>
+    <form class="demo-controls">
+        <input type="hidden" name="demo" value="circuit">
+        <label>Gate sequence:
+            <select name="gates" hx-post="/api/simulate" hx-target="#circuit-demo" hx-include="closest form">
+                <option value="H0,CNOT">H(q0) → CNOT(q0,q1)</option>
+                <option value="H0,H1">H(q0) → H(q1)</option>
+                <option value="X0,CNOT">X(q0) → CNOT(q0,q1)</option>
+                <option value="H0,CNOT,H1">H(q0) → CNOT → H(q1)</option>
+                <option value="H0,H1,CNOT,H0,H1">H(both) → CNOT → H(both)</option>
+                <option value="H0,SWAP">H(q0) → SWAP</option>
+            </select>
+        </label>
+        <label>Shots:
+            <input type="number" name="shots" value="1024" min="100" max="4096" step="100">
+        </label>
+        <button type="button" hx-post="/api/simulate" hx-target="#circuit-demo" hx-include="closest form">Run</button>
+    </form>
+    <div id="circuit-demo">
+        <div class="demo-result">
+            <div class="circuit-svg">{{.DemoSVG | safeHTML}}</div>
+            {{.DemoHist | safeHTML}}
+        </div>
+    </div>
+</div>
+
+<h2>Goqu Code</h2>
+<div class="code-example"><pre><span class="comment">// Build a 2-qubit circuit</span>
+c, _ := builder.New(<span class="string">"my-circuit"</span>, 2).
+    H(0).        <span class="comment">// Hadamard on qubit 0</span>
+    CNOT(0, 1).  <span class="comment">// CNOT with control=0, target=1</span>
+    MeasureAll().
+    Build()
+
+<span class="comment">// Visualize the circuit</span>
+fmt.Println(draw.String(c))
+<span class="comment">// q0: -H---@---M--
+//          |
+// q1: -----X---M--</span>
+
+<span class="comment">// Get the SVG for web display</span>
+svg := draw.SVG(c)
+
+<span class="comment">// Simulate</span>
+sim := statevector.New(2)
+counts, _ := sim.Run(c, 1024)</pre></div>
+
+<div class="exercises">
+    <h3>Exercises</h3>
+    <ol>
+        <li>What output do you expect from X(q0) → CNOT(q0,q1)? Try it and verify.</li>
+        <li>Try H(both) → CNOT → H(both). This is equivalent to a CNOT with reversed control/target. Can you see why?</li>
+        <li>How many complex amplitudes are needed to describe the state of 10 qubits? 20 qubits? 50 qubits?</li>
+    </ol>
+</div>
+
+<div class="lesson-nav">
+    {{if .PrevLesson}}<a href="/lesson/{{.PrevLesson.ID}}">← {{.PrevLesson.Title}}</a>{{end}}
+    {{if .NextLesson}}<a href="/lesson/{{.NextLesson.ID}}">Next: {{.NextLesson.Title}} →</a>{{end}}
+</div>
+{{end}}

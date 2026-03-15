@@ -1,0 +1,92 @@
+{{template "layout" .}}
+{{define "content"}}
+<h1>7. Grover's Search Algorithm</h1>
+<p class="subtitle">{{.Lesson.Desc}}</p>
+
+<div class="objectives">
+    <h3>Learning Objectives</h3>
+    <ul>
+        <li>Understand the unstructured search problem</li>
+        <li>Learn how amplitude amplification works</li>
+        <li>See Grover's quadratic speedup in action</li>
+        <li>Search for marked states with different configurations</li>
+    </ul>
+</div>
+
+<h2>The Search Problem</h2>
+<p>Given an unsorted database of N items, find the one marked item. Classically, this requires O(N) queries. Grover's algorithm does it in O(√N) — a <strong>quadratic speedup</strong>.</p>
+
+<h2>How It Works</h2>
+<p>Grover's algorithm uses two key operations repeated approximately π/4 · √N times:</p>
+<ol>
+    <li><strong>Oracle</strong>: Marks the target state by flipping its phase (|x⟩ → −|x⟩ for the marked x)</li>
+    <li><strong>Diffusion</strong> (Grover operator): Reflects all amplitudes about their mean, amplifying the marked state's probability</li>
+</ol>
+<p>Each iteration increases the probability of measuring the marked state. After the optimal number of iterations, the probability is nearly 1.</p>
+
+<h2>Interactive Demo</h2>
+<div class="demo-section">
+    <h3>Search for a marked state</h3>
+    <form class="demo-controls">
+        <input type="hidden" name="demo" value="grover">
+        <label>Qubits:
+            <select name="qubits">
+                <option value="3" selected>3 qubits (8 states)</option>
+                <option value="4">4 qubits (16 states)</option>
+            </select>
+        </label>
+        <label>Marked state:
+            <select name="marked" hx-post="/api/simulate" hx-target="#grover-demo" hx-include="closest form">
+                <option value="0">|000⟩</option>
+                <option value="3">|011⟩</option>
+                <option value="5" selected>|101⟩</option>
+                <option value="7">|111⟩</option>
+            </select>
+        </label>
+        <label>Shots:
+            <input type="number" name="shots" value="1024" min="100" max="4096" step="100">
+        </label>
+        <button type="button" hx-post="/api/simulate" hx-target="#grover-demo" hx-include="closest form">Run</button>
+    </form>
+    <div id="grover-demo">
+        <div class="demo-result">
+            <div class="circuit-svg">{{.DemoSVG | safeHTML}}</div>
+            {{if .DemoInfo}}<div class="state-info">{{.DemoInfo}}</div>{{end}}
+            {{.DemoHist | safeHTML}}
+        </div>
+    </div>
+</div>
+
+<h2>Goqu Code</h2>
+<div class="code-example"><pre><span class="comment">// Search for state |101⟩ among 3-qubit states</span>
+oracle := <span class="keyword">func</span>(b *builder.Builder, qubits []<span class="keyword">int</span>) {
+    <span class="comment">// Phase-flip |101⟩</span>
+    b.X(qubits[1]) <span class="comment">// Flip qubit 1 (should be 0 in target)</span>
+    b.CCZ(qubits[0], qubits[1], qubits[2])
+    b.X(qubits[1]) <span class="comment">// Undo flip</span>
+}
+
+res, _ := grover.Run(ctx, grover.Config{
+    NumQubits:    3,
+    Oracle:       oracle,
+    NumSolutions: 1,
+    Shots:        1024,
+})
+fmt.Println(<span class="string">"Found:"</span>, res.TopResult)</pre></div>
+
+<p>Try different marked states and qubit counts in the demo above, or experiment freely in the <a href="/sandbox">Circuit Sandbox</a>.</p>
+
+<div class="exercises">
+    <h3>Exercises</h3>
+    <ol>
+        <li>For 3 qubits (8 states), the optimal number of Grover iterations is about 2. Verify: π/4 · √8 ≈ 2.2. What happens if you use too many iterations?</li>
+        <li>Grover's gives a quadratic speedup. For a database of 10⁶ items, how many classical queries are needed vs. quantum?</li>
+        <li>Can Grover's algorithm find multiple marked items? How does the iteration count change?</li>
+    </ol>
+</div>
+
+<div class="lesson-nav">
+    {{if .PrevLesson}}<a href="/lesson/{{.PrevLesson.ID}}">← {{.PrevLesson.Title}}</a>{{end}}
+    {{if .NextLesson}}<a href="/lesson/{{.NextLesson.ID}}">Next: {{.NextLesson.Title}} →</a>{{end}}
+</div>
+{{end}}

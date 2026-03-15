@@ -1,0 +1,93 @@
+{{template "layout" .}}
+{{define "content"}}
+<h1>8. Quantum Fourier Transform & Phase Estimation</h1>
+<p class="subtitle">{{.Lesson.Desc}}</p>
+
+<div class="objectives">
+    <h3>Learning Objectives</h3>
+    <ul>
+        <li>Understand the Quantum Fourier Transform (QFT)</li>
+        <li>Learn how Quantum Phase Estimation (QPE) works</li>
+        <li>See QPE estimate eigenvalue phases of unitary operators</li>
+        <li>Understand QPE as a building block for other algorithms</li>
+    </ul>
+</div>
+
+<h2>Quantum Fourier Transform</h2>
+<p>The QFT transforms between the computational basis and the Fourier basis. For n qubits, it maps:</p>
+<div class="code-example"><pre>QFT|j⟩ = (1/√N) Σₖ e^(2πijk/N) |k⟩</pre></div>
+<p>This is the quantum analogue of the classical Discrete Fourier Transform, but it operates on 2ⁿ amplitudes using only O(n²) gates — an exponential speedup over the classical O(N log N).</p>
+
+<h2>Phase Estimation</h2>
+<p>QPE solves a fundamental problem: given a unitary operator U and its eigenstate |ψ⟩ where U|ψ⟩ = e^(2πiφ)|ψ⟩, estimate the phase φ.</p>
+
+<p>The algorithm uses:</p>
+<ol>
+    <li>A <strong>phase register</strong> of t ancilla qubits (determines precision: φ is estimated to t bits)</li>
+    <li>A <strong>target register</strong> holding the eigenstate</li>
+    <li>Controlled-U^(2^k) operations for <strong>phase kickback</strong></li>
+    <li>The <strong>inverse QFT</strong> to convert phase information into a measurable bit string</li>
+</ol>
+
+<h2>Interactive Demo</h2>
+<div class="demo-section">
+    <h3>Estimate the phase of a Phase gate</h3>
+    <p>The Phase gate P(2πφ) has eigenvalue e^(2πiφ) for eigenstate |1⟩.</p>
+    <form class="demo-controls">
+        <input type="hidden" name="demo" value="qpe">
+        <label>Phase φ:
+            <select name="phase" hx-post="/api/simulate" hx-target="#qpe-demo" hx-include="closest form">
+                <option value="0.25" selected>0.25 (= 1/4)</option>
+                <option value="0.5">0.50 (= 1/2)</option>
+                <option value="0.125">0.125 (= 1/8)</option>
+                <option value="0.333">0.333 (≈ 1/3)</option>
+            </select>
+        </label>
+        <label>Precision bits:
+            <select name="bits">
+                <option value="3" selected>3 bits</option>
+                <option value="4">4 bits</option>
+            </select>
+        </label>
+        <label>Shots:
+            <input type="number" name="shots" value="1024" min="100" max="4096" step="100">
+        </label>
+        <button type="button" hx-post="/api/simulate" hx-target="#qpe-demo" hx-include="closest form">Run</button>
+    </form>
+    <div id="qpe-demo">
+        <div class="demo-result">
+            <div class="circuit-svg">{{.DemoSVG | safeHTML}}</div>
+            {{if .DemoInfo}}<div class="state-info">{{.DemoInfo}}</div>{{end}}
+            {{.DemoHist | safeHTML}}
+        </div>
+    </div>
+</div>
+
+<h2>Goqu Code</h2>
+<div class="code-example"><pre><span class="comment">// Estimate the phase of a Phase gate</span>
+phaseGate := gate.Phase(2 * math.Pi * 0.25) <span class="comment">// φ = 0.25</span>
+
+eigenPrep, _ := builder.New(<span class="string">"eigen"</span>, 1).X(0).Build()
+
+res, _ := qpe.Run(ctx, qpe.Config{
+    Unitary:      phaseGate,
+    NumPhaseBits: 3,
+    EigenState:   eigenPrep,
+    Shots:        1024,
+})
+fmt.Printf(<span class="string">"Estimated phase: %.4f\n"</span>, res.Phase)</pre></div>
+
+<div class="exercises">
+    <h3>Exercises</h3>
+    <ol>
+        <li>Try φ = 0.25 with 3 precision bits. You should get an exact result. Why? (Hint: 0.25 = 2/8, and 8 = 2³)</li>
+        <li>Now try φ = 1/3 ≈ 0.333. The result won't be exact. Why not? How can you improve accuracy?</li>
+        <li>QPE is the core subroutine in Shor's algorithm (next lesson). What "phase" does Shor's algorithm estimate?</li>
+    </ol>
+</div>
+
+<div class="lesson-nav">
+    {{if .PrevLesson}}<a href="/lesson/{{.PrevLesson.ID}}">← {{.PrevLesson.Title}}</a>{{end}}
+    {{if .NextLesson}}<a href="/lesson/{{.NextLesson.ID}}">Next: {{.NextLesson.Title}} →</a>{{end}}
+</div>
+{{end}}

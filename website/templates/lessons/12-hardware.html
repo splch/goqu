@@ -1,0 +1,115 @@
+{{template "layout" .}}
+{{define "content"}}
+<h1>12. Real Quantum Hardware</h1>
+<p class="subtitle">{{.Lesson.Desc}}</p>
+
+<div class="objectives">
+    <h3>Learning Objectives</h3>
+    <ul>
+        <li>Learn about different qubit technologies</li>
+        <li>Understand hardware constraints (connectivity, basis gates)</li>
+        <li>See how transpilation adapts circuits to specific hardware</li>
+        <li>Know how to run circuits on real quantum processors via Goqu</li>
+    </ul>
+</div>
+
+<h2>Qubit Technologies</h2>
+<p>Several physical systems can implement qubits, each with trade-offs:</p>
+<ul>
+    <li><strong>Superconducting qubits</strong> (IBM, Google, Rigetti): Fast gates (~20ns), limited connectivity, require dilution refrigerators at ~15 mK. Most mature technology.</li>
+    <li><strong>Trapped ions</strong> (IonQ, Quantinuum): High fidelity, all-to-all connectivity, slower gates (~ms). Excellent for small circuits.</li>
+    <li><strong>Photonic qubits</strong> (Xanadu): Room temperature operation, natural for communication. Challenging for gate-based computation.</li>
+    <li><strong>Neutral atoms</strong> (QuEra): Scalable arrays, flexible connectivity. Rapidly advancing.</li>
+</ul>
+
+<h2>Hardware Constraints</h2>
+<p>Real hardware has limitations that ideal simulators don't:</p>
+<ul>
+    <li><strong>Basis gates</strong>: Each QPU supports only a few native gates. Other gates must be decomposed into these.</li>
+    <li><strong>Connectivity</strong>: Not all qubit pairs can interact directly. SWAP gates must be inserted to route operations between non-adjacent qubits.</li>
+    <li><strong>Gate fidelity</strong>: Each gate has a small error probability. Fewer gates = fewer errors.</li>
+</ul>
+
+<h2>Transpilation</h2>
+<p>Transpilation automatically adapts an abstract circuit to run on specific hardware. Goqu's transpiler handles:</p>
+<ol>
+    <li><strong>Gate decomposition</strong>: Convert gates to the target's native basis</li>
+    <li><strong>Qubit routing</strong>: Insert SWAPs for connectivity constraints (SABRE algorithm)</li>
+    <li><strong>Optimization</strong>: Cancel redundant gates, merge rotations, commute gates</li>
+</ol>
+
+<h2>Interactive Demo: Transpile to Hardware</h2>
+<div class="demo-section">
+    <h3>Compile a circuit for different QPUs</h3>
+    <form class="demo-controls">
+        <input type="hidden" name="demo" value="transpile">
+        <label>Target hardware:
+            <select name="target" hx-post="/api/simulate" hx-target="#hw-demo" hx-include="closest form">
+                <option value="ionq" selected>IonQ Forte (trapped ions)</option>
+                <option value="ibm">IBM Eagle (superconducting)</option>
+                <option value="rigetti">Rigetti Ankaa (superconducting)</option>
+            </select>
+        </label>
+        <button type="button" hx-post="/api/simulate" hx-target="#hw-demo" hx-include="closest form">Transpile</button>
+    </form>
+    <div id="hw-demo">
+        <div class="demo-result">
+            <div class="circuit-svg">{{.DemoSVG | safeHTML}}</div>
+            {{if .DemoInfo}}<div class="state-info">{{.DemoInfo | safeHTML}}</div>{{end}}
+        </div>
+    </div>
+</div>
+
+<h2>Running on Real Hardware</h2>
+<div class="code-example"><pre><span class="comment">// Transpile for IonQ</span>
+compiled, _ := pipeline.Run(ctx, circuit, target.IonQForte, pipeline.LevelFull)
+
+<span class="comment">// Submit to IonQ</span>
+backend := ionq.New(apiKey)
+job, _ := backend.Submit(ctx, &backend.SubmitRequest{
+    Circuit: compiled,
+    Shots:   1000,
+})
+
+<span class="comment">// Wait for results</span>
+result, _ := backend.Result(ctx, job.ID)
+fmt.Println(result.Counts)
+
+<span class="comment">// Or use the job manager for multiple backends</span>
+mgr := manager.New()
+mgr.Register(<span class="string">"ionq"</span>, ionq.New(ionqKey))
+mgr.Register(<span class="string">"ibm"</span>, ibm.New(ibmKey))
+results, _ := mgr.SubmitBatch(ctx, circuit, 1000, <span class="string">"ionq"</span>, <span class="string">"ibm"</span>)</pre></div>
+
+<h2>Supported Backends in Goqu</h2>
+<div class="code-example"><pre>IonQ Forte    36 qubits  Trapped ions   All-to-all    GPI, GPI2, MS
+IonQ Aria     25 qubits  Trapped ions   All-to-all    GPI, GPI2, MS
+IBM Eagle    127 qubits  Superconducting Heavy-hex     CX, RZ, SX, X
+Rigetti Ankaa 84 qubits  Superconducting Octagonal     CZ, RX, RZ
+Quantinuum H1 20 qubits  Trapped ions   All-to-all    RZZ, RZ, RY
+Google Willow 105 qubits Superconducting Grid          CZ, √iSWAP, Phased XZ</pre></div>
+
+<div class="exercises">
+    <h3>Exercises</h3>
+    <ol>
+        <li>Compare the transpiled circuits for IonQ vs. IBM. Why does IonQ need fewer routing SWAPs? (Hint: connectivity)</li>
+        <li>If a QPU has 99.9% single-qubit gate fidelity and 99% two-qubit gate fidelity, what is the expected fidelity of a circuit with 10 single-qubit and 5 two-qubit gates?</li>
+        <li>Why might you choose IonQ (fewer qubits, all-to-all) over IBM (more qubits, limited connectivity) for certain algorithms?</li>
+    </ol>
+</div>
+
+<h2>Congratulations!</h2>
+<p>You've completed the full quantum computing curriculum! You now understand:</p>
+<ul>
+    <li>Quantum states, gates, and circuits</li>
+    <li>Key algorithms: Deutsch-Jozsa, Grover, Shor, VQE, QAOA</li>
+    <li>Noise, error mitigation, and real hardware</li>
+    <li>How to use Goqu to build, simulate, and run quantum programs</li>
+</ul>
+<p>Continue exploring in the <a href="/sandbox">Circuit Sandbox</a> or dive into the <a href="https://github.com/splch/goqu" target="_blank">Goqu source code</a>.</p>
+
+<div class="lesson-nav">
+    {{if .PrevLesson}}<a href="/lesson/{{.PrevLesson.ID}}">← {{.PrevLesson.Title}}</a>{{end}}
+    <a href="/">Back to Home</a>
+</div>
+{{end}}

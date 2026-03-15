@@ -1,0 +1,26 @@
+{{define "layout"}}<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://unpkg.com/htmx.org@2.0.4" crossorigin="anonymous"></script>
+</head>
+<body>
+    <nav class="sidebar">
+        <a href="/" class="logo">Goqu</a>
+        <span class="tagline">Learn Quantum Computing</span>
+        <ul>
+            {{range $i, $l := .Lessons}}
+            <li><a href="/lesson/{{$l.ID}}" {{if and $.Lesson (eq $.Lesson.ID $l.ID)}}class="active"{{end}}>{{add $i 1}}. {{$l.Title}}</a></li>
+            {{end}}
+        </ul>
+        <a href="/sandbox" class="sandbox-link">Circuit Sandbox</a>
+    </nav>
+    <main>
+        {{template "content" .}}
+    </main>
+</body>
+</html>
+{{end}}

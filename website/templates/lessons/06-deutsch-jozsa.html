@@ -1,0 +1,89 @@
+{{template "layout" .}}
+{{define "content"}}
+<h1>6. The Deutsch-Jozsa Algorithm</h1>
+<p class="subtitle">{{.Lesson.Desc}}</p>
+
+<div class="objectives">
+    <h3>Learning Objectives</h3>
+    <ul>
+        <li>Understand the oracle model of quantum computation</li>
+        <li>Learn the Deutsch-Jozsa algorithm and why it matters</li>
+        <li>See the first example of quantum advantage over classical computing</li>
+        <li>Run the algorithm with different oracles</li>
+    </ul>
+</div>
+
+<h2>The Problem</h2>
+<p>Given a black-box function f: {0,1}ⁿ → {0,1}, we are promised that f is either:</p>
+<ul>
+    <li><strong>Constant</strong>: f(x) = 0 for all x, or f(x) = 1 for all x</li>
+    <li><strong>Balanced</strong>: f outputs 0 for exactly half of all inputs and 1 for the other half</li>
+</ul>
+<p>The task: determine which case it is.</p>
+
+<h2>Classical vs. Quantum</h2>
+<p><strong>Classically</strong>, in the worst case you need to evaluate f on 2ⁿ⁻¹ + 1 inputs — more than half of all possibilities — before you can be certain.</p>
+<p><strong>Quantumly</strong>, the Deutsch-Jozsa algorithm determines the answer with just <strong>one</strong> evaluation of f, using superposition and interference.</p>
+
+<h2>How It Works</h2>
+<ol>
+    <li>Prepare n input qubits in |0⟩ and one ancilla qubit in |1⟩</li>
+    <li>Apply Hadamard gates to all qubits, creating a uniform superposition</li>
+    <li>Apply the oracle: the function f is encoded as a quantum gate</li>
+    <li>Apply Hadamard gates to the input qubits again</li>
+    <li>Measure the input qubits: if all are |0⟩, f is constant; otherwise, f is balanced</li>
+</ol>
+
+<h2>Interactive Demo</h2>
+<div class="demo-section">
+    <h3>Run Deutsch-Jozsa with different oracles</h3>
+    <form class="demo-controls">
+        <input type="hidden" name="demo" value="deutsch-jozsa">
+        <label>Oracle type:
+            <select name="oracle" hx-post="/api/simulate" hx-target="#dj-demo" hx-include="closest form">
+                <option value="balanced">Balanced (f(x) = x₀)</option>
+                <option value="constant0">Constant (f(x) = 0)</option>
+                <option value="constant1">Constant (f(x) = 1)</option>
+            </select>
+        </label>
+        <label>Shots:
+            <input type="number" name="shots" value="1024" min="100" max="4096" step="100">
+        </label>
+        <button type="button" hx-post="/api/simulate" hx-target="#dj-demo" hx-include="closest form">Run</button>
+    </form>
+    <div id="dj-demo">
+        <div class="demo-result">
+            <div class="circuit-svg">{{.DemoSVG | safeHTML}}</div>
+            {{if .DemoInfo}}<div class="state-info">{{.DemoInfo}}</div>{{end}}
+            {{.DemoHist | safeHTML}}
+        </div>
+    </div>
+</div>
+
+<h2>Goqu Code</h2>
+<div class="code-example"><pre><span class="comment">// Run Deutsch-Jozsa with a balanced oracle</span>
+oracle := <span class="keyword">func</span>(b *builder.Builder, inputs []<span class="keyword">int</span>, ancilla <span class="keyword">int</span>) {
+    b.CNOT(inputs[0], ancilla) <span class="comment">// f(x) = x₀</span>
+}
+
+result, _ := textbook.DeutschJozsa(ctx, textbook.DJConfig{
+    NumQubits: 3,
+    Oracle:    oracle,
+    Shots:     1024,
+})
+fmt.Println(<span class="string">"Is constant:"</span>, result.IsConstant)</pre></div>
+
+<div class="exercises">
+    <h3>Exercises</h3>
+    <ol>
+        <li>For a constant oracle, what measurement outcome do you expect and why?</li>
+        <li>This algorithm gives an <em>exponential</em> speedup. For 100-bit inputs, how many evaluations does a classical computer need in the worst case? How many does the quantum algorithm need?</li>
+        <li>The Deutsch-Jozsa algorithm works because of destructive interference. Can you trace through the math for 1 qubit to see why?</li>
+    </ol>
+</div>
+
+<div class="lesson-nav">
+    {{if .PrevLesson}}<a href="/lesson/{{.PrevLesson.ID}}">← {{.PrevLesson.Title}}</a>{{end}}
+    {{if .NextLesson}}<a href="/lesson/{{.NextLesson.ID}}">Next: {{.NextLesson.Title}} →</a>{{end}}
+</div>
+{{end}}
