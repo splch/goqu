@@ -10,9 +10,9 @@ import (
 
 // Default viewing angles for the Bloch sphere projection.
 const (
-	blochAzimuth   = -math.Pi / 6  // 30 degrees
-	blochElevation = math.Pi / 8   // 22.5 degrees
-	blochSegments  = 72            // line segments per great circle
+	blochAzimuth   = -math.Pi / 6 // 30 degrees
+	blochElevation = math.Pi / 8  // 22.5 degrees
+	blochSegments  = 72           // line segments per great circle
 )
 
 // Bloch returns an SVG rendering of a single-qubit state on the Bloch sphere.

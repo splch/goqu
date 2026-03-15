@@ -45,10 +45,10 @@ func TestStateCity_ContainsPanelTitles(t *testing.T) {
 func TestStateCity_TwoQubits(t *testing.T) {
 	// Bell state |Φ+> = (|00>+|11>)/√2, ρ has nonzero entries at corners.
 	rho := make([]complex128, 16)
-	rho[0] = 0.5      // |00><00|
-	rho[3] = 0.5      // |00><11|
-	rho[12] = 0.5     // |11><00|
-	rho[15] = 0.5     // |11><11|
+	rho[0] = 0.5  // |00><00|
+	rho[3] = 0.5  // |00><11|
+	rho[12] = 0.5 // |11><00|
+	rho[15] = 0.5 // |11><11|
 	svg := StateCity(rho, 4)
 	validXML(t, svg)
 	if !strings.Contains(svg, "<polygon") {

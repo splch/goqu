@@ -80,9 +80,9 @@ func renderHistogram(w io.Writer, labels []string, values []float64, isProb bool
 	}
 
 	// Layout geometry.
-	leftMargin := sty.Padding + 50  // Y-axis labels
-	rightMargin := sty.Padding      // right edge
-	topMargin := sty.Padding + 10   // top edge (or title)
+	leftMargin := sty.Padding + 50   // Y-axis labels
+	rightMargin := sty.Padding       // right edge
+	topMargin := sty.Padding + 10    // top edge (or title)
 	bottomMargin := sty.Padding + 50 // X-axis labels
 
 	if cfg.title != "" {

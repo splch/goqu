@@ -97,7 +97,9 @@ func darken(hex string, factor float64) string {
 		return "#000000"
 	}
 	var r, g, b int
-	fmt.Sscanf(hex, "%02x%02x%02x", &r, &g, &b)
+	if _, err := fmt.Sscanf(hex, "%02x%02x%02x", &r, &g, &b); err != nil {
+		return "#000000"
+	}
 	r = int(float64(r) * factor)
 	g = int(float64(g) * factor)
 	b = int(float64(b) * factor)
