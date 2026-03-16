@@ -27,9 +27,9 @@ Open any `.ipynb` file and run cells sequentially.
 | 01 | [The Qubit](01-the-qubit.ipynb) | Qubits, superposition, Bloch sphere, Born rule, statevector simulation |
 | 02 | [Single-Qubit Gates](02-single-qubit-gates.ipynb) | Pauli gates, phase gates, rotations, gate matrices, inverses, universality |
 | 03 | [Measurement](03-measurement.ipynb) | Computational basis measurement, collapse, partial measurement, no-cloning, mid-circuit measurement |
-| 04 | [Entanglement](04-entanglement.ipynb) | Bell states, GHZ states, tensor products, density matrices, purity |
-| 05 | [Teleportation](05-teleportation.ipynb) | Quantum teleportation, superdense coding, dynamic circuits, classical control flow |
-| 06 | [Multi-Qubit Gates](06-multi-qubit-gates.ipynb) | CNOT, CZ, Toffoli, Fredkin, controlled-U, multi-controlled gates, custom unitaries |
+| 04 | [Multi-Qubit Gates](04-multi-qubit-gates.ipynb) | CNOT, CZ, Toffoli, Fredkin, controlled-U, multi-controlled gates, custom unitaries |
+| 05 | [Entanglement](05-entanglement.ipynb) | Bell states, GHZ states, tensor products, density matrices, purity |
+| 06 | [Teleportation](06-teleportation.ipynb) | Quantum teleportation, superdense coding, dynamic circuits, classical control flow |
 | 07 | [Quantum Fourier Transform](07-quantum-fourier-transform.ipynb) | QFT circuit, inverse QFT, phase kickback, circuit composition |
 | 08 | [Phase Estimation](08-phase-estimation.ipynb) | QPE, Deutsch-Jozsa, Bernstein-Vazirani, Simon's algorithm, state preparation |
 | 09 | [Grover's Search](09-grovers-search.ipynb) | Amplitude amplification, phase/boolean oracles, optimal iterations, over-rotation |
