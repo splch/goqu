@@ -119,7 +119,9 @@ func decomposeSingleControlled(u gate.Gate, control, target int) []ir.Operation 
 	return ops
 }
 
-// decomposeCCX decomposes a Toffoli gate into CX + single-qubit.
+// decomposeCCX decomposes a Toffoli (CCX) gate into 6 CNOTs + single-qubit
+// gates (H, T, Tdg). This is the standard Toffoli decomposition from
+// Nielsen & Chuang, Figure 4.9.
 func decomposeCCX(c0, c1, target int) []ir.Operation {
 	return []ir.Operation{
 		{Gate: gate.H, Qubits: []int{target}},
@@ -140,10 +142,12 @@ func decomposeCCX(c0, c1, target int) []ir.Operation {
 	}
 }
 
-// decomposeMCX decomposes C^n(X) for n >= 3 using recursive V-gate approach.
+// decomposeMCX decomposes C^n(X) for n >= 3 using the recursive V-gate
+// approach from Barenco et al. (1995).
 // V = SX (sqrt of X), V† = SX†.
 // C^n(X) = C^{n-1}(V) · CX(last_ctrl, target) · C^{n-1}(V†) · CX(last_ctrl, target) · C^{n-1}(S)
-// This produces O(n²) CX gates total.
+// Each recursion level reduces the control count by one, producing O(n^2) CNOT
+// gates total for an n-controlled X gate without ancilla qubits.
 func decomposeMCX(controls []int, target int) []ir.Operation {
 	n := len(controls)
 	if n == 1 {

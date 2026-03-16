@@ -106,6 +106,37 @@ func tryLocalDecompose(m []complex128, q0, q1 int) []ir.Operation {
 //
 // Returns the four 2×2 K-matrices, the Weyl parameters (x,y,z), and the
 // count of nonzero Weyl parameters.
+//
+// Algorithm roadmap (Vatan-Williams, arXiv:quant-ph/0308006):
+//  1. Normalize the 4x4 unitary to SU(4) by dividing out the determinant phase.
+//  2. Transform to the magic basis: Up = Q† · U · Q. In this basis, local
+//     unitaries (A⊗B) become real orthogonal matrices, separating local from
+//     non-local content.
+//  3. Compute M2 = Up^T · Up (transpose, not conjugate transpose). This matrix
+//     encodes the non-local part and is symmetric-unitary.
+//  4. Diagonalize M2 with a real orthogonal matrix P to extract eigenvalues.
+//  5. From the eigenvalue phases, compute the Weyl chamber coordinates (x, y, z)
+//     that parameterize the non-local content of the two-qubit gate.
+//  6. Try all 16 sign combinations for the diagonal square root D^{1/2}
+//     (each eigenvalue has two square roots), selecting the combination that
+//     minimizes the number of nonzero Weyl parameters (fewer parameters mean
+//     fewer CNOTs in the final circuit).
+//  7. Reconstruct the local unitaries K1l, K1r (before the interaction) and
+//     K2l, K2r (after the interaction) by factoring the Kronecker products
+//     back into 2x2 matrices.
+//
+// The magic basis Q = (1/sqrt(2)) * [[1,0,0,i],[0,i,1,0],[0,i,-1,0],[1,0,0,-i]]
+// diagonalizes the CNOT interaction: in this basis, the non-local part of any
+// two-qubit unitary becomes a diagonal matrix. This is why transforming to the
+// magic basis cleanly separates local rotations from entangling content.
+//
+// The Weyl chamber is a geometric region that parameterizes the non-local
+// equivalence classes of two-qubit unitaries. Every two-qubit gate, up to
+// local single-qubit rotations, corresponds to a unique point (x, y, z)
+// in the Weyl chamber. The number of nonzero coordinates determines the
+// minimum CNOT count: 0 CNOTs for the identity class, 1 for CNOT-class
+// gates (single nonzero coordinate equal to pi/4), 2 for one nonzero
+// coordinate at a non-CNOT value, and 3 for the general case.
 func KakParams(m []complex128) (k1l, k1r, k2l, k2r []complex128, x, y, z float64, nNonzero int) {
 	// 1. Normalize to SU(4).
 	det := det4x4(m)
@@ -296,6 +327,25 @@ var (
 	_bK1lAdj, _bK1rAdj, _bK2lAdj, _bK2rAdj []complex128
 )
 
+// init pre-computes the magic basis matrices and the Vatan-Williams
+// K-matrices used in the 3-CNOT decomposition template.
+//
+// The mapping between variable names and the Vatan-Williams paper
+// (arXiv:quant-ph/0308006) is as follows:
+//
+//	K11l, K11r  -- K-matrices for the first CNOT decomposition (gate 1, left/right)
+//	K12l, K12r  -- K-matrices for the first CNOT decomposition (gate 2, left/right)
+//	K21r        -- K-matrix for the second CNOT decomposition (gate 1, right)
+//	K22l, K22r  -- K-matrices for the second CNOT decomposition (gate 2, left/right)
+//	K31l, K31r  -- K-matrices for the third CNOT decomposition (gate 1, left/right)
+//	K32lK21l    -- Combined K32l · K21l product
+//	K32r        -- K-matrix for the third CNOT decomposition (gate 2, right)
+//
+// These analytical K-matrices, combined with the CNOT's own KAK K-matrices
+// (bK1l, bK1r, bK2l, bK2r), produce the 11 pre-computed u-matrices (_u0l
+// through _u3r) that form the 3-CNOT circuit template. Each Weyl parameter
+// (a, b, c) appears as exactly one Rz rotation sandwiched between fixed
+// u-matrices, enabling independent control of all three non-local coordinates.
 func init() {
 	inv := complex(1.0/math.Sqrt2, 0)
 	magicQ = []complex128{
@@ -604,7 +654,18 @@ func eulerFromMatrix(m []complex128, q int) []ir.Operation {
 	return ops
 }
 
-// diagonalizeSymmetricUnitary finds orthogonal P such that P^T·M·P is diagonal.
+// diagonalizeSymmetricUnitary finds a real orthogonal matrix P such that
+// P^T · M · P is diagonal, where M is a symmetric unitary matrix (M^T = M).
+//
+// A symmetric unitary has the property that its eigenvectors can be chosen
+// to be real (forming an orthogonal matrix), but finding them requires care.
+// The standard eigendecomposition of a complex matrix does not guarantee real
+// eigenvectors. Instead, this function tries multiple linear combinations of
+// the real and imaginary parts of M (e.g., a·Re(M) + b·Im(M)), each of which
+// is a real symmetric matrix and thus has a real orthogonal eigendecomposition.
+// Since Re(M) and Im(M) commute (they share eigenvectors), the correct linear
+// combination will simultaneously diagonalize both, and hence diagonalize M
+// itself. Multiple coefficients are tried because numerical conditioning varies.
 func diagonalizeSymmetricUnitary(m []complex128) []float64 {
 	re := make([]float64, 16)
 	im := make([]float64, 16)
@@ -704,7 +765,11 @@ func detReal4(m []float64) float64 {
 	return real(det4x4(c))
 }
 
-// jacobi4 eigendecomposes a 4x4 real symmetric matrix.
+// jacobi4 computes the eigendecomposition of a 4x4 real symmetric matrix
+// using the classical Jacobi eigenvalue algorithm. It iteratively applies
+// Givens rotations to zero out the largest off-diagonal element until the
+// matrix is diagonal (within tolerance). Returns the orthogonal eigenvector
+// matrix V and the eigenvalues sorted in descending order.
 func jacobi4(m []float64) ([]float64, [4]float64) {
 	a := make([]float64, 16)
 	copy(a, m)

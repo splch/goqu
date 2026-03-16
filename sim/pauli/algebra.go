@@ -36,7 +36,11 @@ func Mul(a, b PauliString) PauliString {
 }
 
 // Commutes returns true if a and b commute.
-// Two Pauli strings commute iff they anticommute at an even number of positions.
+// Two Pauli strings commute if and only if they anticommute at an even number
+// of qubit positions (the product of single-qubit commutation relations).
+// At each position, two distinct non-identity single-qubit Paulis anticommute
+// (e.g. XZ = -ZX), contributing a factor of -1. The overall strings commute
+// when the total number of such anticommuting positions is even.
 func Commutes(a, b PauliString) bool {
 	if a.numQubits != b.numQubits {
 		panic(fmt.Sprintf("pauli.Commutes: qubit count mismatch: %d vs %d", a.numQubits, b.numQubits))

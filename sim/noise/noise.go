@@ -4,7 +4,8 @@ import "strconv"
 
 // Channel represents a quantum noise channel via Kraus operators.
 // Each Kraus operator is a flat row-major (2^n)x(2^n) matrix.
-// The channel satisfies sum_k E_k-dagger E_k = I (trace-preserving).
+// The channel satisfies sum_k(E_k^dag * E_k) = I, which guarantees that
+// the map is completely positive and trace-preserving (CPTP).
 type Channel interface {
 	Name() string
 	Qubits() int

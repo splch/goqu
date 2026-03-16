@@ -34,8 +34,22 @@ func (s *Sim) dispatchControlled(cg gate.ControlledGate, qubits []int) {
 	}
 }
 
-// applyControlledGate1 applies a controlled single-qubit gate.
-// Only applies the inner 2x2 matrix when all control bits are |1>.
+// applyControlledGate1 applies a multi-controlled single-qubit gate using the
+// control-mask pattern. A bitmask is built from all control qubit positions.
+// The iteration scans every basis-state index and applies two filters:
+//
+//  1. Skip indices where any control bit is 0: (i & controlMask) != controlMask.
+//     This ensures the inner gate only acts on the subspace where all controls
+//     are |1>, which is the defining behavior of a controlled gate.
+//  2. Among matching indices, only process the canonical pair representative
+//     where the target bit is 0: (i & targetBit) == 0. The partner index
+//     i | targetBit has the target bit = 1. Together they form the 2D subspace
+//     on which the inner 2x2 unitary acts.
+//
+// This brute-force scan is simpler than a block-stride approach for arbitrary
+// control configurations. It visits all 2^n indices but skips most via the
+// bitmask check, which is a single AND + compare (branch-predicted well on
+// modern CPUs).
 func (s *Sim) applyControlledGate1(controls []int, target int, m []complex128) {
 	var controlMask int
 	for _, c := range controls {
@@ -211,8 +225,21 @@ func (s *Sim) applyControlledGate2Parallel(controls []int, t0, t1 int, m []compl
 	wg.Wait()
 }
 
-// applyControlledGateN is a generic fallback for controlled gates with inner gates > 2 qubits.
-// It constructs the full matrix and applies it.
+// applyControlledGateN is the generic fallback for controlled gates whose inner
+// gate acts on more than 2 qubits. It works by constructing the full
+// 2^totalQubits x 2^totalQubits unitary and performing explicit matrix-vector
+// multiplication on each group of basis states.
+//
+// For each canonical base index (where all involved qubit bits are 0), it
+// builds the full set of 2^totalQubits indices by OR-ing bitmasks for each
+// qubit position. The qubit-to-index mapping uses big-endian bit order within
+// the gate's local space (bit totalQubits-1-j maps to qubit j), matching the
+// row-major convention of the gate matrix. The amplitudes at those indices are
+// gathered, multiplied by the full matrix, and scattered back.
+//
+// This kernel panics for gates wider than 10 qubits (gate.Matrix limitation)
+// and is O(2^n * 4^k) where k = totalQubits, so it is only used as a last
+// resort.
 func (s *Sim) applyControlledGateN(cg gate.ControlledGate, qubits []int) {
 	totalQubits := len(qubits)
 	dim := 1 << totalQubits

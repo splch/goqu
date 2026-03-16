@@ -511,7 +511,7 @@ func (p *parser) parseBarrier() error {
 		return err
 	}
 	p.ops = append(p.ops, ir.Operation{
-		Gate:   barrierGate{n: len(qubits)},
+		Gate:   gate.Barrier(len(qubits)),
 		Qubits: qubits,
 	})
 	return nil
@@ -1434,16 +1434,6 @@ func (p *parser) parsePrimary() (float64, error) {
 func builtinGates() map[string]*gatedef {
 	return make(map[string]*gatedef)
 }
-
-// Pseudo-gates for barrier and reset.
-type barrierGate struct{ n int }
-
-func (g barrierGate) Name() string                     { return "barrier" }
-func (g barrierGate) Qubits() int                      { return g.n }
-func (g barrierGate) Matrix() []complex128             { return nil }
-func (g barrierGate) Params() []float64                { return nil }
-func (g barrierGate) Inverse() gate.Gate               { return g }
-func (g barrierGate) Decompose(_ []int) []gate.Applied { return nil }
 
 type opaqueGate struct {
 	name   string

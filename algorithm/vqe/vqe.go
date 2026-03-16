@@ -2,6 +2,13 @@
 //
 // VQE finds the ground state energy of a Hamiltonian by variationally
 // minimizing ⟨ψ(θ)|H|ψ(θ)⟩ over parameterized circuit parameters θ.
+//
+// VQE exploits the variational principle: for any trial state |psi(theta)>,
+// the expectation value <psi(theta)|H|psi(theta)> is an upper bound on the
+// true ground-state energy E0. By optimizing the parameters theta with a
+// classical optimizer (such as COBYLA or L-BFGS), VQE finds the lowest
+// achievable energy within the ansatz, which approximates E0. The tightness
+// of the bound depends on the expressibility of the chosen ansatz.
 package vqe
 
 import (

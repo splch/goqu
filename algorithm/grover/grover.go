@@ -91,8 +91,15 @@ func Run(ctx context.Context, cfg Config) (*Result, error) {
 		// Oracle.
 		cfg.Oracle(b, qubits)
 
-		// Diffusion operator: 2|s⟩⟨s| - I
-		// = H^⊗n · (2|0⟩⟨0| - I) · H^⊗n
+		// Diffusion operator: 2|s⟩⟨s| - I  where |s⟩ = H^⊗n|0⟩.
+		// Grover's algorithm works by repeated rotation in the 2D subspace
+		// spanned by |target⟩ (the marked state) and |s⟩ (the uniform
+		// superposition). Each iteration rotates the state by angle
+		// 2*arcsin(1/sqrt(N)) toward |target⟩. After approximately
+		// pi/4 * sqrt(N/M) iterations, the state is maximally aligned
+		// with the marked subspace.
+		//
+		// Decomposition: 2|s⟩⟨s| - I = H^⊗n · (2|0⟩⟨0| - I) · H^⊗n
 		for q := range n {
 			b.H(q)
 		}
@@ -177,10 +184,13 @@ func PhaseOracle(targets []int, numQubits int) Oracle {
 
 // BooleanOracle creates an oracle from a classical boolean function.
 // The function f takes a bit pattern (as int) and returns true for marked states.
-// An ancilla qubit is added automatically.
+//
+// This implementation enumerates all 2^numQubits inputs to find the satisfying
+// assignments, then delegates to PhaseOracle which applies a phase flip to
+// each marked state. This is suitable for simulation but not for hardware,
+// where the oracle would need to be compiled into a reversible circuit.
 func BooleanOracle(f func(int) bool, numQubits int) Oracle {
-	// Use phase kickback with an ancilla in |-⟩ state.
-	// For simplicity, decompose into PhaseOracle by enumerating.
+	// Enumerate satisfying inputs and delegate to PhaseOracle.
 	var targets []int
 	for i := range 1 << numQubits {
 		if f(i) {

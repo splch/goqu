@@ -17,8 +17,13 @@ func (c *channel) Qubits() int           { return c.nq }
 func (c *channel) Kraus() [][]complex128 { return c.kraus }
 
 // Depolarizing1Q returns a single-qubit depolarizing channel.
-// Kraus operators: sqrt(1-p)·I, sqrt(p/3)·X, sqrt(p/3)·Y, sqrt(p/3)·Z.
-// The qubit is maximally mixed at p=3/4 (not p=1).
+//
+// Models isotropic noise: with probability p, the qubit is randomly subjected
+// to one of the three Pauli errors (X, Y, Z) with equal probability p/3.
+// With probability 1-p, the qubit is left unchanged. At p=3/4 (maximum
+// mixing), the output is the maximally mixed state I/2 regardless of input.
+//
+// Kraus operators: sqrt(1-p)*I, sqrt(p/3)*X, sqrt(p/3)*Y, sqrt(p/3)*Z.
 func Depolarizing1Q(p float64) Channel {
 	if p < 0 || p > 1 {
 		panic(fmt.Sprintf("noise.Depolarizing1Q: p=%f out of range [0,1]", p))
@@ -38,7 +43,10 @@ func Depolarizing1Q(p float64) Channel {
 }
 
 // Depolarizing2Q returns a two-qubit depolarizing channel.
-// With probability p, applies a random 2-qubit Pauli.
+//
+// Extends depolarizing noise to two qubits: with probability p, one of the
+// 15 non-identity two-qubit Pauli operators {I,X,Y,Z}^2 \ {II} is applied
+// with equal probability p/15. With probability 1-p, no error occurs.
 func Depolarizing2Q(p float64) Channel {
 	if p < 0 || p > 1 {
 		panic(fmt.Sprintf("noise.Depolarizing2Q: p=%f out of range [0,1]", p))
@@ -96,7 +104,12 @@ func tensorProduct2x2(a, b []complex128) []complex128 {
 }
 
 // AmplitudeDamping returns an amplitude damping channel (T1 decay).
-// gamma is the decay probability from |1> to |0>.
+//
+// Models energy dissipation -- the spontaneous decay of an excited qubit
+// from |1> to |0>, analogous to a photon being emitted. The parameter
+// gamma = 1 - exp(-t/T1) where t is the gate duration and T1 is the energy
+// relaxation time. At gamma=1, the qubit is fully decayed to |0>.
+//
 // Kraus: E0 = [[1,0],[0,sqrt(1-gamma)]], E1 = [[0,sqrt(gamma)],[0,0]]
 func AmplitudeDamping(gamma float64) Channel {
 	if gamma < 0 || gamma > 1 {
@@ -115,7 +128,13 @@ func AmplitudeDamping(gamma float64) Channel {
 }
 
 // PhaseDamping returns a phase damping channel (T2 dephasing without energy loss).
-// lambda is the dephasing probability.
+//
+// Models pure dephasing -- the loss of phase coherence between |0> and |1>
+// without any change in the population (probability of being in |0> or |1>).
+// Physically, this arises from fluctuations in the qubit's transition
+// frequency caused by environmental noise. The off-diagonal elements of the
+// density matrix decay by a factor of sqrt(1-lambda).
+//
 // Kraus: E0 = [[1,0],[0,sqrt(1-lambda)]], E1 = [[0,0],[0,sqrt(lambda)]]
 func PhaseDamping(lambda float64) Channel {
 	if lambda < 0 || lambda > 1 {
@@ -134,8 +153,12 @@ func PhaseDamping(lambda float64) Channel {
 }
 
 // BitFlip returns a bit-flip channel.
-// With probability p, applies X.
-// Kraus: sqrt(1-p)I, sqrt(p)X
+//
+// Models a random bit-flip error: with probability p, the qubit is flipped
+// (X gate applied), mapping |0> to |1> and vice versa. This is the quantum
+// analogue of a classical binary symmetric channel.
+//
+// Kraus: sqrt(1-p)*I, sqrt(p)*X
 func BitFlip(p float64) Channel {
 	if p < 0 || p > 1 {
 		panic(fmt.Sprintf("noise.BitFlip: p=%f out of range [0,1]", p))
@@ -153,8 +176,12 @@ func BitFlip(p float64) Channel {
 }
 
 // PhaseFlip returns a phase-flip channel.
-// With probability p, applies Z.
-// Kraus: sqrt(1-p)I, sqrt(p)Z
+//
+// Models a random phase-flip error: with probability p, a Z gate is applied,
+// flipping the sign of the |1> component while leaving |0> unchanged. This
+// has no classical analogue -- it corrupts quantum phase information only.
+//
+// Kraus: sqrt(1-p)*I, sqrt(p)*Z
 func PhaseFlip(p float64) Channel {
 	if p < 0 || p > 1 {
 		panic(fmt.Sprintf("noise.PhaseFlip: p=%f out of range [0,1]", p))
@@ -172,8 +199,15 @@ func PhaseFlip(p float64) Channel {
 }
 
 // GeneralizedAmplitudeDamping returns a generalized amplitude damping channel.
-// p is the thermal population probability [0,1], gamma is the damping rate [0,1].
-// At p=1 this reduces to standard AmplitudeDamping; at p=0 it gives reverse (excitation).
+//
+// Models thermal relaxation to a finite-temperature bath. The parameter p is
+// the probability of the environment being in the ground state, related to
+// temperature by p = 1/(1 + exp(-hbar*omega/(k_B*T))). At p=1 (zero
+// temperature), this reduces to standard amplitude damping. At p<1, the
+// qubit can be thermally excited from |0> to |1>, and the steady state is
+// a thermal mixture rather than pure |0>.
+//
+// gamma is the damping rate [0,1], p is the thermal population [0,1].
 // Kraus operators:
 //
 //	E0 = sqrt(p)   * [[1,0],[0,sqrt(1-gamma)]]

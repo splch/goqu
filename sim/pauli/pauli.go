@@ -8,6 +8,12 @@ import (
 )
 
 // Pauli is a single-qubit Pauli operator using symplectic encoding.
+//
+// The symplectic encoding represents each single-qubit Pauli as a 2-bit
+// value (x,z): I=(0,0), X=(1,0), Z=(0,1), Y=(1,1). This works because
+// Y = iXZ, so the Pauli product (up to phase) is given by bitwise XOR:
+// P1*P2 has x-bit = x1 XOR x2, z-bit = z1 XOR z2. The phase is tracked
+// separately via the phaseTable lookup in algebra.go.
 type Pauli uint8
 
 const (
@@ -133,7 +139,10 @@ func (ps PauliString) String() string {
 	return b.String()
 }
 
-// xMask returns a bitmask of qubits with X or Y (bit x set in symplectic encoding).
+// xMask returns the symplectic x-bitmask across all qubits in the PauliString.
+// Bit i is set if qubit i has X or Y (i.e. the x-component of the symplectic
+// pair is 1). When applied to a basis state |k>, the Pauli string maps it to
+// |k XOR xMask>, so xMask encodes the bit-flip action of the entire string.
 func (ps PauliString) xMask() int {
 	var m int
 	for i, p := range ps.ops {
@@ -144,7 +153,11 @@ func (ps PauliString) xMask() int {
 	return m
 }
 
-// zMask returns a bitmask of qubits with Z or Y (bit z set in symplectic encoding).
+// zMask returns the symplectic z-bitmask across all qubits in the PauliString.
+// Bit i is set if qubit i has Z or Y (i.e. the z-component of the symplectic
+// pair is 1). The Z-component determines the sign contribution: each qubit
+// where both the basis state bit and zMask bit are set contributes a factor
+// of -1, giving an overall sign of (-1)^popcount(state AND zMask).
 func (ps PauliString) zMask() int {
 	var m int
 	for i, p := range ps.ops {

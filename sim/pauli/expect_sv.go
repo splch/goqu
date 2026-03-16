@@ -8,9 +8,16 @@ import (
 // Expect computes <psi|P|psi> for a PauliString P and statevector psi.
 // The statevector length must be 2^numQubits matching the PauliString.
 //
-// The algorithm exploits the fact that a Pauli string maps each basis state
-// |i> to exactly one other state |j> = |i XOR xMask> with a known phase,
-// giving an O(2^n) single-pass computation with O(1) extra space.
+// A Pauli string P maps each basis state |i> to P|i> = phase * |i XOR xMask>,
+// where xMask encodes the X/Y bit-flip pattern. The phase has three parts:
+//   - Z sign: (-1)^popcount(i AND zMask), from Z and Y operators
+//   - Y phase: i^(number of Y operators), from the Y = iXZ decomposition
+//   - coefficient: the scalar prefactor of the PauliString
+//
+// Therefore <psi|P|psi> = sum_i conj(psi[i XOR xMask]) * phase(i) * psi[i],
+// computable in a single O(2^n) pass over the statevector without
+// materializing any matrix. For large statevectors (17+ qubits), the sum
+// is parallelized across goroutines.
 func Expect(state []complex128, ps PauliString) complex128 {
 	n := len(state)
 	if n == 0 {

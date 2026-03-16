@@ -11,6 +11,26 @@ import (
 // sabrePass runs one direction of the SABRE routing algorithm with decay and
 // extended-set lookahead. Reference: Li et al., arXiv:1809.02573.
 // Returns routed operations, final layout, and SWAP count.
+//
+// The SABRE heuristic works as follows:
+//  1. Maintain a "front layer" of 2-qubit gates whose data dependencies are
+//     fully satisfied (all predecessor operations on those qubits have been
+//     executed).
+//  2. Execute any front-layer gate whose operands are already mapped to
+//     adjacent physical qubits.
+//  3. For each non-executable gate (operands not adjacent), evaluate all
+//     candidate SWAP insertions on hardware edges adjacent to front-layer
+//     qubits.
+//  4. Score each candidate SWAP by the sum of post-SWAP distances for
+//     front-layer gates, plus a geometrically weighted sum of distances
+//     for "extended set" (lookahead) gates from deeper DAG layers.
+//  5. A decay factor penalizes repeatedly swapping the same physical qubits,
+//     discouraging cycles where qubits are swapped back and forth.
+//  6. The lowest-scoring SWAP is inserted and the logical-to-physical layout
+//     is updated accordingly.
+//  7. A "release valve" breaks deadlocks: if no gate has been routed after
+//     many consecutive SWAPs, the closest front-layer gate is force-routed
+//     via shortest-path SWAPs.
 func sabrePass(d *dag, dist [][]int, adj map[int][]int,
 	initialLayout []int, opts Options, rng *rand.Rand) ([]ir.Operation, []int, int) {
 
@@ -222,8 +242,13 @@ func layerCost(indices []int, ops []ir.Operation, layout []int, dist [][]int, nu
 	return cost
 }
 
-// releaseValveRoute force-routes the closest front-layer 2Q gate via
-// shortest-path SWAPs. Returns the number of SWAPs inserted.
+// releaseValveRoute is SABRE's deadlock-breaking mechanism. It activates when
+// the algorithm has inserted many consecutive SWAPs without successfully
+// routing any gate (exceeding ReleaseValveThreshold). It selects the
+// front-layer 2-qubit gate whose operands are closest in the hardware
+// distance matrix and greedily inserts SWAPs along the shortest path to
+// bring them adjacent, then immediately executes the gate.
+// Returns the number of SWAPs inserted.
 func releaseValveRoute(d *dag, front []int, dist [][]int, adj map[int][]int,
 	layout, inv []int, result *[]ir.Operation) int {
 

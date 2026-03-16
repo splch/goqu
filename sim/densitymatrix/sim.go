@@ -66,16 +66,28 @@ func (s *Sim) Run(c *ir.Circuit, shots int) (map[string]int, error) {
 	return counts, nil
 }
 
-// Evolve applies all gate operations, resets state to |0><0| first.
-func (s *Sim) Evolve(c *ir.Circuit) error {
-	if c.NumQubits() != s.numQubits {
-		return fmt.Errorf("circuit has %d qubits, simulator has %d", c.NumQubits(), s.numQubits)
-	}
-	// Reset to |0><0|.
+// Reset returns the density matrix to |0...0><0...0|.
+func (s *Sim) Reset() {
 	for i := range s.rho {
 		s.rho[i] = 0
 	}
 	s.rho[0] = 1
+}
+
+// Evolve resets the state to |0><0| and then applies the circuit's gate
+// operations without measuring. To apply gates without resetting (e.g. to
+// compose circuits incrementally), use [Sim.Apply] instead.
+func (s *Sim) Evolve(c *ir.Circuit) error {
+	s.Reset()
+	return s.Apply(c)
+}
+
+// Apply applies the circuit's gate operations to the current density matrix
+// without resetting. Use this to compose circuits incrementally.
+func (s *Sim) Apply(c *ir.Circuit) error {
+	if c.NumQubits() != s.numQubits {
+		return fmt.Errorf("circuit has %d qubits, simulator has %d", c.NumQubits(), s.numQubits)
+	}
 
 	for _, op := range c.Ops() {
 		if op.Gate == nil || op.Gate.Name() == "barrier" {
