@@ -40,6 +40,7 @@ func New(name string, numQubits, numClbits int, ops []Operation, metadata map[st
 func (c *Circuit) Name() string   { return c.name }
 func (c *Circuit) NumQubits() int { return c.numQubits }
 func (c *Circuit) NumClbits() int { return c.numClbits }
+
 // Ops returns a defensive copy of the operation slice.
 func (c *Circuit) Ops() []Operation {
 	out := make([]Operation, len(c.ops))

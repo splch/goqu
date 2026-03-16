@@ -767,4 +767,3 @@ func (b *Builder) Build() (*ir.Circuit, error) {
 	}
 	return ir.New(b.name, b.numQubits, b.numClbits, b.ops, b.metadata), nil
 }
-
