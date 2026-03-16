@@ -1,6 +1,6 @@
 # Goqu Notebooks
 
-A comprehensive quantum computing curriculum using [Goqu](https://github.com/splch/goqu) with [gonb](https://github.com/janpfeifer/gonb), a Go Jupyter kernel. The 17 notebooks progress from qubits to advanced algorithms, exercising every Goqu feature along the way.
+A comprehensive quantum computing curriculum using [Goqu](https://github.com/splch/goqu) with [gonb](https://github.com/janpfeifer/gonb), a Go Jupyter kernel. The 20 notebooks progress from qubits to advanced algorithms, exercising every Goqu feature along the way.
 
 ## Setup
 
@@ -31,16 +31,19 @@ Open any `.ipynb` file and run cells sequentially.
 | 05 | [Entanglement](05-entanglement.ipynb) | Bell states, GHZ states, tensor products, density matrices, purity |
 | 06 | [Teleportation](06-teleportation.ipynb) | Quantum teleportation, superdense coding, dynamic circuits, classical control flow |
 | 07 | [Quantum Fourier Transform](07-quantum-fourier-transform.ipynb) | QFT circuit, inverse QFT, phase kickback, circuit composition |
-| 08 | [Phase Estimation](08-phase-estimation.ipynb) | QPE, Deutsch-Jozsa, Bernstein-Vazirani, Simon's algorithm, state preparation |
+| 08 | [Phase Estimation](08-phase-estimation.ipynb) | QPE, state preparation, phase extraction |
+| 08b | [Textbook Algorithms](08b-textbook-algorithms.ipynb) | Deutsch-Jozsa, Bernstein-Vazirani, Simon's algorithm, oracle model |
 | 09 | [Grover's Search](09-grovers-search.ipynb) | Amplitude amplification, phase/boolean oracles, optimal iterations, over-rotation |
-| 10 | [Shor's Algorithm](10-shors-algorithm.ipynb) | Integer factoring, period finding, quantum counting, amplitude estimation |
+| 10 | [Shor's Algorithm](10-shors-algorithm.ipynb) | Integer factoring, period finding, modular exponentiation |
+| 10b | [Quantum Counting](10b-quantum-counting.ipynb) | Quantum counting, standard and iterative amplitude estimation |
 | 11 | [Noise and Decoherence](11-noise-and-decoherence.ipynb) | Noise channels, density matrix simulation, T1/T2, custom channels, readout errors |
 | 11b | [Quantum Error Correction](11b-quantum-error-correction.ipynb) | Bit-flip code, phase-flip code, Shor 9-qubit code, syndrome measurement, stabilizers |
 | 12 | [Transpilation](12-transpilation.ipynb) | Basis gates, hardware targets, Euler/KAK decomposition, SABRE routing, optimization levels |
 | 13 | [Variational Algorithms](13-variational-algorithms.ipynb) | VQE, QAOA, ansatz templates, optimizers, gradients, parameter sweeps |
 | 14 | [Quantum Machine Learning](14-quantum-machine-learning.ipynb) | Feature maps, variational quantum classifier, quantum kernels |
 | 15 | [Error Mitigation](15-error-mitigation.ipynb) | ZNE, Pauli twirling, dynamical decoupling, PEC, CDR, TREX, readout mitigation |
-| 16 | [Advanced Topics](16-advanced-topics.ipynb) | Trotter simulation, HHL, Clifford sim, Pauli algebra, pulse programming, QASM/Quil, backends |
+| 16 | [Advanced Topics](16-advanced-topics.ipynb) | Trotter simulation, HHL, Clifford sim, Pauli algebra |
+| 16b | [SDK Reference](16b-sdk-reference.ipynb) | Pulse programming, operator representations, QASM/Quil, backends, observability |
 
 ## Pedagogy
 
