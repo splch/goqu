@@ -125,7 +125,7 @@ func RouteWithOptions(c *ir.Circuit, t target.Target, opts Options) (*ir.Circuit
 		}
 	}
 
-	return ir.New(c.Name(), c.NumQubits(), c.NumClbits(), results[bestIdx].ops, c.Metadata()), nil
+	return ir.New(c.Name(), t.NumQubits, c.NumClbits(), results[bestIdx].ops, c.Metadata()), nil
 }
 
 // runTrial runs one full bidirectional SABRE trial.

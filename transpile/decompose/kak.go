@@ -485,7 +485,7 @@ func twoCNOTCircuit(x, y, z float64, k1l, k1r, k2l, k2r []complex128, q0, q1 int
 	}
 
 	// Compute the actual unitary of the Ud circuit, then correct for numerical error.
-	udMat := opsToUnitary4(udOps, q0, q1)
+	udMat := OpsToUnitary4(udOps, q0, q1)
 	udTarget := weylUnitary(x, y, z)
 	correction := MatMul(udTarget, MatAdj(udMat, 4), 4)
 	k1Full := Tensor(k1l, 2, k1r, 2)
@@ -564,8 +564,8 @@ func yyCircuit(b float64, q0, q1 int) []ir.Operation {
 	}
 }
 
-// opsToUnitary4 computes the 4x4 unitary from operations on q0, q1.
-func opsToUnitary4(ops []ir.Operation, q0, q1 int) []complex128 {
+// OpsToUnitary4 computes the 4x4 unitary from operations on q0, q1.
+func OpsToUnitary4(ops []ir.Operation, q0, q1 int) []complex128 {
 	if len(ops) == 0 {
 		return Eye(4)
 	}
@@ -988,7 +988,7 @@ func twoCNOTCircuitForBasis(x, y, z float64, k1l, k1r, k2l, k2r []complex128, q0
 		udOps = yyCircuit(y, q0, q1)
 	}
 
-	udMat := opsToUnitary4(udOps, q0, q1)
+	udMat := OpsToUnitary4(udOps, q0, q1)
 	udTarget := weylUnitary(x, y, z)
 	correction := MatMul(udTarget, MatAdj(udMat, 4), 4)
 	k1Full := Tensor(k1l, 2, k1r, 2)

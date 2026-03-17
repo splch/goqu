@@ -15,7 +15,7 @@ const kakTol = 1e-6
 // kakCircuitUnitary computes the 4x4 unitary for a sequence of KAK output
 // operations on a 2-qubit system (qubits q0 and q1).
 func kakCircuitUnitary(ops []ir.Operation, q0, q1 int) []complex128 {
-	return opsToUnitary4(ops, q0, q1)
+	return OpsToUnitary4(ops, q0, q1)
 }
 
 func countCNOTs(ops []ir.Operation) int {

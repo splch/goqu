@@ -1,9 +1,10 @@
 // Package pipeline provides pre-built transpilation pipelines with four
-// optimization levels.
+// optimization levels, following the industry-standard quantum compilation
+// flow: init → pre-route optimize → route → translate → optimize → validate.
 //
-//   - [LevelNone]:     decompose to target basis only
-//   - [LevelBasic]:    + adjacent gate cancellation and rotation merging
-//   - [LevelFull]:     + commutation and parallelization
+//   - [LevelNone]:     decompose + route + translate + validate (no optimization)
+//   - [LevelBasic]:    + pre-routing cancel/merge, post-routing iterative cancel/merge
+//   - [LevelFull]:     + 2Q block consolidation, commutation, parallelization (iterative)
 //   - [LevelParallel]: runs multiple strategies concurrently, picks lowest cost
 //
 // [DefaultPipeline] returns a [transpile.Pass] for a given level.
