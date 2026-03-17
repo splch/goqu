@@ -1,4 +1,10 @@
+<p align="center">
+  <img width="256" src="https://github.com/user-attachments/assets/42cf36fb-33d3-43d9-9176-c28dd5909958" />
+</p>
+
 # Goqu
+
+*Kamehame-Hadamard!*
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/splch/goqu.svg)](https://pkg.go.dev/github.com/splch/goqu)
 [![CI](https://github.com/splch/goqu/actions/workflows/ci.yml/badge.svg)](https://github.com/splch/goqu/actions/workflows/ci.yml)
