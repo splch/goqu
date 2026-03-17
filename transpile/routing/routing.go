@@ -141,7 +141,7 @@ func RouteWithOptions(c *ir.Circuit, t target.Target, opts Options) (*ir.Circuit
 func runTrial(ops []ir.Operation, n int, dist [][]int, adj map[int][]int,
 	opts Options, rng *rand.Rand) ([]ir.Operation, int) {
 
-	layout := RandomLayout(n, rng)
+	layout := RandomLayout(n, len(dist), rng)
 
 	var bestOps []ir.Operation
 	bestSwaps := math.MaxInt

@@ -275,8 +275,19 @@ func TestIBMEagleHasConnectivity(t *testing.T) {
 	if IBMEagle.Connectivity == nil {
 		t.Error("IBMEagle should have constrained connectivity")
 	}
-	if len(IBMEagle.Connectivity) == 0 {
-		t.Error("IBMEagle.Connectivity should not be empty")
+	if len(IBMEagle.Connectivity) != 144 {
+		t.Errorf("IBMEagle.Connectivity has %d edges, want 144", len(IBMEagle.Connectivity))
+	}
+}
+
+func TestConstrainedTargetsConnected(t *testing.T) {
+	targets := []Target{IBMEagle, IBMBrisbane, IBMSherbrooke}
+	for _, tgt := range targets {
+		t.Run(tgt.Name, func(t *testing.T) {
+			if err := tgt.ValidateConnectivity(); err != nil {
+				t.Error(err)
+			}
+		})
 	}
 }
 

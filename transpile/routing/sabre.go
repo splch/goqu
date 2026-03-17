@@ -37,9 +37,9 @@ func sabrePass(d *dag, dist [][]int, adj map[int][]int,
 	n := d.nQubits
 	layout := make([]int, n)
 	copy(layout, initialLayout)
-	inv := InverseLayout(layout)
 
 	numPhys := len(dist)
+	inv := InverseLayout(layout, numPhys)
 	decay := make([]float64, numPhys)
 	for i := range decay {
 		decay[i] = 1.0
@@ -129,8 +129,7 @@ func sabrePass(d *dag, dist [][]int, adj map[int][]int,
 		for _, cand := range candidates {
 			phys0, phys1 := cand[0], cand[1]
 
-			log0, log1 := inv[phys0], inv[phys1]
-			layout[log0], layout[log1] = layout[log1], layout[log0]
+			applySwap(layout, inv, phys0, phys1)
 
 			cost := decay[phys0] * decay[phys1] * layerCost(front, d.ops, layout, dist, numPhys)
 
@@ -138,7 +137,7 @@ func sabrePass(d *dag, dist [][]int, adj map[int][]int,
 				cost += extWeights[i] * layerCost(extLayer, d.ops, layout, dist, numPhys)
 			}
 
-			layout[log0], layout[log1] = layout[log1], layout[log0]
+			applySwap(layout, inv, phys0, phys1) // undo
 
 			if cost < bestCost {
 				bestCost = cost
@@ -165,9 +164,7 @@ func sabrePass(d *dag, dist [][]int, adj map[int][]int,
 		swapCount++
 		swapsSinceLastRoute++
 
-		log0, log1 := inv[bestSwap[0]], inv[bestSwap[1]]
-		layout[log0], layout[log1] = layout[log1], layout[log0]
-		inv[bestSwap[0]], inv[bestSwap[1]] = inv[bestSwap[1]], inv[bestSwap[0]]
+		applySwap(layout, inv, bestSwap[0], bestSwap[1])
 
 		// Update decay.
 		decay[bestSwap[0]] += opts.DecayDelta
@@ -304,9 +301,7 @@ func releaseValveRoute(d *dag, front []int, dist [][]int, adj map[int][]int,
 		})
 		swaps++
 
-		log0, log1 := inv[p0], inv[nextPhys]
-		layout[log0], layout[log1] = layout[log1], layout[log0]
-		inv[p0], inv[nextPhys] = inv[nextPhys], inv[p0]
+		applySwap(layout, inv, p0, nextPhys)
 	}
 
 	// Now route the gate.
@@ -314,6 +309,20 @@ func releaseValveRoute(d *dag, front []int, dist [][]int, adj map[int][]int,
 	d.markExecuted(bestIdx)
 
 	return swaps
+}
+
+// applySwap updates layout and inv for a SWAP on physical qubits phys0, phys1.
+// Handles unoccupied physical qubits (inv entry == -1) correctly.
+func applySwap(layout, inv []int, phys0, phys1 int) {
+	log0, log1 := inv[phys0], inv[phys1]
+	if log0 >= 0 && log1 >= 0 {
+		layout[log0], layout[log1] = layout[log1], layout[log0]
+	} else if log0 >= 0 {
+		layout[log0] = phys1
+	} else if log1 >= 0 {
+		layout[log1] = phys0
+	}
+	inv[phys0], inv[phys1] = inv[phys1], inv[phys0]
 }
 
 // remapOp remaps logical qubits to physical qubits using the layout.

@@ -12,22 +12,44 @@ func TrivialLayout(n int) []int {
 	return layout
 }
 
-// RandomLayout returns a random permutation of [0, n) using Fisher-Yates.
-func RandomLayout(n int, rng *rand.Rand) []int {
-	layout := TrivialLayout(n)
-	for i := n - 1; i > 0; i-- {
-		j := rng.IntN(i + 1)
-		layout[i], layout[j] = layout[j], layout[i]
+// RandomLayout selects n distinct physical qubits from [0, numPhys) at random
+// and returns a mapping from logical qubit i to its randomly chosen physical qubit.
+// If numPhys <= n it falls back to a permutation of [0, n).
+func RandomLayout(n, numPhys int, rng *rand.Rand) []int {
+	if numPhys <= n {
+		layout := TrivialLayout(n)
+		for i := n - 1; i > 0; i-- {
+			j := rng.IntN(i + 1)
+			layout[i], layout[j] = layout[j], layout[i]
+		}
+		return layout
 	}
+	// Fisher-Yates partial shuffle: pick n items from [0, numPhys).
+	pool := make([]int, numPhys)
+	for i := range pool {
+		pool[i] = i
+	}
+	for i := range n {
+		j := i + rng.IntN(numPhys-i)
+		pool[i], pool[j] = pool[j], pool[i]
+	}
+	layout := make([]int, n)
+	copy(layout, pool)
 	return layout
 }
 
 // InverseLayout returns the inverse of a layout mapping.
 // If layout[logical] = physical, then inverse[physical] = logical.
-func InverseLayout(layout []int) []int {
-	inv := make([]int, len(layout))
+// numPhys sets the length of the returned slice (for devices with more physical
+// qubits than logical); unoccupied slots are set to -1.
+func InverseLayout(layout []int, numPhys int) []int {
+	n := max(numPhys, len(layout))
+	inv := make([]int, n)
+	for i := range inv {
+		inv[i] = -1
+	}
 	for log, phys := range layout {
-		if phys >= 0 && phys < len(inv) {
+		if phys >= 0 && phys < n {
 			inv[phys] = log
 		}
 	}

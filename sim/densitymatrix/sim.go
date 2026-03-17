@@ -55,7 +55,7 @@ func (s *Sim) Run(c *ir.Circuit, shots int) (map[string]int, error) {
 	if err := s.Evolve(c); err != nil {
 		return nil, err
 	}
-	probs := s.diagonalProbs()
+	probs := s.ApplyReadoutError(s.diagonalProbs())
 	counts := make(map[string]int)
 	rng := rand.New(rand.NewPCG(rand.Uint64(), rand.Uint64()))
 	for range shots {
