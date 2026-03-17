@@ -116,6 +116,7 @@ func (s *Sim) Run(c *ir.Circuit, shots int) (map[string]int, error) {
 
 	counts := make(map[string]int)
 	rng := rand.New(rand.NewPCG(rand.Uint64(), rand.Uint64()))
+	ops := c.Ops()
 
 	for range shots {
 		// Reset tableau to |0...0>.
@@ -123,7 +124,7 @@ func (s *Sim) Run(c *ir.Circuit, shots int) (map[string]int, error) {
 
 		// Find measurement ops and apply gates.
 		var measQubits []int
-		for _, op := range c.Ops() {
+		for _, op := range ops {
 			if op.Gate == nil {
 				if len(op.Clbits) > 0 && len(op.Qubits) > 0 {
 					measQubits = append(measQubits, op.Qubits[0])

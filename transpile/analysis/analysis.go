@@ -15,13 +15,14 @@ func BuildTimelines(c *ir.Circuit) []QubitTimeline {
 	for i := range tl {
 		tl[i].Qubit = i
 	}
-	for idx, op := range c.Ops() {
+	c.RangeOps(func(idx int, op ir.Operation) bool {
 		for _, q := range op.Qubits {
 			if q < len(tl) {
 				tl[q].Ops = append(tl[q].Ops, idx)
 			}
 		}
-	}
+		return true
+	})
 	return tl
 }
 

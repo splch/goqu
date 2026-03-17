@@ -98,12 +98,10 @@ func pauliBasis(nq int) [][]complex128 {
 	// Tensor product for additional qubits.
 	for q := 1; q < nq; q++ {
 		prevDim := 1 << q
-		newDim := prevDim * 2
 		newBasis := make([][]complex128, len(basis)*4)
 		for i, prev := range basis {
 			for j := range 4 {
 				newBasis[i*4+j] = tensorProduct(prev, paulis1Q[j], prevDim)
-				_ = newDim // dimension of result
 			}
 		}
 		basis = newBasis

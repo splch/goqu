@@ -3,6 +3,7 @@ package builder
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/splch/goqu/circuit/gate"
 	"github.com/splch/goqu/circuit/ir"
@@ -583,7 +584,7 @@ func (b *Builder) Switch(clbits []int, cases map[int]func(*Builder), defaultBody
 		caseVals = append(caseVals, val)
 	}
 	// Sort for deterministic ordering.
-	sortInts(caseVals)
+	slices.Sort(caseVals)
 	for _, val := range caseVals {
 		sub := b.subBuilder()
 		cases[val](sub)
@@ -626,19 +627,6 @@ func (b *Builder) subBuilder() *Builder {
 		numQubits: b.numQubits,
 		numClbits: b.numClbits,
 		metadata:  b.metadata,
-	}
-}
-
-// sortInts sorts a slice of ints in ascending order (insertion sort, fine for small slices).
-func sortInts(a []int) {
-	for i := 1; i < len(a); i++ {
-		key := a[i]
-		j := i - 1
-		for j >= 0 && a[j] > key {
-			a[j+1] = a[j]
-			j--
-		}
-		a[j+1] = key
 	}
 }
 

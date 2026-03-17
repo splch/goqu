@@ -600,7 +600,6 @@ func expandOpsToIonQ(ops []ir.Operation) []ir.Operation {
 			result = append(result, op)
 			continue
 		}
-		name := op.Gate.Name()
 		// Check if already IonQ native.
 		bn := mathutil.StripParamsAndDagger(op.Gate.Name())
 		if ionqBasis[bn] {
@@ -609,7 +608,7 @@ func expandOpsToIonQ(ops []ir.Operation) []ir.Operation {
 		}
 		// Decompose further.
 		switch {
-		case name == "CNOT" || name == "CX":
+		case bn == "CNOT" || bn == "CX":
 			result = append(result, decompose2qToIonQ(gate.CNOT, op.Qubits)...)
 		case op.Gate.Qubits() == 1:
 			sub := decompose1qToIonQ(op.Gate, op.Qubits)

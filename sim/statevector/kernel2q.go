@@ -164,10 +164,7 @@ func (s *Sim) kernel2qCNOT(q0, q1 int) {
 
 // kernel2qCZ: negate the |11> amplitude (phase-flip when both qubits are |1>).
 func (s *Sim) kernel2qCZ(q0, q1 int) {
-	_, mask1, lo, hi := blockStride2(q0, q1)
-	_ = mask1
-	mask0 := 1 << q0
-	mask1 = 1 << q1
+	mask0, mask1, lo, hi := blockStride2(q0, q1)
 	n := len(s.state)
 	loMask := 1 << lo
 	hiMask := 1 << hi

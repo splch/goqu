@@ -257,11 +257,12 @@ func (s *Sim) applyControlledGateN(cg gate.ControlledGate, qubits []int) {
 		allMask |= 1 << q
 	}
 
+	indices := make([]int, dim)
+	a := make([]complex128, dim)
 	for base := 0; base < n; base++ {
 		if base&allMask != 0 {
 			continue
 		}
-		indices := make([]int, dim)
 		for r := range dim {
 			idx := base
 			for bit := range totalQubits {
@@ -271,7 +272,6 @@ func (s *Sim) applyControlledGateN(cg gate.ControlledGate, qubits []int) {
 			}
 			indices[r] = idx
 		}
-		a := make([]complex128, dim)
 		for j := range dim {
 			a[j] = s.state[indices[j]]
 		}

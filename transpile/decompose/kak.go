@@ -9,13 +9,16 @@ import (
 	"github.com/splch/goqu/internal/mathutil"
 )
 
+// KAK decomposes an arbitrary 2-qubit unitary into at most 3 CNOTs + single-qubit rotations.
+// It is equivalent to KAKForBasis with BasisZYZ.
+func KAK(m []complex128, q0, q1 int) []ir.Operation {
+	return KAKForBasis(m, q0, q1, BasisZYZ)
+}
+
 // KAKForBasis decomposes an arbitrary 2-qubit unitary using the KAK (Cartan)
 // decomposition with the specified Euler convention for single-qubit rotations.
 // Reference: Tucci, arXiv:quant-ph/0507171; Vatan-Williams, arXiv:quant-ph/0308006.
 func KAKForBasis(m []complex128, q0, q1 int, basis EulerBasis) []ir.Operation {
-	if basis == BasisZYZ {
-		return KAK(m, q0, q1)
-	}
 	if isGlobalPhaseOf(m, Eye(4), 1e-9) {
 		return nil
 	}
@@ -47,57 +50,6 @@ func KAKForBasis(m []complex128, q0, q1 int, basis EulerBasis) []ir.Operation {
 		return ops
 	}
 	return kakGeneralForBasis(m, q0, q1, basis)
-}
-
-// KAK decomposes an arbitrary 2-qubit unitary into at most 3 CNOTs + single-qubit rotations.
-func KAK(m []complex128, q0, q1 int) []ir.Operation {
-	if isGlobalPhaseOf(m, Eye(4), 1e-9) {
-		return nil
-	}
-	if isGlobalPhaseOf(m, gate.CNOT.Matrix(), 1e-9) {
-		return []ir.Operation{{Gate: gate.CNOT, Qubits: []int{q0, q1}}}
-	}
-	if isGlobalPhaseOf(m, gate.SWAP.Matrix(), 1e-9) {
-		return []ir.Operation{
-			{Gate: gate.CNOT, Qubits: []int{q0, q1}},
-			{Gate: gate.CNOT, Qubits: []int{q1, q0}},
-			{Gate: gate.CNOT, Qubits: []int{q0, q1}},
-		}
-	}
-	if isGlobalPhaseOf(m, gate.CZ.Matrix(), 1e-9) {
-		return []ir.Operation{
-			{Gate: gate.H, Qubits: []int{q1}},
-			{Gate: gate.CNOT, Qubits: []int{q0, q1}},
-			{Gate: gate.H, Qubits: []int{q1}},
-		}
-	}
-	if isGlobalPhaseOf(m, gate.CY.Matrix(), 1e-9) {
-		return []ir.Operation{
-			{Gate: gate.Sdg, Qubits: []int{q1}},
-			{Gate: gate.CNOT, Qubits: []int{q0, q1}},
-			{Gate: gate.S, Qubits: []int{q1}},
-		}
-	}
-	if ops := tryLocalDecompose(m, q0, q1); ops != nil {
-		return ops
-	}
-	return kakGeneral(m, q0, q1)
-}
-
-// tryLocalDecompose checks if m ≈ A⊗B up to global phase.
-func tryLocalDecompose(m []complex128, q0, q1 int) []ir.Operation {
-	a, b := factorKronecker(m)
-	prod := Tensor(a, 2, b, 2)
-	if isGlobalPhaseOf(prod, m, 1e-9) {
-		ops := make([]ir.Operation, 0, 6)
-		ops = append(ops, eulerFromMatrix(a, q0)...)
-		ops = append(ops, eulerFromMatrix(b, q1)...)
-		if len(ops) == 0 {
-			return nil
-		}
-		return ops
-	}
-	return nil
 }
 
 // KakParams extracts the KAK decomposition parameters from a 4×4 unitary:
@@ -271,29 +223,6 @@ func KakParams(m []complex128) (k1l, k1r, k2l, k2r []complex128, x, y, z float64
 	return
 }
 
-// kakGeneral implements the full KAK decomposition using optimal CNOT counts.
-func kakGeneral(m []complex128, q0, q1 int) []ir.Operation {
-	k1l, k1r, k2l, k2r, x, y, z, nNonzero := KakParams(m)
-
-	if nNonzero == 0 {
-		// Local unitary (shouldn't normally reach here).
-		ops := make([]ir.Operation, 0, 6)
-		k := matMul2(k1l, k2l)
-		ops = append(ops, eulerFromMatrix(k, q0)...)
-		k = matMul2(k1r, k2r)
-		ops = append(ops, eulerFromMatrix(k, q1)...)
-		return ops
-	}
-	if nNonzero == 1 && isCNOTEquiv(x, y, z) {
-		return oneCNOTCircuit(k1l, k1r, k2l, k2r, q0, q1)
-	}
-	if nNonzero == 1 {
-		return twoCNOTCircuit(x, y, z, k1l, k1r, k2l, k2r, q0, q1)
-	}
-	// nNonzero >= 2: optimal 3-CNOT path.
-	return threeCNOTCircuit(x, y, z, k1l, k1r, k2l, k2r, q0, q1)
-}
-
 // isCNOTEquiv checks if Weyl parameters correspond to a CNOT-class gate
 // (exactly one parameter = pi/4).
 func isCNOTEquiv(x, y, z float64) bool {
@@ -399,106 +328,6 @@ func init() {
 	_u2rb = matMul2(K11r, _bK1rAdj)
 	_u3l = matMul2(_bK2lAdj, K12l)
 	_u3r = matMul2(_bK2rAdj, K12r)
-}
-
-// threeCNOTCircuit builds the optimal 3-CNOT decomposition.
-//
-// Template:
-//
-//	q0: [U3l]--*--[U2l]--*--[U1l]--*--[U0l]
-//	            |         |         |
-//	q1: [U3r]--X--[U2r]--X--[U1r]--X--[U0r]
-//
-// Where each Weyl parameter (a,b,c) appears exactly once as an Rz rotation
-// inside the single-qubit gates between CX gates.
-func threeCNOTCircuit(a, b, c float64, k1l, k1r, k2l, k2r []complex128, q0, q1 int) []ir.Operation {
-	// U0l = K1l · _u0l, U0r = K1r · _u0r  (absorb target K1)
-	U0l := matMul2(k1l, _u0l)
-	U0r := matMul2(k1r, _u0r)
-
-	// U1l = _u1l (constant)
-	U1l := _u1l
-
-	// U1r = _u1ra · Rz(-2c) · _u1rb  (depends on c)
-	U1r := matMul2(_u1ra, matMul2(rzMat(-2*c), _u1rb))
-
-	// U2l = _u2la · Rz(-2a) · _u2lb  (depends on a)
-	U2l := matMul2(_u2la, matMul2(rzMat(-2*a), _u2lb))
-
-	// U2r = _u2ra · Rz(2b) · _u2rb  (depends on b)
-	U2r := matMul2(_u2ra, matMul2(rzMat(2*b), _u2rb))
-
-	// U3l = _u3l · K2l, U3r = _u3r · K2r  (absorb target K2)
-	U3l := matMul2(_u3l, k2l)
-	U3r := matMul2(_u3r, k2r)
-
-	ops := make([]ir.Operation, 0, 27)
-	ops = append(ops, eulerFromMatrix(U3l, q0)...)
-	ops = append(ops, eulerFromMatrix(U3r, q1)...)
-	ops = append(ops, ir.Operation{Gate: gate.CNOT, Qubits: []int{q0, q1}})
-	ops = append(ops, eulerFromMatrix(U2l, q0)...)
-	ops = append(ops, eulerFromMatrix(U2r, q1)...)
-	ops = append(ops, ir.Operation{Gate: gate.CNOT, Qubits: []int{q0, q1}})
-	ops = append(ops, eulerFromMatrix(U1l, q0)...)
-	ops = append(ops, eulerFromMatrix(U1r, q1)...)
-	ops = append(ops, ir.Operation{Gate: gate.CNOT, Qubits: []int{q0, q1}})
-	ops = append(ops, eulerFromMatrix(U0l, q0)...)
-	ops = append(ops, eulerFromMatrix(U0r, q1)...)
-	return ops
-}
-
-// oneCNOTCircuit decomposes a gate equivalent to CNOT (up to local unitaries)
-// using exactly 1 CX gate.
-//
-//	U = (K1l⊗K1r) · CX · (K2l⊗K2r)
-//	  = (K1l·bK1l†)⊗(K1r·bK1r†) · (bK1l⊗bK1r)·CX·(bK2l⊗bK2r) · (bK2l†·K2l)⊗(bK2r†·K2r)
-func oneCNOTCircuit(k1l, k1r, k2l, k2r []complex128, q0, q1 int) []ir.Operation {
-	Al := matMul2(k1l, _bK1lAdj)
-	Ar := matMul2(k1r, _bK1rAdj)
-	Bl := matMul2(_bK2lAdj, k2l)
-	Br := matMul2(_bK2rAdj, k2r)
-
-	ops := make([]ir.Operation, 0, 13)
-	ops = append(ops, eulerFromMatrix(Bl, q0)...)
-	ops = append(ops, eulerFromMatrix(Br, q1)...)
-	ops = append(ops, ir.Operation{Gate: gate.CNOT, Qubits: []int{q0, q1}})
-	ops = append(ops, eulerFromMatrix(Al, q0)...)
-	ops = append(ops, eulerFromMatrix(Ar, q1)...)
-	return ops
-}
-
-// twoCNOTCircuit handles the single-nonzero-Weyl-parameter case using 2 CNOTs.
-func twoCNOTCircuit(x, y, z float64, k1l, k1r, k2l, k2r []complex128, q0, q1 int) []ir.Operation {
-	const tol = 1e-8
-	xz := math.Abs(x) > tol
-	yz := math.Abs(y) > tol
-	zz := math.Abs(z) > tol
-
-	var udOps []ir.Operation
-	switch {
-	case zz:
-		udOps = zzCircuit(z, q0, q1)
-	case xz:
-		udOps = xxCircuit(x, q0, q1)
-	case yz:
-		udOps = yyCircuit(y, q0, q1)
-	}
-
-	// Compute the actual unitary of the Ud circuit, then correct for numerical error.
-	udMat := OpsToUnitary4(udOps, q0, q1)
-	udTarget := weylUnitary(x, y, z)
-	correction := MatMul(udTarget, MatAdj(udMat, 4), 4)
-	k1Full := Tensor(k1l, 2, k1r, 2)
-	afterMat := MatMul(k1Full, correction, 4)
-	al, ar := factorKronecker(afterMat)
-
-	ops := make([]ir.Operation, 0, 4*3+len(udOps))
-	ops = append(ops, eulerFromMatrix(k2l, q0)...)
-	ops = append(ops, eulerFromMatrix(k2r, q1)...)
-	ops = append(ops, udOps...)
-	ops = append(ops, eulerFromMatrix(al, q0)...)
-	ops = append(ops, eulerFromMatrix(ar, q1)...)
-	return ops
 }
 
 // weylUnitary computes exp(i*(x·XX + y·YY + z·ZZ)) as a 4x4 matrix.

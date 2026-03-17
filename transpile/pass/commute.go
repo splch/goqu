@@ -17,8 +17,7 @@ import (
 // Direction: push single-qubit gates forward (later in the circuit)
 // past CNOTs when they commute, to bring same-type gates together.
 func CommuteThroughCNOT(c *ir.Circuit, _ target.Target) (*ir.Circuit, error) {
-	ops := make([]ir.Operation, len(c.Ops()))
-	copy(ops, c.Ops())
+	ops := c.Ops()
 
 	changed := true
 	for changed {

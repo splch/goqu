@@ -39,12 +39,13 @@ func Compose(c1, c2 *Circuit, qubitMap, clbitMap map[int]int) (*Circuit, error) 
 		return nil, fmt.Errorf("ir.Compose: c2 has %d clbits, exceeds c1's %d (provide clbitMap)", c2.NumClbits(), c1.NumClbits())
 	}
 
-	ops1 := c1.Ops()
-	ops2 := c2.Ops()
-	result := make([]Operation, len(ops1), len(ops1)+len(ops2))
-	copy(result, ops1)
+	result := make([]Operation, c1.NumOps(), c1.NumOps()+c2.NumOps())
+	for i := range c1.NumOps() {
+		result[i] = c1.Op(i)
+	}
 
-	for i, op := range ops2 {
+	for i := range c2.NumOps() {
+		op := c2.Op(i)
 		remapped, err := remapOp(op, qubitMap, clbitMap)
 		if err != nil {
 			return nil, fmt.Errorf("ir.Compose: op %d: %w", i, err)
@@ -61,12 +62,13 @@ func Tensor(c1, c2 *Circuit) *Circuit {
 	qShift := c1.NumQubits()
 	cShift := c1.NumClbits()
 
-	ops1 := c1.Ops()
-	ops2 := c2.Ops()
-	result := make([]Operation, len(ops1), len(ops1)+len(ops2))
-	copy(result, ops1)
+	result := make([]Operation, c1.NumOps(), c1.NumOps()+c2.NumOps())
+	for i := range c1.NumOps() {
+		result[i] = c1.Op(i)
+	}
 
-	for _, op := range ops2 {
+	for i := range c2.NumOps() {
+		op := c2.Op(i)
 		result = append(result, shiftOp(op, qShift, cShift))
 	}
 
@@ -77,10 +79,9 @@ func Tensor(c1, c2 *Circuit) *Circuit {
 // Inverse reverses operation order and adjoints each gate.
 // Measurements, resets, barriers, and control flow ops are dropped (irreversible / non-unitary).
 func Inverse(c *Circuit) *Circuit {
-	ops := c.Ops()
 	var result []Operation
-	for i := len(ops) - 1; i >= 0; i-- {
-		op := ops[i]
+	for i := c.NumOps() - 1; i >= 0; i-- {
+		op := c.Op(i)
 		// Drop control flow operations.
 		if op.ControlFlow != nil {
 			continue
@@ -109,10 +110,12 @@ func Repeat(c *Circuit, n int) (*Circuit, error) {
 	if n < 1 {
 		return nil, fmt.Errorf("ir.Repeat: n must be >= 1, got %d", n)
 	}
-	ops := c.Ops()
-	result := make([]Operation, 0, len(ops)*n)
+	nOps := c.NumOps()
+	result := make([]Operation, 0, nOps*n)
 	for range n {
-		result = append(result, ops...)
+		for i := range nOps {
+			result = append(result, c.Op(i))
+		}
 	}
 
 	name := c.Name() + "×" + strconv.Itoa(n)
