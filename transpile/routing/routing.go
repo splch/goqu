@@ -146,9 +146,7 @@ func runTrial(ops []ir.Operation, n int, dist [][]int, adj map[int][]int,
 	var bestOps []ir.Operation
 	bestSwaps := math.MaxInt
 
-	for iter := range opts.BidirectionalIters {
-		_ = iter
-
+	for range opts.BidirectionalIters {
 		// Forward pass.
 		fwdDAG := newDAG(ops, n, false)
 		fwdOps, fwdLayout, fwdSwaps := sabrePass(fwdDAG, dist, adj, layout, opts, rng)

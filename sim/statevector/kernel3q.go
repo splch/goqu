@@ -173,181 +173,105 @@ func (s *Sim) kernel3qGeneric(q0, q1, q2 int, m []complex128) {
 
 // --- Parallel kernels ---
 
-func (s *Sim) parallelBlocks3(hiMask int) (nBlocks, nWorkers int) {
+// kernel3qFunc is the per-offset body of a 3-qubit kernel. It receives
+// the statevector, the base offset (all three qubit bits = 0), and the
+// three qubit bitmasks.
+type kernel3qFunc func(state []complex128, offset, mask0, mask1, mask2 int)
+
+// runParallel3q distributes the 3-qubit block-stride iteration across
+// goroutines, analogous to [runParallel2q] for 2-qubit gates.
+func (s *Sim) runParallel3q(q0, q1, q2 int, body kernel3qFunc) {
+	mask0, mask1, mask2, lo, mid, hi := blockStride3(q0, q1, q2)
+	loMask := 1 << lo
+	midMask := 1 << mid
+	hiMask := 1 << hi
+	hiStep := hiMask << 1
 	n := len(s.state)
-	nBlocks = n / (hiMask << 1)
-	nWorkers = optimalWorkers(s.numQubits)
+	nBlocks := n / hiStep
+	nWorkers := optimalWorkers(s.numQubits)
 	if nBlocks < nWorkers {
 		nWorkers = nBlocks
 	}
 	if nWorkers < 1 {
 		nWorkers = 1
 	}
-	return
+	blocksPerWorker := nBlocks / nWorkers
+
+	var wg sync.WaitGroup
+	wg.Add(nWorkers)
+	for w := range nWorkers {
+		startBlock := w * blocksPerWorker
+		endBlock := startBlock + blocksPerWorker
+		if w == nWorkers-1 {
+			endBlock = nBlocks
+		}
+		go func(sb, eb int) {
+			defer wg.Done()
+			for b := sb; b < eb; b++ {
+				hi0 := b * hiStep
+				for mid0 := hi0; mid0 < hi0+hiMask; mid0 += midMask << 1 {
+					for lo0 := mid0; lo0 < mid0+midMask; lo0 += loMask << 1 {
+						for offset := lo0; offset < lo0+loMask; offset++ {
+							body(s.state, offset, mask0, mask1, mask2)
+						}
+					}
+				}
+			}
+		}(startBlock, endBlock)
+	}
+	wg.Wait()
 }
 
 func (s *Sim) kernel3qCCXParallel(q0, q1, q2 int) {
-	mask0, mask1, mask2, lo, mid, hi := blockStride3(q0, q1, q2)
-	loMask := 1 << lo
-	midMask := 1 << mid
-	hiMask := 1 << hi
-	hiStep := hiMask << 1
-	nBlocks, nWorkers := s.parallelBlocks3(hiMask)
-	blocksPerWorker := nBlocks / nWorkers
-
-	var wg sync.WaitGroup
-	wg.Add(nWorkers)
-	for w := range nWorkers {
-		startBlock := w * blocksPerWorker
-		endBlock := startBlock + blocksPerWorker
-		if w == nWorkers-1 {
-			endBlock = nBlocks
-		}
-		go func(sb, eb int) {
-			defer wg.Done()
-			for b := sb; b < eb; b++ {
-				hi0 := b * hiStep
-				for mid0 := hi0; mid0 < hi0+hiMask; mid0 += midMask << 1 {
-					for lo0 := mid0; lo0 < mid0+midMask; lo0 += loMask << 1 {
-						for offset := lo0; offset < lo0+loMask; offset++ {
-							i110 := offset | mask0 | mask1
-							i111 := offset | mask0 | mask1 | mask2
-							s.state[i110], s.state[i111] = s.state[i111], s.state[i110]
-						}
-					}
-				}
-			}
-		}(startBlock, endBlock)
-	}
-	wg.Wait()
+	s.runParallel3q(q0, q1, q2, func(state []complex128, offset, mask0, mask1, mask2 int) {
+		i110 := offset | mask0 | mask1
+		i111 := offset | mask0 | mask1 | mask2
+		state[i110], state[i111] = state[i111], state[i110]
+	})
 }
 
 func (s *Sim) kernel3qCSWAPParallel(q0, q1, q2 int) {
-	mask0, mask1, mask2, lo, mid, hi := blockStride3(q0, q1, q2)
-	loMask := 1 << lo
-	midMask := 1 << mid
-	hiMask := 1 << hi
-	hiStep := hiMask << 1
-	nBlocks, nWorkers := s.parallelBlocks3(hiMask)
-	blocksPerWorker := nBlocks / nWorkers
-
-	var wg sync.WaitGroup
-	wg.Add(nWorkers)
-	for w := range nWorkers {
-		startBlock := w * blocksPerWorker
-		endBlock := startBlock + blocksPerWorker
-		if w == nWorkers-1 {
-			endBlock = nBlocks
-		}
-		go func(sb, eb int) {
-			defer wg.Done()
-			for b := sb; b < eb; b++ {
-				hi0 := b * hiStep
-				for mid0 := hi0; mid0 < hi0+hiMask; mid0 += midMask << 1 {
-					for lo0 := mid0; lo0 < mid0+midMask; lo0 += loMask << 1 {
-						for offset := lo0; offset < lo0+loMask; offset++ {
-							i101 := offset | mask0 | mask2
-							i110 := offset | mask0 | mask1
-							s.state[i101], s.state[i110] = s.state[i110], s.state[i101]
-						}
-					}
-				}
-			}
-		}(startBlock, endBlock)
-	}
-	wg.Wait()
+	s.runParallel3q(q0, q1, q2, func(state []complex128, offset, mask0, mask1, mask2 int) {
+		i101 := offset | mask0 | mask2
+		i110 := offset | mask0 | mask1
+		state[i101], state[i110] = state[i110], state[i101]
+	})
 }
 
 func (s *Sim) kernel3qCCZParallel(q0, q1, q2 int) {
-	mask0, mask1, mask2, lo, mid, hi := blockStride3(q0, q1, q2)
-	loMask := 1 << lo
-	midMask := 1 << mid
-	hiMask := 1 << hi
-	hiStep := hiMask << 1
-	nBlocks, nWorkers := s.parallelBlocks3(hiMask)
-	blocksPerWorker := nBlocks / nWorkers
-
-	var wg sync.WaitGroup
-	wg.Add(nWorkers)
-	for w := range nWorkers {
-		startBlock := w * blocksPerWorker
-		endBlock := startBlock + blocksPerWorker
-		if w == nWorkers-1 {
-			endBlock = nBlocks
-		}
-		go func(sb, eb int) {
-			defer wg.Done()
-			for b := sb; b < eb; b++ {
-				hi0 := b * hiStep
-				for mid0 := hi0; mid0 < hi0+hiMask; mid0 += midMask << 1 {
-					for lo0 := mid0; lo0 < mid0+midMask; lo0 += loMask << 1 {
-						for offset := lo0; offset < lo0+loMask; offset++ {
-							i111 := offset | mask0 | mask1 | mask2
-							s.state[i111] = -s.state[i111]
-						}
-					}
-				}
-			}
-		}(startBlock, endBlock)
-	}
-	wg.Wait()
+	s.runParallel3q(q0, q1, q2, func(state []complex128, offset, mask0, mask1, mask2 int) {
+		i111 := offset | mask0 | mask1 | mask2
+		state[i111] = -state[i111]
+	})
 }
 
 func (s *Sim) kernel3qGenericParallel(q0, q1, q2 int, m []complex128) {
-	mask0, mask1, mask2, lo, mid, hi := blockStride3(q0, q1, q2)
-	loMask := 1 << lo
-	midMask := 1 << mid
-	hiMask := 1 << hi
-	hiStep := hiMask << 1
-	nBlocks, nWorkers := s.parallelBlocks3(hiMask)
-	blocksPerWorker := nBlocks / nWorkers
-
-	var wg sync.WaitGroup
-	wg.Add(nWorkers)
-	for w := range nWorkers {
-		startBlock := w * blocksPerWorker
-		endBlock := startBlock + blocksPerWorker
-		if w == nWorkers-1 {
-			endBlock = nBlocks
-		}
-		go func(sb, eb int) {
-			defer wg.Done()
-			for b := sb; b < eb; b++ {
-				hi0 := b * hiStep
-				for mid0 := hi0; mid0 < hi0+hiMask; mid0 += midMask << 1 {
-					for lo0 := mid0; lo0 < mid0+midMask; lo0 += loMask << 1 {
-						for offset := lo0; offset < lo0+loMask; offset++ {
-							var indices [8]int
-							for r := range 8 {
-								idx := offset
-								if r&4 != 0 {
-									idx |= mask0
-								}
-								if r&2 != 0 {
-									idx |= mask1
-								}
-								if r&1 != 0 {
-									idx |= mask2
-								}
-								indices[r] = idx
-							}
-							var a [8]complex128
-							for j := range 8 {
-								a[j] = s.state[indices[j]]
-							}
-							for r := range 8 {
-								var sum complex128
-								row := r * 8
-								for c := range 8 {
-									sum += m[row+c] * a[c]
-								}
-								s.state[indices[r]] = sum
-							}
-						}
-					}
-				}
+	s.runParallel3q(q0, q1, q2, func(state []complex128, offset, mask0, mask1, mask2 int) {
+		var indices [8]int
+		for r := range 8 {
+			idx := offset
+			if r&4 != 0 {
+				idx |= mask0
 			}
-		}(startBlock, endBlock)
-	}
-	wg.Wait()
+			if r&2 != 0 {
+				idx |= mask1
+			}
+			if r&1 != 0 {
+				idx |= mask2
+			}
+			indices[r] = idx
+		}
+		var a [8]complex128
+		for j := range 8 {
+			a[j] = state[indices[j]]
+		}
+		for r := range 8 {
+			var sum complex128
+			row := r * 8
+			for c := range 8 {
+				sum += m[row+c] * a[c]
+			}
+			state[indices[r]] = sum
+		}
+	})
 }

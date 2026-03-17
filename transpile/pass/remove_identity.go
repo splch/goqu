@@ -10,10 +10,10 @@ import (
 // numerical tolerance. This catches zero-angle rotations (RZ(0), RY(2*pi))
 // and any gate that evaluates to identity after merging.
 func RemoveIdentity(c *ir.Circuit, _ target.Target) (*ir.Circuit, error) {
-	ops := c.Ops()
 	var result []ir.Operation
 	changed := false
-	for _, op := range ops {
+	for i := range c.NumOps() {
+		op := c.Op(i)
 		if op.Gate == nil || op.Condition != nil || op.ControlFlow != nil {
 			result = append(result, op)
 			continue

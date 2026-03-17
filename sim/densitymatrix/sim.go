@@ -89,7 +89,8 @@ func (s *Sim) Apply(c *ir.Circuit) error {
 		return fmt.Errorf("circuit has %d qubits, simulator has %d", c.NumQubits(), s.numQubits)
 	}
 
-	for _, op := range c.Ops() {
+	for i := range c.NumOps() {
+		op := c.Op(i)
 		if op.Gate == nil || op.Gate.Name() == "barrier" {
 			continue
 		}
@@ -336,11 +337,7 @@ func decomposeForDensity(op ir.Operation) []ir.Operation {
 		return result
 	}
 	// For controlled gates, decompose via the controlled gate interface.
-	if cg, ok := op.Gate.(gate.ControlledGate); ok {
-		_ = cg
-		// Use a simple recursive approach: the controlled kernel for statevector
-		// uses direct bit manipulation, but density matrix needs decomposition.
-		// Recursively decompose: Controlled(U, n) → smaller controlled gates.
+	if _, ok := op.Gate.(gate.ControlledGate); ok {
 		return decomposeControlledForDensity(op)
 	}
 	return nil
@@ -440,10 +437,8 @@ func decomposeGeneralControlledForDensity(u gate.Gate, controls []int, target in
 	// U = e^{iδ} · Rz(α) · Ry(β) · Rz(γ)
 	// C^n(U) = A(tgt) · MCX(ctrls,tgt) · B(tgt) · MCX(ctrls,tgt) · C(tgt) + phase
 	m := u.Matrix()
-	// Simple Euler ZYZ decomposition inline.
+	// Euler ZYZ decomposition: extract angles from 2x2 unitary.
 	det := m[0]*m[3] - m[1]*m[2]
-	detPhase := real(cmplx.Log(det)) / 2 // imaginary part
-	_ = detPhase
 	phase := imag(cmplx.Log(det)) / 2
 	factor := cmplx.Exp(complex(0, -phase))
 	a := m[0] * factor

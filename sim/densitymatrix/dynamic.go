@@ -124,8 +124,7 @@ func (s *Sim) executeOps(ops []ir.Operation, clbits []int, rng *rand.Rand) error
 func (s *Sim) executeControlFlow(cf *ir.ControlFlow, clbits []int, rng *rand.Rand) error {
 	switch cf.Type {
 	case ir.ControlFlowWhile:
-		for iter := range ir.MaxControlFlowIterations {
-			_ = iter
+		for range ir.MaxControlFlowIterations {
 			if clbits[cf.Condition.Clbit] != cf.Condition.Value {
 				break
 			}

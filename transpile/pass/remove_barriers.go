@@ -8,13 +8,12 @@ import (
 
 // RemoveBarriers strips barrier pseudo-gates from the circuit.
 func RemoveBarriers(c *ir.Circuit, _ target.Target) (*ir.Circuit, error) {
-	ops := c.Ops()
-	filtered := make([]ir.Operation, 0, len(ops))
-	for _, op := range ops {
-		if op.Gate != nil && op.Gate.Name() == "barrier" {
-			continue
+	filtered := make([]ir.Operation, 0, c.NumOps())
+	c.RangeOps(func(_ int, op ir.Operation) bool {
+		if op.Gate == nil || op.Gate.Name() != "barrier" {
+			filtered = append(filtered, op)
 		}
-		filtered = append(filtered, op)
-	}
+		return true
+	})
 	return ir.New(c.Name(), c.NumQubits(), c.NumClbits(), filtered, c.Metadata()), nil
 }

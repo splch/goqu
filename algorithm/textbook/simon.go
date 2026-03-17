@@ -74,12 +74,10 @@ func Simon(ctx context.Context, cfg SimonConfig) (*SimonResult, error) {
 	var equations []int
 	var lastCirc *ir.Circuit
 
-	for round := range cfg.maxRounds() {
+	for range cfg.maxRounds() {
 		if err := ctx.Err(); err != nil {
 			return nil, err
 		}
-		_ = round
-
 		nTotal := 2 * n
 		b := builder.New("Simon", nTotal)
 
