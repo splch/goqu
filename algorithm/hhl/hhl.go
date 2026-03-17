@@ -142,11 +142,18 @@ func Run(ctx context.Context, cfg Config) (*Result, error) {
 	}
 	b.Compose(iqft, phaseMap)
 
-	// Step 3: Controlled rotation on ancilla.
+	// Step 3: Controlled rotation on ancilla -- the key step of HHL.
 	// For each phase register basis state |j⟩, the estimated eigenvalue is
 	// λ_j = 2π*j / 2^nPhase.
 	// Apply RY(2*arcsin(C/λ_j)) on ancilla, controlled by phase register = |j⟩.
 	// C is the smallest representable eigenvalue (j=1).
+	//
+	// The ancilla rotation angle arcsin(C/lambda_j) encodes 1/lambda_j into
+	// the ancilla amplitude. After post-selecting on the ancilla being |1>,
+	// the remaining state has amplitudes proportional to b_j/lambda_j, which
+	// is the solution x = A^{-1}b. The success probability of post-selection
+	// scales as C^2 * sum_j |b_j/lambda_j|^2, so C is chosen as the smallest
+	// eigenvalue to maximize the success rate.
 	nPhaseDim := 1 << nPhase
 	C := 2 * math.Pi / float64(nPhaseDim)
 

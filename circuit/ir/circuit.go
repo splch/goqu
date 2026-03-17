@@ -40,10 +40,29 @@ func New(name string, numQubits, numClbits int, ops []Operation, metadata map[st
 func (c *Circuit) Name() string   { return c.name }
 func (c *Circuit) NumQubits() int { return c.numQubits }
 func (c *Circuit) NumClbits() int { return c.numClbits }
+
+// Ops returns a defensive copy of the operation slice.
 func (c *Circuit) Ops() []Operation {
 	out := make([]Operation, len(c.ops))
 	copy(out, c.ops)
 	return out
+}
+
+// NumOps returns the number of operations in the circuit.
+func (c *Circuit) NumOps() int { return len(c.ops) }
+
+// Op returns the i-th operation. It does not copy — callers must not modify
+// the returned value's slices or pointer fields.
+func (c *Circuit) Op(i int) Operation { return c.ops[i] }
+
+// RangeOps calls fn for each operation in order. If fn returns false,
+// iteration stops early. This avoids the allocation of [Circuit.Ops].
+func (c *Circuit) RangeOps(fn func(i int, op Operation) bool) {
+	for i, op := range c.ops {
+		if !fn(i, op) {
+			return
+		}
+	}
 }
 func (c *Circuit) Metadata() map[string]string {
 	if c.metadata == nil {

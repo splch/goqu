@@ -125,14 +125,23 @@ func RouteWithOptions(c *ir.Circuit, t target.Target, opts Options) (*ir.Circuit
 		}
 	}
 
-	return ir.New(c.Name(), c.NumQubits(), c.NumClbits(), results[bestIdx].ops, c.Metadata()), nil
+	return ir.New(c.Name(), t.NumQubits, c.NumClbits(), results[bestIdx].ops, c.Metadata()), nil
 }
 
 // runTrial runs one full bidirectional SABRE trial.
+//
+// Bidirectional iteration (Li et al., arXiv:1809.02573, Section IV-B) improves
+// routing quality by alternating forward and backward passes over the circuit.
+// Each forward pass routes the circuit front-to-back, producing a final layout.
+// The subsequent backward pass routes the reversed circuit starting from that
+// final layout, effectively refining the initial layout for the next forward
+// pass. Over multiple iterations, the initial layout converges toward one that
+// naturally reduces SWAP count. Both forward and backward results are kept,
+// and the best (fewest SWAPs) across all passes is returned.
 func runTrial(ops []ir.Operation, n int, dist [][]int, adj map[int][]int,
 	opts Options, rng *rand.Rand) ([]ir.Operation, int) {
 
-	layout := RandomLayout(n, rng)
+	layout := RandomLayout(n, len(dist), rng)
 
 	var bestOps []ir.Operation
 	bestSwaps := math.MaxInt

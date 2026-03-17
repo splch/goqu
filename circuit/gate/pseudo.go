@@ -64,3 +64,19 @@ func (g delayGate) Seconds() float64 {
 		panic(fmt.Sprintf("gate.Delay.Seconds: cannot convert unit %q to seconds", g.unit))
 	}
 }
+
+// Barrier returns a barrier pseudo-gate spanning n qubits. Barriers have no
+// matrix representation — they prevent gate reordering across them during
+// transpilation. Simulators skip them.
+func Barrier(n int) Gate {
+	return barrierGate{n: n}
+}
+
+type barrierGate struct{ n int }
+
+func (g barrierGate) Name() string                { return "barrier" }
+func (g barrierGate) Qubits() int                 { return g.n }
+func (g barrierGate) Matrix() []complex128        { return nil }
+func (g barrierGate) Params() []float64           { return nil }
+func (g barrierGate) Inverse() Gate               { return g }
+func (g barrierGate) Decompose(_ []int) []Applied { return nil }

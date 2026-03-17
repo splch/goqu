@@ -2,7 +2,11 @@ package routing
 
 import "github.com/splch/goqu/circuit/ir"
 
-// dag tracks operation dependencies for SABRE routing.
+// dag is a dependency-ordered directed acyclic graph of circuit operations.
+// It orders operations so that each operation executes only after all prior
+// operations on its qubits have completed. This enables SABRE to identify
+// which gates are ready to execute (the "front layer") at any point during
+// routing.
 type dag struct {
 	ops       []ir.Operation
 	nQubits   int
@@ -85,6 +89,14 @@ func (d *dag) markExecuted(idx int) {
 
 // extendedSet returns layers of future 2-qubit ops reachable from the front
 // layer via successor edges. depth controls how many layers to explore.
+//
+// The extended set contains 2-qubit gates reachable from the front layer
+// within a configurable lookahead depth. Including these future gates in
+// SWAP scoring helps SABRE make globally better routing decisions: a SWAP
+// that looks suboptimal for the immediate front layer may be beneficial
+// when considering upcoming gates. Each deeper layer is weighted
+// geometrically less (via ExtendedSetWeight) so that nearer gates have
+// more influence on the routing decision.
 func (d *dag) extendedSet(front []int, depth int) [][]int {
 	if depth <= 0 {
 		return nil

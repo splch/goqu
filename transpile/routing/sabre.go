@@ -11,15 +11,35 @@ import (
 // sabrePass runs one direction of the SABRE routing algorithm with decay and
 // extended-set lookahead. Reference: Li et al., arXiv:1809.02573.
 // Returns routed operations, final layout, and SWAP count.
+//
+// The SABRE heuristic works as follows:
+//  1. Maintain a "front layer" of 2-qubit gates whose data dependencies are
+//     fully satisfied (all predecessor operations on those qubits have been
+//     executed).
+//  2. Execute any front-layer gate whose operands are already mapped to
+//     adjacent physical qubits.
+//  3. For each non-executable gate (operands not adjacent), evaluate all
+//     candidate SWAP insertions on hardware edges adjacent to front-layer
+//     qubits.
+//  4. Score each candidate SWAP by the sum of post-SWAP distances for
+//     front-layer gates, plus a geometrically weighted sum of distances
+//     for "extended set" (lookahead) gates from deeper DAG layers.
+//  5. A decay factor penalizes repeatedly swapping the same physical qubits,
+//     discouraging cycles where qubits are swapped back and forth.
+//  6. The lowest-scoring SWAP is inserted and the logical-to-physical layout
+//     is updated accordingly.
+//  7. A "release valve" breaks deadlocks: if no gate has been routed after
+//     many consecutive SWAPs, the closest front-layer gate is force-routed
+//     via shortest-path SWAPs.
 func sabrePass(d *dag, dist [][]int, adj map[int][]int,
 	initialLayout []int, opts Options, rng *rand.Rand) ([]ir.Operation, []int, int) {
 
 	n := d.nQubits
 	layout := make([]int, n)
 	copy(layout, initialLayout)
-	inv := InverseLayout(layout)
 
 	numPhys := len(dist)
+	inv := InverseLayout(layout, numPhys)
 	decay := make([]float64, numPhys)
 	for i := range decay {
 		decay[i] = 1.0
@@ -109,8 +129,7 @@ func sabrePass(d *dag, dist [][]int, adj map[int][]int,
 		for _, cand := range candidates {
 			phys0, phys1 := cand[0], cand[1]
 
-			log0, log1 := inv[phys0], inv[phys1]
-			layout[log0], layout[log1] = layout[log1], layout[log0]
+			applySwap(layout, inv, phys0, phys1)
 
 			cost := decay[phys0] * decay[phys1] * layerCost(front, d.ops, layout, dist, numPhys)
 
@@ -118,7 +137,7 @@ func sabrePass(d *dag, dist [][]int, adj map[int][]int,
 				cost += extWeights[i] * layerCost(extLayer, d.ops, layout, dist, numPhys)
 			}
 
-			layout[log0], layout[log1] = layout[log1], layout[log0]
+			applySwap(layout, inv, phys0, phys1) // undo
 
 			if cost < bestCost {
 				bestCost = cost
@@ -145,9 +164,7 @@ func sabrePass(d *dag, dist [][]int, adj map[int][]int,
 		swapCount++
 		swapsSinceLastRoute++
 
-		log0, log1 := inv[bestSwap[0]], inv[bestSwap[1]]
-		layout[log0], layout[log1] = layout[log1], layout[log0]
-		inv[bestSwap[0]], inv[bestSwap[1]] = inv[bestSwap[1]], inv[bestSwap[0]]
+		applySwap(layout, inv, bestSwap[0], bestSwap[1])
 
 		// Update decay.
 		decay[bestSwap[0]] += opts.DecayDelta
@@ -222,8 +239,13 @@ func layerCost(indices []int, ops []ir.Operation, layout []int, dist [][]int, nu
 	return cost
 }
 
-// releaseValveRoute force-routes the closest front-layer 2Q gate via
-// shortest-path SWAPs. Returns the number of SWAPs inserted.
+// releaseValveRoute is SABRE's deadlock-breaking mechanism. It activates when
+// the algorithm has inserted many consecutive SWAPs without successfully
+// routing any gate (exceeding ReleaseValveThreshold). It selects the
+// front-layer 2-qubit gate whose operands are closest in the hardware
+// distance matrix and greedily inserts SWAPs along the shortest path to
+// bring them adjacent, then immediately executes the gate.
+// Returns the number of SWAPs inserted.
 func releaseValveRoute(d *dag, front []int, dist [][]int, adj map[int][]int,
 	layout, inv []int, result *[]ir.Operation) int {
 
@@ -279,9 +301,7 @@ func releaseValveRoute(d *dag, front []int, dist [][]int, adj map[int][]int,
 		})
 		swaps++
 
-		log0, log1 := inv[p0], inv[nextPhys]
-		layout[log0], layout[log1] = layout[log1], layout[log0]
-		inv[p0], inv[nextPhys] = inv[nextPhys], inv[p0]
+		applySwap(layout, inv, p0, nextPhys)
 	}
 
 	// Now route the gate.
@@ -289,6 +309,21 @@ func releaseValveRoute(d *dag, front []int, dist [][]int, adj map[int][]int,
 	d.markExecuted(bestIdx)
 
 	return swaps
+}
+
+// applySwap updates layout and inv for a SWAP on physical qubits phys0, phys1.
+// Handles unoccupied physical qubits (inv entry == -1) correctly.
+func applySwap(layout, inv []int, phys0, phys1 int) {
+	log0, log1 := inv[phys0], inv[phys1]
+	switch {
+	case log0 >= 0 && log1 >= 0:
+		layout[log0], layout[log1] = layout[log1], layout[log0]
+	case log0 >= 0:
+		layout[log0] = phys1
+	case log1 >= 0:
+		layout[log1] = phys0
+	}
+	inv[phys0], inv[phys1] = inv[phys1], inv[phys0]
 }
 
 // remapOp remaps logical qubits to physical qubits using the layout.

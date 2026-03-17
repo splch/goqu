@@ -67,16 +67,34 @@ func (s *Sim) StateVector() []complex128 {
 // Close is a no-op for the CPU statevector simulator. It satisfies sim.Simulator.
 func (s *Sim) Close() error { return nil }
 
-// Evolve applies all gate operations without measuring, leaving the statevector accessible.
-func (s *Sim) Evolve(c *ir.Circuit) error {
-	if c.NumQubits() != s.numQubits {
-		return fmt.Errorf("circuit has %d qubits, simulator has %d", c.NumQubits(), s.numQubits)
-	}
+// Reset returns the simulator state to |0...0>.
+func (s *Sim) Reset() {
 	for i := range s.state {
 		s.state[i] = 0
 	}
 	s.state[0] = 1
-	for _, op := range c.Ops() {
+}
+
+// Evolve resets the state to |0...0> and then applies the circuit's gate
+// operations without measuring. The resulting statevector is accessible via
+// [Sim.StateVector]. To apply gates without resetting (e.g. to compose
+// circuits incrementally), use [Sim.Apply] instead.
+func (s *Sim) Evolve(c *ir.Circuit) error {
+	s.Reset()
+	return s.Apply(c)
+}
+
+// Apply applies the circuit's gate operations to the current state without
+// resetting. Use this to compose circuits incrementally:
+//
+//	sim.Evolve(circuitA) // resets to |0>, then applies A
+//	sim.Apply(circuitB)  // applies B to the state left by A
+func (s *Sim) Apply(c *ir.Circuit) error {
+	if c.NumQubits() != s.numQubits {
+		return fmt.Errorf("circuit has %d qubits, simulator has %d", c.NumQubits(), s.numQubits)
+	}
+	for i := range c.NumOps() {
+		op := c.Op(i)
 		if op.Gate == nil || op.Gate.Name() == "barrier" || op.Gate.Name() == "delay" {
 			continue
 		}
@@ -89,8 +107,8 @@ func (s *Sim) Evolve(c *ir.Circuit) error {
 			// Fast path: full-state preparation on qubits [0..n-1].
 			if len(op.Qubits) == s.numQubits {
 				allInOrder := true
-				for i, q := range op.Qubits {
-					if q != i {
+				for j, q := range op.Qubits {
+					if q != j {
 						allInOrder = false
 						break
 					}
@@ -134,8 +152,15 @@ func (s *Sim) Evolve(c *ir.Circuit) error {
 	return nil
 }
 
-// resetQubit deterministically resets a qubit to |0⟩ by moving all probability
-// from the |1⟩ subspace to the |0⟩ subspace. No randomness involved.
+// resetQubit deterministically resets a qubit to |0⟩ via partial-trace
+// collapse. For each paired index (i0, i1) where i0 has the target qubit's
+// bit = 0 and i1 has it = 1, the local probability is p = |a0|^2 + |a1|^2.
+// The reset concentrates all of that probability into the |0⟩ component:
+// a0 becomes sqrt(p) (real, positive) and a1 becomes 0. This is the
+// deterministic (non-measurement) version of reset, equivalent to tracing
+// out the target qubit and replacing it with |0⟩. Phase information in the
+// |1⟩ subspace is discarded, which is physically correct because reset is
+// a non-unitary operation.
 func (s *Sim) resetQubit(qubit int) {
 	halfBlock := 1 << qubit
 	block := halfBlock << 1
@@ -156,9 +181,31 @@ func (s *Sim) resetQubit(qubit int) {
 	}
 }
 
-// applyGate1 applies a single-qubit gate using the stride pattern.
+// applyGate1 applies a single-qubit 2x2 unitary to qubit k using the
+// block-stride pattern.
+//
+// The statevector has 2^n amplitudes, each indexed by an n-bit string.
+// Qubit k corresponds to bit position k in that index. To apply a 2x2
+// matrix U, we pair every index i where bit k = 0 with j = i | (1<<k)
+// where bit k = 1, then compute:
+//
+//	state[i], state[j] = U[0,0]*state[i] + U[0,1]*state[j],
+//	                      U[1,0]*state[i] + U[1,1]*state[j]
+//
+// The block-stride loop makes this cache-friendly. halfBlock = 2^k is the
+// distance between paired indices. We iterate in blocks of 2^(k+1):
+//
+//	block = 2^(k+1)
+//	|<--- halfBlock --->|<--- halfBlock --->|
+//	| bit k = 0 (i)     | bit k = 1 (j)     |
+//	|  offset 0..2^k-1  |  offset 0..2^k-1  |
+//	     i = b0+offset     j = i + halfBlock
+//
+// Within each block, the first half has bit k = 0 and the second half has
+// bit k = 1. Consecutive indices within each half differ only in bits
+// below k, so the paired accesses are stride-2^k apart.
 func (s *Sim) applyGate1(qubit int, m []complex128) {
-	// At 17+ qubits the state vector has 131K+ entries; goroutine fan-out
+	// At 17+ qubits the statevector has 131K+ entries; goroutine fan-out
 	// overhead is amortized by the per-block work.
 	if s.numQubits >= 17 {
 		s.applyGate1Parallel(qubit, m)
@@ -228,6 +275,12 @@ func (s *Sim) probabilities() []float64 {
 	return probs
 }
 
+// sampleIndex draws one sample from the discrete probability distribution
+// using inverse-CDF (cumulative distribution function) sampling. A uniform
+// random number r in [0,1) is drawn, then we scan the probability array
+// accumulating a running sum. The first index where the cumulative sum
+// exceeds r is returned. The final fallback to len(probs)-1 handles
+// floating-point rounding where cumulative probabilities don't quite reach 1.
 func sampleIndex(probs []float64, rng *rand.Rand) int {
 	r := rng.Float64()
 	cum := 0.0
@@ -240,6 +293,12 @@ func sampleIndex(probs []float64, rng *rand.Rand) int {
 	return len(probs) - 1
 }
 
+// formatBitstring converts a basis-state index to its n-bit string
+// representation. The bit ordering convention follows quantum computing
+// standard: qubit 0 is the least-significant bit (LSB, rightmost position),
+// and qubit n-1 is the most-significant bit (MSB, leftmost position).
+// For example, with n=3 and idx=5 (binary 101), qubit 0 = 1, qubit 1 = 0,
+// qubit 2 = 1, producing the string "101".
 func formatBitstring(idx, n int) string {
 	bs := make([]byte, n)
 	for i := range n {
@@ -252,6 +311,15 @@ func formatBitstring(idx, n int) string {
 	return string(bs)
 }
 
+// optimalWorkers returns the number of goroutines to use for parallel gate
+// application. Below 17 qubits (2^17 = 131,072 amplitudes), the function
+// returns 1 because goroutine creation, scheduling, and WaitGroup
+// synchronization overhead exceeds the benefit of parallelism for the
+// simple multiply-accumulate inner loop (each iteration is ~4 complex
+// multiplies and adds). Above 17 qubits, workers are capped at both
+// GOMAXPROCS and nAmps/8192 to ensure each goroutine processes at least
+// 8192 amplitudes, keeping the work-per-goroutine large enough to
+// amortize scheduling cost.
 func optimalWorkers(nQubits int) int {
 	if nQubits <= 16 {
 		return 1

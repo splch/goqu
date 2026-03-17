@@ -28,42 +28,114 @@ type namedPass struct {
 }
 
 // passesForLevel returns the ordered named passes for a given optimization level.
+//
+// The pipeline follows the industry-standard quantum compilation flow:
+//
+//  1. INIT        — decompose >2Q gates so SABRE can route all 2Q interactions
+//  2. PRE-ROUTE   — cancel/merge to shrink the circuit before routing (fewer SWAPs)
+//  3. ROUTE       — SABRE qubit routing (insert SWAPs for connectivity)
+//  4. TRANSLATE   — decompose to target basis + fix gate direction
+//  5. OPTIMIZE    — iterative cancel/merge/commute/consolidate until fixed-point
+//  6. VALIDATE    — verify basis, connectivity, and depth constraints
 func passesForLevel(level Level) []namedPass {
 	switch level {
 	case LevelNone:
 		return []namedPass{
 			{"remove_barriers", pass.RemoveBarriers},
+			{"decompose_multi_qubit", pass.DecomposeMultiQubit},
+			{"route", routeIfNeeded},
 			{"decompose_to_target", pass.DecomposeToTarget},
 			{"fix_direction", pass.FixDirection},
+			{"decompose_to_target", pass.DecomposeToTarget},
 			{"validate_target", pass.ValidateTarget},
 		}
 	case LevelBasic:
 		return []namedPass{
+			// Init.
 			{"remove_barriers", pass.RemoveBarriers},
-			{"route", routeIfNeeded},
-			{"decompose_to_target", pass.DecomposeToTarget},
-			{"fix_direction", pass.FixDirection},
+			{"decompose_multi_qubit", pass.DecomposeMultiQubit},
+			// Pre-routing optimization.
 			{"cancel_adjacent", pass.CancelAdjacent},
 			{"merge_rotations", pass.MergeRotations},
-			{"cancel_adjacent", pass.CancelAdjacent},
+			{"remove_identity", pass.RemoveIdentity},
+			// Routing.
+			{"route", routeIfNeeded},
+			// Target translation.
+			{"decompose_to_target", pass.DecomposeToTarget},
+			{"fix_direction", pass.FixDirection},
+			{"decompose_to_target", pass.DecomposeToTarget},
+			// Post-routing optimization (iterative).
+			fixedPointLoop("optimize_loop", 10,
+				namedPass{"cancel_adjacent", pass.CancelAdjacent},
+				namedPass{"merge_rotations", pass.MergeRotations},
+				namedPass{"remove_identity", pass.RemoveIdentity},
+			),
 			{"validate_target", pass.ValidateTarget},
 		}
 	case LevelFull:
 		return []namedPass{
+			// Init.
 			{"remove_barriers", pass.RemoveBarriers},
+			{"decompose_multi_qubit", pass.DecomposeMultiQubit},
+			// Pre-routing optimization.
+			{"cancel_adjacent", pass.CancelAdjacent},
+			{"merge_rotations", pass.MergeRotations},
+			{"remove_identity", pass.RemoveIdentity},
+			// Routing.
 			{"route", routeIfNeeded},
+			// Target translation.
 			{"decompose_to_target", pass.DecomposeToTarget},
 			{"fix_direction", pass.FixDirection},
-			{"cancel_adjacent", pass.CancelAdjacent},
-			{"merge_rotations", pass.MergeRotations},
-			{"commute", pass.CommuteThroughCNOT},
-			{"cancel_adjacent", pass.CancelAdjacent},
-			{"merge_rotations", pass.MergeRotations},
+			{"decompose_to_target", pass.DecomposeToTarget},
+			// Post-routing optimization with 2Q consolidation (iterative).
+			fixedPointLoop("optimize_loop", 10,
+				namedPass{"consolidate_2q", pass.Consolidate2QBlocks},
+				namedPass{"decompose_to_target", pass.DecomposeToTarget},
+				namedPass{"fix_direction", pass.FixDirection},
+				namedPass{"decompose_to_target", pass.DecomposeToTarget},
+				namedPass{"cancel_adjacent", pass.CancelAdjacent},
+				namedPass{"merge_rotations", pass.MergeRotations},
+				namedPass{"commute", pass.CommuteThroughCNOT},
+				namedPass{"cancel_adjacent", pass.CancelAdjacent},
+				namedPass{"merge_rotations", pass.MergeRotations},
+				namedPass{"remove_identity", pass.RemoveIdentity},
+			),
 			{"parallelize", pass.ParallelizeOps},
 			{"validate_target", pass.ValidateTarget},
 		}
 	default:
 		return passesForLevel(LevelBasic)
+	}
+}
+
+// fixedPointLoop wraps passes and runs them iteratively until circuit
+// statistics (gate count, depth, 2Q gates) stabilize or maxIter is reached.
+func fixedPointLoop(name string, maxIter int, passes ...namedPass) namedPass {
+	inner := make([]transpile.Pass, len(passes))
+	for i, p := range passes {
+		inner[i] = p.fn
+	}
+	pipeline := transpile.Pipeline(inner...)
+
+	return namedPass{
+		name: name,
+		fn: func(c *ir.Circuit, t target.Target) (*ir.Circuit, error) {
+			for range maxIter {
+				prev := c.Stats()
+				var err error
+				c, err = pipeline(c, t)
+				if err != nil {
+					return nil, err
+				}
+				cur := c.Stats()
+				if cur.GateCount == prev.GateCount &&
+					cur.Depth == prev.Depth &&
+					cur.TwoQubitGates == prev.TwoQubitGates {
+					break
+				}
+			}
+			return c, nil
+		},
 	}
 }
 

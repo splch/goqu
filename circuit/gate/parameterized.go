@@ -40,7 +40,51 @@ func (g *parameterized) Inverse() Gate {
 	}
 }
 
-// RX returns an X-rotation gate: exp(-i * theta/2 * X).
+// Wrapper types that embed parameterized and implement the optional dispatch
+// interfaces. These let the simulator select optimized kernels via type
+// assertions instead of parsing gate names.
+
+// controlDiag2Q implements ControlDiagonal2Q for gates like CP and CRZ
+// whose matrix is diag(1, 1, d10, d11).
+type controlDiag2Q struct{ *parameterized }
+
+func (g *controlDiag2Q) ControlDiagonal() (d10, d11 complex128) {
+	return g.matrix[10], g.matrix[15]
+}
+
+func (g *controlDiag2Q) Inverse() Gate {
+	base := g.parameterized.Inverse().(*parameterized)
+	return &controlDiag2Q{base}
+}
+
+// diagonal2Q implements Diagonal2Q for fully diagonal 2-qubit gates like RZZ.
+type diagonal2Q struct{ *parameterized }
+
+func (g *diagonal2Q) Diagonal() (d00, d01, d10, d11 complex128) {
+	return g.matrix[0], g.matrix[5], g.matrix[10], g.matrix[15]
+}
+
+func (g *diagonal2Q) Inverse() Gate {
+	base := g.parameterized.Inverse().(*parameterized)
+	return &diagonal2Q{base}
+}
+
+// controlU2Q implements ControlU2Q for controlled-unitary gates like CRX and CRY.
+type controlU2Q struct{ *parameterized }
+
+func (g *controlU2Q) ControlSubmatrix() (u00, u01, u10, u11 complex128) {
+	return g.matrix[10], g.matrix[11], g.matrix[14], g.matrix[15]
+}
+
+func (g *controlU2Q) Inverse() Gate {
+	base := g.parameterized.Inverse().(*parameterized)
+	return &controlU2Q{base}
+}
+
+// RX returns an X-rotation gate: exp(-i * theta/2 * X). It rotates the
+// qubit state by angle theta around the X axis of the Bloch sphere. At
+// theta=pi, RX equals -i*X (a bit-flip with global phase). At theta=pi/2,
+// it creates a superposition equivalent to H up to phase.
 //
 //	[[cos(θ/2), -i·sin(θ/2)],
 //	 [-i·sin(θ/2), cos(θ/2)]]
@@ -57,7 +101,10 @@ func RX(theta float64) Gate {
 	}
 }
 
-// RY returns a Y-rotation gate: exp(-i * theta/2 * Y).
+// RY returns a Y-rotation gate: exp(-i * theta/2 * Y). It rotates the
+// qubit state by angle theta around the Y axis of the Bloch sphere. Unlike
+// RX and RZ, RY has only real entries, making it useful for state preparation
+// (converting amplitudes between |0> and |1> without introducing phase).
 //
 //	[[cos(θ/2), -sin(θ/2)],
 //	 [sin(θ/2), cos(θ/2)]]
@@ -74,7 +121,11 @@ func RY(theta float64) Gate {
 	}
 }
 
-// RZ returns a Z-rotation gate: exp(-i * theta/2 * Z).
+// RZ returns a Z-rotation gate: exp(-i * theta/2 * Z). It rotates the
+// qubit state by angle theta around the Z axis of the Bloch sphere (pure
+// phase rotation). RZ is diagonal and commutes with measurement in the
+// computational basis. On IBM hardware, RZ is implemented as a virtual gate
+// (frame change) with zero error, making it a preferred building block.
 //
 //	[[exp(-iθ/2), 0],
 //	 [0, exp(iθ/2)]]
@@ -103,7 +154,10 @@ func Phase(phi float64) Gate {
 	}
 }
 
-// U3 returns the universal single-qubit gate U(θ, φ, λ).
+// U3 returns the universal single-qubit gate U(θ, φ, λ). Any single-qubit
+// unitary can be expressed as U3 (up to global phase), making it the most
+// general single-qubit rotation. Special cases: U3(θ,0,0) = RY(θ) up to
+// phase; U3(0,0,λ) = Phase(λ) up to phase.
 //
 //	[[cos(θ/2), -exp(iλ)·sin(θ/2)],
 //	 [exp(iφ)·sin(θ/2), exp(i(φ+λ))·cos(θ/2)]]
@@ -122,9 +176,12 @@ func U3(theta, phi, lambda float64) Gate {
 	}
 }
 
-// CP returns a controlled-phase gate: diag(1, 1, 1, exp(iφ)).
+// CP returns a controlled-phase gate: diag(1, 1, 1, exp(iφ)). It applies a
+// phase exp(iφ) to the |11> state and leaves all others unchanged. Symmetric
+// in q0,q1. At φ=π, CP equals CZ. Used in QFT (Quantum Fourier Transform)
+// with φ=2π/2^k for increasing k.
 func CP(phi float64) Gate {
-	return &parameterized{
+	return &controlDiag2Q{&parameterized{
 		name:   fmt.Sprintf("CP(%.4f)", phi),
 		n:      2,
 		params: []float64{phi},
@@ -134,12 +191,12 @@ func CP(phi float64) Gate {
 			0, 0, 1, 0,
 			0, 0, 0, cmplx.Exp(complex(0, phi)),
 		},
-	}
+	}}
 }
 
 // CRZ returns a controlled-RZ gate.
 func CRZ(theta float64) Gate {
-	return &parameterized{
+	return &controlDiag2Q{&parameterized{
 		name:   fmt.Sprintf("CRZ(%.4f)", theta),
 		n:      2,
 		params: []float64{theta},
@@ -149,13 +206,13 @@ func CRZ(theta float64) Gate {
 			0, 0, cmplx.Exp(complex(0, -theta/2)), 0,
 			0, 0, 0, cmplx.Exp(complex(0, theta/2)),
 		},
-	}
+	}}
 }
 
 // CRX returns a controlled-RX gate.
 func CRX(theta float64) Gate {
 	c, s := math.Cos(theta/2), math.Sin(theta/2)
-	return &parameterized{
+	return &controlU2Q{&parameterized{
 		name:   fmt.Sprintf("CRX(%.4f)", theta),
 		n:      2,
 		params: []float64{theta},
@@ -165,13 +222,13 @@ func CRX(theta float64) Gate {
 			0, 0, complex(c, 0), complex(0, -s),
 			0, 0, complex(0, -s), complex(c, 0),
 		},
-	}
+	}}
 }
 
 // CRY returns a controlled-RY gate.
 func CRY(theta float64) Gate {
 	c, s := math.Cos(theta/2), math.Sin(theta/2)
-	return &parameterized{
+	return &controlU2Q{&parameterized{
 		name:   fmt.Sprintf("CRY(%.4f)", theta),
 		n:      2,
 		params: []float64{theta},
@@ -181,10 +238,13 @@ func CRY(theta float64) Gate {
 			0, 0, complex(c, 0), complex(-s, 0),
 			0, 0, complex(s, 0), complex(c, 0),
 		},
-	}
+	}}
 }
 
-// RXX returns the Ising XX gate: exp(-i * theta/2 * X⊗X).
+// RXX returns the Ising XX coupling gate: exp(-i * theta/2 * X⊗X). It
+// models a two-qubit interaction where both qubits rotate simultaneously
+// around the X axis. Native on trapped-ion platforms (IonQ) where the
+// Mølmer-Sørensen interaction naturally produces XX coupling.
 //
 //	c = cos(θ/2), s = sin(θ/2)
 //	[[c, 0, 0, -is],
@@ -208,7 +268,9 @@ func RXX(theta float64) Gate {
 	}
 }
 
-// RYY returns the Ising YY gate: exp(-i * theta/2 * Y⊗Y).
+// RYY returns the Ising YY coupling gate: exp(-i * theta/2 * Y⊗Y). It
+// models a two-qubit YY interaction, used in variational ansatze and
+// Hamiltonian simulation for systems with YY coupling terms.
 //
 //	c = cos(θ/2), s = sin(θ/2)
 //	[[c, 0, 0, is],
@@ -233,7 +295,11 @@ func RYY(theta float64) Gate {
 	}
 }
 
-// RZZ returns the Ising ZZ gate: exp(-i * theta/2 * Z⊗Z).
+// RZZ returns the Ising ZZ coupling gate: exp(-i * theta/2 * Z⊗Z). It is
+// fully diagonal, applying phases based on the parity of the two qubits.
+// Appears naturally in Hamiltonian simulation of spin chains and in QAOA
+// for combinatorial optimization (encoding problem clauses). Since it is
+// diagonal, it commutes with measurements in the computational basis.
 //
 //	[[exp(-iθ/2), 0, 0, 0],
 //	 [0, exp(iθ/2), 0, 0],
@@ -242,7 +308,7 @@ func RYY(theta float64) Gate {
 func RZZ(theta float64) Gate {
 	em := cmplx.Exp(complex(0, -theta/2))
 	ep := cmplx.Exp(complex(0, theta/2))
-	return &parameterized{
+	return &diagonal2Q{&parameterized{
 		name:   fmt.Sprintf("RZZ(%.4f)", theta),
 		n:      2,
 		params: []float64{theta},
@@ -252,10 +318,13 @@ func RZZ(theta float64) Gate {
 			0, 0, ep, 0,
 			0, 0, 0, em,
 		},
-	}
+	}}
 }
 
-// GPI returns an IonQ native GPI gate.
+// GPI returns an IonQ native GPI gate. On trapped-ion hardware, GPI
+// implements a pi rotation (180 degrees) around an axis in the XY plane of
+// the Bloch sphere at azimuthal angle phi. Together with [GPI2] and [MS],
+// the GPI gate forms a universal native gate set for IonQ processors.
 //
 //	[[0, exp(-iφ)],
 //	 [exp(iφ), 0]]
@@ -271,7 +340,10 @@ func GPI(phi float64) Gate {
 	}
 }
 
-// GPI2 returns an IonQ native GPI2 gate.
+// GPI2 returns an IonQ native GPI2 gate. It implements a pi/2 rotation
+// (90 degrees) around an axis in the XY plane at azimuthal angle phi.
+// GPI2 is the "half gate" counterpart to [GPI] and is used to build
+// arbitrary single-qubit rotations on IonQ hardware.
 //
 //	(1/√2) * [[1, -i·exp(-iφ)],
 //	           [-i·exp(iφ), 1]]
@@ -288,8 +360,10 @@ func GPI2(phi float64) Gate {
 	}
 }
 
-// NOP returns an IonQ native NOP (no-operation) timing gate.
-// It is a 0-qubit instruction analogous to Delay; time is in microseconds.
+// NOP returns an IonQ native NOP (no-operation) timing gate. It is a
+// 0-qubit instruction analogous to [Delay]; time is in microseconds. On
+// IonQ hardware, NOP inserts an idle period used for timing synchronization
+// between qubits.
 func NOP(time float64) Gate {
 	return &parameterized{
 		name:   fmt.Sprintf("NOP(%.4f)", time),
@@ -299,7 +373,11 @@ func NOP(time float64) Gate {
 	}
 }
 
-// MS returns an IonQ native Mølmer-Sørensen gate.
+// MS returns an IonQ native Mølmer-Sørensen gate. The MS gate generates
+// entanglement between two trapped ions by driving both with lasers that
+// couple through their shared motional mode. It is the native two-qubit
+// gate on IonQ processors and is equivalent to RXX(pi/2) up to local
+// rotations when phi0=phi1=0.
 func MS(phi0, phi1 float64) Gate {
 	inv := complex(s2, 0)
 	ep := cmplx.Exp(complex(0, phi0+phi1))
@@ -317,7 +395,8 @@ func MS(phi0, phi1 float64) Gate {
 	}
 }
 
-// U1 returns a phase gate (Qiskit compatibility alias for Phase).
+// U1 returns a phase gate, equivalent to [Phase]. This is the Qiskit naming
+// convention: U1(λ) = Phase(λ) = RZ(λ) up to global phase.
 //
 //	diag(1, exp(iλ))
 func U1(lambda float64) Gate {
@@ -332,7 +411,9 @@ func U1(lambda float64) Gate {
 	}
 }
 
-// U2 returns the single-qubit gate U3(π/2, φ, λ).
+// U2 returns the single-qubit gate U3(π/2, φ, λ). It always creates a
+// superposition (theta is fixed at π/2) with tunable phases. U2(0, π) = H
+// up to global phase.
 //
 //	(1/√2)·[[1, -exp(iλ)], [exp(iφ), exp(i(φ+λ))]]
 func U2(phi, lambda float64) Gate {
@@ -349,7 +430,10 @@ func U2(phi, lambda float64) Gate {
 	}
 }
 
-// Rot returns the PennyLane-style rotation gate RZ(ω)·RY(θ)·RZ(φ).
+// Rot returns the PennyLane-style rotation gate RZ(ω)·RY(θ)·RZ(φ). This
+// is the ZYZ Euler decomposition: any single-qubit unitary can be expressed
+// as three successive rotations RZ, RY, RZ (up to global phase). This is
+// PennyLane's default parameterization for single-qubit rotations.
 func Rot(phi, theta, omega float64) Gate {
 	// Compute the 2x2 matrix as product: RZ(omega) * RY(theta) * RZ(phi).
 	cth, sth := math.Cos(theta/2), math.Sin(theta/2)
@@ -372,7 +456,10 @@ func Rot(phi, theta, omega float64) Gate {
 }
 
 // PhasedXZ returns the Cirq-style PhasedXZ gate: Z^z · P^a · X^x · (P^a)†.
-// Parameters are in half-turns. Z^z = diag(1, e^{iπz}), P^a = diag(1, e^{iπa}),
+// This is Cirq's canonical single-qubit representation: any single-qubit
+// unitary can be written as PhasedXZ (up to global phase) using at most 3
+// half-turn parameters. Parameters are in half-turns (1.0 = 180 degrees).
+// Z^z = diag(1, e^{iπz}), P^a = diag(1, e^{iπa}),
 // X^x has matrix [[cos(πx/2), i·sin(πx/2)], [i·sin(πx/2), cos(πx/2)]].
 func PhasedXZ(xExp, zExp, axisPhaseExp float64) Gate {
 	cx := math.Cos(math.Pi * xExp / 2)
@@ -408,7 +495,11 @@ func GlobalPhase(phi float64) Gate {
 	}
 }
 
-// FSim returns the fermionic simulation gate.
+// FSim returns the fermionic simulation gate. It models the interaction
+// between two fermionic modes with a hopping term (theta) and a conditional
+// phase (phi). FSim is the native interaction on superconducting processors
+// with tunable couplers (Google Sycamore). Special cases: FSim(pi/2, 0) =
+// iSWAP; FSim(pi/2, pi/6) = Sycamore gate; FSim(0, phi) = CP(-phi).
 //
 //	[[1, 0, 0, 0],
 //	 [0, cos θ, -i·sin θ, 0],

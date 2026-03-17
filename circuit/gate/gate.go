@@ -46,3 +46,31 @@ type Applied struct {
 	Gate   Gate
 	Qubits []int
 }
+
+// The following optional interfaces enable the simulator to select optimized
+// kernels via type assertions rather than string-matching gate names.
+
+// Diagonal2Q is optionally implemented by 2-qubit gates whose matrix is fully
+// diagonal (only diagonal elements are non-zero, e.g. RZZ). The simulator
+// applies only phase factors, avoiding full 4x4 matrix multiplication.
+type Diagonal2Q interface {
+	// Diagonal returns the 4 diagonal elements [d00, d01, d10, d11].
+	Diagonal() (d00, d01, d10, d11 complex128)
+}
+
+// ControlDiagonal2Q is optionally implemented by 2-qubit controlled gates
+// whose matrix is diag(1, 1, d10, d11) — identity on the |0x> subspace.
+// Examples: CP, CRZ. The simulator only multiplies the |1x> amplitudes.
+type ControlDiagonal2Q interface {
+	// ControlDiagonal returns the two non-trivial diagonal elements [d10, d11].
+	ControlDiagonal() (d10, d11 complex128)
+}
+
+// ControlU2Q is optionally implemented by 2-qubit controlled gates whose
+// matrix is I on the |0x> subspace and a 2x2 unitary on the |1x> subspace.
+// Examples: CRX, CRY. The simulator applies only the 2x2 submatrix.
+type ControlU2Q interface {
+	// ControlSubmatrix returns the 2x2 unitary [u00, u01, u10, u11] applied
+	// when the control qubit is |1>.
+	ControlSubmatrix() (u00, u01, u10, u11 complex128)
+}

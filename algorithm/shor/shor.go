@@ -180,7 +180,13 @@ func Run(ctx context.Context, cfg Config) (*Result, error) {
 	return nil, fmt.Errorf("shor: failed to factor %d after %d attempts", N, maxAttempts)
 }
 
-// buildOrderFindingCircuit constructs the QPE-based order-finding circuit.
+// buildOrderFindingCircuit constructs the quantum subroutine of Shor's
+// algorithm: Quantum Phase Estimation (QPE) applied to the modular
+// exponentiation unitary U|y> = |a*y mod N>. The eigenvalues of U are
+// exp(2*pi*i*s/r) for s = 0,...,r-1, where r is the period of a^x mod N.
+// QPE estimates the phase s/r into the nPhase-bit phase register. The
+// period r is then extracted classically via continued fraction expansion
+// of the measured phase value.
 func buildOrderFindingCircuit(a, modulus, nPhase, nTarget int) (*ir.Circuit, error) {
 	nTotal := nPhase + nTarget
 

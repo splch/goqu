@@ -178,7 +178,7 @@ func TestTrivialLayout(t *testing.T) {
 
 func TestInverseLayout(t *testing.T) {
 	layout := []int{2, 0, 1, 3}
-	inv := InverseLayout(layout)
+	inv := InverseLayout(layout, len(layout))
 
 	// layout[0]=2 means logical 0 -> physical 2, so inv[2]=0
 	expected := []int{1, 2, 0, 3}
@@ -394,7 +394,7 @@ func TestRouteLargeGridScalability(t *testing.T) {
 func TestRandomLayout(t *testing.T) {
 	rng := rand.New(rand.NewPCG(0, 0))
 	n := 10
-	layout := RandomLayout(n, rng)
+	layout := RandomLayout(n, n, rng)
 
 	if len(layout) != n {
 		t.Fatalf("RandomLayout length = %d, want %d", len(layout), n)

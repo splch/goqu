@@ -19,6 +19,12 @@ func DecomposeByRule(g gate.Gate, qubits []int, basisGates []string) []ir.Operat
 	if basis["CX"] || basis["CNOT"] {
 		return decomposeToCX(g, qubits, basis)
 	}
+	if basis["CZ"] {
+		return decomposeToCZ(g, qubits, basis)
+	}
+	if basis["RZZ"] {
+		return decomposeToRZZ(g, qubits, basis)
+	}
 	if basis["MS"] {
 		return decomposeToIonQ(g, qubits, basis)
 	}
@@ -284,6 +290,164 @@ func decompose3qToCX(g gate.Gate, qubits []int) []ir.Operation {
 		return ops
 	}
 	return nil
+}
+
+// decomposeToCZ decomposes known gates into CZ + single-qubit basis (Google, Rigetti).
+// Strategy: decompose to CX form first, then convert each CX to H·CZ·H.
+func decomposeToCZ(g gate.Gate, qubits []int, _ map[string]bool) []ir.Operation {
+	if cg, ok := g.(gate.ControlledGate); ok {
+		ops := DecomposeMultiControlled(cg, qubits)
+		if ops != nil {
+			return cxOpsToCZ(ops)
+		}
+	}
+	switch g.Qubits() {
+	case 1:
+		// 1Q gates: Euler ZXZ produces {RZ, RX} which matches Google/Rigetti.
+		return nil // let Euler handle it
+	case 2:
+		return decompose2qToCZ(g, qubits)
+	case 3:
+		cxOps := decompose3qToCX(g, qubits)
+		if cxOps != nil {
+			return cxOpsToCZ(cxOps)
+		}
+	}
+	return nil
+}
+
+// decompose2qToCZ decomposes known 2-qubit gates into CZ + 1-qubit gates.
+func decompose2qToCZ(g gate.Gate, qubits []int) []ir.Operation {
+	q0, q1 := qubits[0], qubits[1]
+
+	switch g {
+	case gate.CZ:
+		return nil // already in basis
+	case gate.CNOT:
+		// CNOT = H(target) · CZ · H(target)
+		return []ir.Operation{
+			{Gate: gate.H, Qubits: []int{q1}},
+			{Gate: gate.CZ, Qubits: []int{q0, q1}},
+			{Gate: gate.H, Qubits: []int{q1}},
+		}
+	case gate.SWAP:
+		// SWAP = CX(0,1)·CX(1,0)·CX(0,1), each CX(a,b) = H(b)·CZ(a,b)·H(b).
+		// CZ is symmetric so qubit order is irrelevant; use (q0,q1) consistently.
+		return []ir.Operation{
+			{Gate: gate.H, Qubits: []int{q1}},
+			{Gate: gate.CZ, Qubits: []int{q0, q1}},
+			{Gate: gate.H, Qubits: []int{q1}},
+			{Gate: gate.H, Qubits: []int{q0}},
+			{Gate: gate.CZ, Qubits: []int{q0, q1}},
+			{Gate: gate.H, Qubits: []int{q0}},
+			{Gate: gate.H, Qubits: []int{q1}},
+			{Gate: gate.CZ, Qubits: []int{q0, q1}},
+			{Gate: gate.H, Qubits: []int{q1}},
+		}
+	case gate.CY:
+		// CY = Sdg·CNOT·S → Sdg·H·CZ·H·S
+		return []ir.Operation{
+			{Gate: gate.Sdg, Qubits: []int{q1}},
+			{Gate: gate.H, Qubits: []int{q1}},
+			{Gate: gate.CZ, Qubits: []int{q0, q1}},
+			{Gate: gate.H, Qubits: []int{q1}},
+			{Gate: gate.S, Qubits: []int{q1}},
+		}
+	}
+
+	// Parameterized gates: decompose to CX form, then convert CX→CZ.
+	cxOps := decompose2qToCX(g, qubits)
+	if cxOps != nil {
+		return cxOpsToCZ(cxOps)
+	}
+	return nil
+}
+
+// cxOpsToCZ converts CNOT gates in an operation list to CZ equivalents.
+func cxOpsToCZ(ops []ir.Operation) []ir.Operation {
+	var result []ir.Operation
+	for _, op := range ops {
+		if op.Gate == gate.CNOT {
+			q0, q1 := op.Qubits[0], op.Qubits[1]
+			result = append(result,
+				ir.Operation{Gate: gate.H, Qubits: []int{q1}},
+				ir.Operation{Gate: gate.CZ, Qubits: []int{q0, q1}},
+				ir.Operation{Gate: gate.H, Qubits: []int{q1}},
+			)
+		} else {
+			result = append(result, op)
+		}
+	}
+	return result
+}
+
+// decomposeToRZZ decomposes known gates into RZZ + single-qubit basis (Quantinuum).
+// Strategy: decompose to CX form first, then convert each CX to RZZ equivalent.
+// CNOT(q0,q1) = H(q1) · CZ(q0,q1) · H(q1), and CZ = RZZ(π/2) · RZ(-π/2,q0) · RZ(-π/2,q1).
+// The H gates are left for Euler decomposition (ZYZ → RZ, RY).
+func decomposeToRZZ(g gate.Gate, qubits []int, _ map[string]bool) []ir.Operation {
+	if cg, ok := g.(gate.ControlledGate); ok {
+		ops := DecomposeMultiControlled(cg, qubits)
+		if ops != nil {
+			return cxOpsToRZZ(ops)
+		}
+	}
+	switch g.Qubits() {
+	case 1:
+		return nil // let Euler handle it
+	case 2:
+		return decompose2qToRZZ(g, qubits)
+	case 3:
+		cxOps := decompose3qToCX(g, qubits)
+		if cxOps != nil {
+			return cxOpsToRZZ(cxOps)
+		}
+	}
+	return nil
+}
+
+// decompose2qToRZZ decomposes known 2-qubit gates into RZZ + 1-qubit gates.
+func decompose2qToRZZ(g gate.Gate, qubits []int) []ir.Operation {
+	q0, q1 := qubits[0], qubits[1]
+	// RZZ is already in basis for Quantinuum targets.
+	if mathutil.StripParamsAndDagger(g.Name()) == "RZZ" {
+		return nil
+	}
+	if g == gate.CNOT {
+		return []ir.Operation{
+			{Gate: gate.H, Qubits: []int{q1}},
+			{Gate: gate.RZZ(math.Pi / 2), Qubits: []int{q0, q1}},
+			{Gate: gate.RZ(-math.Pi / 2), Qubits: []int{q0}},
+			{Gate: gate.RZ(-math.Pi / 2), Qubits: []int{q1}},
+			{Gate: gate.H, Qubits: []int{q1}},
+		}
+	}
+	cxOps := decompose2qToCX(g, qubits)
+	if cxOps != nil {
+		return cxOpsToRZZ(cxOps)
+	}
+	return nil
+}
+
+// cxOpsToRZZ converts CNOT gates in an operation list to RZZ equivalents.
+// CNOT(q0,q1) = H(q1) · RZZ(π/2) · RZ(-π/2)(q0) · RZ(-π/2)(q1) · H(q1)
+func cxOpsToRZZ(ops []ir.Operation) []ir.Operation {
+	var result []ir.Operation
+	for _, op := range ops {
+		if op.Gate == gate.CNOT {
+			q0, q1 := op.Qubits[0], op.Qubits[1]
+			result = append(result,
+				ir.Operation{Gate: gate.H, Qubits: []int{q1}},
+				ir.Operation{Gate: gate.RZZ(math.Pi / 2), Qubits: []int{q0, q1}},
+				ir.Operation{Gate: gate.RZ(-math.Pi / 2), Qubits: []int{q0}},
+				ir.Operation{Gate: gate.RZ(-math.Pi / 2), Qubits: []int{q1}},
+				ir.Operation{Gate: gate.H, Qubits: []int{q1}},
+			)
+		} else {
+			result = append(result, op)
+		}
+	}
+	return result
 }
 
 // decomposeToIonQ decomposes gates to {GPI, GPI2, MS} basis.
