@@ -32,7 +32,7 @@ jobs:
 
       - name: Test with race detector and coverage
         if: matrix.os == 'ubuntu-latest'
-        run: go test -race -count=1 -timeout=5m -coverprofile=coverage.out ./...
+        run: go test -race -count=1 -timeout=5m -coverprofile=coverage.out -covermode=atomic ./...
 
       - name: Upload coverage
         if: matrix.os == 'ubuntu-latest'
