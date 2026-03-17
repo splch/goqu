@@ -315,11 +315,12 @@ func releaseValveRoute(d *dag, front []int, dist [][]int, adj map[int][]int,
 // Handles unoccupied physical qubits (inv entry == -1) correctly.
 func applySwap(layout, inv []int, phys0, phys1 int) {
 	log0, log1 := inv[phys0], inv[phys1]
-	if log0 >= 0 && log1 >= 0 {
+	switch {
+	case log0 >= 0 && log1 >= 0:
 		layout[log0], layout[log1] = layout[log1], layout[log0]
-	} else if log0 >= 0 {
+	case log0 >= 0:
 		layout[log0] = phys1
-	} else if log1 >= 0 {
+	case log1 >= 0:
 		layout[log1] = phys0
 	}
 	inv[phys0], inv[phys1] = inv[phys1], inv[phys0]
