@@ -8,7 +8,7 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/splch/goqu.svg)](https://pkg.go.dev/github.com/splch/goqu)
 [![CI](https://github.com/splch/goqu/actions/workflows/ci.yml/badge.svg)](https://github.com/splch/goqu/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/splch/goqu/graph/badge.svg)](https://app.codecov.io/gh/splch/goqu)
+[![codecov](https://codecov.io/gh/splch/goqu/graph/badge.svg?token=9HJMWRRJ01)](https://codecov.io/gh/splch/goqu)
 [![Go Report Card](https://goreportcard.com/badge/github.com/splch/goqu)](https://goreportcard.com/report/github.com/splch/goqu)
 
 A quantum computing SDK in pure Go — build, simulate, transpile, and run quantum circuits with zero external dependencies.
