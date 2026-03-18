@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chapter 5: Quantum Gates - Goqu Textbook</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/contrib/auto-render.min.js"></script>
+  
+  <script src="../wasm_exec.js"></script>
+  <script type="module" src="../js/app.js"></script>
+  
+</head>
+<body>
+  <input type="checkbox" id="nav-toggle" hidden>
+  <label for="nav-toggle" class="nav-hamburger" aria-label="Toggle navigation">
+    <span></span><span></span><span></span>
+  </label>
+
+  <nav class="sidebar" aria-label="Table of contents">
+    <a href="../index.html" class="sidebar-logo">Goqu Textbook</a>
+    
+    <details>
+      <summary>Part 1: The World of Classical Computing</summary>
+      <ol start="1">
+        
+        <li value="1"><a href="01-computation.html">What Is Computation?</a></li>
+        
+        <li value="2"><a href="02-math-of-information.html">The Mathematics of Information</a></li>
+        
+        <li value="3"><a href="03-reversible-computing.html">Reversible Computing</a></li>
+        
+      </ol>
+    </details>
+    
+    <details open>
+      <summary>Part 2: Entering the Quantum World</summary>
+      <ol start="4">
+        
+        <li value="4"><a href="04-the-first-qubit.html">The First Qubit</a></li>
+        
+        <li value="5"><a href="05-quantum-gates.html" aria-current="page">Quantum Gates</a></li>
+        
+        <li value="6"><a href="06-entanglement.html">Multiple Qubits and Entanglement</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 3: Quantum Protocols</summary>
+      <ol start="7">
+        
+        <li value="7"><a href="07-teleportation.html">Quantum Teleportation and Communication</a></li>
+        
+        <li value="8"><a href="08-cryptography.html">Quantum Cryptography</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 4: Quantum Algorithms: The First Wave</summary>
+      <ol start="9">
+        
+        <li value="9"><a href="09-oracles.html">Oracles and Quantum Parallelism</a></li>
+        
+        <li value="10"><a href="10-qft.html">The Quantum Fourier Transform</a></li>
+        
+        <li value="11"><a href="11-shor.html">Shor&#39;s Algorithm</a></li>
+        
+        <li value="12"><a href="12-grover.html">Grover&#39;s Algorithm</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 5: Real Quantum Hardware</summary>
+      <ol start="13">
+        
+        <li value="13"><a href="13-hardware.html">How to Build a Quantum Computer</a></li>
+        
+        <li value="14"><a href="14-noise.html">Noise, Decoherence, and the NISQ Era</a></li>
+        
+        <li value="15"><a href="15-programming.html">Programming Quantum Computers</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 6: Quantum Error Correction</summary>
+      <ol start="16">
+        
+        <li value="16"><a href="16-classical-ec.html">Classical Error Correction Refresher</a></li>
+        
+        <li value="17"><a href="17-qec-fundamentals.html">Quantum Error Correction Fundamentals</a></li>
+        
+        <li value="18"><a href="18-stabilizers.html">The Stabilizer Formalism</a></li>
+        
+        <li value="19"><a href="19-surface-codes.html">Surface Codes and Topological Protection</a></li>
+        
+        <li value="20"><a href="20-fault-tolerance.html">Fault-Tolerant Quantum Computing</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 7: Variational and Near-Term Algorithms</summary>
+      <ol start="21">
+        
+        <li value="21"><a href="21-variational.html">The Variational Quantum Computing Paradigm</a></li>
+        
+        <li value="22"><a href="22-vqe.html">Variational Quantum Eigensolver (VQE)</a></li>
+        
+        <li value="23"><a href="23-qaoa.html">Quantum Approximate Optimization (QAOA)</a></li>
+        
+        <li value="24"><a href="24-qml.html">Quantum Machine Learning</a></li>
+        
+        <li value="25"><a href="25-error-mitigation.html">Quantum Error Mitigation</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 8: Quantum Information Theory</summary>
+      <ol start="26">
+        
+        <li value="26"><a href="26-states-measurements.html">Quantum States and Measurements, Revisited</a></li>
+        
+        <li value="27"><a href="27-channels.html">Quantum Channels and Operations</a></li>
+        
+        <li value="28"><a href="28-entropy.html">Quantum Entropy and Information</a></li>
+        
+        <li value="29"><a href="29-shannon.html">Quantum Shannon Theory</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 9: Quantum Complexity and Computation Theory</summary>
+      <ol start="30">
+        
+        <li value="30"><a href="30-complexity.html">Quantum Computational Complexity</a></li>
+        
+        <li value="31"><a href="31-hidden-subgroup.html">The Hidden Subgroup Problem and Beyond</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 10: Quantum Simulation</summary>
+      <ol start="32">
+        
+        <li value="32"><a href="32-simulation-why.html">Why Quantum Simulation Matters</a></li>
+        
+        <li value="33"><a href="33-digital-simulation.html">Digital Quantum Simulation</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 11: Quantum Networking, Cryptography, and Sensing</summary>
+      <ol start="34">
+        
+        <li value="34"><a href="34-quantum-internet.html">The Quantum Internet</a></li>
+        
+        <li value="35"><a href="35-advanced-crypto.html">Advanced Quantum Cryptography</a></li>
+        
+        <li value="36"><a href="36-sensing.html">Quantum Sensing and Metrology</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 12: Frontiers and the Future</summary>
+      <ol start="37">
+        
+        <li value="37"><a href="37-topological.html">Topological Quantum Computing</a></li>
+        
+        <li value="38"><a href="38-quantum-ai.html">Quantum Computing and Artificial Intelligence</a></li>
+        
+        <li value="39"><a href="39-open-problems.html">Open Problems in Quantum Computing</a></li>
+        
+        <li value="40"><a href="40-ecosystem.html">The Quantum Computing Ecosystem Today</a></li>
+        
+        <li value="41"><a href="41-career.html">Building Your Quantum Computing Career</a></li>
+        
+        <li value="42"><a href="42-what-next.html">What Comes Next</a></li>
+        
+      </ol>
+    </details>
+    
+  </nav>
+
+  <main>
+    
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="../index.html">Home</a> / <a href="../index.html#part-2">Part 2</a> / <span>Chapter 5</span>
+    </nav>
+    
+
+    <article>
+      <h1>Chapter 5: Quantum Gates</h1>
+      <p>
+  In the previous chapter you met the qubit - a quantum system whose state is a vector
+  in a two-dimensional complex vector space. A qubit sitting in a fixed state is not very
+  useful; the power of quantum computing comes from <em>transforming</em> qubits. The
+  quantum analogue of a classical logic gate is called a <strong>quantum gate</strong>,
+  and it is the fundamental building block of every quantum algorithm.
+</p>
+
+<p>
+  This chapter is your reference guide to the most important single-qubit gates. We will
+  meet each gate three ways: as a <strong>matrix</strong>, as an <strong>operation on
+  basis states</strong>, and as a <strong>rotation on the Bloch sphere</strong>. By the
+  end, you will be able to read and write quantum circuits fluently.
+</p>
+
+<div class="callout callout-info">
+  <strong>Prerequisites.</strong>
+  You should be comfortable with qubit state vectors $|\psi\rangle = \alpha|0\rangle + \beta|1\rangle$
+  and the Bloch sphere picture from Chapter 4. Familiarity with 2x2 matrix multiplication
+  will help, but we will review everything you need.
+</div>
+
+<!-- ============================================================ -->
+<section id="pauli-gates">
+<h2>5.1 The Pauli Gates: X, Y, Z</h2>
+
+<p>
+  The three <strong>Pauli gates</strong> are named after the physicist Wolfgang Pauli.
+  Together with the identity matrix $I$, they form a basis for all 2x2 Hermitian matrices.
+  Each Pauli gate corresponds to a 180-degree rotation around one of the three axes of the
+  Bloch sphere.
+</p>
+
+<h3>The X Gate (Bit Flip)</h3>
+
+<p>
+  The X gate is the quantum analogue of the classical NOT gate. Its matrix is:
+</p>
+
+$$X = \begin{pmatrix} 0 & 1 \\ 1 & 0 \end{pmatrix}$$
+
+<p>
+  The X gate swaps the amplitudes of $|0\rangle$ and $|1\rangle$:
+</p>
+
+$$X|0\rangle = \begin{pmatrix} 0 & 1 \\ 1 & 0 \end{pmatrix}\begin{pmatrix} 1 \\ 0 \end{pmatrix} = \begin{pmatrix} 0 \\ 1 \end{pmatrix} = |1\rangle$$
+
+$$X|1\rangle = \begin{pmatrix} 0 & 1 \\ 1 & 0 \end{pmatrix}\begin{pmatrix} 0 \\ 1 \end{pmatrix} = \begin{pmatrix} 1 \\ 0 \end{pmatrix} = |0\rangle$$
+
+<p>
+  On the Bloch sphere, $X$ is a rotation of $\pi$ radians (180 degrees) around the
+  <strong>x-axis</strong>. It flips the north pole to the south pole and vice versa, which
+  is why it is called the <em>bit flip</em> gate.
+</p>
+
+<p>Try it yourself - apply the X gate to $|0\rangle$ and observe that you always measure $|1\rangle$:</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="6">OPENQASM 3.0;
+qubit[1] q;
+bit[1] c;
+x q[0];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<div class="callout callout-key">
+  <strong>Key insight.</strong>
+  The X gate is its own inverse: applying it twice returns the qubit to its original state.
+  Mathematically, $X^2 = I$. This is true of all three Pauli gates.
+</div>
+
+<h3>The Z Gate (Phase Flip)</h3>
+
+<p>
+  The Z gate leaves $|0\rangle$ unchanged but flips the sign (phase) of $|1\rangle$:
+</p>
+
+$$Z = \begin{pmatrix} 1 & 0 \\ 0 & -1 \end{pmatrix}$$
+
+$$Z|0\rangle = |0\rangle \qquad Z|1\rangle = -|1\rangle$$
+
+<p>
+  On the Bloch sphere, $Z$ is a rotation of $\pi$ radians around the <strong>z-axis</strong>.
+  If the qubit is at the north or south pole, $Z$ has no observable effect - the global
+  phase $-1$ on $|1\rangle$ cannot be detected by measurement in the computational basis.
+  But the phase flip becomes critical when the qubit is in a superposition. For instance:
+</p>
+
+$$Z\left(\frac{|0\rangle + |1\rangle}{\sqrt{2}}\right) = \frac{|0\rangle - |1\rangle}{\sqrt{2}}$$
+
+<p>
+  The state changed from $|+\rangle$ to $|-\rangle$ - the qubit has been rotated to the
+  opposite side of the Bloch sphere's equator. Run the sandbox below to see this. First an
+  H gate creates the superposition $|+\rangle$, then Z flips the phase. Apply another H
+  to convert the phase difference back into a measurable bit flip:
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="7">OPENQASM 3.0;
+qubit[1] q;
+bit[1] c;
+h q[0];
+z q[0];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<h3>The Y Gate (Bit and Phase Flip)</h3>
+
+<p>
+  The Y gate combines both a bit flip and a phase flip. Its matrix involves the imaginary
+  unit $i$:
+</p>
+
+$$Y = \begin{pmatrix} 0 & -i \\ i & 0 \end{pmatrix}$$
+
+$$Y|0\rangle = i|1\rangle \qquad Y|1\rangle = -i|0\rangle$$
+
+<p>
+  On the Bloch sphere, $Y$ is a rotation of $\pi$ radians around the <strong>y-axis</strong>.
+  It simultaneously flips the bit and introduces a relative phase factor of $i$.
+  Verify it below:
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="6">OPENQASM 3.0;
+qubit[1] q;
+bit[1] c;
+y q[0];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<h3>Summary of the Pauli Gates</h3>
+
+<table class="state-table">
+  <thead>
+    <tr><th>Gate</th><th>Matrix</th><th>Action on $|0\rangle$</th><th>Action on $|1\rangle$</th><th>Bloch Rotation</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>$X$</td>
+      <td>$\begin{pmatrix} 0 & 1 \\ 1 & 0 \end{pmatrix}$</td>
+      <td>$|1\rangle$</td>
+      <td>$|0\rangle$</td>
+      <td>$\pi$ around x-axis</td>
+    </tr>
+    <tr>
+      <td>$Y$</td>
+      <td>$\begin{pmatrix} 0 & -i \\ i & 0 \end{pmatrix}$</td>
+      <td>$i|1\rangle$</td>
+      <td>$-i|0\rangle$</td>
+      <td>$\pi$ around y-axis</td>
+    </tr>
+    <tr>
+      <td>$Z$</td>
+      <td>$\begin{pmatrix} 1 & 0 \\ 0 & -1 \end{pmatrix}$</td>
+      <td>$|0\rangle$</td>
+      <td>$-|1\rangle$</td>
+      <td>$\pi$ around z-axis</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout callout-info">
+  <strong>A useful identity.</strong>
+  The Pauli gates satisfy the relation $Y = iXZ$, and any two of them anti-commute:
+  $XZ = -ZX$, $XY = -YX$, $YZ = -ZY$. These algebraic relationships will become
+  important when we study quantum error correction in Part VI.
+</div>
+
+</section>
+
+<!-- ============================================================ -->
+<section id="hadamard-gate">
+<h2>5.2 The Hadamard Gate: Creating Superposition</h2>
+
+<p>
+  If the Pauli gates are the workhorses of quantum computing, the <strong>Hadamard gate</strong>
+  is the star. It is the primary tool for creating superposition, and it appears in nearly every
+  quantum algorithm you will encounter. Its matrix is:
+</p>
+
+$$H = \frac{1}{\sqrt{2}}\begin{pmatrix} 1 & 1 \\ 1 & -1 \end{pmatrix}$$
+
+<p>
+  The Hadamard gate maps the computational basis states to the <strong>diagonal basis</strong>
+  states (also called the Hadamard basis or the $\pm$ basis):
+</p>
+
+$$H|0\rangle = \frac{|0\rangle + |1\rangle}{\sqrt{2}} = |+\rangle$$
+
+$$H|1\rangle = \frac{|0\rangle - |1\rangle}{\sqrt{2}} = |-\rangle$$
+
+<p>
+  The state $|+\rangle$ lies on the positive x-axis of the Bloch sphere, and $|-\rangle$ lies
+  on the negative x-axis. Starting from the north pole ($|0\rangle$), the Hadamard gate
+  rotates the qubit to the equator - into an equal superposition of $|0\rangle$ and $|1\rangle$.
+</p>
+
+<p>
+  Geometrically, $H$ is a rotation of $\pi$ radians around the axis that bisects the
+  x-axis and z-axis (the direction $\frac{\hat{x} + \hat{z}}{\sqrt{2}}$). This is why it
+  swaps the x-axis and z-axis of the Bloch sphere.
+</p>
+
+<div class="callout callout-key">
+  <strong>The Hadamard is its own inverse.</strong>
+  Like the Pauli gates, $H^2 = I$. Applying the Hadamard gate twice returns the qubit to
+  its original state. This self-inverse property is essential: it means superposition is
+  reversible. You can "undo" a Hadamard by applying another Hadamard.
+</div>
+
+<p>
+  Run this sandbox to create a superposition and observe the roughly 50/50 measurement
+  outcomes:
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="6">OPENQASM 3.0;
+qubit[1] q;
+bit[1] c;
+h q[0];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+  Now verify that two Hadamard gates cancel each other. You should measure $|0\rangle$
+  every time:
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="7">OPENQASM 3.0;
+qubit[1] q;
+bit[1] c;
+h q[0];
+h q[0];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<h3>Why the Hadamard Is So Important</h3>
+
+<p>
+  The Hadamard gate converts between two complementary bases: the <strong>computational
+  basis</strong> ($|0\rangle$, $|1\rangle$) and the <strong>Hadamard basis</strong>
+  ($|+\rangle$, $|-\rangle$). This basis-switching ability is the engine behind quantum
+  parallelism. In Deutsch's algorithm, Grover's algorithm, and the quantum Fourier
+  transform, the Hadamard gate is what puts qubits into superposition so that a quantum
+  circuit can evaluate a function on all inputs simultaneously.
+</p>
+
+<p>
+  There is also a deep relationship between $H$ and the Pauli gates:
+</p>
+
+$$HXH = Z \qquad HZH = X \qquad HYH = -Y$$
+
+<p>
+  The Hadamard gate <em>conjugates</em> $X$ into $Z$ and vice versa. This means that a
+  bit flip error in the Hadamard basis looks like a phase flip error in the computational
+  basis - a key idea in quantum error correction.
+</p>
+
+</section>
+
+<!-- ============================================================ -->
+<section id="phase-gates">
+<h2>5.3 Phase Gates: S, T, and Rz</h2>
+
+<p>
+  The Z gate applies a phase of $-1$ (equivalently, $e^{i\pi}$) to $|1\rangle$. What if
+  we want to apply a <em>smaller</em> phase? The <strong>S gate</strong> and
+  <strong>T gate</strong> are two of the most commonly used fractional-phase gates.
+</p>
+
+<h3>The S Gate (Phase Gate, $\sqrt{Z}$)</h3>
+
+<p>
+  The S gate applies a phase of $i = e^{i\pi/2}$ to $|1\rangle$:
+</p>
+
+$$S = \begin{pmatrix} 1 & 0 \\ 0 & i \end{pmatrix}$$
+
+$$S|0\rangle = |0\rangle \qquad S|1\rangle = i|1\rangle$$
+
+<p>
+  On the Bloch sphere, $S$ is a rotation of $\pi/2$ (90 degrees) around the z-axis. Applying
+  it twice gives the Z gate: $S^2 = Z$. This is why the S gate is sometimes called $\sqrt{Z}$.
+</p>
+
+<p>
+  The inverse of the S gate is written $S^\dagger$ (pronounced "S dagger"). It applies a
+  phase of $-i = e^{-i\pi/2}$:
+</p>
+
+$$S^\dagger = \begin{pmatrix} 1 & 0 \\ 0 & -i \end{pmatrix}$$
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="7">OPENQASM 3.0;
+qubit[1] q;
+bit[1] c;
+h q[0];
+s q[0];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<h3>The T Gate ($\sqrt{S}$, $\pi/8$ Gate)</h3>
+
+<p>
+  The T gate applies an even smaller phase of $e^{i\pi/4}$ to $|1\rangle$:
+</p>
+
+$$T = \begin{pmatrix} 1 & 0 \\ 0 & e^{i\pi/4} \end{pmatrix}$$
+
+$$T|0\rangle = |0\rangle \qquad T|1\rangle = e^{i\pi/4}|1\rangle$$
+
+<p>
+  On the Bloch sphere, $T$ is a rotation of $\pi/4$ (45 degrees) around the z-axis.
+  Applying it twice gives the S gate: $T^2 = S$. The T gate is sometimes called the
+  $\pi/8$ gate because it can be written as $e^{i\pi/8} \cdot R_z(\pi/4)$, where the
+  global phase factor $e^{i\pi/8}$ is unobservable.
+</p>
+
+<p>
+  Its inverse, $T^\dagger$, applies a phase of $e^{-i\pi/4}$:
+</p>
+
+$$T^\dagger = \begin{pmatrix} 1 & 0 \\ 0 & e^{-i\pi/4} \end{pmatrix}$$
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="7">OPENQASM 3.0;
+qubit[1] q;
+bit[1] c;
+h q[0];
+t q[0];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<h3>The Phase Gate Hierarchy</h3>
+
+<p>
+  The Z, S, and T gates form a natural hierarchy of phase rotations around the z-axis:
+</p>
+
+<table class="state-table">
+  <thead>
+    <tr><th>Gate</th><th>Phase on $|1\rangle$</th><th>Z-rotation Angle</th><th>Relationship</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>$Z$</td><td>$e^{i\pi} = -1$</td><td>$\pi$</td><td>$Z = S^2 = T^4$</td></tr>
+    <tr><td>$S$</td><td>$e^{i\pi/2} = i$</td><td>$\pi/2$</td><td>$S = T^2$</td></tr>
+    <tr><td>$T$</td><td>$e^{i\pi/4}$</td><td>$\pi/4$</td><td>Fundamental</td></tr>
+  </tbody>
+</table>
+
+<h3>Why Phase Matters</h3>
+
+<div class="callout callout-warning">
+  <strong>A common misconception.</strong>
+  "If we can only measure 0 or 1, how can phase matter?" The answer is that phases affect
+  <em>interference</em>. When paths through a quantum circuit recombine (for example,
+  when a second Hadamard gate is applied), the relative phases determine whether the
+  amplitudes add constructively or destructively. Phase is the mechanism by which quantum
+  algorithms extract answers.
+</div>
+
+<p>
+  Consider this concrete example. We prepare $|+\rangle = \frac{1}{\sqrt{2}}(|0\rangle + |1\rangle)$,
+  apply a Z gate to get $|-\rangle = \frac{1}{\sqrt{2}}(|0\rangle - |1\rangle)$, and then apply
+  a final H. The Hadamard converts $|-\rangle$ back to $|1\rangle$:
+</p>
+
+$$H \cdot Z \cdot H |0\rangle = H \cdot Z |+\rangle = H|-\rangle = |1\rangle$$
+
+<p>
+  Without the Z gate, $H \cdot H|0\rangle = |0\rangle$. The phase flip caused the final
+  measurement outcome to change from 0 to 1 with certainty. The phase was invisible at the
+  intermediate step but became measurable after the final Hadamard "decoded" it into a
+  bit-flip. This pattern - encode into superposition, manipulate phases, decode back to
+  computational basis - is the template for nearly all quantum algorithms.
+</p>
+
+</section>
+
+<!-- ============================================================ -->
+<section id="rotation-gates">
+<h2>5.4 Arbitrary Rotations: Rx, Ry, Rz</h2>
+
+<p>
+  The Pauli, Hadamard, S, and T gates perform rotations by fixed angles. But quantum
+  computing often requires continuous rotations by arbitrary angles. The
+  <strong>parameterized rotation gates</strong> $R_x(\theta)$, $R_y(\theta)$, and
+  $R_z(\theta)$ generalize the Pauli gates to rotations by any angle $\theta$.
+</p>
+
+<h3>$R_x(\theta)$: Rotation Around the X-Axis</h3>
+
+$$R_x(\theta) = e^{-i\theta X/2} = \begin{pmatrix} \cos\frac{\theta}{2} & -i\sin\frac{\theta}{2} \\ -i\sin\frac{\theta}{2} & \cos\frac{\theta}{2} \end{pmatrix}$$
+
+<p>
+  When $\theta = \pi$, this gives $R_x(\pi) = -iX$ (the X gate up to a global phase).
+  On the Bloch sphere, $R_x(\theta)$ rotates the state vector by $\theta$ radians around
+  the x-axis.
+</p>
+
+<p>
+  Use the slider below to explore how the angle $\theta$ affects the qubit state. At
+  $\theta = 0$, the qubit stays in $|0\rangle$. At $\theta = \pi$ ($\approx 3.14$), it
+  flips to $|1\rangle$. At intermediate angles, you get partial superpositions:
+</p>
+
+<div class="simulation" data-component="simulation">
+  <div class="sim-controls">
+    <label>angle: <input type="range" data-param="angle" min="0" max="6.28318" step="0.01" value="1.5708"><output>1.57</output></label>
+  </div>
+  <pre class="sim-qasm">OPENQASM 3.0;
+qubit[1] q;
+bit[1] c;
+rx({angle}) q[0];
+c = measure q;</pre>
+  <div class="sim-output"></div>
+</div>
+
+<h3>$R_y(\theta)$: Rotation Around the Y-Axis</h3>
+
+$$R_y(\theta) = e^{-i\theta Y/2} = \begin{pmatrix} \cos\frac{\theta}{2} & -\sin\frac{\theta}{2} \\ \sin\frac{\theta}{2} & \cos\frac{\theta}{2} \end{pmatrix}$$
+
+<p>
+  The $R_y$ gate is special because its matrix entries are all real. This means it creates
+  superpositions without introducing complex phases - the resulting state always lies in the
+  xz-plane of the Bloch sphere. When $\theta = \pi$, we get $R_y(\pi) = -iY$ (the Y gate
+  up to global phase).
+</p>
+
+<div class="simulation" data-component="simulation">
+  <div class="sim-controls">
+    <label>angle: <input type="range" data-param="angle" min="0" max="6.28318" step="0.01" value="1.5708"><output>1.57</output></label>
+  </div>
+  <pre class="sim-qasm">OPENQASM 3.0;
+qubit[1] q;
+bit[1] c;
+ry({angle}) q[0];
+c = measure q;</pre>
+  <div class="sim-output"></div>
+</div>
+
+<h3>$R_z(\theta)$: Rotation Around the Z-Axis</h3>
+
+$$R_z(\theta) = e^{-i\theta Z/2} = \begin{pmatrix} e^{-i\theta/2} & 0 \\ 0 & e^{i\theta/2} \end{pmatrix}$$
+
+<p>
+  The $R_z$ gate is diagonal - it does not change the measurement probabilities, only the
+  relative phase between $|0\rangle$ and $|1\rangle$. When $\theta = \pi$, we recover the
+  Z gate (up to global phase): $R_z(\pi) = -iZ$. The S and T gates are also special cases:
+</p>
+
+$$S = e^{i\pi/4} R_z(\pi/2) \qquad T = e^{i\pi/8} R_z(\pi/4)$$
+
+<div class="simulation" data-component="simulation">
+  <div class="sim-controls">
+    <label>angle: <input type="range" data-param="angle" min="0" max="6.28318" step="0.01" value="1.5708"><output>1.57</output></label>
+  </div>
+  <pre class="sim-qasm">OPENQASM 3.0;
+qubit[1] q;
+bit[1] c;
+h q[0];
+rz({angle}) q[0];
+c = measure q;</pre>
+  <div class="sim-output"></div>
+</div>
+
+<div class="callout callout-info">
+  <strong>Note on the Rz sandbox.</strong>
+  We apply H before Rz so you can see the phase rotation's effect. Without the H gate,
+  $R_z$ applied to $|0\rangle$ only adds a global phase, which is unobservable. By first
+  creating a superposition, the relative phase introduced by $R_z$ becomes visible in the
+  measurement statistics when followed by further gates.
+</div>
+
+<h3>How Rotation Gates Generalize the Pauli Gates</h3>
+
+<p>
+  Each Pauli gate is a special case of its corresponding rotation gate at angle $\pi$
+  (up to a global phase of $-i$):
+</p>
+
+$$R_x(\pi) = -iX \qquad R_y(\pi) = -iY \qquad R_z(\pi) = -iZ$$
+
+<p>
+  The global phase $-i$ is physically unobservable, so for all practical purposes
+  $R_x(\pi)$ "is" the X gate, and likewise for Y and Z. The rotation gates give us a
+  continuous family of operations, parameterized by a single angle, that interpolate
+  smoothly between the identity ($\theta = 0$) and the Pauli gate ($\theta = \pi$).
+</p>
+
+<div class="callout callout-key">
+  <strong>Universality preview.</strong>
+  A deep result in quantum computing states that $R_y(\theta)$, $R_z(\phi)$, and the
+  two-qubit CNOT gate together form a <em>universal gate set</em> - they can approximate
+  any unitary transformation to arbitrary precision. We will explore this further in
+  Chapter 6.
+</div>
+
+</section>
+
+<!-- ============================================================ -->
+<section id="gates-as-matrices">
+<h2>5.5 Gates as Matrices, Matrices as Gates</h2>
+
+<p>
+  Every quantum gate is a <strong>unitary matrix</strong>. This is not a convention or a
+  simplification - it is a requirement imposed by the laws of quantum mechanics. A matrix
+  $U$ is <em>unitary</em> if:
+</p>
+
+$$U^\dagger U = U U^\dagger = I$$
+
+<p>
+  where $U^\dagger$ is the conjugate transpose of $U$ (transpose the matrix and take
+  the complex conjugate of every entry), and $I$ is the identity matrix. Let us verify
+  this for the Hadamard gate:
+</p>
+
+$$H^\dagger H = \frac{1}{\sqrt{2}}\begin{pmatrix} 1 & 1 \\ 1 & -1 \end{pmatrix} \cdot \frac{1}{\sqrt{2}}\begin{pmatrix} 1 & 1 \\ 1 & -1 \end{pmatrix} = \frac{1}{2}\begin{pmatrix} 2 & 0 \\ 0 & 2 \end{pmatrix} = I \quad \checkmark$$
+
+<p>
+  (Since $H$ is real and symmetric, $H^\dagger = H$, so $H$ is also Hermitian.)
+</p>
+
+<h3>Why Unitarity?</h3>
+
+<p>
+  The unitarity requirement has deep physical meaning:
+</p>
+
+<ul>
+  <li>
+    <strong>Probability conservation.</strong> If $|\psi\rangle$ is a valid quantum state
+    (with $\langle\psi|\psi\rangle = 1$), then $U|\psi\rangle$ is also a valid quantum state.
+    Unitary transformations preserve the total probability.
+  </li>
+  <li>
+    <strong>Reversibility.</strong> Every unitary matrix has an inverse ($U^{-1} = U^\dagger$),
+    so every quantum gate can be undone. Quantum computation is inherently reversible - there
+    is no quantum analogue of an AND gate that irreversibly destroys information.
+  </li>
+  <li>
+    <strong>Norm preservation.</strong> Unitary matrices preserve the length of vectors:
+    $\|U|\psi\rangle\| = \||\psi\rangle\|$. On the Bloch sphere, this means gates are
+    rotations - they move the state vector around the sphere without changing its length.
+  </li>
+</ul>
+
+<h3>Verifying Unitarity</h3>
+
+<p>Let us verify unitarity for the Y gate:</p>
+
+$$Y^\dagger = \begin{pmatrix} 0 & -i \\ i & 0 \end{pmatrix}^\dagger = \begin{pmatrix} 0 & -i \\ i & 0 \end{pmatrix} = Y$$
+
+$$Y^\dagger Y = \begin{pmatrix} 0 & -i \\ i & 0 \end{pmatrix}\begin{pmatrix} 0 & -i \\ i & 0 \end{pmatrix} = \begin{pmatrix} 1 & 0 \\ 0 & 1 \end{pmatrix} = I \quad \checkmark$$
+
+<p>And for the T gate:</p>
+
+$$T^\dagger T = \begin{pmatrix} 1 & 0 \\ 0 & e^{-i\pi/4} \end{pmatrix}\begin{pmatrix} 1 & 0 \\ 0 & e^{i\pi/4} \end{pmatrix} = \begin{pmatrix} 1 & 0 \\ 0 & 1 \end{pmatrix} = I \quad \checkmark$$
+
+<h3>Not Every Matrix Is a Valid Gate</h3>
+
+<p>
+  The matrix $\begin{pmatrix} 1 & 1 \\ 0 & 1 \end{pmatrix}$ is <em>not</em> unitary.
+  If we applied it to $|1\rangle$, we would get $|0\rangle + |1\rangle$, which has
+  norm $\sqrt{2}$ instead of 1. The probabilities would not sum to 1. Only unitary
+  matrices preserve the delicate normalization of quantum states.
+</p>
+
+<div class="callout callout-info">
+  <strong>Determinant of a unitary matrix.</strong>
+  For a unitary matrix $U$, the determinant satisfies $|\det(U)| = 1$. This means
+  $\det(U) = e^{i\phi}$ for some angle $\phi$. Gates with $\det(U) = 1$ are called
+  <em>special unitary</em> and belong to the group $SU(2)$.
+</div>
+
+<h3>Exercise: Achieve a Target State</h3>
+
+<p>
+  Write a QASM program that prepares the state $|-\rangle = \frac{1}{\sqrt{2}}(|0\rangle - |1\rangle)$.
+  Hint: you will need two gates.
+</p>
+
+<div class="exercise" data-component="exercise">
+  <div class="exercise-header">Exercise 5.1: Prepare $|-\rangle$</div>
+  <div class="exercise-prompt">
+    <p>
+      Prepare the qubit in the state $|-\rangle = \frac{1}{\sqrt{2}}(|0\rangle - |1\rangle)$.
+      When measured, this state gives 50% $|0\rangle$ and 50% $|1\rangle$, just like $|+\rangle$.
+      But on the Bloch sphere, $|-\rangle$ points in the $-x$ direction. Use the X and H gates.
+    </p>
+  </div>
+  <textarea class="code" rows="6">OPENQASM 3.0;
+qubit[1] q;
+bit[1] c;
+
+c = measure q;</textarea>
+  <div class="exercise-expected">
+    <span data-state="0" data-prob="0.5" data-tolerance="0.1"></span>
+    <span data-state="1" data-prob="0.5" data-tolerance="0.1"></span>
+  </div>
+  <div class="exercise-hint" style="display:none">
+    <p>Think about what state $H$ maps $|1\rangle$ to. How do you get to $|1\rangle$ first?</p>
+  </div>
+  <div class="exercise-controls">
+    <button data-action="check">Check</button>
+    <button data-action="hint">Hint</button>
+  </div>
+  <div class="exercise-feedback"></div>
+</div>
+
+</section>
+
+<!-- ============================================================ -->
+<section id="composing-gates">
+<h2>5.6 Composing Gates: The Quantum Circuit Model</h2>
+
+<p>
+  Individual gates are useful, but the real power comes from <strong>composing</strong>
+  multiple gates into a <em>quantum circuit</em>. In the circuit model of quantum
+  computation, a computation is described as a sequence of gates applied to qubits along
+  horizontal wires, read from left to right.
+</p>
+
+<h3>Circuit Notation</h3>
+
+<p>
+  In a quantum circuit diagram:
+</p>
+
+<ul>
+  <li>Each horizontal line (wire) represents a qubit, initialized to $|0\rangle$ on the left.</li>
+  <li>Gates are drawn as labeled boxes on the wires, applied from <strong>left to right</strong>.</li>
+  <li>A measurement symbol at the end of a wire indicates a computational-basis measurement.</li>
+  <li>Time flows from left to right - the leftmost gate is applied first.</li>
+</ul>
+
+<h3>Matrix Multiplication and Gate Ordering</h3>
+
+<p>
+  When we compose gates, the corresponding matrices are <strong>multiplied in reverse
+  order</strong>. If a circuit applies gate $A$ first, then gate $B$, the combined
+  operation is:
+</p>
+
+$$|\psi_{\text{final}}\rangle = B \cdot A \cdot |\psi_{\text{initial}}\rangle$$
+
+<p>
+  This reverse ordering comes from the standard convention for matrix multiplication:
+  the matrix closest to the state vector acts first. For example, the circuit
+  $H \to Z \to H$ applied to $|0\rangle$ is computed as:
+</p>
+
+$$HZH|0\rangle$$
+
+<p>
+  where $H$ on the right acts first. We already showed that this equals $|1\rangle$.
+  Let us verify by multiplying the matrices:
+</p>
+
+$$HZH = \frac{1}{2}\begin{pmatrix} 1 & 1 \\ 1 & -1 \end{pmatrix}\begin{pmatrix} 1 & 0 \\ 0 & -1 \end{pmatrix}\begin{pmatrix} 1 & 1 \\ 1 & -1 \end{pmatrix} = \begin{pmatrix} 0 & 1 \\ 1 & 0 \end{pmatrix} = X$$
+
+<p>
+  Remarkable: sandwiching a Z gate between two Hadamards produces an X gate. This
+  demonstrates how gate composition can create entirely new operations from simpler parts.
+</p>
+
+<div class="callout callout-key">
+  <strong>Circuit identity: $HZH = X$.</strong>
+  This identity is one of the most useful in quantum computing. Its sibling is $HXH = Z$.
+  Together they show that the Hadamard gate "rotates" between the X and Z bases. Any
+  circuit involving X gates can be rewritten using Z gates and Hadamards, and vice versa.
+</div>
+
+<h3>Building Multi-Gate Circuits</h3>
+
+<p>
+  Try the following circuit that composes several gates. First we apply H to create a
+  superposition, then T to add a $\pi/4$ phase, then H again. The result is a state
+  that is neither $|0\rangle$ nor $|1\rangle$ nor an equal superposition:
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="8">OPENQASM 3.0;
+qubit[1] q;
+bit[1] c;
+h q[0];
+t q[0];
+h q[0];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+  The combined matrix for this circuit is:
+</p>
+
+$$HTH = \frac{1}{2}\begin{pmatrix} 1 & 1 \\ 1 & -1 \end{pmatrix}\begin{pmatrix} 1 & 0 \\ 0 & e^{i\pi/4} \end{pmatrix}\begin{pmatrix} 1 & 1 \\ 1 & -1 \end{pmatrix} = \frac{1}{2}\begin{pmatrix} 1 + e^{i\pi/4} & 1 - e^{i\pi/4} \\ 1 - e^{i\pi/4} & 1 + e^{i\pi/4} \end{pmatrix}$$
+
+<p>
+  The probability of measuring $|1\rangle$ is $|1 - e^{i\pi/4}|^2/4 \approx 0.146$, so
+  you should see roughly 85% $|0\rangle$ and 15% $|1\rangle$.
+</p>
+
+<h3>Longer Circuits</h3>
+
+<p>
+  There is no limit to how many gates you can compose. The following circuit applies a
+  sequence of rotations, demonstrating how a complex transformation can be built from
+  simple pieces. Experiment by modifying the gates and observing how the output changes:
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="11">OPENQASM 3.0;
+qubit[1] q;
+bit[1] c;
+h q[0];
+t q[0];
+h q[0];
+s q[0];
+h q[0];
+t q[0];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<h3>Circuit Equivalence</h3>
+
+<p>
+  Two circuits are <strong>equivalent</strong> if they produce the same unitary matrix
+  (up to a global phase). Finding shorter or more efficient circuits that implement the
+  same transformation is a central problem in quantum compilation. For example, these
+  three circuits all implement the same operation (the X gate):
+</p>
+
+<ul>
+  <li>A single X gate</li>
+  <li>$HZH$</li>
+  <li>$R_x(\pi)$ (up to global phase)</li>
+  <li>$R_y(\pi) \cdot R_z(\pi)$ (up to global phase)</li>
+</ul>
+
+<p>
+  A quantum compiler's job is to take a desired unitary operation and decompose it into
+  the native gates available on a specific quantum processor - typically a small set like
+  $\{R_z, \sqrt{X}, \text{CNOT}\}$.
+</p>
+
+<div class="callout callout-info">
+  <strong>Looking ahead.</strong>
+  In Chapter 6, we will extend the circuit model to multiple qubits, introducing
+  two-qubit gates like CNOT and CZ that create entanglement. The single-qubit gates
+  from this chapter, combined with any entangling two-qubit gate, are sufficient to
+  build a universal quantum computer.
+</div>
+
+<h3>Exercise: Match the Circuit</h3>
+
+<p>
+  Write a circuit that produces approximately 75% $|0\rangle$ and 25% $|1\rangle$. Hint:
+  use $R_y$ with an appropriate angle. Recall that $R_y(\theta)|0\rangle = \cos(\theta/2)|0\rangle + \sin(\theta/2)|1\rangle$,
+  so you need $\sin^2(\theta/2) \approx 0.25$, which gives $\theta \approx \pi/3$.
+</p>
+
+<div class="exercise" data-component="exercise">
+  <div class="exercise-header">Exercise 5.2: 75/25 Split</div>
+  <div class="exercise-prompt">
+    <p>
+      Prepare a qubit state that measures $|0\rangle$ approximately 75% of the time and
+      $|1\rangle$ approximately 25% of the time. Use a single rotation gate.
+    </p>
+  </div>
+  <textarea class="code" rows="5">OPENQASM 3.0;
+qubit[1] q;
+bit[1] c;
+
+c = measure q;</textarea>
+  <div class="exercise-expected">
+    <span data-state="0" data-prob="0.75" data-tolerance="0.15"></span>
+    <span data-state="1" data-prob="0.25" data-tolerance="0.15"></span>
+  </div>
+  <div class="exercise-hint" style="display:none">
+    <p>Use <code>ry(1.0472) q[0];</code> where $1.0472 \approx \pi/3$.</p>
+  </div>
+  <div class="exercise-controls">
+    <button data-action="check">Check</button>
+    <button data-action="hint">Hint</button>
+  </div>
+  <div class="exercise-feedback"></div>
+</div>
+
+</section>
+
+<!-- ============================================================ -->
+<section id="chapter-summary">
+<h2>Chapter Summary</h2>
+
+<p>
+  This chapter introduced the fundamental single-qubit quantum gates. Here are the key
+  takeaways:
+</p>
+
+<ul>
+  <li>The <strong>Pauli gates</strong> (X, Y, Z) are 180-degree rotations around the three axes of the Bloch sphere. X flips bits, Z flips phases, and Y does both.</li>
+  <li>The <strong>Hadamard gate</strong> creates superposition by mapping $|0\rangle \to |+\rangle$ and $|1\rangle \to |-\rangle$. It is its own inverse and conjugates X into Z.</li>
+  <li>The <strong>phase gates</strong> (S, T) are fractional rotations around the z-axis. S rotates by $\pi/2$ and T by $\pi/4$.</li>
+  <li><strong>Rotation gates</strong> ($R_x$, $R_y$, $R_z$) generalize the Pauli gates to continuous rotations by arbitrary angles.</li>
+  <li>Every quantum gate is a <strong>unitary matrix</strong> satisfying $U^\dagger U = I$. Unitarity guarantees probability conservation and reversibility.</li>
+  <li>Gates are <strong>composed</strong> by matrix multiplication (in reverse order of application). The quantum circuit model reads left to right, but the matrix product reads right to left.</li>
+</ul>
+
+<p>
+  You now have all the single-qubit tools needed for quantum computation. In the next
+  chapter, we will expand to multiple qubits and discover the most uniquely quantum
+  resource of all: <strong>entanglement</strong>.
+</p>
+
+</section>
+
+<!-- ============================================================ -->
+<section id="flashcards">
+<h2>Review Flashcards</h2>
+
+<div class="flashcard-deck" data-component="flashcard-deck">
+  <div class="flashcard-deck-header">Chapter 5 Review</div>
+
+  <div class="flashcard" data-card-id="ch05-x-gate-matrix">
+    <div class="card-front">What is the matrix representation of the X (Pauli-X) gate?</div>
+    <div class="card-back">
+      $X = \begin{pmatrix} 0 & 1 \\ 1 & 0 \end{pmatrix}$. It swaps $|0\rangle$ and $|1\rangle$ (bit flip). On the Bloch sphere, it is a $\pi$ rotation around the x-axis.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch05-z-gate-effect">
+    <div class="card-front">What does the Z gate do to $|0\rangle$ and $|1\rangle$?</div>
+    <div class="card-back">
+      $Z|0\rangle = |0\rangle$ and $Z|1\rangle = -|1\rangle$. It leaves $|0\rangle$ unchanged and flips the phase of $|1\rangle$ (phase flip). On the Bloch sphere, it is a $\pi$ rotation around the z-axis.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch05-hadamard-action">
+    <div class="card-front">What does the Hadamard gate do to $|0\rangle$ and $|1\rangle$?</div>
+    <div class="card-back">
+      $H|0\rangle = |+\rangle = \frac{1}{\sqrt{2}}(|0\rangle + |1\rangle)$ and $H|1\rangle = |-\rangle = \frac{1}{\sqrt{2}}(|0\rangle - |1\rangle)$. It converts between the computational basis and the Hadamard ($\pm$) basis.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch05-hadamard-self-inverse">
+    <div class="card-front">What happens when you apply the Hadamard gate twice?</div>
+    <div class="card-back">
+      $H^2 = I$ (the identity). The Hadamard gate is its own inverse: applying it twice returns the qubit to its original state. This is true because $H = H^\dagger$.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch05-s-t-relationship">
+    <div class="card-front">How are the Z, S, and T gates related?</div>
+    <div class="card-back">
+      $T^2 = S$ and $S^2 = Z$ (equivalently, $T^4 = Z$). T applies a phase of $e^{i\pi/4}$, S applies $e^{i\pi/2} = i$, and Z applies $e^{i\pi} = -1$ to $|1\rangle$. They are successively larger rotations around the z-axis.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch05-why-phase-matters">
+    <div class="card-front">Why does phase matter if we can only measure 0 or 1?</div>
+    <div class="card-back">
+      Relative phases affect <em>interference</em>. When amplitudes recombine (e.g., after a second Hadamard), phases determine whether amplitudes add constructively or destructively. This is the mechanism by which quantum algorithms extract answers. Example: $HZH = X$, where the phase flip becomes a measurable bit flip.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch05-unitary-requirement">
+    <div class="card-front">Why must every quantum gate be a unitary matrix?</div>
+    <div class="card-back">
+      Unitarity ($U^\dagger U = I$) guarantees three physical requirements: (1) probability conservation - the output state has total probability 1, (2) reversibility - every gate has an inverse $U^{-1} = U^\dagger$, and (3) norm preservation - the Bloch vector stays on the sphere.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch05-rotation-pauli">
+    <div class="card-front">How do the rotation gates $R_x(\theta)$, $R_y(\theta)$, $R_z(\theta)$ generalize the Pauli gates?</div>
+    <div class="card-back">
+      At $\theta = \pi$, each rotation gate equals its corresponding Pauli gate up to a global phase of $-i$: $R_x(\pi) = -iX$, $R_y(\pi) = -iY$, $R_z(\pi) = -iZ$. The rotation gates interpolate continuously between the identity ($\theta = 0$) and the Pauli gate ($\theta = \pi$).
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch05-hzh-identity">
+    <div class="card-front">What is $HZH$ equal to?</div>
+    <div class="card-back">
+      $HZH = X$ and $HXH = Z$. The Hadamard gate conjugates X into Z and vice versa. This means you can convert between bit-flip and phase-flip operations using Hadamard gates. This identity is used extensively in quantum error correction and algorithm design.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch05-circuit-matrix-order">
+    <div class="card-front">In a circuit that applies gate A then gate B, what is the combined matrix?</div>
+    <div class="card-back">
+      The combined matrix is $BA$ (reverse order). The matrix closest to the state vector acts first: $|\psi_\text{final}\rangle = B \cdot A \cdot |\psi_\text{initial}\rangle$. Circuit diagrams read left-to-right, but the matrix product reads right-to-left.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+</section>
+    </article>
+
+    
+    <nav class="chapter-nav" aria-label="Chapter navigation">
+      <a href="04-the-first-qubit.html" class="prev">&larr; Chapter 4: The First Qubit</a>
+      <span class="nav-spacer"></span>
+      <a href="06-entanglement.html" class="next">Chapter 6: Multiple Qubits and Entanglement &rarr;</a>
+    </nav>
+    
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof renderMathInElement !== "undefined") {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "$", right: "$", display: false}
+          ],
+          throwOnError: false
+        });
+      }
+    });
+  </script>
+</body>
+</html>

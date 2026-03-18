@@ -5,15 +5,344 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Goqu Quantum Computing Textbook</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/contrib/auto-render.min.js"></script>
+  
 </head>
 <body>
+  <input type="checkbox" id="nav-toggle" hidden>
+  <label for="nav-toggle" class="nav-hamburger" aria-label="Toggle navigation">
+    <span></span><span></span><span></span>
+  </label>
+
+  <nav class="sidebar" aria-label="Table of contents">
+    <a href="index.html" class="sidebar-logo">Goqu Textbook</a>
+    
+    <details>
+      <summary>Part 1: The World of Classical Computing</summary>
+      <ol start="1">
+        
+        <li value="1"><a href="chapters/01-computation.html">What Is Computation?</a></li>
+        
+        <li value="2"><a href="chapters/02-math-of-information.html">The Mathematics of Information</a></li>
+        
+        <li value="3"><a href="chapters/03-reversible-computing.html">Reversible Computing</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 2: Entering the Quantum World</summary>
+      <ol start="4">
+        
+        <li value="4"><a href="chapters/04-the-first-qubit.html">The First Qubit</a></li>
+        
+        <li value="5"><a href="chapters/05-quantum-gates.html">Quantum Gates</a></li>
+        
+        <li value="6"><a href="chapters/06-entanglement.html">Multiple Qubits and Entanglement</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 3: Quantum Protocols</summary>
+      <ol start="7">
+        
+        <li value="7"><a href="chapters/07-teleportation.html">Quantum Teleportation and Communication</a></li>
+        
+        <li value="8"><a href="chapters/08-cryptography.html">Quantum Cryptography</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 4: Quantum Algorithms: The First Wave</summary>
+      <ol start="9">
+        
+        <li value="9"><a href="chapters/09-oracles.html">Oracles and Quantum Parallelism</a></li>
+        
+        <li value="10"><a href="chapters/10-qft.html">The Quantum Fourier Transform</a></li>
+        
+        <li value="11"><a href="chapters/11-shor.html">Shor&#39;s Algorithm</a></li>
+        
+        <li value="12"><a href="chapters/12-grover.html">Grover&#39;s Algorithm</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 5: Real Quantum Hardware</summary>
+      <ol start="13">
+        
+        <li value="13"><a href="chapters/13-hardware.html">How to Build a Quantum Computer</a></li>
+        
+        <li value="14"><a href="chapters/14-noise.html">Noise, Decoherence, and the NISQ Era</a></li>
+        
+        <li value="15"><a href="chapters/15-programming.html">Programming Quantum Computers</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 6: Quantum Error Correction</summary>
+      <ol start="16">
+        
+        <li value="16"><a href="chapters/16-classical-ec.html">Classical Error Correction Refresher</a></li>
+        
+        <li value="17"><a href="chapters/17-qec-fundamentals.html">Quantum Error Correction Fundamentals</a></li>
+        
+        <li value="18"><a href="chapters/18-stabilizers.html">The Stabilizer Formalism</a></li>
+        
+        <li value="19"><a href="chapters/19-surface-codes.html">Surface Codes and Topological Protection</a></li>
+        
+        <li value="20"><a href="chapters/20-fault-tolerance.html">Fault-Tolerant Quantum Computing</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 7: Variational and Near-Term Algorithms</summary>
+      <ol start="21">
+        
+        <li value="21"><a href="chapters/21-variational.html">The Variational Quantum Computing Paradigm</a></li>
+        
+        <li value="22"><a href="chapters/22-vqe.html">Variational Quantum Eigensolver (VQE)</a></li>
+        
+        <li value="23"><a href="chapters/23-qaoa.html">Quantum Approximate Optimization (QAOA)</a></li>
+        
+        <li value="24"><a href="chapters/24-qml.html">Quantum Machine Learning</a></li>
+        
+        <li value="25"><a href="chapters/25-error-mitigation.html">Quantum Error Mitigation</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 8: Quantum Information Theory</summary>
+      <ol start="26">
+        
+        <li value="26"><a href="chapters/26-states-measurements.html">Quantum States and Measurements, Revisited</a></li>
+        
+        <li value="27"><a href="chapters/27-channels.html">Quantum Channels and Operations</a></li>
+        
+        <li value="28"><a href="chapters/28-entropy.html">Quantum Entropy and Information</a></li>
+        
+        <li value="29"><a href="chapters/29-shannon.html">Quantum Shannon Theory</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 9: Quantum Complexity and Computation Theory</summary>
+      <ol start="30">
+        
+        <li value="30"><a href="chapters/30-complexity.html">Quantum Computational Complexity</a></li>
+        
+        <li value="31"><a href="chapters/31-hidden-subgroup.html">The Hidden Subgroup Problem and Beyond</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 10: Quantum Simulation</summary>
+      <ol start="32">
+        
+        <li value="32"><a href="chapters/32-simulation-why.html">Why Quantum Simulation Matters</a></li>
+        
+        <li value="33"><a href="chapters/33-digital-simulation.html">Digital Quantum Simulation</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 11: Quantum Networking, Cryptography, and Sensing</summary>
+      <ol start="34">
+        
+        <li value="34"><a href="chapters/34-quantum-internet.html">The Quantum Internet</a></li>
+        
+        <li value="35"><a href="chapters/35-advanced-crypto.html">Advanced Quantum Cryptography</a></li>
+        
+        <li value="36"><a href="chapters/36-sensing.html">Quantum Sensing and Metrology</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 12: Frontiers and the Future</summary>
+      <ol start="37">
+        
+        <li value="37"><a href="chapters/37-topological.html">Topological Quantum Computing</a></li>
+        
+        <li value="38"><a href="chapters/38-quantum-ai.html">Quantum Computing and Artificial Intelligence</a></li>
+        
+        <li value="39"><a href="chapters/39-open-problems.html">Open Problems in Quantum Computing</a></li>
+        
+        <li value="40"><a href="chapters/40-ecosystem.html">The Quantum Computing Ecosystem Today</a></li>
+        
+        <li value="41"><a href="chapters/41-career.html">Building Your Quantum Computing Career</a></li>
+        
+        <li value="42"><a href="chapters/42-what-next.html">What Comes Next</a></li>
+        
+      </ol>
+    </details>
+    
+  </nav>
+
+  <main>
+    
+
+    <article>
+      
+      <div class="index-hero">
   <h1>Goqu Quantum Computing Textbook</h1>
+  <p>An interactive introduction to quantum computing - from bits to qubits and beyond.</p>
+  <p>Powered by <a href="https://github.com/splch/goqu">Goqu</a>, a quantum computing SDK in pure Go.</p>
+</div>
 
-  <h2>Chapters</h2>
-  <ol class="chapter-list">
-    <li><a href="chapters/01-the-qubit.html">The Qubit</a> - ...</li>
-  </ol>
+<div class="part-group" id="part-1">
+  <h2>Part I: The World of Classical Computing</h2>
+  <p>No prerequisites. Establishes the classical foundation that makes quantum computing meaningful.</p>
+  <ul class="chapter-list">
+    <li><a href="chapters/01-computation.html"><span class="chapter-num">1.</span> What Is Computation?</a></li>
+    <li><a href="chapters/02-math-of-information.html"><span class="chapter-num">2.</span> The Mathematics of Information</a></li>
+    <li><a href="chapters/03-reversible-computing.html"><span class="chapter-num">3.</span> Reversible Computing</a></li>
+  </ul>
+</div>
 
-  <p>...</p>
+<div class="part-group" id="part-2">
+  <h2>Part II: Entering the Quantum World</h2>
+  <p>Introduces quantum mechanics through the lens of computation. Math introduced just-in-time.</p>
+  <ul class="chapter-list">
+    <li><a href="chapters/04-the-first-qubit.html"><span class="chapter-num">4.</span> The First Qubit</a></li>
+    <li><a href="chapters/05-quantum-gates.html"><span class="chapter-num">5.</span> Quantum Gates</a></li>
+    <li><a href="chapters/06-entanglement.html"><span class="chapter-num">6.</span> Multiple Qubits and Entanglement</a></li>
+  </ul>
+</div>
+
+<div class="part-group" id="part-3">
+  <h2>Part III: Quantum Protocols</h2>
+  <p>The power of qubits and entanglement through landmark protocols.</p>
+  <ul class="chapter-list">
+    <li><a href="chapters/07-teleportation.html"><span class="chapter-num">7.</span> Quantum Teleportation and Communication</a></li>
+    <li><a href="chapters/08-cryptography.html"><span class="chapter-num">8.</span> Quantum Cryptography</a></li>
+  </ul>
+</div>
+
+<div class="part-group" id="part-4">
+  <h2>Part IV: Quantum Algorithms - The First Wave</h2>
+  <p>The canonical algorithm progression, each building on the last.</p>
+  <ul class="chapter-list">
+    <li><a href="chapters/09-oracles.html"><span class="chapter-num">9.</span> Oracles and Quantum Parallelism</a></li>
+    <li><a href="chapters/10-qft.html"><span class="chapter-num">10.</span> The Quantum Fourier Transform</a></li>
+    <li><a href="chapters/11-shor.html"><span class="chapter-num">11.</span> Shor's Algorithm</a></li>
+    <li><a href="chapters/12-grover.html"><span class="chapter-num">12.</span> Grover's Algorithm</a></li>
+  </ul>
+</div>
+
+<div class="part-group" id="part-5">
+  <h2>Part V: Real Quantum Hardware</h2>
+  <p>Transitions from theory to practice with real quantum devices.</p>
+  <ul class="chapter-list">
+    <li><a href="chapters/13-hardware.html"><span class="chapter-num">13.</span> How to Build a Quantum Computer</a></li>
+    <li><a href="chapters/14-noise.html"><span class="chapter-num">14.</span> Noise, Decoherence, and the NISQ Era</a></li>
+    <li><a href="chapters/15-programming.html"><span class="chapter-num">15.</span> Programming Quantum Computers</a></li>
+  </ul>
+</div>
+
+<div class="part-group" id="part-6">
+  <h2>Part VI: Quantum Error Correction</h2>
+  <p>The critical technology enabling fault-tolerant quantum computing.</p>
+  <ul class="chapter-list">
+    <li><a href="chapters/16-classical-ec.html"><span class="chapter-num">16.</span> Classical Error Correction Refresher</a></li>
+    <li><a href="chapters/17-qec-fundamentals.html"><span class="chapter-num">17.</span> Quantum Error Correction Fundamentals</a></li>
+    <li><a href="chapters/18-stabilizers.html"><span class="chapter-num">18.</span> The Stabilizer Formalism</a></li>
+    <li><a href="chapters/19-surface-codes.html"><span class="chapter-num">19.</span> Surface Codes and Topological Protection</a></li>
+    <li><a href="chapters/20-fault-tolerance.html"><span class="chapter-num">20.</span> Fault-Tolerant Quantum Computing</a></li>
+  </ul>
+</div>
+
+<div class="part-group" id="part-7">
+  <h2>Part VII: Variational and Near-Term Algorithms</h2>
+  <p>Practical algorithms for today's quantum hardware.</p>
+  <ul class="chapter-list">
+    <li><a href="chapters/21-variational.html"><span class="chapter-num">21.</span> The Variational Quantum Computing Paradigm</a></li>
+    <li><a href="chapters/22-vqe.html"><span class="chapter-num">22.</span> Variational Quantum Eigensolver (VQE)</a></li>
+    <li><a href="chapters/23-qaoa.html"><span class="chapter-num">23.</span> Quantum Approximate Optimization (QAOA)</a></li>
+    <li><a href="chapters/24-qml.html"><span class="chapter-num">24.</span> Quantum Machine Learning</a></li>
+    <li><a href="chapters/25-error-mitigation.html"><span class="chapter-num">25.</span> Quantum Error Mitigation</a></li>
+  </ul>
+</div>
+
+<div class="part-group" id="part-8">
+  <h2>Part VIII: Quantum Information Theory</h2>
+  <p>The mathematical foundations of quantum information.</p>
+  <ul class="chapter-list">
+    <li><a href="chapters/26-states-measurements.html"><span class="chapter-num">26.</span> Quantum States and Measurements, Revisited</a></li>
+    <li><a href="chapters/27-channels.html"><span class="chapter-num">27.</span> Quantum Channels and Operations</a></li>
+    <li><a href="chapters/28-entropy.html"><span class="chapter-num">28.</span> Quantum Entropy and Information</a></li>
+    <li><a href="chapters/29-shannon.html"><span class="chapter-num">29.</span> Quantum Shannon Theory</a></li>
+  </ul>
+</div>
+
+<div class="part-group" id="part-9">
+  <h2>Part IX: Quantum Complexity and Computation Theory</h2>
+  <p>For readers interested in the theoretical computer science of quantum.</p>
+  <ul class="chapter-list">
+    <li><a href="chapters/30-complexity.html"><span class="chapter-num">30.</span> Quantum Computational Complexity</a></li>
+    <li><a href="chapters/31-hidden-subgroup.html"><span class="chapter-num">31.</span> The Hidden Subgroup Problem and Beyond</a></li>
+  </ul>
+</div>
+
+<div class="part-group" id="part-10">
+  <h2>Part X: Quantum Simulation</h2>
+  <p>The application Feynman envisioned - simulating nature with quantum machines.</p>
+  <ul class="chapter-list">
+    <li><a href="chapters/32-simulation-why.html"><span class="chapter-num">32.</span> Why Quantum Simulation Matters</a></li>
+    <li><a href="chapters/33-digital-simulation.html"><span class="chapter-num">33.</span> Digital Quantum Simulation</a></li>
+  </ul>
+</div>
+
+<div class="part-group" id="part-11">
+  <h2>Part XI: Quantum Networking, Cryptography, and Sensing</h2>
+  <p>The broader quantum technology ecosystem beyond computing.</p>
+  <ul class="chapter-list">
+    <li><a href="chapters/34-quantum-internet.html"><span class="chapter-num">34.</span> The Quantum Internet</a></li>
+    <li><a href="chapters/35-advanced-crypto.html"><span class="chapter-num">35.</span> Advanced Quantum Cryptography</a></li>
+    <li><a href="chapters/36-sensing.html"><span class="chapter-num">36.</span> Quantum Sensing and Metrology</a></li>
+  </ul>
+</div>
+
+<div class="part-group" id="part-12">
+  <h2>Part XII: Frontiers and the Future</h2>
+  <p>Current research, open problems, and how to join the field.</p>
+  <ul class="chapter-list">
+    <li><a href="chapters/37-topological.html"><span class="chapter-num">37.</span> Topological Quantum Computing</a></li>
+    <li><a href="chapters/38-quantum-ai.html"><span class="chapter-num">38.</span> Quantum Computing and Artificial Intelligence</a></li>
+    <li><a href="chapters/39-open-problems.html"><span class="chapter-num">39.</span> Open Problems in Quantum Computing</a></li>
+    <li><a href="chapters/40-ecosystem.html"><span class="chapter-num">40.</span> The Quantum Computing Ecosystem Today</a></li>
+    <li><a href="chapters/41-career.html"><span class="chapter-num">41.</span> Building Your Quantum Computing Career</a></li>
+    <li><a href="chapters/42-what-next.html"><span class="chapter-num">42.</span> What Comes Next</a></li>
+  </ul>
+</div>
+
+    </article>
+
+    
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof renderMathInElement !== "undefined") {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "$", right: "$", display: false}
+          ],
+          throwOnError: false
+        });
+      }
+    });
+  </script>
 </body>
 </html>
