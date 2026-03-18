@@ -1,0 +1,296 @@
+[
+  {
+    "slug": "01-computation",
+    "title": "What Is Computation?",
+    "part": 1,
+    "partTitle": "The World of Classical Computing",
+    "chapter": 1
+  },
+  {
+    "slug": "02-math-of-information",
+    "title": "The Mathematics of Information",
+    "part": 1,
+    "partTitle": "The World of Classical Computing",
+    "chapter": 2
+  },
+  {
+    "slug": "03-reversible-computing",
+    "title": "Reversible Computing",
+    "part": 1,
+    "partTitle": "The World of Classical Computing",
+    "chapter": 3
+  },
+  {
+    "slug": "04-the-first-qubit",
+    "title": "The First Qubit",
+    "part": 2,
+    "partTitle": "Entering the Quantum World",
+    "chapter": 4
+  },
+  {
+    "slug": "05-quantum-gates",
+    "title": "Quantum Gates",
+    "part": 2,
+    "partTitle": "Entering the Quantum World",
+    "chapter": 5
+  },
+  {
+    "slug": "06-entanglement",
+    "title": "Multiple Qubits and Entanglement",
+    "part": 2,
+    "partTitle": "Entering the Quantum World",
+    "chapter": 6
+  },
+  {
+    "slug": "07-teleportation",
+    "title": "Quantum Teleportation and Communication",
+    "part": 3,
+    "partTitle": "Quantum Protocols",
+    "chapter": 7
+  },
+  {
+    "slug": "08-cryptography",
+    "title": "Quantum Cryptography",
+    "part": 3,
+    "partTitle": "Quantum Protocols",
+    "chapter": 8
+  },
+  {
+    "slug": "09-oracles",
+    "title": "Oracles and Quantum Parallelism",
+    "part": 4,
+    "partTitle": "Quantum Algorithms: The First Wave",
+    "chapter": 9
+  },
+  {
+    "slug": "10-qft",
+    "title": "The Quantum Fourier Transform",
+    "part": 4,
+    "partTitle": "Quantum Algorithms: The First Wave",
+    "chapter": 10
+  },
+  {
+    "slug": "11-shor",
+    "title": "Shor's Algorithm",
+    "part": 4,
+    "partTitle": "Quantum Algorithms: The First Wave",
+    "chapter": 11
+  },
+  {
+    "slug": "12-grover",
+    "title": "Grover's Algorithm",
+    "part": 4,
+    "partTitle": "Quantum Algorithms: The First Wave",
+    "chapter": 12
+  },
+  {
+    "slug": "13-hardware",
+    "title": "How to Build a Quantum Computer",
+    "part": 5,
+    "partTitle": "Real Quantum Hardware",
+    "chapter": 13
+  },
+  {
+    "slug": "14-noise",
+    "title": "Noise, Decoherence, and the NISQ Era",
+    "part": 5,
+    "partTitle": "Real Quantum Hardware",
+    "chapter": 14
+  },
+  {
+    "slug": "15-programming",
+    "title": "Programming Quantum Computers",
+    "part": 5,
+    "partTitle": "Real Quantum Hardware",
+    "chapter": 15
+  },
+  {
+    "slug": "16-classical-ec",
+    "title": "Classical Error Correction Refresher",
+    "part": 6,
+    "partTitle": "Quantum Error Correction",
+    "chapter": 16
+  },
+  {
+    "slug": "17-qec-fundamentals",
+    "title": "Quantum Error Correction Fundamentals",
+    "part": 6,
+    "partTitle": "Quantum Error Correction",
+    "chapter": 17
+  },
+  {
+    "slug": "18-stabilizers",
+    "title": "The Stabilizer Formalism",
+    "part": 6,
+    "partTitle": "Quantum Error Correction",
+    "chapter": 18
+  },
+  {
+    "slug": "19-surface-codes",
+    "title": "Surface Codes and Topological Protection",
+    "part": 6,
+    "partTitle": "Quantum Error Correction",
+    "chapter": 19
+  },
+  {
+    "slug": "20-fault-tolerance",
+    "title": "Fault-Tolerant Quantum Computing",
+    "part": 6,
+    "partTitle": "Quantum Error Correction",
+    "chapter": 20
+  },
+  {
+    "slug": "21-variational",
+    "title": "The Variational Quantum Computing Paradigm",
+    "part": 7,
+    "partTitle": "Variational and Near-Term Algorithms",
+    "chapter": 21
+  },
+  {
+    "slug": "22-vqe",
+    "title": "Variational Quantum Eigensolver (VQE)",
+    "part": 7,
+    "partTitle": "Variational and Near-Term Algorithms",
+    "chapter": 22
+  },
+  {
+    "slug": "23-qaoa",
+    "title": "Quantum Approximate Optimization (QAOA)",
+    "part": 7,
+    "partTitle": "Variational and Near-Term Algorithms",
+    "chapter": 23
+  },
+  {
+    "slug": "24-qml",
+    "title": "Quantum Machine Learning",
+    "part": 7,
+    "partTitle": "Variational and Near-Term Algorithms",
+    "chapter": 24
+  },
+  {
+    "slug": "25-error-mitigation",
+    "title": "Quantum Error Mitigation",
+    "part": 7,
+    "partTitle": "Variational and Near-Term Algorithms",
+    "chapter": 25
+  },
+  {
+    "slug": "26-states-measurements",
+    "title": "Quantum States and Measurements, Revisited",
+    "part": 8,
+    "partTitle": "Quantum Information Theory",
+    "chapter": 26
+  },
+  {
+    "slug": "27-channels",
+    "title": "Quantum Channels and Operations",
+    "part": 8,
+    "partTitle": "Quantum Information Theory",
+    "chapter": 27
+  },
+  {
+    "slug": "28-entropy",
+    "title": "Quantum Entropy and Information",
+    "part": 8,
+    "partTitle": "Quantum Information Theory",
+    "chapter": 28
+  },
+  {
+    "slug": "29-shannon",
+    "title": "Quantum Shannon Theory",
+    "part": 8,
+    "partTitle": "Quantum Information Theory",
+    "chapter": 29
+  },
+  {
+    "slug": "30-complexity",
+    "title": "Quantum Computational Complexity",
+    "part": 9,
+    "partTitle": "Quantum Complexity and Computation Theory",
+    "chapter": 30
+  },
+  {
+    "slug": "31-hidden-subgroup",
+    "title": "The Hidden Subgroup Problem and Beyond",
+    "part": 9,
+    "partTitle": "Quantum Complexity and Computation Theory",
+    "chapter": 31
+  },
+  {
+    "slug": "32-simulation-why",
+    "title": "Why Quantum Simulation Matters",
+    "part": 10,
+    "partTitle": "Quantum Simulation",
+    "chapter": 32
+  },
+  {
+    "slug": "33-digital-simulation",
+    "title": "Digital Quantum Simulation",
+    "part": 10,
+    "partTitle": "Quantum Simulation",
+    "chapter": 33
+  },
+  {
+    "slug": "34-quantum-internet",
+    "title": "The Quantum Internet",
+    "part": 11,
+    "partTitle": "Quantum Networking, Cryptography, and Sensing",
+    "chapter": 34
+  },
+  {
+    "slug": "35-advanced-crypto",
+    "title": "Advanced Quantum Cryptography",
+    "part": 11,
+    "partTitle": "Quantum Networking, Cryptography, and Sensing",
+    "chapter": 35
+  },
+  {
+    "slug": "36-sensing",
+    "title": "Quantum Sensing and Metrology",
+    "part": 11,
+    "partTitle": "Quantum Networking, Cryptography, and Sensing",
+    "chapter": 36
+  },
+  {
+    "slug": "37-topological",
+    "title": "Topological Quantum Computing",
+    "part": 12,
+    "partTitle": "Frontiers and the Future",
+    "chapter": 37
+  },
+  {
+    "slug": "38-quantum-ai",
+    "title": "Quantum Computing and Artificial Intelligence",
+    "part": 12,
+    "partTitle": "Frontiers and the Future",
+    "chapter": 38
+  },
+  {
+    "slug": "39-open-problems",
+    "title": "Open Problems in Quantum Computing",
+    "part": 12,
+    "partTitle": "Frontiers and the Future",
+    "chapter": 39
+  },
+  {
+    "slug": "40-ecosystem",
+    "title": "The Quantum Computing Ecosystem Today",
+    "part": 12,
+    "partTitle": "Frontiers and the Future",
+    "chapter": 40
+  },
+  {
+    "slug": "41-career",
+    "title": "Building Your Quantum Computing Career",
+    "part": 12,
+    "partTitle": "Frontiers and the Future",
+    "chapter": 41
+  },
+  {
+    "slug": "42-what-next",
+    "title": "What Comes Next",
+    "part": 12,
+    "partTitle": "Frontiers and the Future",
+    "chapter": 42
+  }
+]

@@ -1,0 +1,675 @@
+<!--
+title: Reversible Computing
+part: 1
+partTitle: The World of Classical Computing
+chapter: 3
+-->
+
+<p>
+  In the first two chapters, we built a picture of computation as the manipulation of bits through
+  logic gates. We saw how gates like AND, OR, and NOT can be combined to compute anything, and
+  we learned the linear algebra that describes information mathematically. But we glossed over
+  something fundamental: most of those classical gates <em>destroy information</em>. An AND gate
+  takes two input bits and produces one output bit. Given the output <code>0</code>, you cannot
+  tell whether the inputs were <code>00</code>, <code>01</code>, or <code>10</code>. The input
+  information is gone, irreversibly.
+</p>
+
+<p>
+  This chapter is about what happens when we demand that no information is ever lost - when every
+  computation must be reversible. The story begins with a surprising connection between computation
+  and thermodynamics, leads us through a family of reversible logic gates, and ends at the doorstep
+  of quantum computing. Reversibility is not just a nice theoretical property. It is a
+  <em>requirement</em> imposed by the laws of physics at the quantum scale, and understanding why
+  is the key to understanding why quantum computers work the way they do.
+</p>
+
+<section id="why-irreversibility-costs-energy">
+
+<h2>3.1 Why Irreversibility Costs Energy</h2>
+
+<p>
+  In 1961, the physicist Rolf Landauer asked a deceptively simple question: does computation
+  have a fundamental energy cost? The answer he found connects information theory directly to
+  thermodynamics, and it hinges on a single word: <em>erasure</em>.
+</p>
+
+<h3>The Thermodynamics of Forgetting</h3>
+
+<p>
+  Consider a single bit stored in some physical system - a tiny magnet that points up (representing
+  <code>1</code>) or down (representing <code>0</code>). The bit is in one of two definite states.
+  Now suppose we "erase" the bit by resetting it to <code>0</code>, regardless of what it was before.
+  If the bit was already <code>0</code>, nothing changes. But if it was <code>1</code>, we have
+  compressed two possible states (the bit could have been either value) into one (it is now
+  definitely <code>0</code>). We have destroyed one bit of information.
+</p>
+
+<p>
+  Landauer's insight was that this information destruction has a physical consequence. The second
+  law of thermodynamics says the total entropy of a closed system cannot decrease. Information is
+  a form of entropy (this is Shannon's great insight from Chapter 2). When we erase a bit, we
+  decrease the entropy of our computational system by $k_B \ln 2$, where $k_B$ is Boltzmann's
+  constant. To satisfy the second law, this entropy must go somewhere - it gets dumped into the
+  environment as heat.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Idea.</strong>
+  <strong>Landauer's Principle:</strong> Erasing one bit of information necessarily dissipates
+  at least $k_B T \ln 2$ joules of energy as heat, where $T$ is the temperature of the
+  environment and $k_B \approx 1.38 \times 10^{-23}$ J/K is Boltzmann's constant.
+</div>
+
+<p>
+  At room temperature ($T \approx 300$ K), this works out to roughly $2.85 \times 10^{-21}$ joules
+  per erased bit. That is extraordinarily small - about 100 times less energy than a single photon
+  of visible light carries. Modern transistors dissipate roughly a million times more energy per
+  operation than the Landauer limit. So in practice, Landauer's principle is not what limits the
+  energy efficiency of your laptop. But the principle is profound for what it tells us about the
+  <em>physics of information</em>: information is physical, and destroying it has an unavoidable
+  thermodynamic cost.
+</p>
+
+<h3>Which Operations Erase Information?</h3>
+
+<p>
+  An operation erases information whenever it maps multiple distinct inputs to the same output.
+  In mathematical language, it is a non-injective (many-to-one) function. Consider the standard
+  logic gates:
+</p>
+
+<ul>
+  <li>
+    <strong>NOT gate</strong> (1 input, 1 output): Input <code>0</code> maps to <code>1</code>,
+    and input <code>1</code> maps to <code>0</code>. This is one-to-one. Given the output, you
+    can always recover the input. The NOT gate is <em>reversible</em> and erases nothing.
+  </li>
+  <li>
+    <strong>AND gate</strong> (2 inputs, 1 output): Three different inputs (<code>00</code>,
+    <code>01</code>, <code>10</code>) all produce output <code>0</code>. Two bits of input
+    become one bit of output. This is irreversible - one bit of information is destroyed, and
+    Landauer's principle demands at least $k_B T \ln 2$ of heat dissipation.
+  </li>
+  <li>
+    <strong>OR gate, NAND gate, NOR gate</strong>: Similarly irreversible. Multiple inputs map
+    to the same output.
+  </li>
+</ul>
+
+<p>
+  The pattern is clear: any gate that has fewer output bits than input bits must be irreversible,
+  because you cannot reconstruct the input from the output. And by Landauer's principle, every
+  such gate has a minimum thermodynamic cost. But here is the key question: can we do all of
+  computation using only reversible operations?
+</p>
+
+<div class="callout callout-info">
+  <strong>Historical note.</strong>
+  Landauer's principle was long considered a theoretical curiosity, but in 2012 a team at
+  ENS Lyon led by Eric Lutz experimentally verified it by measuring the heat dissipated when
+  erasing a single bit stored in the position of a colloidal particle. The measured heat matched
+  the $k_B T \ln 2$ prediction with remarkable precision.
+</div>
+
+</section>
+
+<section id="reversible-classical-gates">
+
+<h2>3.2 Reversible Classical Gates</h2>
+
+<p>
+  A gate is <em>reversible</em> if and only if it computes a one-to-one (bijective) function:
+  every distinct input maps to a distinct output. Equivalently, given the output, you can always
+  uniquely determine the input. This means a reversible gate must have the same number of input
+  bits and output bits - it is a permutation of the possible bit strings.
+</p>
+
+<h3>NOT: The Simplest Reversible Gate</h3>
+
+<p>
+  The NOT gate flips a single bit: $0 \to 1$ and $1 \to 0$. It is trivially reversible because
+  applying NOT again recovers the original input. In fact, NOT is its own inverse. In the
+  quantum world, this gate becomes the Pauli-X gate, one of the most fundamental quantum
+  operations.
+</p>
+
+<h3>CNOT: The Controlled-NOT Gate</h3>
+
+<p>
+  The NOT gate alone cannot compute interesting functions - it only acts on one bit. We need
+  multi-bit reversible gates. The simplest is the <strong>CNOT</strong> (controlled-NOT) gate,
+  which acts on two bits: a <em>control</em> bit and a <em>target</em> bit.
+</p>
+
+<p>
+  The rule is: if the control bit is <code>1</code>, flip the target bit; if the control bit is
+  <code>0</code>, leave the target alone. Crucially, the control bit is always passed through
+  unchanged. The truth table is:
+</p>
+
+<table>
+  <thead>
+    <tr><th>Control In</th><th>Target In</th><th>Control Out</th><th>Target Out</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+    <tr><td>0</td><td>1</td><td>0</td><td>1</td></tr>
+    <tr><td>1</td><td>0</td><td>1</td><td>1</td></tr>
+    <tr><td>1</td><td>1</td><td>1</td><td>0</td></tr>
+  </tbody>
+</table>
+
+<p>
+  Every row has a unique output, so the gate is reversible. In fact, CNOT is its own inverse -
+  applying it twice returns to the original state. Mathematically, the target output is
+  $t_{\text{out}} = c \oplus t_{\text{in}}$ (XOR of control and target), while the control passes
+  through as $c_{\text{out}} = c$.
+</p>
+
+<p>
+  An important special case: when the target input is <code>0</code>, the output target becomes a
+  copy of the control. This makes CNOT act as a <strong>copy gate</strong> (also called a fan-out).
+  Try it in the sandbox below. The <code>x</code> gate sets <code>q[0]</code> to <code>1</code>,
+  and then the <code>cx</code> (CNOT) gate copies that value to <code>q[1]</code>. You should see
+  the output <code>11</code> with 100% probability.
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="6">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+x q[0];
+cx q[0], q[1];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+  Now try modifying the code: remove the <code>x q[0];</code> line so that the control stays
+  <code>0</code>. What happens? The CNOT leaves the target alone, and you should see
+  <code>00</code> with 100% probability. The CNOT perfectly copies the control bit to the target.
+</p>
+
+<h3>Toffoli: The Universal Reversible Gate</h3>
+
+<p>
+  The <strong>Toffoli gate</strong> (also called CCNOT, for "controlled-controlled-NOT") acts on
+  three bits: two controls and one target. The rule: flip the target if and only if <em>both</em>
+  controls are <code>1</code>. Both control bits pass through unchanged.
+</p>
+
+<table>
+  <thead>
+    <tr><th>$a$ In</th><th>$b$ In</th><th>$t$ In</th><th>$a$ Out</th><th>$b$ Out</th><th>$t$ Out</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+    <tr><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td></tr>
+    <tr><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td></tr>
+    <tr><td>0</td><td>1</td><td>1</td><td>0</td><td>1</td><td>1</td></tr>
+    <tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td></tr>
+    <tr><td>1</td><td>0</td><td>1</td><td>1</td><td>0</td><td>1</td></tr>
+    <tr><td>1</td><td>1</td><td>0</td><td>1</td><td>1</td><td>1</td></tr>
+    <tr><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>0</td></tr>
+  </tbody>
+</table>
+
+<p>
+  Look at the target output column when $t_{\text{in}} = 0$: the output is $a \text{ AND } b$.
+  The Toffoli gate computes the AND function reversibly by storing the result in the target
+  bit while keeping both inputs intact. This is the key trick: instead of discarding input
+  information (as a normal AND gate does), the Toffoli gate keeps it, using an extra "scratch"
+  bit for the output.
+</p>
+
+<p>
+  In the sandbox below, we set both controls to <code>1</code> and leave the target at
+  <code>0</code>. The Toffoli gate (<code>ccx</code>) computes AND, so the target should
+  flip to <code>1</code>, giving output <code>111</code>.
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="7">OPENQASM 3.0;
+qubit[3] q;
+bit[3] c;
+x q[0];
+x q[1];
+ccx q[0], q[1], q[2];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+  Try changing the inputs: set only one of the controls to <code>1</code> (remove one of the
+  <code>x</code> lines). The target should stay <code>0</code>, just like AND. The Toffoli gate
+  is remarkably powerful. It was shown by Tommaso Toffoli in 1980 to be <strong>classically
+  universal</strong>: any Boolean function can be computed using only Toffoli gates (plus
+  constant input bits). Since it is reversible, this means any classical computation can be
+  performed reversibly.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Idea.</strong>
+  The Toffoli gate is a universal reversible gate. Any classical Boolean function can be computed
+  by a circuit of Toffoli gates alone, proving that reversibility does not limit computational
+  power - only the implementation strategy.
+</div>
+
+<h3>Fredkin: The Controlled-SWAP Gate</h3>
+
+<p>
+  The <strong>Fredkin gate</strong> (also called CSWAP, for "controlled-SWAP") is another
+  three-bit universal reversible gate, proposed by Edward Fredkin. It has one control bit and
+  two target bits. The rule: if the control is <code>1</code>, swap the two targets; if the
+  control is <code>0</code>, leave them alone.
+</p>
+
+<table>
+  <thead>
+    <tr><th>$c$ In</th><th>$a$ In</th><th>$b$ In</th><th>$c$ Out</th><th>$a$ Out</th><th>$b$ Out</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+    <tr><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td></tr>
+    <tr><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td></tr>
+    <tr><td>0</td><td>1</td><td>1</td><td>0</td><td>1</td><td>1</td></tr>
+    <tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td></tr>
+    <tr><td>1</td><td>0</td><td>1</td><td>1</td><td>1</td><td>0</td></tr>
+    <tr><td>1</td><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td></tr>
+    <tr><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td></tr>
+  </tbody>
+</table>
+
+<p>
+  The Fredkin gate is also classically universal. One useful property: when $c = 1$ and
+  $b_{\text{in}} = 0$, the output $b$ equals $a_{\text{in}}$ and the output $a$ equals
+  <code>0</code> - the gate has "moved" the value from $a$ to $b$ under the control's permission.
+  This conditional routing of information is a powerful primitive.
+</p>
+
+<p>
+  In the sandbox below, we set the control to <code>1</code> and put different values in the
+  two targets (<code>q[1] = 1</code>, <code>q[2] = 0</code>). The Fredkin gate (<code>cswap</code>)
+  should swap them, giving output <code>101</code>.
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="7">OPENQASM 3.0;
+qubit[3] q;
+bit[3] c;
+x q[0];
+x q[1];
+cswap q[0], q[1], q[2];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+  Try turning off the control (remove <code>x q[0];</code>). The swap should not happen, and
+  you should see <code>010</code> instead.
+</p>
+
+</section>
+
+<section id="making-any-computation-reversible">
+
+<h2>3.3 Making Any Computation Reversible</h2>
+
+<p>
+  We have seen that universal reversible gates exist. But how do you actually convert an
+  arbitrary classical circuit into a reversible one? The answer involves a systematic technique
+  developed by Charles Bennett in 1973, and it reveals an important trade-off.
+</p>
+
+<h3>The Naive Approach: Keep Everything</h3>
+
+<p>
+  The simplest way to make a computation reversible is straightforward: never throw anything away.
+  Replace every irreversible gate (like AND) with a reversible equivalent (like Toffoli), and
+  keep all input bits alongside the output. An AND gate with inputs $a, b$ becomes a Toffoli
+  gate with inputs $a, b, 0$ producing outputs $a, b, a \wedge b$. The original inputs are
+  preserved, so the operation is reversible.
+</p>
+
+<p>
+  Applying this to an entire circuit, every intermediate result is kept. If the original circuit
+  has $n$ gates, the reversible version might need $n$ extra "ancilla" (scratch) bits - one for
+  each gate's output. The computation is reversible, but we are drowning in <strong>garbage
+  bits</strong>: intermediate values that we computed along the way but do not need in the
+  final answer.
+</p>
+
+<p>
+  These garbage bits are problematic for two reasons. First, they waste space - for a long
+  computation, the number of garbage bits can be enormous. Second, and more importantly for
+  quantum computing, these bits become <em>entangled</em> with the computation in the quantum
+  setting, which can ruin quantum interference (we will see why in Part II).
+</p>
+
+<h3>Bennett's Uncomputation Trick</h3>
+
+<p>
+  Bennett's elegant solution is to <em>uncompute</em> the garbage. The idea works in three stages:
+</p>
+
+<ol>
+  <li>
+    <strong>Compute forward:</strong> Run the reversible version of the circuit, producing the
+    desired output along with garbage bits that hold all intermediate values.
+  </li>
+  <li>
+    <strong>Copy the answer:</strong> Use CNOT gates to copy the final result to a clean set of
+    output bits. This is allowed because copying is reversible (CNOT with target initialized to
+    <code>0</code>).
+  </li>
+  <li>
+    <strong>Uncompute (run backward):</strong> Apply every gate from step 1 in reverse order.
+    Since every gate is reversible, this "undoes" the entire forward computation, returning all
+    the garbage bits to their initial state of <code>0</code>.
+  </li>
+</ol>
+
+<p>
+  After these three stages, only the clean input bits and the clean output bits remain. All
+  garbage has been erased - not by discarding it (which would be irreversible), but by
+  <em>reversibly uncomputing</em> it back to zero.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Idea.</strong>
+  <strong>Bennett's method:</strong> Compute forward, copy the answer, then run the computation
+  backward to clean up all intermediate garbage bits. This produces a fully reversible
+  computation with no leftover garbage - only clean inputs and outputs.
+</div>
+
+<h3>The Reversibility Overhead</h3>
+
+<p>
+  Bennett's method is not free. It comes with costs:
+</p>
+
+<ul>
+  <li>
+    <strong>Time:</strong> The computation runs forward and then backward, roughly doubling the
+    number of gate operations. In practice, the overhead is a constant factor (about 2x plus the
+    cost of copying the output).
+  </li>
+  <li>
+    <strong>Space:</strong> During the forward pass, all intermediate results must be stored
+    simultaneously. If the original circuit uses $S$ bits of space and runs for $T$ steps, the
+    naive reversible version needs $O(T)$ extra ancilla bits. Bennett showed that with a more
+    sophisticated pebbling strategy, this can be reduced to $O(S \log T)$ extra bits - a much
+    better trade-off, at the cost of more time.
+  </li>
+  <li>
+    <strong>Ancilla bits:</strong> You need scratch bits initialized to known values
+    (<code>0</code>). These are recycled by uncomputation, but you need enough of them to hold
+    all intermediate values during the forward pass.
+  </li>
+</ul>
+
+<p>
+  The key takeaway is that the overhead is <em>polynomial</em>, not exponential. Making a
+  computation reversible does not fundamentally change its difficulty class. Any problem solvable
+  in polynomial time on a conventional computer is solvable in polynomial time on a reversible
+  computer. Reversibility is a constraint on <em>how</em> we compute, not on <em>what</em> we
+  can compute.
+</p>
+
+<div class="callout callout-info">
+  <strong>Space-time trade-off.</strong>
+  Bennett's pebbling technique reveals a fundamental space-time trade-off in reversible
+  computation. You can minimize garbage bits at the cost of re-running parts of the computation
+  multiple times, or you can minimize time at the cost of keeping more intermediate values. This
+  trade-off reappears throughout quantum algorithm design, where ancilla qubits are a precious
+  resource.
+</div>
+
+</section>
+
+<section id="why-quantum-demands-reversibility">
+
+<h2>3.4 Why Quantum Computing Demands Reversibility</h2>
+
+<p>
+  Everything we have discussed so far has been classical physics. We chose to study reversible
+  computing because of Landauer's principle and thermodynamic efficiency. But quantum mechanics
+  makes reversibility not just desirable - it makes it <em>mandatory</em>.
+</p>
+
+<h3>Time-Reversal Symmetry in Physics</h3>
+
+<p>
+  The fundamental laws of physics are time-reversible. If you film a collision between two
+  billiard balls and play the film backward, the reversed motion also obeys Newton's laws.
+  The same is true at the quantum level: the Schrodinger equation, which governs how quantum
+  states evolve, is time-reversible. If a quantum system can evolve from state $A$ to state $B$,
+  then there exists an evolution that takes $B$ back to $A$.
+</p>
+
+<p>
+  Mathematically, quantum time evolution is described by <strong>unitary operators</strong>. A
+  unitary operator $U$ is one whose inverse equals its conjugate transpose: $U^{-1} = U^\dagger$.
+  This is the quantum version of saying "the operation is reversible." Every unitary operator has
+  an inverse (namely $U^\dagger$), so every quantum operation can be undone.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Idea.</strong>
+  <strong>Unitarity:</strong> Quantum mechanics requires that the evolution of a closed quantum
+  system is described by a unitary matrix $U$, which is always invertible. This means quantum
+  gates are inherently reversible - they cannot destroy information. This is not a design choice;
+  it is a law of nature.
+</div>
+
+<h3>What Unitarity Means for Gates</h3>
+
+<p>
+  In Chapter 2, we represented classical gates as truth tables. In the quantum world, gates are
+  represented as unitary matrices. Consider what this means:
+</p>
+
+<ul>
+  <li>
+    A unitary matrix $U$ acting on $n$ qubits is a $2^n \times 2^n$ matrix satisfying
+    $U U^\dagger = U^\dagger U = I$ (the identity matrix).
+  </li>
+  <li>
+    Unitary matrices preserve the length of vectors: if $|\psi\rangle$ is a valid quantum state
+    (a unit vector), then $U|\psi\rangle$ is also a valid quantum state. No information is lost
+    or gained.
+  </li>
+  <li>
+    Unitary matrices are always invertible, and the inverse is easy to compute (just take the
+    conjugate transpose). Every quantum gate can be "run backward."
+  </li>
+</ul>
+
+<p>
+  Contrast this with an irreversible classical gate like AND. If we tried to describe AND as a
+  matrix mapping 2-bit inputs to 1-bit outputs, we would need a $2 \times 4$ matrix. Such a
+  matrix cannot be unitary (it is not even square). There is simply no way to implement an
+  irreversible operation as a quantum gate. The mathematics forbids it.
+</p>
+
+<h3>The No-Cloning Connection</h3>
+
+<p>
+  Reversibility connects to another fundamental quantum principle: the <strong>no-cloning
+  theorem</strong>. In classical computing, we copy bits freely - it is the most basic operation
+  imaginable. We even used CNOT as a copy gate earlier in this chapter. But in the quantum world,
+  it is impossible to copy an arbitrary unknown quantum state. There is no quantum gate that takes
+  $|\psi\rangle|0\rangle$ to $|\psi\rangle|\psi\rangle$ for all possible states $|\psi\rangle$.
+</p>
+
+<p>
+  This might seem like it contradicts what we did with CNOT above. The resolution is subtle: CNOT
+  can copy <em>classical</em> basis states ($|0\rangle$ and $|1\rangle$) perfectly, but it cannot
+  copy arbitrary <em>superpositions</em>. When the control qubit is in a superposition, the CNOT
+  creates <em>entanglement</em> instead of a copy. This distinction between classical and quantum
+  information is at the heart of quantum computing, and we will explore it fully in Chapter 4.
+</p>
+
+<h3>The Bridge to Quantum Computing</h3>
+
+<p>
+  We can now see why this chapter is the bridge between classical and quantum computing:
+</p>
+
+<ol>
+  <li>
+    <strong>Classical gates are generally irreversible</strong> (AND, OR, NAND), destroying
+    information and dissipating energy.
+  </li>
+  <li>
+    <strong>Reversible classical gates exist</strong> (NOT, CNOT, Toffoli, Fredkin) and are
+    computationally universal - they can do everything irreversible gates can do.
+  </li>
+  <li>
+    <strong>Quantum mechanics demands reversibility.</strong> Quantum evolution is unitary, so
+    quantum gates must be reversible. Fortunately, we have just proven this is not a limitation -
+    reversible gates can compute anything.
+  </li>
+  <li>
+    <strong>Quantum computing adds something new.</strong> Quantum gates are reversible, but they
+    can also act on <em>superpositions</em> - states that are "both 0 and 1 at once." This is
+    where quantum computing gets its power, not from reversibility alone, but from reversibility
+    <em>combined with superposition and entanglement</em>.
+  </li>
+</ol>
+
+<p>
+  The reversible classical gates we studied in this chapter - NOT, CNOT, and Toffoli - reappear
+  directly as quantum gates. The Pauli-X gate is the quantum NOT. The quantum CNOT creates
+  entanglement. The quantum Toffoli gate is used in quantum error correction and quantum
+  arithmetic. You already know these gates; in Part II, you will see what happens when they act
+  on quantum states.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Idea.</strong>
+  Reversible computing is the classical foundation of quantum computing. Every quantum gate is
+  a reversible gate operating on a richer state space (quantum states instead of classical bits).
+  The transition from classical to quantum is not a change in computational structure - it is an
+  expansion of the space of allowed states.
+</div>
+
+<p>
+  With the classical foundations laid - bits, gates, linear algebra, and now reversibility - we
+  are ready to enter the quantum world. In Chapter 4, we will meet the qubit: a quantum bit that
+  obeys all the reversibility constraints we have studied, but opens up an entirely new landscape
+  of computational possibilities.
+</p>
+
+</section>
+
+<!-- Flashcards -->
+<div class="flashcard-deck" data-component="flashcard-deck">
+  <div class="flashcard-deck-header">Chapter 3 Review Cards</div>
+
+  <div class="flashcard" data-card-id="ch03-landauer">
+    <div class="card-front">What is Landauer's principle, and what is the minimum energy cost of erasing one bit?</div>
+    <div class="card-back">
+      Landauer's principle states that erasing one bit of information necessarily dissipates at
+      least $k_B T \ln 2$ joules of energy as heat, where $k_B$ is Boltzmann's constant and $T$
+      is the temperature. At room temperature, this is approximately $2.85 \times 10^{-21}$ J.
+      The principle connects information to thermodynamics: destroying information increases the
+      entropy of the environment.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch03-reversible-gate">
+    <div class="card-front">What makes a logic gate reversible? Give an example of a reversible gate and an irreversible gate.</div>
+    <div class="card-back">
+      A gate is reversible if it computes a one-to-one (bijective) function: every distinct input
+      maps to a distinct output, so the input can always be recovered from the output. A reversible
+      gate must have the same number of input and output bits. Example: NOT is reversible
+      (0 maps to 1, 1 maps to 0 - no information lost). AND is irreversible (inputs 00, 01, and
+      10 all produce output 0 - input cannot be recovered).
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch03-toffoli">
+    <div class="card-front">What is the Toffoli gate, and why is it significant?</div>
+    <div class="card-back">
+      The Toffoli gate (CCNOT) is a three-bit reversible gate with two controls and one target.
+      It flips the target if and only if both controls are 1. It is significant because it is
+      <em>classically universal</em>: any Boolean function can be computed using only Toffoli
+      gates and constant input bits. This proves that reversibility does not limit computational
+      power. When the target starts at 0, the Toffoli gate computes AND reversibly.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch03-bennett">
+    <div class="card-front">Describe Bennett's uncomputation technique for removing garbage bits in reversible computation.</div>
+    <div class="card-back">
+      Bennett's method has three stages: (1) Compute forward using reversible gates, producing
+      the desired output plus garbage bits holding intermediate values. (2) Copy the final result
+      to clean output bits using CNOT. (3) Run the entire forward computation in reverse to
+      uncompute all garbage bits back to zero. The result is a clean reversible computation with
+      only inputs and outputs - no leftover garbage. The cost is roughly doubling the computation
+      time.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch03-unitarity">
+    <div class="card-front">Why does quantum mechanics require that quantum gates be reversible?</div>
+    <div class="card-back">
+      Quantum time evolution is governed by unitary operators ($U U^\dagger = I$), which are
+      always invertible. This is a consequence of the time-reversal symmetry in the Schrodinger
+      equation. Since every unitary operator has an inverse ($U^\dagger$), every quantum operation
+      can be undone - quantum gates are inherently reversible. An irreversible operation like AND
+      cannot be represented as a unitary matrix (it maps a 4-dimensional space to a 2-dimensional
+      space), so it simply cannot exist as a quantum gate.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch03-bridge">
+    <div class="card-front">How does reversible computing bridge classical and quantum computation?</div>
+    <div class="card-back">
+      Classical gates (NOT, CNOT, Toffoli) that are reversible map directly to quantum gates
+      (Pauli-X, quantum CNOT, quantum Toffoli). Since reversible classical gates are already
+      computationally universal, the quantum requirement of unitarity (reversibility) does not
+      limit what can be computed. Quantum computing adds power not from reversibility itself, but
+      from combining reversible operations with superposition and entanglement - a richer state
+      space than classical bits allow.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+</div>
