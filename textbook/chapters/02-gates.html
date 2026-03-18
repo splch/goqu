@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chapter 2: Quantum Gates - Goqu Textbook</title>
+  <link rel="stylesheet" href="../style.css">
+  <script src="../wasm_exec.js"></script>
+  <script src="../app.js"></script>
+</head>
+<body>
+  <nav>
+    <a href="01-qubits.html">&larr; The Qubit</a>
+    <a href="03-measurement.html">Next: Measurement &rarr;</a>
+  </nav>
+
+  <h1>Chapter 2: Quantum Gates</h1>
+
+  <p>Quantum gates are unitary operations that transform qubit states. They are the quantum analog of classical logic gates. Unlike classical gates, quantum gates are always <em>reversible</em>.</p>
+
+  <h2>The Pauli Gates</h2>
+  <p>The three Pauli gates rotate a qubit by &pi; radians around the X, Y, or Z axis of the Bloch sphere.</p>
+  <ul>
+    <li><strong>X gate</strong> (bit flip): |0&#x27E9; &rarr; |1&#x27E9; and |1&#x27E9; &rarr; |0&#x27E9;</li>
+    <li><strong>Y gate</strong>: |0&#x27E9; &rarr; <var>i</var>|1&#x27E9; and |1&#x27E9; &rarr; -<var>i</var>|0&#x27E9;</li>
+    <li><strong>Z gate</strong> (phase flip): |0&#x27E9; &rarr; |0&#x27E9; and |1&#x27E9; &rarr; -|1&#x27E9;</li>
+  </ul>
+
+  <div class="sandbox" data-autorun>
+    <textarea class="code" rows="5">OPENQASM 3.0;
+qubit q;
+x q;
+measure q;</textarea>
+    <button onclick="run(this)">Run</button>
+    <div class="output"></div>
+  </div>
+
+  <p>The X gate flips |0&#x27E9; to |1&#x27E9;, so measurement always returns 1.</p>
+
+  <h2>The Hadamard Gate</h2>
+  <p>The Hadamard gate creates equal superposition from a basis state:</p>
+  <p style="text-align:center">H|0&#x27E9; = (|0&#x27E9; + |1&#x27E9;) / &#x221A;2 &nbsp;&nbsp;&nbsp; H|1&#x27E9; = (|0&#x27E9; - |1&#x27E9;) / &#x221A;2</p>
+  <p>Applying H twice returns to the original state:</p>
+
+  <div class="sandbox" data-autorun>
+    <textarea class="code" rows="6">OPENQASM 3.0;
+qubit q;
+h q;
+h q;
+measure q;</textarea>
+    <button onclick="run(this)">Run</button>
+    <div class="output"></div>
+  </div>
+
+  <p>HH = I (the identity). You should see 100% |0&#x27E9;.</p>
+
+  <h2>Rotation Gates</h2>
+  <p>Rotation gates turn a qubit by an arbitrary angle around a given axis. <code>rx</code>, <code>ry</code>, and <code>rz</code> rotate around X, Y, and Z respectively.</p>
+
+  <div class="sandbox" data-autorun>
+    <textarea class="code" rows="5">OPENQASM 3.0;
+qubit q;
+ry(pi/3) q;
+measure q;</textarea>
+    <button onclick="run(this)">Run</button>
+    <div class="output"></div>
+  </div>
+
+  <p>An RY(&pi;/3) rotation gives P(0) = cos<sup>2</sup>(&pi;/6) = 0.75 and P(1) = sin<sup>2</sup>(&pi;/6) = 0.25.</p>
+
+  <h2>The S and T Gates</h2>
+  <p>The S gate is a &pi;/2 phase rotation (&#x221A;Z). The T gate is a &pi;/4 phase rotation. These are important for fault-tolerant quantum computing.</p>
+
+  <div class="sandbox" data-autorun>
+    <textarea class="code" rows="6">OPENQASM 3.0;
+qubit q;
+h q;
+t q;
+h q;
+measure q;</textarea>
+    <button onclick="run(this)">Run</button>
+    <div class="output"></div>
+  </div>
+
+  <p>The T gate adds a relative phase of e<sup><var>i</var>&pi;/4</sup> to the |1&#x27E9; component. After the second H gate, this phase becomes visible as a measurement bias.</p>
+
+  <h2>Circuit Diagrams</h2>
+  <p>Every example above shows a circuit diagram. Time flows left to right. Each horizontal line is a qubit wire. Gate boxes sit on the wires they act on. Try building a longer circuit:</p>
+
+  <div class="sandbox">
+    <textarea class="code" rows="8">OPENQASM 3.0;
+qubit q;
+h q;
+s q;
+h q;
+t q;
+h q;
+measure q;</textarea>
+    <button onclick="run(this)">Run</button>
+    <div class="output"></div>
+  </div>
+
+  <nav>
+    <a href="01-qubits.html">&larr; The Qubit</a>
+    <a href="03-measurement.html">Next: Measurement &rarr;</a>
+  </nav>
+</body>
+</html>

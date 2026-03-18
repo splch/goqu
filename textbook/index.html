@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Goqu Quantum Computing Textbook</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Goqu Quantum Computing Textbook</h1>
+  <p>An interactive introduction to quantum computing. Every example runs live in your browser, powered by the <a href="https://github.com/splch/goqu">Goqu</a> SDK compiled to WebAssembly. Edit any code block and click <strong>Run</strong> to experiment.</p>
+
+  <h2>Chapters</h2>
+  <ol class="chapter-list">
+    <li><a href="chapters/01-qubits.html">The Qubit</a> - classical vs. quantum bits, superposition, the Bloch sphere</li>
+    <li><a href="chapters/02-gates.html">Quantum Gates</a> - H, X, Y, Z, rotations, circuit diagrams</li>
+    <li><a href="chapters/03-measurement.html">Measurement</a> - Born rule, probability, histograms</li>
+    <li><a href="chapters/04-entanglement.html">Entanglement</a> - CNOT, Bell states, multi-qubit circuits</li>
+    <li><a href="chapters/05-algorithms.html">Algorithms</a> - Deutsch-Jozsa, Grover's search</li>
+  </ol>
+
+  <h2>Running Locally</h2>
+  <p>Build the WebAssembly module and start a local server:</p>
+  <pre><code>make textbook
+make textbook-serve</code></pre>
+  <p>Then open <a href="http://localhost:8080">http://localhost:8080</a>.</p>
+</body>
+</html>

@@ -1,4 +1,4 @@
-.PHONY: test test-race test-all lint vet fuzz bench bench-gpu-cuda test-gpu-cuda coverage clean hooks
+.PHONY: test test-race test-all lint vet fuzz bench bench-gpu-cuda test-gpu-cuda coverage clean hooks textbook textbook-serve textbook-clean
 
 test:
 	go test -count=1 -timeout=5m ./...
@@ -63,3 +63,14 @@ hooks:
 clean:
 	rm -f coverage.out coverage.html
 	go clean -testcache
+
+textbook:
+	cp "$$(go env GOROOT)/lib/wasm/wasm_exec.js" textbook/wasm_exec.js
+	cd textbook/wasm && GOOS=js GOARCH=wasm go build -ldflags="-w -s" -o ../main.wasm .
+
+textbook-serve: textbook
+	@echo "Serving textbook at http://localhost:8080"
+	python3 -m http.server 8080 -d textbook
+
+textbook-clean:
+	rm -f textbook/main.wasm textbook/wasm_exec.js

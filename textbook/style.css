@@ -1,0 +1,28 @@
+:root { --bg: #fff; --fg: #1a1a1a; --muted: #666; --border: #ddd; --sand-bg: #f8f8f8; --btn: #0066cc; --btn-text: #fff; --err: #c00; }
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #1a1a1a; --fg: #e0e0e0; --muted: #999; --border: #444; --sand-bg: #222; --btn: #4a9eff; --btn-text: #111; --err: #f66; }
+}
+*, *::before, *::after { box-sizing: border-box; }
+body { max-width: 48rem; margin: 0 auto; padding: 1rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; color: var(--fg); background: var(--bg); }
+h1 { font-size: 1.8rem; margin: 1.5rem 0 1rem; }
+h2 { font-size: 1.3rem; margin: 1.5rem 0 0.5rem; }
+p, ul, ol { margin: 0.5rem 0; }
+a { color: var(--btn); }
+code { font-family: "SF Mono", "Fira Code", "Consolas", monospace; font-size: 0.9em; background: var(--sand-bg); padding: 0.1em 0.3em; border-radius: 3px; }
+nav { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border); margin-bottom: 1rem; font-size: 0.9rem; }
+nav:last-of-type { border-bottom: none; border-top: 1px solid var(--border); margin-top: 2rem; padding-top: 0.5rem; }
+
+.sandbox { border: 1px solid var(--border); border-radius: 6px; padding: 1rem; margin: 1rem 0; background: var(--sand-bg); }
+.sandbox .code { width: 100%; min-height: 5rem; padding: 0.5rem; font-family: "SF Mono", "Fira Code", "Consolas", monospace; font-size: 0.85rem; border: 1px solid var(--border); border-radius: 4px; resize: vertical; background: var(--bg); color: var(--fg); tab-size: 2; }
+.sandbox button { margin-top: 0.5rem; padding: 0.4rem 1.2rem; border: none; border-radius: 4px; background: var(--btn); color: var(--btn-text); font-size: 0.85rem; cursor: pointer; }
+.sandbox button:hover { opacity: 0.85; }
+.sandbox .output { margin-top: 0.75rem; overflow-x: auto; text-align: center; }
+.sandbox .output svg { max-width: 100%; height: auto; }
+.sandbox .error { text-align: left; color: var(--err); font-family: monospace; font-size: 0.85rem; white-space: pre-wrap; margin: 0; padding: 0.5rem; background: transparent; }
+.sandbox label { display: inline-block; font-size: 0.85rem; margin-right: 0.75rem; }
+.sandbox input[type="range"] { vertical-align: middle; }
+
+.chapter-list { list-style: none; padding: 0; }
+.chapter-list li { margin: 0.5rem 0; }
+.chapter-list a { text-decoration: none; font-size: 1.1rem; }
+.chapter-list a:hover { text-decoration: underline; }

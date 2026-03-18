@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chapter 4: Entanglement - Goqu Textbook</title>
+  <link rel="stylesheet" href="../style.css">
+  <script src="../wasm_exec.js"></script>
+  <script src="../app.js"></script>
+</head>
+<body>
+  <nav>
+    <a href="03-measurement.html">&larr; Measurement</a>
+    <a href="05-algorithms.html">Next: Algorithms &rarr;</a>
+  </nav>
+
+  <h1>Chapter 4: Entanglement</h1>
+
+  <h2>Multi-Qubit Gates</h2>
+  <p>The <strong>CNOT</strong> (controlled-NOT) gate is a two-qubit gate. It flips the target qubit if and only if the control qubit is |1&#x27E9;. In circuit diagrams, the control is a dot and the target is a circled plus.</p>
+
+  <div class="sandbox" data-autorun>
+    <textarea class="code" rows="6">OPENQASM 3.0;
+qubit[2] q;
+x q[0];
+cx q[0], q[1];
+measure q;</textarea>
+    <button onclick="run(this)">Run</button>
+    <div class="output"></div>
+  </div>
+
+  <p>The control qubit (q[0]) is |1&#x27E9;, so the target (q[1]) gets flipped: outcome is always 11.</p>
+
+  <h2>Bell States</h2>
+  <p>Apply H to the first qubit, then CNOT. This creates a <strong>Bell state</strong> - the simplest example of entanglement:</p>
+
+  <div class="sandbox" data-autorun>
+    <textarea class="code" rows="6">OPENQASM 3.0;
+qubit[2] q;
+h q[0];
+cx q[0], q[1];
+measure q;</textarea>
+    <button onclick="run(this)">Run</button>
+    <div class="output"></div>
+  </div>
+
+  <p>The result is always 00 or 11, never 01 or 10. The two qubits are perfectly correlated even though each individual measurement is random. This is the Bell state (|00&#x27E9; + |11&#x27E9;) / &#x221A;2.</p>
+
+  <h2>All Four Bell States</h2>
+  <p>There are four maximally entangled two-qubit states. They differ by an X and/or Z gate before the CNOT:</p>
+
+  <div class="sandbox">
+    <textarea class="code" rows="8">OPENQASM 3.0;
+// |Psi+> = (|01> + |10>) / sqrt(2)
+qubit[2] q;
+x q[0];
+h q[0];
+cx q[0], q[1];
+measure q;</textarea>
+    <button onclick="run(this)">Run</button>
+    <div class="output"></div>
+  </div>
+
+  <p>Try modifying the circuit to prepare the other Bell states: add <code>z q[0];</code> before the H gate, or <code>x q[1];</code> after the CNOT.</p>
+
+  <h2>GHZ States</h2>
+  <p>Entanglement scales to many qubits. A <strong>GHZ state</strong> entangles three or more qubits into (|000&#x27E9; + |111&#x27E9;) / &#x221A;2:</p>
+
+  <div class="sandbox" data-autorun>
+    <textarea class="code" rows="7">OPENQASM 3.0;
+qubit[3] q;
+h q[0];
+cx q[0], q[1];
+cx q[0], q[2];
+measure q;</textarea>
+    <button onclick="run(this)">Run</button>
+    <div class="output"></div>
+  </div>
+
+  <p>All three qubits are correlated: either all 0 or all 1.</p>
+
+  <h2>Quantum Teleportation</h2>
+  <p>Entanglement enables <strong>quantum teleportation</strong>: transferring a qubit state from one location to another using a shared Bell pair and two classical bits of communication.</p>
+
+  <div class="sandbox">
+    <textarea class="code" rows="16">OPENQASM 3.0;
+qubit[3] q;
+bit[2] c;
+// Prepare state to teleport: ry(pi/3) on q[0]
+ry(pi/3) q[0];
+// Create Bell pair between q[1] and q[2]
+h q[1];
+cx q[1], q[2];
+// Bell measurement on q[0], q[1]
+cx q[0], q[1];
+h q[0];
+measure q[0] -> c[0];
+measure q[1] -> c[1];
+// Corrections on q[2] (applied unconditionally for simplicity)
+cx q[1], q[2];
+// Final measurement of teleported qubit
+measure q[2];</textarea>
+    <button onclick="run(this)">Run</button>
+    <div class="output"></div>
+  </div>
+
+  <p>The state prepared on q[0] is teleported to q[2]. The protocol requires both a quantum channel (the entangled pair) and a classical channel (the measurement results).</p>
+
+  <h2>Why Entanglement Matters</h2>
+  <p>Entanglement is uniquely quantum - it has no classical analog. It is the resource that powers:</p>
+  <ul>
+    <li><strong>Quantum teleportation</strong> - transferring states without physical qubit movement</li>
+    <li><strong>Superdense coding</strong> - sending 2 classical bits with 1 qubit</li>
+    <li><strong>Quantum key distribution</strong> - provably secure communication</li>
+    <li><strong>Quantum algorithms</strong> - exponential speedups (next chapter)</li>
+  </ul>
+
+  <nav>
+    <a href="03-measurement.html">&larr; Measurement</a>
+    <a href="05-algorithms.html">Next: Algorithms &rarr;</a>
+  </nav>
+</body>
+</html>

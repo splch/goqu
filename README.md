@@ -59,7 +59,7 @@ Requires Go 1.24+.
 | Pulse Programming | OpenPulse model, waveforms, defcal |
 | Noise Modeling | Kraus operators, device noise models, depolarizing/amplitude-damping channels |
 | Observability | Zero-dep hooks + OpenTelemetry and Prometheus bridges |
-| Education | 20 Jupyter notebooks from qubits to Shor's algorithm (Go kernel via [gonb](https://github.com/janpfeifer/gonb)) |
+| Education | Textbook from qubits to Shor's algorithm (Go via [gonb](https://github.com/janpfeifer/gonb)) |
 
 ```
 q0: ─H───@──
@@ -70,7 +70,7 @@ q1: ─────X──
 ## Documentation
 
 - [API Reference](https://pkg.go.dev/github.com/splch/goqu)
-- [Notebooks](notebooks/)
+- [Textbook](textbook/)
 - [Benchmarks](https://splch.github.io/goqu/dev/bench/)
 
 ## Contributing

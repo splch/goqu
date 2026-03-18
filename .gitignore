@@ -33,3 +33,7 @@ go.work.sum
 
 # Claude
 docs/
+
+# Textbook build artifacts
+textbook/main.wasm
+textbook/wasm_exec.js

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chapter 1: The Qubit - Goqu Textbook</title>
+  <link rel="stylesheet" href="../style.css">
+  <script src="../wasm_exec.js"></script>
+  <script src="../app.js"></script>
+</head>
+<body>
+  <nav>
+    <a href="../index.html">&larr; Home</a>
+    <a href="02-gates.html">Next: Quantum Gates &rarr;</a>
+  </nav>
+
+  <h1>Chapter 1: The Qubit</h1>
+
+  <h2>Classical Bits</h2>
+  <p>A classical bit is either 0 or 1. A <strong>qubit</strong> (quantum bit) can be in a <em>superposition</em> of both. We write the two basis states as |0&#x27E9; and |1&#x27E9;.</p>
+  <p>A general single-qubit state is:</p>
+  <p style="text-align:center"><var>&alpha;</var>|0&#x27E9; + <var>&beta;</var>|1&#x27E9;</p>
+  <p>where <var>&alpha;</var> and <var>&beta;</var> are complex numbers satisfying |<var>&alpha;</var>|<sup>2</sup> + |<var>&beta;</var>|<sup>2</sup> = 1.</p>
+
+  <h2>Your First Qubit</h2>
+  <p>The Hadamard gate (<code>h</code>) puts a qubit into equal superposition. Run this circuit to see the result:</p>
+
+  <div class="sandbox" data-autorun>
+    <textarea class="code" rows="5">OPENQASM 3.0;
+qubit q;
+h q;
+measure q;</textarea>
+    <button onclick="run(this)">Run</button>
+    <div class="output"></div>
+  </div>
+
+  <p>You should see roughly equal counts of 0 and 1. Each measurement randomly collapses the superposition.</p>
+
+  <h2>The Bloch Sphere</h2>
+  <p>Every single-qubit state maps to a point on the <strong>Bloch sphere</strong>. The north pole is |0&#x27E9;, the south pole is |1&#x27E9;, and the equator contains superposition states like |+&#x27E9; and |-&#x27E9;.</p>
+  <p>Adjust the amplitudes below to explore:</p>
+
+  <div class="sandbox">
+    <label><var>&alpha;</var> real <input type="range" id="aRe" min="-1" max="1" step="0.01" value="0.707"></label>
+    <label><var>&alpha;</var> imag <input type="range" id="aIm" min="-1" max="1" step="0.01" value="0"></label><br>
+    <label><var>&beta;</var> real <input type="range" id="bRe" min="-1" max="1" step="0.01" value="0.707"></label>
+    <label><var>&beta;</var> imag <input type="range" id="bIm" min="-1" max="1" step="0.01" value="0"></label>
+    <button onclick="bloch(this)">Render</button>
+    <div class="output"></div>
+  </div>
+
+  <p>Try setting <var>&alpha;</var> = 1, <var>&beta;</var> = 0 (the |0&#x27E9; state at the north pole), then <var>&alpha;</var> = 0, <var>&beta;</var> = 1 (the |1&#x27E9; state at the south pole).</p>
+
+  <h2>Multiple Shots</h2>
+  <p>Quantum mechanics is probabilistic. Running the same circuit many times reveals the underlying probability distribution. Try changing the number of shots:</p>
+
+  <div class="sandbox" data-shots="100">
+    <textarea class="code" rows="5">OPENQASM 3.0;
+qubit q;
+h q;
+measure q;</textarea>
+    <button onclick="run(this)">Run (100 shots)</button>
+    <div class="output"></div>
+  </div>
+
+  <p>With only 100 shots, the counts fluctuate noticeably. With 10,000 shots they converge toward 50/50.</p>
+
+  <nav>
+    <a href="../index.html">&larr; Home</a>
+    <a href="02-gates.html">Next: Quantum Gates &rarr;</a>
+  </nav>
+</body>
+</html>
