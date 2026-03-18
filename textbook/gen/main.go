@@ -97,7 +97,7 @@ func main() {
 			Chapter: ch.Chapter,
 		})
 	}
-	var allParts []Part
+	allParts := make([]Part, 0, len(partsOrder))
 	for _, n := range partsOrder {
 		allParts = append(allParts, *partsMap[n])
 	}
@@ -216,7 +216,7 @@ func writeTemplate(tmpl *template.Template, path string, data PageData) {
 	if err != nil {
 		fatal("create %s: %v", path, err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	if err := tmpl.Execute(f, data); err != nil {
 		fatal("execute template for %s: %v", path, err)
 	}
