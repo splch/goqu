@@ -343,6 +343,49 @@ $$|\psi_{\text{UCCSD}}\rangle = e^{T - T^\dagger} |\phi_0\rangle$$
   </p>
 </div>
 
+<h3>Interactive: Ansatz Explorer</h3>
+<p>
+  Explore different parameterized circuit architectures (ansatze) used in variational
+  quantum algorithms. Each ansatz has a different structure, parameter count, and
+  expressibility. The circuit depth and parameter count grow with layers.
+</p>
+<div class="widget" id="ansatz-widget">
+  <div class="widget-header">Parameterized Ansatz Builder</div>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label>Ansatz: <select id="ans-type">
+      <option value="real_amplitudes">RealAmplitudes</option>
+      <option value="efficient_su2">EfficientSU2</option>
+      <option value="basic_entangler">BasicEntangler</option>
+      <option value="strongly_entangling">StronglyEntangling</option>
+    </select></label>
+    <label>Qubits: <select id="ans-qubits"><option>2</option><option selected>3</option><option>4</option></select></label>
+    <label>Layers: <select id="ans-layers"><option>1</option><option selected>2</option><option>3</option></select></label>
+    <label>Entanglement: <select id="ans-ent"><option value="linear" selected>Linear</option><option value="full">Full</option><option value="circular">Circular</option></select></label>
+    <button onclick="runAnsatz()">Build</button>
+  </div>
+  <div class="widget-output" id="ansatz-output"></div>
+</div>
+<script>
+async function runAnsatz() {
+  await ensureWasm();
+  var out = document.getElementById('ansatz-output');
+  out.innerHTML = '<p style="color:var(--color-text-muted)">Building...</p>';
+  await new Promise(r => setTimeout(r, 0));
+  try {
+    var name = document.getElementById('ans-type').value;
+    var nq = parseInt(document.getElementById('ans-qubits').value);
+    var layers = parseInt(document.getElementById('ans-layers').value);
+    var ent = document.getElementById('ans-ent').value;
+    var r = JSON.parse(window.buildAnsatz(name, nq, layers, ent, isDark()));
+    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+    var html = (r.circuitSVG||'');
+    html += '<div class="sim-stats"><span>Parameters: ' + r.numParams + '</span><span>Depth: ' + r.depth + '</span></div>';
+    if (r.qasmCode) html += '<details><summary>Generated QASM</summary><pre>' + esc(r.qasmCode) + '</pre></details>';
+    out.innerHTML = html;
+  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+}
+</script>
+
 </section>
 
 <!-- ================================================================== -->
@@ -617,6 +660,258 @@ c = measure q;</pre>
   the nearest minimum. The parameter shift rule tells the optimizer precisely which
   direction is downhill by evaluating the circuit at $\theta_0 \pm \pi/2$.
 </p>
+
+<h3>Interactive: Parameter Energy Landscape</h3>
+<p>
+  Visualize how the cost function $\langle ZZ \rangle$ varies as a single parameter sweeps
+  from $0$ to $2\pi$. The sinusoidal shape confirms the parameter shift rule prediction.
+</p>
+<div class="widget" id="sweep1d-widget">
+  <div class="widget-header">1D Parameter Sweep</div>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label>Observable: <input type="text" id="sweep1d-pauli" value="ZZ" style="width:5rem;"></label>
+    <label>Parameter: <input type="text" id="sweep1d-param" value="theta" style="width:5rem;"></label>
+    <label>Points: <select id="sweep1d-count"><option>25</option><option selected>50</option><option>100</option></select></label>
+    <button onclick="runSweep1D()">Sweep</button>
+  </div>
+  <label style="display:block;margin-bottom:0.75rem;">QASM template:
+    <textarea id="sweep1d-qasm" rows="5" style="width:100%;font-family:monospace;font-size:0.85rem;">OPENQASM 3.0;
+qubit[2] q;
+ry({theta}) q[0];
+ry(0.78) q[1];
+cx q[0], q[1];</textarea>
+  </label>
+  <div class="widget-output" id="sweep1d-output"></div>
+</div>
+<script>
+async function runSweep1D() {
+  await ensureWasm();
+  var out = document.getElementById('sweep1d-output');
+  out.innerHTML = '<p style="color:var(--color-text-muted)">Sweeping...</p>';
+  await new Promise(function(r) { setTimeout(r, 0); });
+  try {
+    var qasm = document.getElementById('sweep1d-qasm').value;
+    var pauliStr = document.getElementById('sweep1d-pauli').value;
+    var paramName = document.getElementById('sweep1d-param').value;
+    var count = parseInt(document.getElementById('sweep1d-count').value);
+    var r = JSON.parse(window.sweepExpectation(qasm, pauliStr, paramName, 0, 6.283185307, count, isDark()));
+    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+    var pv = r.paramValues, ev = r.expectations;
+    // Find min/max for scaling
+    var eMin = ev[0], eMax = ev[0];
+    for (var i = 1; i < ev.length; i++) { if (ev[i] < eMin) eMin = ev[i]; if (ev[i] > eMax) eMax = ev[i]; }
+    var eRange = eMax - eMin || 1;
+    // SVG dimensions
+    var W = 400, H = 200, pad = 40, pR = 10, pT = 15, pB = 30;
+    var plotW = W - pad - pR, plotH = H - pT - pB;
+    var fg = isDark() ? '#e0e0e0' : '#333', grid = isDark() ? '#444' : '#ccc', line = isDark() ? '#6ea8fe' : '#0d6efd';
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;max-width:400px;display:block;">';
+    // Grid lines and labels
+    svg += '<line x1="' + pad + '" y1="' + pT + '" x2="' + pad + '" y2="' + (pT + plotH) + '" stroke="' + fg + '" stroke-width="1"/>';
+    svg += '<line x1="' + pad + '" y1="' + (pT + plotH) + '" x2="' + (pad + plotW) + '" y2="' + (pT + plotH) + '" stroke="' + fg + '" stroke-width="1"/>';
+    // Y-axis labels
+    for (var t = 0; t <= 4; t++) {
+      var yVal = eMax - (t / 4) * eRange;
+      var yPos = pT + (t / 4) * plotH;
+      svg += '<line x1="' + (pad - 3) + '" y1="' + yPos + '" x2="' + (pad + plotW) + '" y2="' + yPos + '" stroke="' + grid + '" stroke-width="0.5"/>';
+      svg += '<text x="' + (pad - 5) + '" y="' + (yPos + 3) + '" text-anchor="end" fill="' + fg + '" font-size="9">' + yVal.toFixed(2) + '</text>';
+    }
+    // X-axis labels
+    var xLabels = [{v: 0, l: '0'}, {v: Math.PI, l: '\u03c0'}, {v: 2 * Math.PI, l: '2\u03c0'}];
+    for (var k = 0; k < xLabels.length; k++) {
+      var xPos = pad + (xLabels[k].v / 6.283185307) * plotW;
+      svg += '<text x="' + xPos + '" y="' + (pT + plotH + 15) + '" text-anchor="middle" fill="' + fg + '" font-size="9">' + xLabels[k].l + '</text>';
+    }
+    // Axis titles
+    svg += '<text x="' + (pad + plotW / 2) + '" y="' + (H - 2) + '" text-anchor="middle" fill="' + fg + '" font-size="10">' + esc(paramName) + '</text>';
+    svg += '<text x="12" y="' + (pT + plotH / 2) + '" text-anchor="middle" fill="' + fg + '" font-size="10" transform="rotate(-90,12,' + (pT + plotH / 2) + ')">&lt;' + esc(pauliStr) + '&gt;</text>';
+    // Data polyline
+    var pts = '';
+    for (var i = 0; i < pv.length; i++) {
+      var x = pad + (pv[i] / 6.283185307) * plotW;
+      var y = pT + ((eMax - ev[i]) / eRange) * plotH;
+      pts += (i === 0 ? '' : ' ') + x.toFixed(1) + ',' + y.toFixed(1);
+    }
+    svg += '<polyline points="' + pts + '" fill="none" stroke="' + line + '" stroke-width="2"/>';
+    svg += '</svg>';
+    // Find minimum
+    var minIdx = 0;
+    for (var i = 1; i < ev.length; i++) { if (ev[i] < ev[minIdx]) minIdx = i; }
+    svg += '<div class="sim-stats"><span>Min energy: ' + ev[minIdx].toFixed(4) + '</span><span>at ' + esc(paramName) + ' = ' + pv[minIdx].toFixed(3) + '</span></div>';
+    out.innerHTML = svg;
+  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+}
+</script>
+
+<h3>Interactive: 2D Energy Landscape</h3>
+<p>
+  Explore the full two-parameter energy landscape. The heatmap reveals local minima,
+  saddle points, and the global minimum (marked with x). This is the terrain that a
+  classical optimizer must navigate.
+</p>
+<div class="widget" id="sweep2d-widget">
+  <div class="widget-header">2D Energy Landscape</div>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label>Observable: <input type="text" id="sweep2d-pauli" value="ZZ" style="width:5rem;"></label>
+    <label>Grid: <select id="sweep2d-grid"><option>10</option><option selected>20</option><option>25</option></select></label>
+    <button onclick="runSweep2D()">Compute</button>
+  </div>
+  <label style="display:block;margin-bottom:0.75rem;">QASM template:
+    <textarea id="sweep2d-qasm" rows="5" style="width:100%;font-family:monospace;font-size:0.85rem;">OPENQASM 3.0;
+qubit[2] q;
+ry({theta0}) q[0];
+ry({theta1}) q[1];
+cx q[0], q[1];</textarea>
+  </label>
+  <div class="widget-output" id="sweep2d-output"></div>
+</div>
+<script>
+async function runSweep2D() {
+  await ensureWasm();
+  var out = document.getElementById('sweep2d-output');
+  out.innerHTML = '<p style="color:var(--color-text-muted)">Computing landscape...</p>';
+  await new Promise(function(r) { setTimeout(r, 0); });
+  try {
+    var qasm = document.getElementById('sweep2d-qasm').value;
+    var pauliStr = document.getElementById('sweep2d-pauli').value;
+    var gridSize = parseInt(document.getElementById('sweep2d-grid').value);
+    var r = JSON.parse(window.sweep2D(qasm, pauliStr, 'theta0', 0, 6.283185307, 'theta1', 0, 6.283185307, gridSize, isDark()));
+    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+    var energies = r.energies, p1 = r.param1Values, p2 = r.param2Values;
+    var n = energies.length;
+    // Find global min/max across all cells
+    var eMin = energies[0][0], eMax = energies[0][0];
+    for (var i = 0; i < n; i++) for (var j = 0; j < energies[i].length; j++) {
+      if (energies[i][j] < eMin) eMin = energies[i][j];
+      if (energies[i][j] > eMax) eMax = energies[i][j];
+    }
+    var eRange = eMax - eMin || 1;
+    // SVG heatmap
+    var W = 400, H = 360, pad = 50, pR = 60, pT = 15, pB = 35;
+    var plotW = W - pad - pR, plotH = H - pT - pB;
+    var cellW = plotW / n, cellH = plotH / n;
+    var fg = isDark() ? '#e0e0e0' : '#333';
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;max-width:400px;display:block;">';
+    // Heatmap cells: rows = theta0 (y-axis), cols = theta1 (x-axis)
+    for (var i = 0; i < n; i++) {
+      for (var j = 0; j < energies[i].length; j++) {
+        var t = (energies[i][j] - eMin) / eRange; // 0 = min (blue), 1 = max (red)
+        var cr = Math.round(36 + 219 * t);
+        var cg = Math.round(36 + 80 * (1 - Math.abs(t - 0.5) * 2));
+        var cb = Math.round(255 - 219 * t);
+        var x = pad + j * cellW;
+        var y = pT + i * cellH;
+        svg += '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + (cellW + 0.5).toFixed(1) + '" height="' + (cellH + 0.5).toFixed(1) + '" fill="rgb(' + cr + ',' + cg + ',' + cb + ')"/>';
+      }
+    }
+    // Mark minimum with x
+    var minI = 0, minJ = 0;
+    for (var i = 0; i < n; i++) for (var j = 0; j < energies[i].length; j++) {
+      if (energies[i][j] < energies[minI][minJ]) { minI = i; minJ = j; }
+    }
+    var mx = pad + (minJ + 0.5) * cellW, my = pT + (minI + 0.5) * cellH;
+    svg += '<text x="' + mx.toFixed(1) + '" y="' + (my + 4).toFixed(1) + '" text-anchor="middle" fill="white" font-size="14" font-weight="bold" stroke="black" stroke-width="0.5">x</text>';
+    // Axes
+    svg += '<line x1="' + pad + '" y1="' + pT + '" x2="' + pad + '" y2="' + (pT + plotH) + '" stroke="' + fg + '" stroke-width="1"/>';
+    svg += '<line x1="' + pad + '" y1="' + (pT + plotH) + '" x2="' + (pad + plotW) + '" y2="' + (pT + plotH) + '" stroke="' + fg + '" stroke-width="1"/>';
+    // X-axis labels (theta1)
+    var xLabels = [{v: 0, l: '0'}, {v: Math.PI, l: '\u03c0'}, {v: 2 * Math.PI, l: '2\u03c0'}];
+    for (var k = 0; k < xLabels.length; k++) {
+      var xPos = pad + (xLabels[k].v / 6.283185307) * plotW;
+      svg += '<text x="' + xPos + '" y="' + (pT + plotH + 15) + '" text-anchor="middle" fill="' + fg + '" font-size="9">' + xLabels[k].l + '</text>';
+    }
+    // Y-axis labels (theta0)
+    var yLabels = [{v: 0, l: '0'}, {v: Math.PI, l: '\u03c0'}, {v: 2 * Math.PI, l: '2\u03c0'}];
+    for (var k = 0; k < yLabels.length; k++) {
+      var yPos = pT + (yLabels[k].v / 6.283185307) * plotH;
+      svg += '<text x="' + (pad - 5) + '" y="' + (yPos + 3) + '" text-anchor="end" fill="' + fg + '" font-size="9">' + yLabels[k].l + '</text>';
+    }
+    // Axis titles
+    svg += '<text x="' + (pad + plotW / 2) + '" y="' + (H - 5) + '" text-anchor="middle" fill="' + fg + '" font-size="10">\u03b8\u2081</text>';
+    svg += '<text x="12" y="' + (pT + plotH / 2) + '" text-anchor="middle" fill="' + fg + '" font-size="10" transform="rotate(-90,12,' + (pT + plotH / 2) + ')">\u03b8\u2080</text>';
+    // Color bar legend
+    var barX = pad + plotW + 10, barW = 12, barH = plotH;
+    for (var s = 0; s < barH; s++) {
+      var t = s / barH; // top = 0 (min/blue), bottom = 1 (max/red)
+      var cr = Math.round(36 + 219 * t);
+      var cg = Math.round(36 + 80 * (1 - Math.abs(t - 0.5) * 2));
+      var cb = Math.round(255 - 219 * t);
+      svg += '<rect x="' + barX + '" y="' + (pT + s) + '" width="' + barW + '" height="1.5" fill="rgb(' + cr + ',' + cg + ',' + cb + ')"/>';
+    }
+    svg += '<text x="' + (barX + barW + 3) + '" y="' + (pT + 8) + '" fill="' + fg + '" font-size="8">' + eMin.toFixed(2) + '</text>';
+    svg += '<text x="' + (barX + barW + 3) + '" y="' + (pT + barH) + '" fill="' + fg + '" font-size="8">' + eMax.toFixed(2) + '</text>';
+    svg += '</svg>';
+    svg += '<div class="sim-stats"><span>Min energy: ' + r.minEnergy.toFixed(4) + '</span><span>at \u03b8\u2080 = ' + r.minParam1.toFixed(3) + ', \u03b8\u2081 = ' + r.minParam2.toFixed(3) + '</span></div>';
+    out.innerHTML = svg;
+  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+}
+</script>
+
+<h3>Interactive: Gradient Computation</h3>
+<p>
+  Compare the parameter shift rule (exact) with finite differences (approximate).
+  Enter parameter values and compute the gradient vector for the $\langle ZZ \rangle$
+  cost function.
+</p>
+<div class="widget" id="gradient-widget">
+  <div class="widget-header">Gradient Calculator</div>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label>Observable: <input type="text" id="grad-pauli" value="ZZ" style="width:5rem;"></label>
+    <label>Parameters: <input type="text" id="grad-names" value="theta0,theta1" style="width:9rem;"></label>
+    <label>Method: <select id="grad-method">
+      <option value="parameter_shift" selected>Parameter Shift</option>
+      <option value="finite_difference">Finite Difference</option>
+    </select></label>
+    <button onclick="runGradient()">Compute Gradient</button>
+  </div>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label>$\theta_0$: <input type="number" id="grad-val0" value="1.0" step="0.1" style="width:5rem;"></label>
+    <label>$\theta_1$: <input type="number" id="grad-val1" value="0.5" step="0.1" style="width:5rem;"></label>
+  </div>
+  <label style="display:block;margin-bottom:0.75rem;">QASM template:
+    <textarea id="grad-qasm" rows="5" style="width:100%;font-family:monospace;font-size:0.85rem;">OPENQASM 3.0;
+qubit[2] q;
+ry({theta0}) q[0];
+ry({theta1}) q[1];
+cx q[0], q[1];</textarea>
+  </label>
+  <div class="widget-output" id="gradient-output"></div>
+</div>
+<script>
+async function runGradient() {
+  await ensureWasm();
+  var out = document.getElementById('gradient-output');
+  out.innerHTML = '<p style="color:var(--color-text-muted)">Computing gradient...</p>';
+  await new Promise(function(r) { setTimeout(r, 0); });
+  try {
+    var qasm = document.getElementById('grad-qasm').value;
+    var pauliStr = document.getElementById('grad-pauli').value;
+    var paramNames = document.getElementById('grad-names').value;
+    var method = document.getElementById('grad-method').value;
+    var val0 = parseFloat(document.getElementById('grad-val0').value);
+    var val1 = parseFloat(document.getElementById('grad-val1').value);
+    var paramValues = val0 + ',' + val1;
+    var r = JSON.parse(window.computeGradient(qasm, pauliStr, paramNames, paramValues, method, isDark()));
+    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+    var names = paramNames.split(',');
+    var methodLabel = method === 'parameter_shift' ? 'Parameter Shift Rule (exact)' : 'Finite Difference (approximate)';
+    var html = '<div class="sim-stats"><span>Method: ' + esc(methodLabel) + '</span></div>';
+    html += '<table class="state-table"><tr><th>Parameter</th><th>Value</th><th>\u2202C/\u2202\u03b8</th></tr>';
+    var vals = [val0, val1];
+    for (var i = 0; i < r.gradients.length; i++) {
+      html += '<tr><td>' + esc(names[i].trim()) + '</td><td>' + vals[i].toFixed(3) + '</td><td>' + r.gradients[i].toFixed(6) + '</td></tr>';
+    }
+    html += '</table>';
+    // Compute gradient magnitude
+    var mag = 0;
+    for (var i = 0; i < r.gradients.length; i++) mag += r.gradients[i] * r.gradients[i];
+    mag = Math.sqrt(mag);
+    html += '<div class="sim-stats"><span>||\u2207C|| = ' + mag.toFixed(6) + '</span></div>';
+    out.innerHTML = html;
+    renderMath(out);
+  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+}
+</script>
 
 <h3>Choosing an Optimizer</h3>
 

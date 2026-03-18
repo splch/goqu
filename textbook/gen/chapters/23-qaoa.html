@@ -745,6 +745,140 @@ $$H(t) = A(t) \sum_i X_i + B(t) \left[ \sum_i h_i Z_i + \sum_{i<j} J_{ij} Z_i Z_
 
 <!-- ================================================================== -->
 
+<h3>Interactive: QAOA Energy Landscape</h3>
+<p>
+  Visualize the 2D energy landscape over the QAOA parameters $\gamma$ (problem layer)
+  and $\beta$ (mixer layer) for a simple MaxCut instance. The optimizer must navigate
+  this terrain to find the minimum energy (best cut).
+</p>
+<div class="widget" id="qaoa-landscape-widget">
+  <div class="widget-header">QAOA Energy Landscape (Triangle Graph)</div>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label>Grid size: <select id="qaoa-land-grid"><option>10</option><option selected>15</option><option>20</option></select></label>
+    <button onclick="runQAOALandscape()">Compute Landscape</button>
+  </div>
+  <div class="widget-output" id="qaoa-landscape-output"></div>
+</div>
+<script>
+async function runQAOALandscape() {
+  await ensureWasm();
+  var out = document.getElementById('qaoa-landscape-output');
+  out.innerHTML = '<p style="color:var(--color-text-muted)">Computing landscape...</p>';
+  await new Promise(function(r) { setTimeout(r, 0); });
+  try {
+    var qasm = 'OPENQASM 3.0;\nqubit[3] q;\nh q[0]; h q[1]; h q[2];\ncx q[0], q[1]; rz({gamma}) q[1]; cx q[0], q[1];\ncx q[1], q[2]; rz({gamma}) q[2]; cx q[1], q[2];\ncx q[0], q[2]; rz({gamma}) q[2]; cx q[0], q[2];\nrx({beta}) q[0]; rx({beta}) q[1]; rx({beta}) q[2];';
+    var pauliStr = '0.5*IIZ+0.5*IZI+0.5*ZII+-0.5*IZZ+-0.5*ZIZ+-0.5*ZZI';
+    var gridSize = parseInt(document.getElementById('qaoa-land-grid').value);
+    var r = JSON.parse(window.sweep2D(qasm, pauliStr, 'gamma', 0, 3.141592653589793, 'beta', 0, 3.141592653589793, gridSize, isDark()));
+    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+    var energies = r.energies, p1 = r.param1Values, p2 = r.param2Values;
+    var n = energies.length;
+    var eMin = energies[0][0], eMax = energies[0][0];
+    for (var i = 0; i < n; i++) for (var j = 0; j < energies[i].length; j++) {
+      if (energies[i][j] < eMin) eMin = energies[i][j];
+      if (energies[i][j] > eMax) eMax = energies[i][j];
+    }
+    var eRange = eMax - eMin || 1;
+    var W = 400, H = 360, pad = 50, pR = 60, pT = 15, pB = 35;
+    var plotW = W - pad - pR, plotH = H - pT - pB;
+    var cellW = plotW / n, cellH = plotH / n;
+    var fg = isDark() ? '#e0e0e0' : '#333';
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;max-width:400px;display:block;">';
+    for (var i = 0; i < n; i++) {
+      for (var j = 0; j < energies[i].length; j++) {
+        var t = (energies[i][j] - eMin) / eRange;
+        var cr = Math.round(36 + 219 * t);
+        var cg = Math.round(36 + 80 * (1 - Math.abs(t - 0.5) * 2));
+        var cb = Math.round(255 - 219 * t);
+        var x = pad + j * cellW;
+        var y = pT + i * cellH;
+        svg += '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + (cellW + 0.5).toFixed(1) + '" height="' + (cellH + 0.5).toFixed(1) + '" fill="rgb(' + cr + ',' + cg + ',' + cb + ')"/>';
+      }
+    }
+    var minI = 0, minJ = 0;
+    for (var i = 0; i < n; i++) for (var j = 0; j < energies[i].length; j++) {
+      if (energies[i][j] < energies[minI][minJ]) { minI = i; minJ = j; }
+    }
+    var mx = pad + (minJ + 0.5) * cellW, my = pT + (minI + 0.5) * cellH;
+    svg += '<text x="' + mx.toFixed(1) + '" y="' + (my + 4).toFixed(1) + '" text-anchor="middle" fill="white" font-size="14" font-weight="bold" stroke="black" stroke-width="0.5">x</text>';
+    svg += '<line x1="' + pad + '" y1="' + pT + '" x2="' + pad + '" y2="' + (pT + plotH) + '" stroke="' + fg + '" stroke-width="1"/>';
+    svg += '<line x1="' + pad + '" y1="' + (pT + plotH) + '" x2="' + (pad + plotW) + '" y2="' + (pT + plotH) + '" stroke="' + fg + '" stroke-width="1"/>';
+    var xLabels = [{v: 0, l: '0'}, {v: Math.PI / 2, l: '\u03c0/2'}, {v: Math.PI, l: '\u03c0'}];
+    for (var k = 0; k < xLabels.length; k++) {
+      var xPos = pad + (xLabels[k].v / 3.141592653589793) * plotW;
+      svg += '<text x="' + xPos + '" y="' + (pT + plotH + 15) + '" text-anchor="middle" fill="' + fg + '" font-size="9">' + xLabels[k].l + '</text>';
+    }
+    var yLabels = [{v: 0, l: '0'}, {v: Math.PI / 2, l: '\u03c0/2'}, {v: Math.PI, l: '\u03c0'}];
+    for (var k = 0; k < yLabels.length; k++) {
+      var yPos = pT + (yLabels[k].v / 3.141592653589793) * plotH;
+      svg += '<text x="' + (pad - 5) + '" y="' + (yPos + 3) + '" text-anchor="end" fill="' + fg + '" font-size="9">' + yLabels[k].l + '</text>';
+    }
+    svg += '<text x="' + (pad + plotW / 2) + '" y="' + (H - 5) + '" text-anchor="middle" fill="' + fg + '" font-size="10">\u03b3</text>';
+    svg += '<text x="12" y="' + (pT + plotH / 2) + '" text-anchor="middle" fill="' + fg + '" font-size="10" transform="rotate(-90,12,' + (pT + plotH / 2) + ')">\u03b2</text>';
+    var barX = pad + plotW + 10, barW = 12, barH = plotH;
+    for (var s = 0; s < barH; s++) {
+      var t = s / barH;
+      var cr = Math.round(36 + 219 * t);
+      var cg = Math.round(36 + 80 * (1 - Math.abs(t - 0.5) * 2));
+      var cb = Math.round(255 - 219 * t);
+      svg += '<rect x="' + barX + '" y="' + (pT + s) + '" width="' + barW + '" height="1.5" fill="rgb(' + cr + ',' + cg + ',' + cb + ')"/>';
+    }
+    svg += '<text x="' + (barX + barW + 3) + '" y="' + (pT + 8) + '" fill="' + fg + '" font-size="8">' + eMin.toFixed(2) + '</text>';
+    svg += '<text x="' + (barX + barW + 3) + '" y="' + (pT + barH) + '" fill="' + fg + '" font-size="8">' + eMax.toFixed(2) + '</text>';
+    svg += '</svg>';
+    svg += '<div class="sim-stats"><span>Min energy: ' + r.minEnergy.toFixed(4) + '</span><span>at \u03b3 = ' + r.minParam1.toFixed(3) + ', \u03b2 = ' + r.minParam2.toFixed(3) + '</span></div>';
+    out.innerHTML = svg;
+  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+}
+</script>
+
+<!-- ================================================================== -->
+
+<h3>Interactive: QAOA MaxCut Solver</h3>
+<p>
+  Run the QAOA algorithm to find approximate solutions to the MaxCut problem on small
+  graphs. Select a graph topology and the number of QAOA layers (higher $p$ gives
+  better approximation ratios but takes longer to optimize).
+</p>
+<div class="widget" id="qaoa-widget">
+  <div class="widget-header">QAOA for MaxCut</div>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label>Graph: <select id="qaoa-graph">
+      <option value="0-1,1-2,2-0" data-nq="3">Triangle (3 nodes)</option>
+      <option value="0-1,1-2,2-3,3-0" data-nq="4" selected>Square (4 nodes)</option>
+      <option value="0-1,1-2,2-3,3-0,0-2" data-nq="4">Square + diagonal (4)</option>
+      <option value="0-1,0-2,0-3,1-2,1-3,2-3" data-nq="4">Complete K4 (4 nodes)</option>
+    </select></label>
+    <label>Layers (p): <select id="qaoa-layers"><option selected>1</option><option>2</option><option>3</option></select></label>
+    <button onclick="runQAOAWidget()">Optimize</button>
+  </div>
+  <div class="widget-output" id="qaoa-output"></div>
+</div>
+<script>
+async function runQAOAWidget() {
+  await ensureWasm();
+  var sel = document.getElementById('qaoa-graph');
+  var edges = sel.value;
+  var nq = parseInt(sel.options[sel.selectedIndex].dataset.nq);
+  var layers = parseInt(document.getElementById('qaoa-layers').value);
+  var out = document.getElementById('qaoa-output');
+  out.innerHTML = '<p style="color:var(--color-text-muted)">Optimizing (this may take a moment)...</p>';
+  await new Promise(function(r) { setTimeout(r, 0); });
+  try {
+    var r = JSON.parse(window.runQAOA(edges, nq, layers, 1024, isDark()));
+    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+    var html = (r.circuitSVG||'') + (r.histogramSVG||'');
+    html += '<div class="sim-stats">';
+    if (r.bestBitstring) html += '<span>Best partition: ' + esc(r.bestBitstring) + '</span>';
+    html += '<span>Energy: ' + r.energy.toFixed(4) + '</span></div>';
+    if (r.qasmCode) html += '<details><summary>Generated QASM</summary><pre>' + esc(r.qasmCode) + '</pre></details>';
+    out.innerHTML = html;
+  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+}
+</script>
+
+<!-- ================================================================== -->
+
 <div class="flashcard-deck" data-component="flashcard-deck">
   <div class="flashcard-deck-header">Chapter 23 Review</div>
 

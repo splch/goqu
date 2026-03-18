@@ -849,6 +849,111 @@ for the unstructured search problem - provably the best possible for any quantum
 
 <!-- ================================================================== -->
 
+<section id="dj-explorer">
+
+<h3>Interactive: Deutsch-Jozsa Explorer</h3>
+<p>
+  Use Goqu's built-in Deutsch-Jozsa implementation to explore how the algorithm scales.
+  No matter how many qubits you use, the algorithm determines whether the oracle is
+  constant or balanced with just <strong>one query</strong>.
+</p>
+<div class="widget" id="dj-widget">
+  <div class="widget-header">Deutsch-Jozsa Algorithm</div>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label>Qubits: <select id="dj-qubits"><option>2</option><option>3</option><option selected>4</option><option>5</option></select></label>
+    <label>Oracle: <select id="dj-oracle"><option value="constant">Constant</option><option value="balanced" selected>Balanced</option></select></label>
+    <button onclick="runDJ()">Run</button>
+  </div>
+  <div class="widget-output" id="dj-output"></div>
+</div>
+<script>
+async function runDJ() {
+  await ensureWasm();
+  var nq = document.getElementById('dj-qubits').value;
+  var oracle = document.getElementById('dj-oracle').value;
+  var out = document.getElementById('dj-output');
+  out.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+  await new Promise(r => setTimeout(r, 0));
+  try {
+    var r = JSON.parse(window.runOracleAlgorithm("deutsch_jozsa", nq, oracle, 1024, isDark()));
+    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+    out.innerHTML = (r.circuitSVG||'') + (r.histogramSVG||'');
+    if (r.result) out.innerHTML += '<p><strong>Result:</strong> ' + esc(r.result) + '</p>';
+    if (r.qasmCode) out.innerHTML += '<details><summary>Generated QASM</summary><pre>' + esc(r.qasmCode) + '</pre></details>';
+  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+}
+</script>
+
+<h3>Interactive: Bernstein-Vazirani Explorer</h3>
+<p>
+  Bernstein-Vazirani's algorithm recovers a secret bitstring $s$ hidden inside an oracle
+  $f(x) = s \cdot x \pmod{2}$ using just <strong>one query</strong>. Enter a secret
+  number below (interpreted as a binary string) and watch the algorithm recover it.
+</p>
+<div class="widget" id="bv-widget">
+  <div class="widget-header">Bernstein-Vazirani Algorithm</div>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label>Qubits: <select id="bv-qubits"><option>2</option><option>3</option><option selected>4</option><option>5</option></select></label>
+    <label>Secret (decimal): <input type="number" id="bv-secret" value="5" min="0" max="31" style="width:4rem"></label>
+    <button onclick="runBV()">Run</button>
+  </div>
+  <div class="widget-output" id="bv-output"></div>
+</div>
+<script>
+async function runBV() {
+  await ensureWasm();
+  var nq = document.getElementById('bv-qubits').value;
+  var secret = document.getElementById('bv-secret').value;
+  var out = document.getElementById('bv-output');
+  out.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+  await new Promise(r => setTimeout(r, 0));
+  try {
+    var r = JSON.parse(window.runOracleAlgorithm("bernstein_vazirani", nq, secret, 1024, isDark()));
+    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+    out.innerHTML = (r.circuitSVG||'') + (r.histogramSVG||'');
+    if (r.result) out.innerHTML += '<p><strong>Result:</strong> ' + esc(r.result) + '</p>';
+    if (r.qasmCode) out.innerHTML += '<details><summary>Generated QASM</summary><pre>' + esc(r.qasmCode) + '</pre></details>';
+  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+}
+</script>
+
+<h3>Interactive: Simon's Algorithm Explorer</h3>
+<p>
+  Simon's algorithm finds a hidden period $s$ such that $f(x) = f(x \oplus s)$ for a
+  two-to-one function. It requires multiple queries but exponentially fewer than any
+  classical algorithm. Select a secret period below.
+</p>
+<div class="widget" id="simon-widget">
+  <div class="widget-header">Simon's Algorithm</div>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label>Qubits: <select id="simon-qubits"><option>2</option><option selected>3</option></select></label>
+    <label>Secret period (decimal): <input type="number" id="simon-secret" value="3" min="1" max="7" style="width:4rem"></label>
+    <button onclick="runSimon()">Run</button>
+  </div>
+  <div class="widget-output" id="simon-output"></div>
+</div>
+<script>
+async function runSimon() {
+  await ensureWasm();
+  var nq = document.getElementById('simon-qubits').value;
+  var secret = document.getElementById('simon-secret').value;
+  var out = document.getElementById('simon-output');
+  out.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+  await new Promise(r => setTimeout(r, 0));
+  try {
+    var r = JSON.parse(window.runOracleAlgorithm("simon", nq, secret, 1024, isDark()));
+    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+    out.innerHTML = (r.circuitSVG||'') + (r.histogramSVG||'');
+    if (r.result) out.innerHTML += '<p><strong>Result:</strong> ' + esc(r.result) + '</p>';
+    if (r.qasmCode) out.innerHTML += '<details><summary>Generated QASM</summary><pre>' + esc(r.qasmCode) + '</pre></details>';
+  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+}
+</script>
+
+</section>
+
+<!-- ================================================================== -->
+
 <section id="review">
 <h2>Chapter 9 Review</h2>
 

@@ -679,6 +679,62 @@ c = measure q;</textarea>
 </section>
 
 <!-- ================================================================== -->
+<section id="interactive-noise-explorer">
+<h2>14.3.5 Interactive: Explore Noise Channels</h2>
+
+<p>
+  Now you can see noise in action. The simulator below runs a Bell state circuit through
+  Goqu's density matrix simulator with a real noise model applied. Choose a noise channel
+  and adjust its strength to see how the ideal probability distribution degrades. The
+  <strong>ideal</strong> histogram shows the exact theoretical probabilities, while the
+  <strong>noisy</strong> histogram shows sampled measurement outcomes from the noisy simulation.
+  The <strong>purity</strong> (1.0 for a pure state, 0.25 for maximally mixed 2 qubits) and
+  <strong>fidelity</strong> (overlap with the ideal state) quantify the degradation.
+</p>
+
+<div class="simulation" data-component="simulation" data-comparison="true">
+  <div class="sim-controls">
+    <label>Channel:
+      <select data-param="noiseModel">
+        <option value="depolarizing">Depolarizing</option>
+        <option value="amplitude_damping">Amplitude Damping</option>
+        <option value="phase_damping">Phase Damping</option>
+        <option value="bit_flip">Bit Flip</option>
+        <option value="phase_flip">Phase Flip</option>
+      </select>
+    </label>
+    <label>Noise: <input type="range" data-param="noiseParam" min="0" max="0.5" step="0.01" value="0.1"><output>0.10</output></label>
+  </div>
+  <script type="text/template" class="sim-qasm">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+h q[0];
+cx q[0], q[1];
+c = measure q;</script>
+  <div class="sim-output"></div>
+</div>
+
+<p>
+  Try increasing the noise parameter toward 0.5 and watch the purity drop and the noisy
+  histogram spread. Compare <strong>depolarizing</strong> noise (which affects all Pauli
+  directions equally) with <strong>amplitude damping</strong> (which preferentially pushes the
+  state toward $|00\rangle$) and <strong>phase damping</strong> (which destroys coherence but
+  preserves populations). Each noise channel has a distinct physical signature.
+</p>
+
+<div class="callout callout-key">
+  <strong>Challenge: Finding the Noise Threshold</strong>
+  <p>
+    Using the noise explorer above, find the depolarizing noise parameter at which the
+    Bell state fidelity drops below 0.5. At this point, the noisy state is closer to the
+    maximally mixed state than to the intended Bell state - a critical threshold in
+    quantum error correction theory. (Hint: try values around p = 0.4)
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
 <section id="characterizing-noise">
 <h2>14.4 Characterizing Noise: Tomography and Benchmarking</h2>
 

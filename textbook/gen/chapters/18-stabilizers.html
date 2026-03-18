@@ -411,6 +411,84 @@ c = measure q;</textarea>
   the syndrome changes for errors on different qubits.
 </p>
 
+<h3>Interactive: Stabilizer Tableau Step-Through</h3>
+
+<p>
+  One of the key insights of the stabilizer formalism is that Clifford gates transform
+  stabilizer generators in predictable ways. The widget below lets you step through a
+  GHZ-state preparation circuit gate by gate, watching how the stabilizer generators
+  evolve at each step. The initial state $|000\rangle$ is stabilized by $\{+ZII, +IZI, +IIZ\}$.
+  Each Clifford gate transforms these generators according to the conjugation rules.
+</p>
+
+<div class="step-through" data-component="step-through" data-mode="clifford">
+  <div class="step-controls">
+    <button data-action="prev" disabled>Previous</button>
+    <button data-action="next">Next Gate</button>
+    <span class="step-info">Loading...</span>
+  </div>
+  <script type="text/template" class="step-qasm">OPENQASM 3.0;
+qubit[3] q;
+h q[0];
+cx q[0], q[1];
+cx q[0], q[2];</script>
+  <div class="step-output"></div>
+</div>
+
+<p>
+  After the full circuit, the stabilizers should be $\{+XXX, +ZZI, +ZIZ\}$ - the
+  canonical stabilizers of the 3-qubit GHZ state
+  $\frac{1}{\sqrt{2}}(|000\rangle + |111\rangle)$. Notice how the Hadamard on qubit 0
+  swaps the $X$ and $Z$ operators on that qubit, and each CNOT propagates the $X$ from
+  control to target while propagating $Z$ from target to control.
+</p>
+
+<div class="exercise" data-component="exercise">
+  <div class="exercise-header">Exercise: Predict the Stabilizers</div>
+  <div class="exercise-prompt">
+    <p>
+      Without running the step-through, predict the stabilizer generators of the 2-qubit
+      Bell state $\frac{1}{\sqrt{2}}(|00\rangle + |11\rangle)$ prepared by H on qubit 0
+      followed by CNOT(0,1). Write them as signed Pauli strings (e.g., +XX, +ZZ).
+    </p>
+  </div>
+  <textarea class="code" rows="3">OPENQASM 3.0;
+qubit[2] q;
+h q[0];
+cx q[0], q[1];</textarea>
+  <div class="exercise-controls">
+    <button data-action="check">Check</button>
+  </div>
+  <div class="exercise-feedback"></div>
+  <div class="exercise-expected visually-hidden">
+    <span data-state="00" data-prob="0.5" data-tolerance="0.05"></span>
+    <span data-state="11" data-prob="0.5" data-tolerance="0.05"></span>
+  </div>
+</div>
+
+<h3>Interactive: Clifford Simulator Scalability</h3>
+<p>
+  The Gottesman-Knill theorem guarantees that Clifford circuits can be simulated
+  efficiently on a classical computer. Goqu's stabilizer simulator demonstrates this
+  directly. The circuit below applies H and CNOT gates to create a GHZ state on 4
+  qubits. The Clifford simulator tracks the full stabilizer tableau, showing how
+  entanglement propagates through each gate.
+</p>
+<div class="simulation" data-component="simulation" data-clifford="true">
+  <div class="sim-controls">
+    <label>Shots: <input type="range" data-param="shots" min="100" max="4096" step="100" value="1024"><output>1024</output></label>
+  </div>
+  <pre class="sim-qasm">OPENQASM 3.0;
+qubit[4] q;
+bit[4] c;
+h q[0];
+cx q[0], q[1];
+cx q[1], q[2];
+cx q[2], q[3];
+c = measure q;</pre>
+  <div class="sim-output"></div>
+</div>
+
 </section>
 
 <!-- ================================================================== -->

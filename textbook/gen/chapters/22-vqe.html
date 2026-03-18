@@ -489,6 +489,23 @@ c = measure q;</textarea>
   <div class="exercise-feedback"></div>
 </div>
 
+<h3>Interactive: Expectation Value of a Variational Circuit</h3>
+<p>
+  The core of VQE is computing the expectation value $\langle H \rangle = \langle \psi(\theta) | H | \psi(\theta) \rangle$
+  for a parameterized circuit. Adjust the rotation angle below to see how the expectation
+  value of the $ZZ$ observable changes for a simple 2-qubit ansatz.
+</p>
+<div class="simulation" data-component="simulation" data-expectation="true" data-pauli="ZZ">
+  <div class="sim-controls">
+    <label>$\theta$: <input type="range" data-param="theta" min="0" max="6.283" step="0.01" value="1.57"><output>1.57</output></label>
+  </div>
+  <pre class="sim-qasm">OPENQASM 3.0;
+qubit[2] q;
+ry({theta}) q[0];
+cx q[0], q[1];</pre>
+  <div class="sim-output"></div>
+</div>
+
 </section>
 
 <!-- ================================================================== -->
@@ -844,6 +861,141 @@ $$\text{Var}\left[\frac{\partial C}{\partial \theta_k}\right] \leq \frac{1}{2^n 
 </p>
 
 </section>
+
+<!-- ================================================================== -->
+
+<h3>Interactive: VQE Energy Landscape</h3>
+<p>
+  Before running the optimizer, explore the energy landscape by sweeping a single
+  parameter. This reveals the terrain that VQE must navigate to find the ground-state
+  energy of the hydrogen molecule.
+</p>
+<div class="widget" id="sweep-vqe-widget">
+  <div class="widget-header">1D Parameter Sweep - H<sub>2</sub> Energy</div>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label>Observable: <input type="text" id="sweep-vqe-pauli" value="-1.05*II+0.39*ZI+-0.39*IZ+-0.01*ZZ+0.18*XX+0.18*YY" style="width:22rem;font-family:monospace;font-size:0.85rem;"></label>
+    <label>Points: <select id="sweep-vqe-count"><option>25</option><option selected>50</option><option>100</option></select></label>
+    <button onclick="runSweepVQE()">Sweep</button>
+  </div>
+  <label style="display:block;margin-bottom:0.75rem;">QASM template:
+    <textarea id="sweep-vqe-qasm" rows="5" style="width:100%;font-family:monospace;font-size:0.85rem;">OPENQASM 3.0;
+qubit[2] q;
+ry({theta}) q[0];
+ry(0.5) q[1];
+cx q[0], q[1];</textarea>
+  </label>
+  <div class="widget-output" id="sweep-vqe-output"></div>
+</div>
+<script>
+async function runSweepVQE() {
+  await ensureWasm();
+  var out = document.getElementById('sweep-vqe-output');
+  out.innerHTML = '<p style="color:var(--color-text-muted)">Sweeping...</p>';
+  await new Promise(function(r) { setTimeout(r, 0); });
+  try {
+    var qasm = document.getElementById('sweep-vqe-qasm').value;
+    var pauliStr = document.getElementById('sweep-vqe-pauli').value;
+    var paramName = 'theta';
+    var count = parseInt(document.getElementById('sweep-vqe-count').value);
+    var r = JSON.parse(window.sweepExpectation(qasm, pauliStr, paramName, 0, 6.283185307, count, isDark()));
+    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+    var pv = r.paramValues, ev = r.expectations;
+    // Find min/max for scaling
+    var eMin = ev[0], eMax = ev[0], minIdx = 0;
+    for (var i = 1; i < ev.length; i++) {
+      if (ev[i] < eMin) { eMin = ev[i]; minIdx = i; }
+      if (ev[i] > eMax) eMax = ev[i];
+    }
+    var eRange = eMax - eMin || 1;
+    // SVG dimensions
+    var W = 400, H = 200, pad = 50, pR = 10, pT = 15, pB = 30;
+    var plotW = W - pad - pR, plotH = H - pT - pB;
+    var fg = isDark() ? '#e0e0e0' : '#333', grid = isDark() ? '#444' : '#ccc', line = isDark() ? '#6ea8fe' : '#0d6efd';
+    var accent = isDark() ? '#ff6b6b' : '#dc3545';
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;max-width:400px;display:block;">';
+    // Axes
+    svg += '<line x1="' + pad + '" y1="' + pT + '" x2="' + pad + '" y2="' + (pT + plotH) + '" stroke="' + fg + '" stroke-width="1"/>';
+    svg += '<line x1="' + pad + '" y1="' + (pT + plotH) + '" x2="' + (pad + plotW) + '" y2="' + (pT + plotH) + '" stroke="' + fg + '" stroke-width="1"/>';
+    // Y-axis labels
+    for (var t = 0; t <= 4; t++) {
+      var yVal = eMax - (t / 4) * eRange;
+      var yPos = pT + (t / 4) * plotH;
+      svg += '<line x1="' + (pad - 3) + '" y1="' + yPos + '" x2="' + (pad + plotW) + '" y2="' + yPos + '" stroke="' + grid + '" stroke-width="0.5"/>';
+      svg += '<text x="' + (pad - 5) + '" y="' + (yPos + 3) + '" text-anchor="end" fill="' + fg + '" font-size="9">' + yVal.toFixed(2) + '</text>';
+    }
+    // X-axis labels
+    var xLabels = [{v: 0, l: '0'}, {v: Math.PI, l: '\u03c0'}, {v: 2 * Math.PI, l: '2\u03c0'}];
+    for (var k = 0; k < xLabels.length; k++) {
+      var xPos = pad + (xLabels[k].v / 6.283185307) * plotW;
+      svg += '<text x="' + xPos + '" y="' + (pT + plotH + 15) + '" text-anchor="middle" fill="' + fg + '" font-size="9">' + xLabels[k].l + '</text>';
+    }
+    // Axis titles
+    svg += '<text x="' + (pad + plotW / 2) + '" y="' + (H - 2) + '" text-anchor="middle" fill="' + fg + '" font-size="10">' + esc(paramName) + '</text>';
+    svg += '<text x="12" y="' + (pT + plotH / 2) + '" text-anchor="middle" fill="' + fg + '" font-size="10" transform="rotate(-90,12,' + (pT + plotH / 2) + ')">Energy (Ha)</text>';
+    // Data polyline
+    var pts = '';
+    for (var i = 0; i < pv.length; i++) {
+      var x = pad + (pv[i] / 6.283185307) * plotW;
+      var y = pT + ((eMax - ev[i]) / eRange) * plotH;
+      pts += (i === 0 ? '' : ' ') + x.toFixed(1) + ',' + y.toFixed(1);
+    }
+    svg += '<polyline points="' + pts + '" fill="none" stroke="' + line + '" stroke-width="2"/>';
+    // Mark minimum with a circle
+    var minX = pad + (pv[minIdx] / 6.283185307) * plotW;
+    var minY = pT + ((eMax - ev[minIdx]) / eRange) * plotH;
+    svg += '<circle cx="' + minX.toFixed(1) + '" cy="' + minY.toFixed(1) + '" r="4" fill="' + accent + '" stroke="' + fg + '" stroke-width="1"/>';
+    svg += '</svg>';
+    // Stats
+    svg += '<div class="sim-stats"><span>Min energy: ' + ev[minIdx].toFixed(4) + ' Ha</span><span>at ' + esc(paramName) + ' = ' + pv[minIdx].toFixed(3) + '</span></div>';
+    out.innerHTML = svg;
+  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+}
+</script>
+
+<!-- ================================================================== -->
+
+<h3>Interactive: VQE Optimization</h3>
+<p>
+  Run the full VQE algorithm on a 2-qubit Hamiltonian representing molecular hydrogen
+  at equilibrium bond distance. The optimizer searches the parameter space to find
+  the ground state energy. Watch the energy converge toward the minimum.
+</p>
+<div class="widget" id="vqe-widget">
+  <div class="widget-header">Variational Quantum Eigensolver</div>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label>Ansatz: <select id="vqe-ansatz">
+      <option value="real_amplitudes" selected>RealAmplitudes</option>
+      <option value="efficient_su2">EfficientSU2</option>
+    </select></label>
+    <label>Layers: <select id="vqe-layers"><option>1</option><option selected>2</option><option>3</option></select></label>
+    <button onclick="runVQEWidget()">Run VQE</button>
+  </div>
+  <div class="widget-output" id="vqe-output"></div>
+</div>
+<script>
+async function runVQEWidget() {
+  await ensureWasm();
+  var ans = document.getElementById('vqe-ansatz').value;
+  var layers = parseInt(document.getElementById('vqe-layers').value);
+  var out = document.getElementById('vqe-output');
+  out.innerHTML = '<p style="color:var(--color-text-muted)">Optimizing (this may take a moment)...</p>';
+  await new Promise(function(r) { setTimeout(r, 0); });
+  try {
+    var ham = "-1.05*II+0.39*ZI+-0.39*IZ+-0.01*ZZ+0.18*XX";
+    var r = JSON.parse(window.runVQE(ham, ans, 2, layers, 100, isDark()));
+    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+    var html = (r.circuitSVG||'');
+    html += '<div class="sim-stats"><span>Ground state energy: ' + r.energy.toFixed(4) + '</span><span>Iterations: ' + r.numIterations + '</span></div>';
+    if (r.history && r.history.length > 0) {
+      html += '<div style="font-family:var(--font-mono);font-size:0.8rem;margin-top:0.5rem;"><strong>Energy convergence:</strong> ';
+      var step = Math.max(1, Math.floor(r.history.length / 10));
+      for (var i = 0; i < r.history.length; i += step) html += r.history[i].toFixed(4) + ' &rarr; ';
+      html += r.history[r.history.length-1].toFixed(4) + '</div>';
+    }
+    out.innerHTML = html;
+  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+}
+</script>
 
 <!-- ================================================================== -->
 

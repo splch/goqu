@@ -126,6 +126,97 @@ $$p^{(l)} \approx \frac{1}{c}\left(cp\right)^{2^l}$$
   </p>
 </div>
 
+<h3>Interactive: The Error Threshold in Action</h3>
+<p>
+  The threshold theorem predicts that below a critical physical error rate, quantum error
+  correction reduces the logical error rate. Above that threshold, adding more redundancy
+  only makes things worse. Use the noise slider below to observe how depolarizing noise
+  degrades a simple quantum state - this demonstrates the challenge that error correction
+  must overcome.
+</p>
+<div class="simulation" data-component="simulation" data-comparison="true">
+  <div class="sim-controls">
+    <label>Channel:
+      <select data-param="noiseModel">
+        <option value="depolarizing" selected>Depolarizing</option>
+        <option value="bit_flip">Bit Flip</option>
+      </select>
+    </label>
+    <label>Error rate: <input type="range" data-param="noiseParam" min="0" max="0.15" step="0.005" value="0.02"><output>0.02</output></label>
+  </div>
+  <pre class="sim-qasm">OPENQASM 3.0;
+qubit[1] q;
+bit[1] c;
+h q[0];
+c = measure q;</pre>
+  <div class="sim-output"></div>
+</div>
+
+<h3>Interactive: Noise Accumulation with Depth</h3>
+<p>
+  Observe how noise degrades a quantum computation as circuit depth increases. The
+  circuit below applies three rounds of entangling gates across three qubits - tripling
+  the depth compared to a single round. Adjust the noise level to see how fidelity drops
+  more steeply with depth, illustrating why there must exist a threshold below which
+  error correction can keep up with the noise.
+</p>
+<div class="simulation" data-component="simulation" data-comparison="true">
+  <div class="sim-controls">
+    <label>Noise: <input type="range" data-param="noiseParam" min="0.01" max="0.3" step="0.01" value="0.05"><output>0.05</output></label>
+    <select data-param="noiseModel" style="display:none"><option value="depolarizing" selected>depolarizing</option></select>
+  </div>
+  <pre class="sim-qasm">OPENQASM 3.0;
+qubit[3] q;
+bit[3] c;
+h q[0];
+cx q[0], q[1];
+cx q[1], q[2];
+h q[0];
+cx q[0], q[1];
+cx q[1], q[2];
+h q[0];
+cx q[0], q[1];
+cx q[1], q[2];
+c = measure q;</pre>
+  <div class="sim-output"></div>
+</div>
+
+<h3>Interactive: Noise Simplification via Twirling</h3>
+<p>
+  A key assumption of the threshold theorem is that errors behave stochastically.
+  In real hardware, coherent errors can accumulate faster than stochastic ones,
+  potentially violating this assumption. <em>Pauli twirling</em> converts arbitrary
+  coherent noise into simpler stochastic Pauli noise by inserting random Pauli gates
+  around each CNOT. Compare the original circuit with the twirled version below - the
+  ideal computation is unchanged, but the noise structure is randomized into a form
+  amenable to threshold analysis.
+</p>
+<div class="widget" id="ft-twirl-widget">
+  <div class="widget-header">Pauli Twirling</div>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <button onclick="runFTTwirlWidget()">Twirl Circuit</button>
+  </div>
+  <div class="widget-output" id="ft-twirl-output"></div>
+</div>
+<script>
+async function runFTTwirlWidget() {
+  await ensureWasm();
+  var out = document.getElementById('ft-twirl-output');
+  out.innerHTML = '<p style="color:var(--color-text-muted)">Processing...</p>';
+  await new Promise(function(r) { setTimeout(r, 0); });
+  try {
+    var qasm = "OPENQASM 3.0;\nqubit[3] q;\nbit[3] c;\nh q[0];\ncx q[0], q[1];\ncx q[1], q[2];\nc = measure q;";
+    var r = JSON.parse(window.twirlCircuit(qasm, isDark()));
+    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+    var html = '<div class="comparison-panels">';
+    html += '<div class="comparison-panel"><h4>Original</h4>' + (r.originalCircuitSVG||'') + '</div>';
+    html += '<div class="comparison-panel"><h4>Twirled</h4>' + (r.twirledCircuitSVG||'') + '</div>';
+    html += '</div>';
+    out.innerHTML = html;
+  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+}
+</script>
+
 </section>
 
 <!-- ================================================================== -->

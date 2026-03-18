@@ -950,6 +950,88 @@ c[2] = measure q[2];</textarea>
 </p>
 
 <!-- ================================================================== -->
+
+<h3>Interactive: QFT Circuit Builder</h3>
+<p>
+  Build a Quantum Fourier Transform circuit for different qubit counts and see the
+  circuit structure, output probabilities, and generated QASM code.
+</p>
+<div class="widget" id="qft-widget">
+  <div class="widget-header">Quantum Fourier Transform</div>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label>Qubits: <select id="qft-qubits"><option>2</option><option selected>3</option><option>4</option><option>5</option></select></label>
+    <button onclick="runQFTWidget()">Build QFT</button>
+  </div>
+  <div class="widget-output" id="qft-output"></div>
+</div>
+<script>
+async function runQFTWidget() {
+  await ensureWasm();
+  var nq = parseInt(document.getElementById('qft-qubits').value);
+  var out = document.getElementById('qft-output');
+  out.innerHTML = '<p style="color:var(--color-text-muted)">Building...</p>';
+  await new Promise(function(r) { setTimeout(r, 0); });
+  try {
+    var r = JSON.parse(window.runQFT(nq, "", isDark()));
+    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+    out.innerHTML = (r.circuitSVG||'') + (r.histogramSVG||'');
+    if (r.qasmCode) out.innerHTML += '<details><summary>Generated QASM</summary><pre>' + esc(r.qasmCode) + '</pre></details>';
+  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+}
+</script>
+
+<!-- ================================================================== -->
+
+<h3>Interactive: Quantum Phase Estimation</h3>
+<p>
+  QPE estimates the eigenvalue phase of a unitary operator. Select a gate (whose eigenvalue
+  on $|1\rangle$ is $e^{2\pi i \phi}$), choose the number of precision bits, and watch
+  QPE recover the phase from the measurement histogram.
+</p>
+<div class="widget" id="qpe-widget">
+  <div class="widget-header">Quantum Phase Estimation</div>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label>Gate: <select id="qpe-gate">
+      <option value="T">T (phase 1/8)</option>
+      <option value="S" selected>S (phase 1/4)</option>
+      <option value="Z">Z (phase 1/2)</option>
+    </select></label>
+    <label>Precision bits: <select id="qpe-bits">
+      <option>2</option>
+      <option selected>3</option>
+      <option>4</option>
+      <option>5</option>
+      <option>6</option>
+    </select></label>
+    <label>Shots: <input type="number" id="qpe-shots" value="1024" min="1" max="65536" style="width:5.5rem;"></label>
+    <button onclick="runQPEWidget()">Run QPE</button>
+  </div>
+  <div class="widget-output" id="qpe-output"></div>
+</div>
+<script>
+async function runQPEWidget() {
+  await ensureWasm();
+  var gateType = document.getElementById('qpe-gate').value;
+  var bits = parseInt(document.getElementById('qpe-bits').value);
+  var shots = parseInt(document.getElementById('qpe-shots').value) || 1024;
+  var out = document.getElementById('qpe-output');
+  out.innerHTML = '<p style="color:var(--color-text-muted)">Running QPE...</p>';
+  await new Promise(function(r) { setTimeout(r, 0); });
+  try {
+    var r = JSON.parse(window.runQPE(gateType, bits, shots, isDark()));
+    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+    var html = '';
+    if (r.circuitSVG) html += r.circuitSVG;
+    if (r.histogramSVG) html += r.histogramSVG;
+    if (r.result) html += '<div class="sim-stats"><span>' + esc(r.result) + '</span></div>';
+    if (r.qasmCode) html += '<details><summary>Generated QASM</summary><pre>' + esc(r.qasmCode) + '</pre></details>';
+    out.innerHTML = html;
+  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+}
+</script>
+
+<!-- ================================================================== -->
+
 <section id="review">
 <h2>Chapter 10 Review</h2>
 

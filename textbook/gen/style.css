@@ -787,6 +787,172 @@ article th {
   clip: rect(0,0,0,0);
 }
 
+/* --- Comparison panels (ideal vs noisy side-by-side) --- */
+.comparison-panels {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+  justify-content: center;
+}
+
+.comparison-panel {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+}
+
+.comparison-panel h4 {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.comparison-panel svg { max-width: 100%; height: auto; }
+
+@media (max-width: 600px) {
+  .comparison-panels { flex-direction: column; }
+}
+
+/* --- Simulation stats readout --- */
+.sim-stats {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  padding: 0.5rem 0;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+/* --- Stabilizer table --- */
+.stabilizer-table {
+  width: 100%;
+  margin-top: 0.75rem;
+}
+
+.stabilizer-table h4 {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.stabilizer-table table {
+  border-collapse: collapse;
+  margin: 0 auto;
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  letter-spacing: 0.1em;
+}
+
+.stabilizer-table td {
+  padding: 0.3rem 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.stab-sign { color: var(--color-text-muted); }
+.stab-i { color: var(--color-text-muted); opacity: 0.5; }
+.stab-x { color: #e74c3c; font-weight: 600; }
+.stab-y { color: #27ae60; font-weight: 600; }
+.stab-z { color: #2980b9; font-weight: 600; }
+
+/* --- Step-Through component --- */
+.step-through {
+  margin: 1.5rem 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.step-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  background: var(--color-code-bg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.step-controls button {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  padding: 0.35rem 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-accent);
+  color: #fff;
+  cursor: pointer;
+}
+
+.step-controls button:hover { background: var(--color-accent-hover); }
+.step-controls button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.step-info {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.step-output {
+  padding: 1rem;
+  min-height: 3rem;
+}
+
+.step-label {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+}
+
+.step-qasm { display: none; }
+
+/* --- Amplitude bars (Grover step-through) --- */
+.amplitude-bars {
+  display: flex;
+  gap: 0.25rem;
+  align-items: flex-end;
+  height: 200px;
+  padding: 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-code-bg);
+}
+
+.amp-bar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  min-width: 2rem;
+}
+
+.amp-fill {
+  width: 80%;
+  background: var(--color-accent);
+  border-radius: 2px 2px 0 0;
+  transition: height 0.3s ease;
+}
+
+.amp-bar.target .amp-fill { background: var(--color-state); }
+
+.amp-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  margin-top: 0.25rem;
+}
+
+.amp-value {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--color-text-muted);
+}
+
+/* --- Utility classes --- */
 .flex-center { display: flex; justify-content: center; align-items: center; }
 .gap-1 { gap: 1rem; }
 .mt-1 { margin-top: 1rem; }

@@ -135,8 +135,13 @@
   function initSimulation(el) {
     var tmplEl = el.querySelector(".sim-qasm"), output = el.querySelector(".sim-output");
     var sliders = el.querySelectorAll('input[type="range"]');
-    if (!tmplEl || !output || sliders.length === 0) return;
+    var selects = el.querySelectorAll("select[data-param]");
+    if (!tmplEl || !output || (sliders.length === 0 && selects.length === 0)) return;
     var tmpl = tmplEl.textContent, pending = false;
+    var useNoisy = el.hasAttribute("data-noisy");
+    var useComparison = el.hasAttribute("data-comparison");
+    var useExpectation = el.hasAttribute("data-expectation");
+    var useClifford = el.hasAttribute("data-clifford");
     async function update() {
       if (pending) return; pending = true;
       await ensureWasm();
@@ -144,16 +149,69 @@
       try {
         var params = {};
         sliders.forEach(function(s) { params[s.dataset.param] = parseFloat(s.value); var o = s.parentElement.querySelector("output"); if (o) o.textContent = parseFloat(s.value).toFixed(2); });
+        selects.forEach(function(s) { params[s.dataset.param] = s.value; });
         var qasm = tmpl;
         for (var k in params) qasm = qasm.replaceAll("{"+k+"}", params[k].toString());
-        var r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
-        if (r.error) output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>';
-        else output.innerHTML = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+        var html = "";
+        if (useComparison && window.compareIdealNoisy) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.compareIdealNoisy(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="comparison-panels"><div class="comparison-panel"><h4>Ideal</h4>' + (r.idealHistogramSVG||"") + '</div><div class="comparison-panel"><h4>Noisy</h4>' + (r.noisyHistogramSVG||"") + '</div></div>';
+          if (r.stateCitySVG) html += r.stateCitySVG;
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useNoisy && window.runNoisyQASM) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.runNoisyQASM(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"") + (r.stateCitySVG||"");
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useClifford && window.runClifford) {
+          var r = JSON.parse(window.runClifford(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"");
+          if (r.stabilizers) { html += '<div class="stabilizer-table"><h4>Stabilizers</h4><table>'; r.stabilizers.forEach(function(s) { html += '<tr><td>' + formatStabilizer(s) + '</td></tr>'; }); html += '</table></div>'; }
+        } else if (useExpectation && window.computeExpectation) {
+          var pauliStr = params.pauliStr || el.dataset.pauli || "Z";
+          var r = JSON.parse(window.computeExpectation(qasm, pauliStr, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="sim-stats"><span>&lt;' + esc(pauliStr) + '&gt; = ' + r.expectation.toFixed(6) + '</span></div>';
+        } else {
+          var r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+          // For 1-qubit simulations, also show Bloch sphere via getStateVector + renderBloch
+          if (el.hasAttribute("data-bloch") && window.getStateVector && window.renderBloch) {
+            try {
+              var sv = JSON.parse(window.getStateVector(qasm));
+              if (sv.amplitudes && sv.amplitudes.length === 2) {
+                var a = sv.amplitudes;
+                var blochSVG = window.renderBloch(a[0].re, a[0].im, a[1].re, a[1].im, isDark());
+                if (blochSVG) html += blochSVG;
+              }
+            } catch(e) { /* ignore bloch errors */ }
+          }
+        }
+        output.innerHTML = html;
       } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
       pending = false;
     }
     sliders.forEach(function(s) { s.addEventListener("input", update); });
+    selects.forEach(function(s) { s.addEventListener("change", update); });
     update();
+  }
+
+  // --- Format stabilizer string with color-coded Pauli operators ---
+  function formatStabilizer(s) {
+    if (!s) return "";
+    var sign = s[0], ops = s.slice(1), html = '<span class="stab-sign">' + esc(sign) + '</span>';
+    for (var i = 0; i < ops.length; i++) {
+      var c = ops[i], cls = "stab-" + c.toLowerCase();
+      html += '<span class="' + cls + '">' + c + '</span>';
+    }
+    return html;
   }
 
   // --- Exercise ---
@@ -230,9 +288,91 @@
     show(0);
   }
 
+  // --- Step-Through ---
+  function initStepThrough(el) {
+    var qasmEl = el.querySelector(".step-qasm");
+    var output = el.querySelector(".step-output");
+    var prevBtn = el.querySelector('[data-action="prev"]');
+    var nextBtn = el.querySelector('[data-action="next"]');
+    var stepInfo = el.querySelector(".step-info");
+    if (!qasmEl || !output) return;
+    var qasm = qasmEl.textContent;
+    var mode = el.dataset.mode || "clifford"; // "clifford" or "grover"
+    var steps = null, cur = -1;
+
+    async function load() {
+      await ensureWasm();
+      try {
+        if (mode === "clifford" && window.cliffordStepThrough) {
+          var r = JSON.parse(window.cliffordStepThrough(qasm));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+          // Add initial state as step 0
+          steps.unshift({gate: "init", qubits: [], stabilizers: r.steps.length > 0 ? null : []});
+        } else if (mode === "grover" && window.groverStepThrough) {
+          var nq = parseInt(el.dataset.qubits || "2", 10);
+          var targets = JSON.parse(el.dataset.targets || "[]");
+          var r = JSON.parse(window.groverStepThrough(nq, targets.join(",")));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+        }
+        if (steps && steps.length > 0) { cur = 0; renderStep(); }
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    function renderStep() {
+      if (!steps || cur < 0 || cur >= steps.length) return;
+      var s = steps[cur];
+      var html = "";
+      if (mode === "clifford") {
+        if (s.gate === "init") {
+          html = '<p class="step-label">Initial state |0...0&gt;</p>';
+          // Show initial stabilizers (all +Z_i)
+          if (steps.length > 1 && steps[1].stabilizers) {
+            var nq = steps[1].stabilizers[0].length - 1;
+            html += '<div class="stabilizer-table"><table>';
+            for (var i = 0; i < nq; i++) {
+              var row = "+";
+              for (var j = 0; j < nq; j++) row += (j === i) ? "Z" : "I";
+              html += '<tr><td>' + formatStabilizer(row) + '</td></tr>';
+            }
+            html += '</table></div>';
+          }
+        } else {
+          html = '<p class="step-label">After <strong>' + esc(s.gate) + '</strong> on qubit' + (s.qubits.length > 1 ? 's ' : ' ') + s.qubits.join(', ') + '</p>';
+          if (s.stabilizers) {
+            html += '<div class="stabilizer-table"><table>';
+            s.stabilizers.forEach(function(st) { html += '<tr><td>' + formatStabilizer(st) + '</td></tr>'; });
+            html += '</table></div>';
+          }
+        }
+      } else if (mode === "grover") {
+        html = '<p class="step-label">Iteration ' + s.iteration + '</p>';
+        if (s.probabilities) {
+          html += '<div class="amplitude-bars">';
+          for (var i = 0; i < s.probabilities.length; i++) {
+            var label = i.toString(2).padStart(Math.ceil(Math.log2(s.probabilities.length)), '0');
+            var pct = (s.probabilities[i] * 100).toFixed(1);
+            var isTarget = el.dataset.targets && JSON.parse(el.dataset.targets).indexOf(i) >= 0;
+            html += '<div class="amp-bar' + (isTarget ? ' target' : '') + '"><div class="amp-fill" style="height:' + pct + '%"></div><span class="amp-label">|' + label + '&gt;</span><span class="amp-value">' + pct + '%</span></div>';
+          }
+          html += '</div>';
+        }
+      }
+      output.innerHTML = html;
+      if (stepInfo) stepInfo.textContent = "Step " + cur + " / " + (steps.length - 1);
+      if (prevBtn) prevBtn.disabled = (cur === 0);
+      if (nextBtn) nextBtn.disabled = (cur >= steps.length - 1);
+    }
+
+    if (prevBtn) prevBtn.addEventListener("click", function() { if (cur > 0) { cur--; renderStep(); } });
+    if (nextBtn) nextBtn.addEventListener("click", function() { if (steps && cur < steps.length - 1) { cur++; renderStep(); } });
+    load();
+  }
+
   // --- Init ---
   document.addEventListener("DOMContentLoaded", function() {
-    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE};
+    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough};
     document.querySelectorAll("[data-component]").forEach(function(el) { var fn = reg[el.dataset.component]; if (fn) fn(el); });
   });
   </script>

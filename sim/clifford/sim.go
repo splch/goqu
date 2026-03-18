@@ -3,6 +3,7 @@ package clifford
 import (
 	"fmt"
 	"math/rand/v2"
+	"strings"
 
 	"github.com/splch/goqu/circuit/gate"
 	"github.com/splch/goqu/circuit/ir"
@@ -106,6 +107,49 @@ func (s *Sim) applyGateByName(op ir.Operation) error {
 		return fmt.Errorf("clifford: non-Clifford gate %q not supported", op.Gate.Name())
 	}
 	return nil
+}
+
+// Stabilizers returns the stabilizer generators as signed Pauli strings.
+// Each generator is formatted as a sign character (+/-) followed by one
+// Pauli letter (I, X, Y, Z) per qubit. For example, "+ZZI" means the
+// generator Z tensor Z tensor I with positive phase.
+func (s *Sim) Stabilizers() []string {
+	n := s.tab.n
+	stabs := make([]string, n)
+	for i := range n {
+		row := n + i // stabilizer rows are n..2n-1
+		var sb strings.Builder
+		sb.Grow(1 + n)
+		if s.tab.rs[row] {
+			sb.WriteByte('-')
+		} else {
+			sb.WriteByte('+')
+		}
+		for q := range n {
+			x := s.tab.xBit(row, q)
+			z := s.tab.zBit(row, q)
+			switch {
+			case !x && !z:
+				sb.WriteByte('I')
+			case x && !z:
+				sb.WriteByte('X')
+			case !x && z:
+				sb.WriteByte('Z')
+			default:
+				sb.WriteByte('Y')
+			}
+		}
+		stabs[i] = sb.String()
+	}
+	return stabs
+}
+
+// ApplyOp applies a single gate operation to the simulator state.
+func (s *Sim) ApplyOp(op ir.Operation) error {
+	if op.Gate == nil || op.Gate.Name() == "barrier" {
+		return nil
+	}
+	return s.applyGate(op)
 }
 
 // Run executes the circuit for the given number of shots and returns measurement counts.

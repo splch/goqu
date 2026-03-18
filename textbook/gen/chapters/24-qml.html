@@ -169,6 +169,50 @@ $$|\phi(\mathbf{x})\rangle = U(\mathbf{x}) |0\rangle^{\otimes n}$$
   </li>
 </ul>
 
+<h3>Interactive: Quantum Feature Map Explorer</h3>
+<p>
+  Explore the parameterized circuits used to encode classical data into quantum states.
+  These feature maps are the building blocks of quantum classifiers and quantum kernel
+  methods. Each architecture creates a different family of quantum states, affecting
+  the model's expressiveness and trainability.
+</p>
+<div class="widget" id="fmap-widget">
+  <div class="widget-header">Quantum Feature Map Builder</div>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label>Ansatz: <select id="fmap-type">
+      <option value="real_amplitudes">RealAmplitudes</option>
+      <option value="efficient_su2">EfficientSU2</option>
+      <option value="basic_entangler">BasicEntangler</option>
+      <option value="strongly_entangling">StronglyEntangling</option>
+    </select></label>
+    <label>Qubits: <select id="fmap-qubits"><option>2</option><option selected>3</option><option>4</option></select></label>
+    <label>Layers: <select id="fmap-layers"><option>1</option><option selected>2</option><option>3</option></select></label>
+    <label>Entanglement: <select id="fmap-ent"><option value="linear" selected>Linear</option><option value="full">Full</option><option value="circular">Circular</option></select></label>
+    <button onclick="runFeatureMap()">Build</button>
+  </div>
+  <div class="widget-output" id="fmap-output"></div>
+</div>
+<script>
+async function runFeatureMap() {
+  await ensureWasm();
+  var out = document.getElementById('fmap-output');
+  out.innerHTML = '<p style="color:var(--color-text-muted)">Building...</p>';
+  await new Promise(r => setTimeout(r, 0));
+  try {
+    var name = document.getElementById('fmap-type').value;
+    var nq = parseInt(document.getElementById('fmap-qubits').value);
+    var layers = parseInt(document.getElementById('fmap-layers').value);
+    var ent = document.getElementById('fmap-ent').value;
+    var r = JSON.parse(window.buildAnsatz(name, nq, layers, ent, isDark()));
+    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+    var html = (r.circuitSVG||'');
+    html += '<div class="sim-stats"><span>Parameters: ' + r.numParams + '</span><span>Depth: ' + r.depth + '</span></div>';
+    if (r.qasmCode) html += '<details><summary>Generated QASM</summary><pre>' + esc(r.qasmCode) + '</pre></details>';
+    out.innerHTML = html;
+  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+}
+</script>
+
 <h3>Estimating the Quantum Kernel</h3>
 
 <p>
