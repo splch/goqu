@@ -278,6 +278,56 @@ c = measure q;</pre>
   </li>
 </ul>
 
+<h3>Interactive: Zero-Noise Extrapolation</h3>
+<p>
+  ZNE amplifies noise at several scale factors, measures the noisy expectation value
+  at each, and extrapolates back to the zero-noise limit. Adjust the noise level and
+  see how well linear extrapolation recovers the ideal $\langle ZZ \rangle$ value for
+  a Bell state.
+</p>
+<div class="widget" id="zne-widget">
+  <div class="widget-header">Zero-Noise Extrapolation</div>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label>Noise: <input type="range" id="zne-noise" min="0.01" max="0.2" step="0.01" value="0.05"><output id="zne-noise-val">0.05</output></label>
+    <label>Scale factors: <select id="zne-scales">
+      <option value="1,3,5" selected>1, 3, 5</option>
+      <option value="1,2,3,4,5">1, 2, 3, 4, 5</option>
+    </select></label>
+    <button onclick="runZNEWidget()">Run ZNE</button>
+  </div>
+  <div class="widget-output" id="zne-output"></div>
+</div>
+<script>
+document.getElementById('zne-noise').addEventListener('input', function() {
+  document.getElementById('zne-noise-val').textContent = parseFloat(this.value).toFixed(2);
+});
+async function runZNEWidget() {
+  await ensureWasm();
+  var noise = parseFloat(document.getElementById('zne-noise').value);
+  var scales = document.getElementById('zne-scales').value;
+  var out = document.getElementById('zne-output');
+  out.innerHTML = '<p style="color:var(--color-text-muted)">Running ZNE...</p>';
+  await new Promise(function(r) { setTimeout(r, 0); });
+  try {
+    var qasm = "OPENQASM 3.0;\nqubit[2] q;\nh q[0];\ncx q[0], q[1];";
+    var r = JSON.parse(window.runZNE(qasm, "ZZ", "depolarizing", noise, scales, isDark()));
+    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+    var html = '<div class="sim-stats">';
+    html += '<span>Ideal &langle;ZZ&rangle;: ' + r.ideal.toFixed(4) + '</span>';
+    html += '<span>Extrapolated: ' + r.linearExtrapolated.toFixed(4) + '</span>';
+    html += '</div>';
+    if (r.scaleFactors && r.noisyValues) {
+      html += '<table class="state-table"><tr><th>Scale Factor</th><th>Noisy &langle;ZZ&rangle;</th></tr>';
+      for (var i = 0; i < r.scaleFactors.length; i++) {
+        html += '<tr><td>' + r.scaleFactors[i].toFixed(0) + '</td><td>' + r.noisyValues[i].toFixed(4) + '</td></tr>';
+      }
+      html += '</table>';
+    }
+    out.innerHTML = html;
+  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+}
+</script>
+
 </section>
 
 <!-- ================================================================== -->
@@ -714,6 +764,77 @@ c = measure q;</textarea>
 </p>
 
 </section>
+
+<!-- ================================================================== -->
+
+<h3>Interactive: Dynamical Decoupling</h3>
+<p>
+  Dynamical decoupling inserts rapid pulse sequences during idle periods to average out
+  low-frequency noise. Compare the original circuit with the DD-protected version.
+</p>
+<div class="widget" id="dd-widget">
+  <div class="widget-header">Dynamical Decoupling</div>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label>Sequence: <select id="dd-seq">
+      <option value="XX" selected>XX</option>
+      <option value="XY4">XY4</option>
+    </select></label>
+    <button onclick="runDDWidget()">Insert DD</button>
+  </div>
+  <div class="widget-output" id="dd-output"></div>
+</div>
+<script>
+async function runDDWidget() {
+  await ensureWasm();
+  var seq = document.getElementById('dd-seq').value;
+  var out = document.getElementById('dd-output');
+  out.innerHTML = '<p style="color:var(--color-text-muted)">Processing...</p>';
+  await new Promise(function(r) { setTimeout(r, 0); });
+  try {
+    var qasm = "OPENQASM 3.0;\nqubit[2] q;\nbit[2] c;\nh q[0];\ncx q[0], q[1];\nh q[1];\nc = measure q;";
+    var r = JSON.parse(window.insertDD(qasm, seq, isDark()));
+    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+    var html = '<div class="comparison-panels">';
+    html += '<div class="comparison-panel"><h4>Original</h4>' + (r.beforeCircuitSVG||'') + '</div>';
+    html += '<div class="comparison-panel"><h4>With DD (' + esc(seq) + ')</h4>' + (r.afterCircuitSVG||'') + '</div>';
+    html += '</div>';
+    out.innerHTML = html;
+  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+}
+</script>
+
+<h3>Interactive: Pauli Twirling</h3>
+<p>
+  Pauli twirling inserts random Pauli gates before and after each CNOT, converting
+  coherent errors into simpler stochastic Pauli noise. Compare the original circuit
+  with a twirled version - the ideal computation is unchanged, but the noise structure
+  is randomized.
+</p>
+<div class="widget" id="twirl-widget">
+  <div class="widget-header">Pauli Twirling</div>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <button onclick="runTwirlWidget()">Twirl Circuit</button>
+  </div>
+  <div class="widget-output" id="twirl-output"></div>
+</div>
+<script>
+async function runTwirlWidget() {
+  await ensureWasm();
+  var out = document.getElementById('twirl-output');
+  out.innerHTML = '<p style="color:var(--color-text-muted)">Processing...</p>';
+  await new Promise(function(r) { setTimeout(r, 0); });
+  try {
+    var qasm = "OPENQASM 3.0;\nqubit[2] q;\nbit[2] c;\nh q[0];\ncx q[0], q[1];\ncx q[1], q[0];\nc = measure q;";
+    var r = JSON.parse(window.twirlCircuit(qasm, isDark()));
+    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+    var html = '<div class="comparison-panels">';
+    html += '<div class="comparison-panel"><h4>Original</h4>' + (r.originalCircuitSVG||'') + '</div>';
+    html += '<div class="comparison-panel"><h4>Twirled</h4>' + (r.twirledCircuitSVG||'') + '</div>';
+    html += '</div>';
+    out.innerHTML = html;
+  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+}
+</script>
 
 <!-- ================================================================== -->
 

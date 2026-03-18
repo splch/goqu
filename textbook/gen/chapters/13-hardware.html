@@ -963,6 +963,138 @@ c = measure q;
 
 <!-- ================================================================== -->
 
+<h3>Interactive: Hardware Topology Explorer</h3>
+<p>
+  Real quantum processors have limited qubit connectivity - not every pair of qubits
+  can interact directly. Explore the native gate sets and connectivity graphs of
+  different hardware platforms.
+</p>
+<div class="widget" id="target-widget">
+  <div class="widget-header">Hardware Topology</div>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label>Target: <select id="target-select">
+      <option value="ibm_brisbane">IBM Brisbane</option>
+      <option value="ionq_aria">IonQ Aria</option>
+      <option value="quantinuum_h1">Quantinuum H1</option>
+      <option value="google_sycamore">Google Sycamore</option>
+      <option value="simulator">Simulator</option>
+    </select></label>
+    <button onclick="showTopology()">Show Topology</button>
+  </div>
+  <div class="widget-output" id="target-output"></div>
+</div>
+<script>
+async function showTopology() {
+  await ensureWasm();
+  var target = document.getElementById('target-select').value;
+  var out = document.getElementById('target-output');
+  out.innerHTML = '<p style="color:var(--color-text-muted)">Loading topology...</p>';
+  await new Promise(function(r) { setTimeout(r, 0); });
+  try {
+    var r = JSON.parse(window.getTargetInfo(target));
+    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+    var html = '<div class="sim-stats" style="flex-wrap:wrap;">';
+    html += '<span><strong>Target:</strong> ' + esc(r.name) + '</span>';
+    html += '<span><strong>Qubits:</strong> ' + r.numQubits + '</span>';
+    html += '<span><strong>Basis gates:</strong> ' + (r.basisGates || []).map(function(g) { return esc(g); }).join(', ') + '</span>';
+    html += '</div>';
+    var edges = r.edges || [];
+    var n = r.numQubits;
+    if (n > 0) {
+      var cols = n < 20 ? 5 : Math.ceil(Math.sqrt(n));
+      var spacing = 60;
+      var pad = 30;
+      var rows = Math.ceil(n / cols);
+      var svgW = cols * spacing + pad * 2;
+      var svgH = rows * spacing + pad * 2;
+      var positions = [];
+      for (var i = 0; i < n; i++) {
+        positions.push({
+          x: (i % cols) * spacing + pad + spacing / 2,
+          y: Math.floor(i / cols) * spacing + pad + spacing / 2
+        });
+      }
+      var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + svgW + '" height="' + svgH + '" ';
+      svg += 'style="max-width:100%;height:auto;display:block;margin:0.75rem auto;">';
+      for (var e = 0; e < edges.length; e++) {
+        var a = edges[e][0], b = edges[e][1];
+        if (a < n && b < n) {
+          svg += '<line x1="' + positions[a].x + '" y1="' + positions[a].y + '" ';
+          svg += 'x2="' + positions[b].x + '" y2="' + positions[b].y + '" ';
+          svg += 'stroke="var(--color-text-muted)" stroke-width="1.5" stroke-opacity="0.5"/>';
+        }
+      }
+      var radius = 14;
+      for (var i = 0; i < n; i++) {
+        svg += '<circle cx="' + positions[i].x + '" cy="' + positions[i].y + '" r="' + radius + '" ';
+        svg += 'fill="var(--color-accent)" fill-opacity="0.15" stroke="var(--color-accent)" stroke-width="1.5"/>';
+        svg += '<text x="' + positions[i].x + '" y="' + (positions[i].y + 4) + '" ';
+        svg += 'text-anchor="middle" fill="var(--color-accent)" font-size="' + (n > 50 ? 8 : 10) + '" font-family="inherit">' + i + '</text>';
+      }
+      svg += '</svg>';
+      if (edges.length === 0) {
+        html += '<p style="color:var(--color-text-muted);text-align:center;margin:0.75rem 0;">All-to-all connectivity (no constraints)</p>';
+      }
+      html += svg;
+    }
+    out.innerHTML = html;
+  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+}
+</script>
+
+<!-- ================================================================== -->
+
+<h3>Interactive: Transpile for Real Hardware</h3>
+<p>
+  Quantum circuits must be <em>transpiled</em> - adapted to the native gate set and
+  qubit connectivity of the target hardware. See how the same GHZ-state circuit changes
+  when compiled for different quantum processors. Notice how the gate count and depth
+  increase for hardware with restricted connectivity.
+</p>
+<div class="widget" id="transpile-widget">
+  <div class="widget-header">Circuit Transpilation</div>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label>Target: <select id="tr-target">
+      <option value="simulator">Simulator (any gate)</option>
+      <option value="ibm_brisbane" selected>IBM Brisbane (CX+RZ+SX+X)</option>
+      <option value="ionq_aria">IonQ Aria (GPI+GPI2+MS)</option>
+      <option value="quantinuum_h1">Quantinuum H1 (RZZ+RZ+RY)</option>
+    </select></label>
+    <label>Optimization: <select id="tr-level"><option>0 (minimal)</option><option selected>1 (basic)</option><option>2 (full)</option></select></label>
+    <button onclick="runTranspileWidget()">Transpile</button>
+  </div>
+  <div class="widget-output" id="transpile-output"></div>
+</div>
+<script>
+async function runTranspileWidget() {
+  await ensureWasm();
+  var target = document.getElementById('tr-target').value;
+  var level = parseInt(document.getElementById('tr-level').value);
+  var out = document.getElementById('transpile-output');
+  out.innerHTML = '<p style="color:var(--color-text-muted)">Transpiling...</p>';
+  await new Promise(function(r) { setTimeout(r, 0); });
+  try {
+    var qasm = "OPENQASM 3.0;\nqubit[3] q;\nbit[3] c;\nh q[0];\ncx q[0], q[1];\ncx q[1], q[2];\nc = measure q;";
+    var r = JSON.parse(window.transpileQASM(qasm, target, level, isDark()));
+    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+    var html = '<div class="comparison-panels">';
+    html += '<div class="comparison-panel"><h4>Original</h4>' + (r.beforeCircuitSVG||'') + '</div>';
+    html += '<div class="comparison-panel"><h4>Transpiled</h4>' + (r.afterCircuitSVG||'') + '</div>';
+    html += '</div>';
+    if (r.beforeStats && r.afterStats) {
+      html += '<div class="sim-stats">';
+      html += '<span>Before: ' + r.beforeStats.gates + ' gates, depth ' + r.beforeStats.depth + '</span>';
+      html += '<span>After: ' + r.afterStats.gates + ' gates, depth ' + r.afterStats.depth + ', ' + r.afterStats.twoQubitGates + ' 2Q gates</span>';
+      html += '</div>';
+    }
+    if (r.transpiledQASM) html += '<details><summary>Transpiled QASM</summary><pre>' + esc(r.transpiledQASM) + '</pre></details>';
+    out.innerHTML = html;
+  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+}
+</script>
+
+<!-- ================================================================== -->
+
 <section id="review">
 <h2>Chapter 13 Review</h2>
 

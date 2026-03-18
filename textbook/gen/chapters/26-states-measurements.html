@@ -629,6 +629,60 @@ mixed reduced state when combined with the CNOT.</li>
 </section>
 
 <!-- ================================================================== -->
+<section id="density-matrix-noise">
+<h2>Interactive: Density Matrix Under Noise</h2>
+
+<p>
+The density matrix formalism comes into its own when describing noisy quantum states. The
+simulation below prepares a Bell state $\frac{1}{\sqrt{2}}(|00\rangle + |11\rangle)$ and
+subjects it to a noise channel. The <strong>ideal</strong> panel shows the pure Bell state
+outcomes (only 00 and 11), while the <strong>noisy</strong> panel shows how noise populates
+the forbidden outcomes 01 and 10. The <strong>purity</strong> drops from 1.0 (pure state)
+toward 0.25 (maximally mixed on 2 qubits) as noise increases, and the
+<strong>StateCity</strong> visualization reveals the density matrix structure directly.
+</p>
+
+<div class="simulation" data-component="simulation" data-comparison="true">
+  <div class="sim-controls">
+    <label>Channel:
+      <select data-param="noiseModel">
+        <option value="depolarizing">Depolarizing</option>
+        <option value="amplitude_damping">Amplitude Damping</option>
+        <option value="phase_damping">Phase Damping</option>
+        <option value="bit_flip">Bit Flip</option>
+        <option value="phase_flip">Phase Flip</option>
+      </select>
+    </label>
+    <label>Noise: <input type="range" data-param="noiseParam" min="0" max="0.5" step="0.01" value="0.1"><output>0.10</output></label>
+  </div>
+  <script type="text/template" class="sim-qasm">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+h q[0];
+cx q[0], q[1];
+c = measure q;</script>
+  <div class="sim-output"></div>
+</div>
+
+<p>
+Things to observe:
+</p>
+
+<ul>
+<li><strong>Phase damping</strong> destroys the off-diagonal elements of the density matrix
+(the $|00\rangle\langle 11|$ and $|11\rangle\langle 00|$ coherences) while leaving the
+diagonal populations unchanged. The histogram stays close to 50/50 between 00 and 11, but the
+state becomes mixed - it transitions from a coherent superposition to a classical mixture.</li>
+<li><strong>Amplitude damping</strong> preferentially drives population toward $|00\rangle$.
+At high noise, the histogram is dominated by the 00 outcome.</li>
+<li><strong>Depolarizing</strong> noise at strength $p = 0.5$ reduces the purity to near its
+minimum value of 0.25. The density matrix approaches $I/4$ and all four outcomes become
+equally likely.</li>
+</ul>
+
+</section>
+
+<!-- ================================================================== -->
 
 <div class="flashcard-deck" data-component="flashcard-deck">
   <div class="flashcard-deck-header">Chapter 26 Review</div>

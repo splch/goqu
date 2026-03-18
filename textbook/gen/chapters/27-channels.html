@@ -557,6 +557,136 @@ associative, and has the identity channel as its unit.
 </section>
 
 <!-- ================================================================== -->
+<section id="channel-representations-widget">
+<h2>Interactive: Channel Representations</h2>
+
+<p>
+Explore different mathematical representations of quantum noise channels. Adjust the
+noise parameter to see how the Kraus operators, Choi matrix, and Pauli transfer matrix
+change. All representations describe the same physical process.
+</p>
+
+<div class="widget" id="chanrep-widget">
+  <div class="widget-header">Channel Representations</div>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label>Channel: <select id="chanrep-type">
+      <option value="depolarizing" selected>Depolarizing</option>
+      <option value="amplitude_damping">Amplitude Damping</option>
+      <option value="phase_damping">Phase Damping</option>
+      <option value="bit_flip">Bit Flip</option>
+      <option value="phase_flip">Phase Flip</option>
+    </select></label>
+    <label>Parameter: <input type="range" id="chanrep-param" min="0" max="1" step="0.01" value="0.1"><output id="chanrep-param-val">0.10</output></label>
+    <button onclick="runChannelRepWidget()">Compute</button>
+  </div>
+  <div class="widget-output" id="chanrep-output"></div>
+</div>
+<script>
+document.getElementById('chanrep-param').addEventListener('input', function() {
+  document.getElementById('chanrep-param-val').textContent = parseFloat(this.value).toFixed(2);
+});
+function fmtComplex(re, im) {
+  var thr = 1e-6;
+  var ra = Math.abs(re) > thr;
+  var ia = Math.abs(im) > thr;
+  if (!ra && !ia) return '0';
+  var rs = ra ? re.toFixed(3).replace(/\.?0+$/, '') : '';
+  var is_ = '';
+  if (ia) {
+    var av = Math.abs(im);
+    var iv = (Math.abs(av - 1) < thr) ? '' : av.toFixed(3).replace(/\.?0+$/, '');
+    is_ = (im < 0 ? '-' : (ra ? '+' : '')) + iv + 'i';
+  }
+  if (ra && ia && im > 0) return rs + ' + ' + is_.replace(/^\+/, '');
+  if (ra && ia) return rs + ' ' + is_;
+  return rs + is_;
+}
+async function runChannelRepWidget() {
+  await ensureWasm();
+  var chType = document.getElementById('chanrep-type').value;
+  var param = parseFloat(document.getElementById('chanrep-param').value);
+  var out = document.getElementById('chanrep-output');
+  out.innerHTML = '<p style="color:var(--color-text-muted)">Computing...</p>';
+  await new Promise(function(r) { setTimeout(r, 0); });
+  try {
+    var r = JSON.parse(window.channelInfo(chType, param));
+    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+    var html = '';
+    /* Channel properties */
+    html += '<div class="sim-stats">';
+    html += '<span>CP: ' + (r.isCP ? 'Yes' : 'No') + '</span>';
+    html += '<span>TP: ' + (r.isTP ? 'Yes' : 'No') + '</span>';
+    html += '<span>Process fidelity: ' + r.processFidelity.toFixed(4) + '</span>';
+    html += '<span>Avg gate fidelity: ' + r.avgGateFidelity.toFixed(4) + '</span>';
+    html += '</div>';
+    /* Kraus operators */
+    html += '<h4>Kraus Operators (' + r.numKraus + ')</h4>';
+    for (var k = 0; k < r.krausOps.length; k++) {
+      var op = r.krausOps[k];
+      var dim = Math.round(Math.sqrt(op.length));
+      html += '<p style="margin:0.5rem 0 0.25rem;font-weight:600;">K<sub>' + k + '</sub></p>';
+      html += '<table class="state-table"><tbody>';
+      for (var row = 0; row < dim; row++) {
+        html += '<tr>';
+        for (var col = 0; col < dim; col++) {
+          var c = op[row * dim + col];
+          html += '<td>' + esc(fmtComplex(c.re, c.im)) + '</td>';
+        }
+        html += '</tr>';
+      }
+      html += '</tbody></table>';
+    }
+    /* Choi matrix */
+    html += '<h4>Choi Matrix (' + r.choiDim + ' x ' + r.choiDim + ')</h4>';
+    html += '<table class="state-table"><tbody>';
+    for (var row = 0; row < r.choiDim; row++) {
+      html += '<tr>';
+      for (var col = 0; col < r.choiDim; col++) {
+        var c = r.choiMatrix[row * r.choiDim + col];
+        html += '<td>' + esc(fmtComplex(c.re, c.im)) + '</td>';
+      }
+      html += '</tr>';
+    }
+    html += '</tbody></table>';
+    /* PTM matrix */
+    html += '<h4>Pauli Transfer Matrix (' + r.ptmDim + ' x ' + r.ptmDim + ')</h4>';
+    html += '<table class="state-table"><tbody>';
+    for (var row = 0; row < r.ptmDim; row++) {
+      html += '<tr>';
+      for (var col = 0; col < r.ptmDim; col++) {
+        html += '<td>' + r.ptmMatrix[row * r.ptmDim + col].toFixed(3) + '</td>';
+      }
+      html += '</tr>';
+    }
+    html += '</tbody></table>';
+    out.innerHTML = html;
+  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+}
+</script>
+
+<p>
+Things to explore:
+</p>
+
+<ul>
+<li><strong>Depolarizing at p = 0:</strong> The single Kraus operator is the identity, the Choi
+matrix is the maximally entangled state projector, and the PTM is the 4 x 4 identity. This is
+the "do nothing" channel.</li>
+<li><strong>Amplitude damping:</strong> Notice that the PTM is <em>not</em> diagonal - the
+channel is not unital, so the identity Pauli component is not preserved. The Bloch vector
+shifts toward the north pole.</li>
+<li><strong>Phase damping vs phase flip:</strong> Compare these two channels. They have
+identical Kraus structure (both use I and Z), differing only in the relationship between the
+parameter and the Kraus coefficients.</li>
+<li><strong>Any channel at p = 0:</strong> All channels reduce to the identity. At p = 1,
+observe how each channel reaches its maximum effect - the depolarizing channel replaces
+everything with the maximally mixed state, while amplitude damping sends everything to the
+ground state.</li>
+</ul>
+
+</section>
+
+<!-- ================================================================== -->
 <section id="sandbox-channels">
 <h2>Sandbox: Quantum Channel Effects</h2>
 
@@ -602,6 +732,61 @@ You should see a mixture of 0 and 1 outcomes.</li>
 <li><strong>Entanglement with environment:</strong> Uncomment the <code>cx q[0], q[1];</code>
 line. This entangles the qubit with an "environment" qubit. Since we only measure q[0],
 the entanglement causes decoherence - the output becomes mixed.</li>
+</ul>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="channel-explorer">
+<h2>Interactive: Quantum Channel Explorer</h2>
+
+<p>
+Apply different quantum noise channels to a single qubit in the $|+\rangle$ state and
+observe how each channel affects the output. The <strong>purity</strong> measures how mixed
+the state has become (1.0 for a pure state, 0.5 for maximally mixed), while
+<strong>fidelity</strong> tracks overlap with the ideal noise-free state. Watch how
+different channels degrade the state in qualitatively different ways as you increase the
+noise strength.
+</p>
+
+<div class="simulation" data-component="simulation" data-noisy="true">
+  <div class="sim-controls">
+    <label>Channel:
+      <select data-param="noiseModel">
+        <option value="depolarizing">Depolarizing</option>
+        <option value="amplitude_damping">Amplitude Damping</option>
+        <option value="phase_damping">Phase Damping</option>
+        <option value="bit_flip">Bit Flip</option>
+        <option value="phase_flip">Phase Flip</option>
+      </select>
+    </label>
+    <label>Strength: <input type="range" data-param="noiseParam" min="0" max="0.5" step="0.01" value="0.1"><output>0.10</output></label>
+  </div>
+  <script type="text/template" class="sim-qasm">OPENQASM 3.0;
+qubit[1] q;
+bit[1] c;
+h q[0];
+c = measure q;</script>
+  <div class="sim-output"></div>
+</div>
+
+<p>
+Compare the channels at the same noise strength:
+</p>
+
+<ul>
+<li><strong>Depolarizing:</strong> shrinks the Bloch vector uniformly in all directions. The
+histogram spreads symmetrically toward 50/50.</li>
+<li><strong>Amplitude damping:</strong> pushes the state toward $|0\rangle$. The histogram
+becomes biased, and the StateCity plot shows population flowing to $\rho_{00}$.</li>
+<li><strong>Phase damping:</strong> destroys off-diagonal coherence without changing
+populations. Since $|+\rangle$ has equal populations, the histogram shifts toward 50/50 in the
+computational basis as the coherent superposition decoheres.</li>
+<li><strong>Bit flip:</strong> randomly applies $X$. For $|+\rangle$ (an eigenstate of $X$), the
+bit-flip channel has no effect on measurement statistics - try switching the initial state
+by modifying the circuit.</li>
+<li><strong>Phase flip:</strong> randomly applies $Z$. Since $Z|+\rangle = |-\rangle$, this
+channel mixes $|+\rangle$ and $|-\rangle$, destroying coherence in the $X$ basis.</li>
 </ul>
 
 </section>

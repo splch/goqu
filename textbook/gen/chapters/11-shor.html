@@ -957,6 +957,42 @@ c[3] = measure q[3];</textarea>
   and $\gcd(11 + 1, 15) = \gcd(12, 15) = 3$. We recover the factors $3$ and $5$.
 </p>
 
+<h3>Interactive: Shor's Factoring Algorithm</h3>
+<p>
+  Run Shor's algorithm end-to-end on a small composite number. The algorithm uses
+  quantum phase estimation to find the period of modular exponentiation, then
+  extracts factors classically via the GCD.
+</p>
+<div class="widget" id="shor-widget">
+  <div class="widget-header">Shor's Factoring Algorithm</div>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label>N: <select id="shor-n">
+      <option selected>15</option><option>21</option><option>33</option><option>35</option><option>55</option><option>77</option>
+    </select></label>
+    <label>Shots: <input type="number" id="shor-shots" value="1024" min="1" max="8192" style="width:5rem"></label>
+    <button onclick="runShorWidget()">Factor</button>
+  </div>
+  <div class="widget-output" id="shor-output"></div>
+</div>
+<script>
+async function runShorWidget() {
+  await ensureWasm();
+  var N = parseInt(document.getElementById('shor-n').value);
+  var shots = parseInt(document.getElementById('shor-shots').value) || 1024;
+  var out = document.getElementById('shor-output');
+  out.innerHTML = '<p style="color:var(--color-text-muted)">Factoring ' + N + '...</p>';
+  await new Promise(function(r) { setTimeout(r, 0); });
+  try {
+    var r = JSON.parse(window.runShor(N, shots, isDark()));
+    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+    var html = (r.circuitSVG || '') + (r.histogramSVG || '');
+    if (r.result) html += '<p><strong>Result:</strong> ' + esc(r.result) + '</p>';
+    if (r.qasmCode) html += '<details><summary>Generated QASM</summary><pre>' + esc(r.qasmCode) + '</pre></details>';
+    out.innerHTML = html;
+  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+}
+</script>
+
 <h3>The Gap Between Textbook and Reality</h3>
 
 <p>

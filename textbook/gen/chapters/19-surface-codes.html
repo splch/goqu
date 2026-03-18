@@ -282,6 +282,93 @@ c = measure q;</textarea>
   moving the error to a corner qubit like q[0] to see how the syndrome pattern changes.
 </p>
 
+<h3>Interactive: Stabilizer Syndrome Extraction</h3>
+
+<p>
+  The sandbox above lets you write circuits manually, but the stabilizer formalism gives us a
+  more direct view of syndrome extraction. The Clifford simulation below prepares a 3-qubit
+  repetition code (encoding logical $|0\rangle$ as $|000\rangle$) and extracts two stabilizer
+  syndromes ($Z_0 Z_1$ via ancilla $q_3$ and $Z_1 Z_2$ via ancilla $q_4$). Use the error
+  selector to inject a bit-flip on different data qubits and observe how the syndrome
+  pattern and stabilizer generators change. With no error, both syndrome bits read 0. A
+  single-qubit error produces a unique two-bit syndrome that identifies the faulty qubit.
+</p>
+
+<div class="simulation" data-component="simulation" data-clifford="true">
+  <div class="sim-controls">
+    <label>Inject error on:
+      <select data-param="err">
+        <option value="id q[0];" selected>No error</option>
+        <option value="x q[0];">Qubit 0</option>
+        <option value="x q[1];">Qubit 1</option>
+        <option value="x q[2];">Qubit 2</option>
+      </select>
+    </label>
+  </div>
+  <pre class="sim-qasm">OPENQASM 3.0;
+qubit[5] q;
+bit[2] c;
+// Encode logical |0> in 3-qubit repetition code
+cx q[0], q[1];
+cx q[0], q[2];
+// Error injection (controlled by parameter)
+{err}
+// Syndrome extraction using ancilla qubits
+// Stabilizer Z0Z1: parity of q[0] and q[1] onto q[3]
+cx q[0], q[3];
+cx q[1], q[3];
+// Stabilizer Z1Z2: parity of q[1] and q[2] onto q[4]
+cx q[1], q[4];
+cx q[2], q[4];
+c[0] = measure q[3];
+c[1] = measure q[4];</pre>
+  <div class="sim-output"></div>
+</div>
+
+<p>
+  The syndrome outcomes map directly to the error location: syndrome $00$ means no error,
+  $10$ identifies qubit 0, $11$ identifies qubit 1, and $01$ identifies qubit 2. This is
+  exactly the principle behind surface code syndrome extraction, scaled up to a 2D lattice
+  with many more stabilizers.
+</p>
+
+<h3>Interactive: Stabilizer Evolution in Syndrome Extraction</h3>
+
+<p>
+  Step through the gates of a syndrome extraction circuit and watch how the stabilizer
+  generators transform at each step. The circuit below encodes a 3-qubit repetition code
+  and then extracts the $Z_0 Z_1$ stabilizer using an ancilla qubit and a Hadamard-CNOT
+  pattern. Notice how each CNOT propagates Pauli operators between data and ancilla qubits,
+  building up the multi-qubit stabilizer correlations that enable error detection.
+</p>
+
+<div class="step-through" data-component="step-through" data-mode="clifford">
+  <div class="step-controls">
+    <button data-action="prev" disabled>Previous</button>
+    <button data-action="next">Next Gate</button>
+    <span class="step-info">Loading...</span>
+  </div>
+  <script type="text/template" class="step-qasm">OPENQASM 3.0;
+qubit[4] q;
+cx q[0], q[1];
+cx q[0], q[2];
+h q[3];
+cx q[3], q[0];
+cx q[3], q[1];
+h q[3];</script>
+  <div class="step-output"></div>
+</div>
+
+<p>
+  After the encoding CNOTs, the stabilizers reflect the entangled code state. The
+  Hadamard-CNOT-CNOT-Hadamard sequence on the ancilla qubit $q_3$ effectively measures
+  the $Z_0 Z_1$ parity without disturbing the encoded information. This is the indirect
+  measurement technique used in all stabilizer codes: the ancilla mediates the stabilizer
+  measurement, and measuring the ancilla in the computational basis yields the syndrome bit.
+  In the full surface code, this pattern is repeated for every stabilizer generator in
+  every syndrome extraction round.
+</p>
+
 <h3>Logical Operators on the Planar Surface Code</h3>
 
 <p>

@@ -498,6 +498,39 @@ c = measure q;</textarea>
   always obtain $|\Phi^+\rangle$.
 </p>
 
+<h3>Interactive: Teleportation Fidelity Under Noise</h3>
+<p>
+  Real quantum networks must contend with noise on every channel. The simulation below
+  shows how depolarizing noise degrades the fidelity of quantum teleportation. As the
+  noise parameter increases, the teleported state becomes increasingly mixed with random
+  errors, reducing the protocol's effectiveness.
+</p>
+<div class="simulation" data-component="simulation" data-comparison="true">
+  <div class="sim-controls">
+    <label>Channel:
+      <select data-param="noiseModel">
+        <option value="depolarizing" selected>Depolarizing</option>
+        <option value="amplitude_damping">Amplitude Damping</option>
+        <option value="phase_damping">Phase Damping</option>
+      </select>
+    </label>
+    <label>Noise: <input type="range" data-param="noiseParam" min="0" max="0.3" step="0.01" value="0.05"><output>0.05</output></label>
+  </div>
+  <pre class="sim-qasm">OPENQASM 3.0;
+qubit[3] q;
+bit[3] c;
+// Prepare state to teleport
+h q[0];
+// Create Bell pair
+h q[1];
+cx q[1], q[2];
+// Bell measurement
+cx q[0], q[1];
+h q[0];
+c = measure q;</pre>
+  <div class="sim-output"></div>
+</div>
+
 <h3>Entanglement Purification</h3>
 
 <p>

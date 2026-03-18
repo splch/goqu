@@ -609,6 +609,61 @@ c = measure q;</textarea>
   <div class="output"></div>
 </div>
 
+<h3>Interactive: Grover Search Engine</h3>
+<p>
+  Use the WASM-backed Grover implementation to search for one or more target states.
+  Choose the number of qubits (determining the search space size $N = 2^n$), specify
+  which states to mark as targets, and run the full algorithm. The engine automatically
+  computes the optimal number of iterations.
+</p>
+<div class="widget" id="grover-search-widget">
+  <div class="widget-header">Grover Search Engine</div>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label>Qubits: <select id="grover-qubits">
+      <option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option>
+    </select></label>
+    <label>Targets: <input type="text" id="grover-targets" value="5" placeholder="e.g. 3,5" style="width:6rem" title="Comma-separated target state indices"></label>
+    <label>Shots: <input type="number" id="grover-shots" value="1024" min="1" max="8192" style="width:5rem"></label>
+    <button onclick="runGroverSearch()">Search</button>
+  </div>
+  <div class="widget-output" id="grover-search-output"></div>
+</div>
+<script>
+async function runGroverSearch() {
+  await ensureWasm();
+  var nq = parseInt(document.getElementById('grover-qubits').value);
+  var targets = document.getElementById('grover-targets').value.trim();
+  var shots = parseInt(document.getElementById('grover-shots').value) || 1024;
+  var out = document.getElementById('grover-search-output');
+  out.innerHTML = '<p style="color:var(--color-text-muted)">Running Grover search...</p>';
+  await new Promise(function(r) { setTimeout(r, 0); });
+  try {
+    var r = JSON.parse(window.runSearchAlgorithm("grover", nq, targets, shots, isDark()));
+    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+    var html = (r.circuitSVG || '') + (r.histogramSVG || '');
+    if (r.result) html += '<p><strong>Result:</strong> ' + esc(r.result) + '</p>';
+    if (r.qasmCode) html += '<details><summary>Generated QASM</summary><pre>' + esc(r.qasmCode) + '</pre></details>';
+    out.innerHTML = html;
+  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+}
+</script>
+
+<h3>Interactive: Step-by-Step Amplitude Amplification</h3>
+<p>
+  Step through Grover's algorithm one iteration at a time. Watch how the probability
+  of the target state grows with each application of the oracle and diffusion operator.
+  Target states are highlighted.
+</p>
+<div class="step-through" data-component="step-through" data-mode="grover" data-qubits="3" data-targets="[5]">
+  <pre class="step-qasm" style="display:none">placeholder</pre>
+  <div class="step-controls">
+    <button data-action="prev">Previous</button>
+    <span class="step-info"></span>
+    <button data-action="next">Next</button>
+  </div>
+  <div class="step-output"></div>
+</div>
+
 <h3>Predict-Observe-Explain: Too Many Iterations</h3>
 
 <p>
