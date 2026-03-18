@@ -1,0 +1,33 @@
+name: Textbook
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "textbook/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+
+      - name: Build WASM
+        run: |
+          cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" textbook/wasm_exec.js
+          cd textbook/wasm && GOOS=js GOARCH=wasm go build -ldflags="-w -s" -o ../main.wasm .
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./textbook
+          exclude_assets: ".github,wasm"
