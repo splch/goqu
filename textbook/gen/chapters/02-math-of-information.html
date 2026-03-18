@@ -13,7 +13,7 @@ you why quantum computing demands it. By the end, you will have every mathematic
 for the rest of this textbook.
 </p>
 
-<!-- ============================================================ -->
+<!-- ================================================================== -->
 <section id="counting-and-number-systems">
 <h2>2.1 Counting and Number Systems</h2>
 
@@ -53,11 +53,11 @@ The powers of 2 that you will see constantly are: 1, 2, 4, 8, 16, 32, 64, 128, 2
 Memorizing this sequence up to $2^{10} = 1024$ will save you time throughout this textbook.
 </p>
 
-<div class="callout callout-key">
-<strong>Key Idea.</strong> A single bit stores exactly one binary digit: 0 or 1. With $n$ bits,
+<div class="callout callout-key"><strong>Key Concept.</strong>
+<p>A single bit stores exactly one binary digit: 0 or 1. With $n$ bits,
 you can represent $2^n$ distinct values. This exponential relationship between bits and states is
 the seed from which quantum computing's power will grow. A qubit, as we will see, exploits this
-same exponential scaling in a fundamentally richer way.
+same exponential scaling in a fundamentally richer way.</p>
 </div>
 
 <h3>Hexadecimal (Base 16)</h3>
@@ -76,11 +76,26 @@ binary equivalent. For instance, $\text{A3}_{16}$ becomes $1010\;0011_2$ because
 3 = 0011.
 </p>
 
+<h3>Why Computers Use Binary, Why Programmers Use Hex</h3>
+
+<p>
+Binary is the natural language of hardware because transistors are reliable switches: clearly on
+or clearly off. Trying to distinguish ten different voltage levels would introduce far more errors
+than distinguishing just two. But binary strings get long quickly - the decimal number 255 is
+$11111111_2$ (eight digits). Hexadecimal compresses this to just $\text{FF}_{16}$ (two digits),
+because each hex digit encodes exactly one group of four bits. This makes hex a convenient
+shorthand for programmers who need to inspect raw binary data.
+</p>
+
 <h3>Converting Between Bases</h3>
 
 <p>
-To convert from any base to decimal, expand the positional notation and add up the terms, as
-shown above. To convert from decimal to another base, repeatedly divide by the target base and
+<strong>Any base to decimal:</strong> expand the positional notation and add up the terms, as
+shown above.
+</p>
+
+<p>
+<strong>Decimal to another base:</strong> repeatedly divide by the target base and
 collect the remainders from bottom to top. For example, to convert $25_{10}$ to binary:
 </p>
 
@@ -93,7 +108,13 @@ collect the remainders from bottom to top. For example, to convert $25_{10}$ to 
 </ul>
 
 <p>
-Reading the remainders from bottom to top: $25_{10} = 11001_2$.
+Reading the remainders from bottom to top: $25_{10} = 11001_2$. You can verify:
+$1 \times 16 + 1 \times 8 + 0 \times 4 + 0 \times 2 + 1 \times 1 = 25$. Correct.
+</p>
+
+<p>
+<strong>Hex to/from binary:</strong> simply replace each hex digit with its four-bit pattern
+(or vice versa). No division required.
 </p>
 
 <p>
@@ -102,28 +123,93 @@ different bases.
 </p>
 
 <div class="widget" id="base-converter-widget">
-  <div class="widget-header">Base Converter</div>
-  <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center;">
+  <div class="widget-header">Number Base Converter</div>
+  <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: flex-end;">
     <label style="font-size: 0.9rem;">
-      Value:
-      <input type="text" id="bc-input" value="42" style="width: 8rem;" aria-label="Number to convert">
+      Decimal:
+      <input type="text" id="bc-dec" value="42" style="width: 7rem;" aria-label="Decimal value">
     </label>
     <label style="font-size: 0.9rem;">
-      Input base:
-      <select id="bc-from" aria-label="Input base">
-        <option value="10" selected>Decimal (10)</option>
-        <option value="2">Binary (2)</option>
-        <option value="16">Hex (16)</option>
-      </select>
+      Binary:
+      <input type="text" id="bc-bin" value="" style="width: 10rem;" aria-label="Binary value">
     </label>
-    <button id="bc-convert">Convert</button>
+    <label style="font-size: 0.9rem;">
+      Hex:
+      <input type="text" id="bc-hex" value="" style="width: 7rem;" aria-label="Hexadecimal value">
+    </label>
   </div>
-  <div class="widget-output" id="bc-output" aria-live="polite"></div>
+  <div class="widget-output" id="bc-output" aria-live="polite" style="margin-top: 0.5rem;"></div>
 </div>
+<script>
+(function() {
+  "use strict";
+  var decIn = document.getElementById("bc-dec");
+  var binIn = document.getElementById("bc-bin");
+  var hexIn = document.getElementById("bc-hex");
+  var output = document.getElementById("bc-output");
+  var updating = false;
+
+  function fromDec() {
+    if (updating) return;
+    updating = true;
+    var n = parseInt(decIn.value.trim(), 10);
+    if (isNaN(n) || n < 0) {
+      binIn.value = ""; hexIn.value = "";
+      output.textContent = "Enter a non-negative integer.";
+    } else {
+      binIn.value = n.toString(2);
+      hexIn.value = n.toString(16).toUpperCase();
+      output.innerHTML = "Decimal <strong>" + n + "</strong> = Binary <strong>" +
+        n.toString(2) + "</strong> = Hex <strong>" + n.toString(16).toUpperCase() +
+        "</strong> = Octal <strong>" + n.toString(8) + "</strong>";
+    }
+    updating = false;
+  }
+
+  function fromBin() {
+    if (updating) return;
+    updating = true;
+    var s = binIn.value.trim();
+    if (!/^[01]+$/.test(s)) {
+      decIn.value = ""; hexIn.value = "";
+      output.textContent = "Enter a valid binary number (0s and 1s only).";
+    } else {
+      var n = parseInt(s, 2);
+      decIn.value = n.toString(10);
+      hexIn.value = n.toString(16).toUpperCase();
+      output.innerHTML = "Binary <strong>" + s + "</strong> = Decimal <strong>" +
+        n + "</strong> = Hex <strong>" + n.toString(16).toUpperCase() + "</strong>";
+    }
+    updating = false;
+  }
+
+  function fromHex() {
+    if (updating) return;
+    updating = true;
+    var s = hexIn.value.trim();
+    if (!/^[0-9a-fA-F]+$/.test(s)) {
+      decIn.value = ""; binIn.value = "";
+      output.textContent = "Enter a valid hex number (0-9, A-F).";
+    } else {
+      var n = parseInt(s, 16);
+      decIn.value = n.toString(10);
+      binIn.value = n.toString(2);
+      output.innerHTML = "Hex <strong>" + s.toUpperCase() + "</strong> = Decimal <strong>" +
+        n + "</strong> = Binary <strong>" + n.toString(2) + "</strong>";
+    }
+    updating = false;
+  }
+
+  decIn.addEventListener("input", fromDec);
+  binIn.addEventListener("input", fromBin);
+  hexIn.addEventListener("input", fromHex);
+  fromDec();
+})();
+</script>
 
 </section>
 
-<!-- ============================================================ -->
+<!-- ================================================================== -->
 <section id="probability">
 <h2>2.2 Probability: Quantifying Uncertainty</h2>
 
@@ -164,19 +250,42 @@ add up to 1:
 
 $$\sum_{x \in S} P(x) = 1$$
 
-<div class="callout callout-key">
-<strong>Key Idea.</strong> The rule that probabilities sum to 1 has a direct quantum analogue.
+<div class="callout callout-key"><strong>Key Concept.</strong>
+<p>The rule that probabilities sum to 1 has a direct quantum analogue.
 When we describe a qubit's state, the squared magnitudes of its amplitudes must also sum to 1.
 This is called the <em>normalization condition</em>, and it ensures that when you measure, you
-get exactly one outcome with certainty.
+get exactly one outcome with certainty.</p>
 </div>
 
-<h3>Independent Events</h3>
+<h3>Probability Rules</h3>
 
 <p>
-Two events $A$ and $B$ are <strong>independent</strong> if the occurrence of one does not affect
-the probability of the other. Flipping a coin twice gives independent outcomes. For independent
-events, the probability of both occurring is the product of their individual probabilities:
+Three basic rules let you compute the probability of compound events:
+</p>
+
+<p>
+<strong>Complement rule.</strong> The probability that an event does <em>not</em> happen is
+one minus the probability that it does:
+</p>
+
+$$P(\text{not } A) = 1 - P(A)$$
+
+<p>
+<strong>Addition rule.</strong> For two events $A$ and $B$, the probability that at least one
+occurs is:
+</p>
+
+$$P(A \text{ or } B) = P(A) + P(B) - P(A \text{ and } B)$$
+
+<p>
+We subtract $P(A \text{ and } B)$ to avoid double-counting outcomes that belong to both events.
+If $A$ and $B$ are <em>mutually exclusive</em> (they cannot both happen), then
+$P(A \text{ and } B) = 0$ and the formula simplifies to $P(A \text{ or } B) = P(A) + P(B)$.
+</p>
+
+<p>
+<strong>Multiplication rule.</strong> For <strong>independent</strong> events - those where the
+occurrence of one does not affect the other - the probability that both occur is:
 </p>
 
 $$P(A \text{ and } B) = P(A) \times P(B)$$
@@ -186,41 +295,29 @@ For example, the probability of flipping two heads in a row with a fair coin is
 $\frac{1}{2} \times \frac{1}{2} = \frac{1}{4}$.
 </p>
 
-<h3>Conditional Probability</h3>
+<h3>Conditional Probability and Bayes' Rule</h3>
 
 <p>
 Sometimes events are not independent. The <strong>conditional probability</strong> of $A$ given
-$B$, written $P(A | B)$, is the probability that $A$ occurs if we know that $B$ has already
+$B$, written $P(A \mid B)$, is the probability that $A$ occurs if we know that $B$ has already
 occurred:
 </p>
 
-$$P(A | B) = \frac{P(A \text{ and } B)}{P(B)}$$
+$$P(A \mid B) = \frac{P(A \text{ and } B)}{P(B)}$$
 
 <p>
-Consider a bag with 3 red and 2 blue marbles. You draw one marble without looking, then draw
-a second. What is the probability the second marble is red, given the first was red?
+<strong>Bayes' rule</strong> lets you "reverse" conditional probabilities. If you know
+$P(B \mid A)$ and want $P(A \mid B)$, Bayes' rule says:
 </p>
 
-<p>
-After removing one red marble, the bag has 2 red and 2 blue marbles left:
-</p>
-
-$$P(\text{2nd red} | \text{1st red}) = \frac{2}{4} = \frac{1}{2}$$
-
-<h3>Bayes' Rule</h3>
+$$P(A \mid B) = \frac{P(B \mid A) \, P(A)}{P(B)}$$
 
 <p>
-Bayes' rule lets you "reverse" conditional probabilities. If you know $P(B | A)$ and want
-$P(A | B)$, Bayes' rule says:
-</p>
-
-$$P(A | B) = \frac{P(B | A) \, P(A)}{P(B)}$$
-
-<p>
-Here is a concrete example. Suppose a medical test for a rare disease is 99% accurate (it
-correctly identifies someone with the disease 99% of the time and correctly clears someone
-without it 99% of the time). The disease affects 1 in 1000 people. If you test positive, what
-is the probability you actually have the disease?
+Here is a concrete example that shows why Bayes' rule matters. Suppose a medical test for a rare
+disease is 99% accurate: it correctly identifies someone with the disease 99% of the time
+(sensitivity) and correctly clears someone without it 99% of the time (specificity). The disease
+affects 1 in 1000 people. If you test positive, what is the probability you actually have the
+disease?
 </p>
 
 <p>
@@ -229,30 +326,165 @@ Let $D$ = having the disease and $+$ = testing positive. Then:
 
 <ul>
   <li>$P(D) = 0.001$ (prevalence)</li>
-  <li>$P(+ | D) = 0.99$ (true positive rate)</li>
-  <li>$P(+ | \text{no } D) = 0.01$ (false positive rate)</li>
+  <li>$P(+ \mid D) = 0.99$ (true positive rate)</li>
+  <li>$P(+ \mid \text{no } D) = 0.01$ (false positive rate)</li>
 </ul>
 
-$$P(D | +) = \frac{P(+ | D) \, P(D)}{P(+)} = \frac{0.99 \times 0.001}{0.99 \times 0.001 + 0.01 \times 0.999} \approx \frac{0.00099}{0.01098} \approx 0.09$$
+$$P(D \mid +) = \frac{P(+ \mid D) \, P(D)}{P(+)} = \frac{0.99 \times 0.001}{0.99 \times 0.001 + 0.01 \times 0.999} \approx \frac{0.00099}{0.01098} \approx 0.09$$
 
 <p>
 Despite the test being 99% accurate, a positive result only means about a 9% chance of having
-the disease. The low prevalence of the disease overwhelms the test's accuracy. This kind of
-counterintuitive reasoning shows up frequently in quantum measurement theory, where prior
-knowledge about a quantum state affects how we interpret measurement results.
+the disease. The low prevalence overwhelms the test's accuracy. This kind of counterintuitive
+reasoning appears in quantum measurement theory, where prior knowledge about a quantum state
+affects how we interpret measurement results.
 </p>
 
-<div class="callout callout-info">
-<strong>Looking ahead.</strong> In quantum computing, measurement outcomes are inherently
+<div class="callout callout-warning"><strong>Common Misconception.</strong>
+<p>Many people confuse the accuracy of a test with the probability of having the condition
+given a positive result. These are fundamentally different quantities. Bayes' rule teaches us
+that the <em>base rate</em> (how common the condition is) matters enormously. In quantum
+computing, a similar principle applies: the prior state of a qubit determines the probability
+distribution of measurement outcomes.</p>
+</div>
+
+<h3>Random Variables, Expectation, and Variance</h3>
+
+<p>
+A <strong>random variable</strong> $X$ assigns a numerical value to each outcome in a sample
+space. For a die roll, $X$ might simply be the number showing on the face. The
+<strong>expected value</strong> (or mean) of $X$ is the long-run average you would observe over
+many repetitions:
+</p>
+
+$$E(X) = \sum_{x} x \cdot P(X = x)$$
+
+<p>
+For a fair die: $E(X) = 1 \cdot \frac{1}{6} + 2 \cdot \frac{1}{6} + \cdots + 6 \cdot \frac{1}{6} = \frac{21}{6} = 3.5$.
+Note that the expected value need not be a value the random variable can actually take.
+</p>
+
+<p>
+The <strong>variance</strong> measures how spread out the values are around the mean:
+</p>
+
+$$\text{Var}(X) = E\!\left[(X - E(X))^2\right] = E(X^2) - [E(X)]^2$$
+
+<p>
+A small variance means the outcomes cluster tightly around the mean; a large variance means
+they are widely spread.
+</p>
+
+<div class="callout callout-info"><strong>Note.</strong>
+<p>In quantum computing, measurement outcomes are inherently
 probabilistic. The Born rule - the quantum analogue of classical probability - tells us that
 the probability of measuring a particular outcome equals the squared magnitude of the
-corresponding amplitude. The mathematical structure of probability that you have just learned
-carries directly into the quantum world.
+corresponding amplitude. The expected value of a measurement is called an <em>expectation value</em>
+in quantum mechanics, and it is computed using exactly the same formula you just learned.</p>
 </div>
+
+<p>
+Use the widget below to explore the sample space of rolling two dice. Click on cells in the
+grid to highlight events and see their probabilities.
+</p>
+
+<div class="widget" id="prob-visualizer-widget">
+  <div class="widget-header">Two-Dice Probability Visualizer</div>
+  <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-start;">
+    <div>
+      <div style="font-size: 0.85rem; margin-bottom: 0.4rem; font-weight: 500;">Highlight event:</div>
+      <select id="pv-event" style="font-size: 0.85rem; padding: 0.3rem;" aria-label="Event to highlight">
+        <option value="none">None (show all)</option>
+        <option value="sum7">Sum = 7</option>
+        <option value="sum11">Sum = 11</option>
+        <option value="doubles">Doubles (both same)</option>
+        <option value="sumgte10">Sum &ge; 10</option>
+        <option value="sumeven">Sum is even</option>
+        <option value="sumodd">Sum is odd</option>
+      </select>
+    </div>
+  </div>
+  <div style="margin-top: 0.75rem; overflow-x: auto;">
+    <table id="pv-table" style="border-collapse: collapse; font-size: 0.85rem; font-family: var(--font-mono);">
+    </table>
+  </div>
+  <div class="widget-output" id="pv-output" aria-live="polite" style="margin-top: 0.5rem;"></div>
+</div>
+<script>
+(function() {
+  "use strict";
+  var table = document.getElementById("pv-table");
+  var eventSel = document.getElementById("pv-event");
+  var output = document.getElementById("pv-output");
+
+  function buildTable() {
+    var html = "<tr><th style='padding:0.3rem 0.5rem;border:1px solid var(--color-border);background:var(--color-code-bg);'></th>";
+    for (var c = 1; c <= 6; c++) {
+      html += "<th style='padding:0.3rem 0.5rem;border:1px solid var(--color-border);background:var(--color-code-bg);'>Die 2=" + c + "</th>";
+    }
+    html += "</tr>";
+    for (var r = 1; r <= 6; r++) {
+      html += "<tr><th style='padding:0.3rem 0.5rem;border:1px solid var(--color-border);background:var(--color-code-bg);'>Die 1=" + r + "</th>";
+      for (var c2 = 1; c2 <= 6; c2++) {
+        var sum = r + c2;
+        html += "<td data-r='" + r + "' data-c='" + c2 + "' data-sum='" + sum +
+          "' style='padding:0.3rem 0.5rem;border:1px solid var(--color-border);text-align:center;transition:background 0.15s;cursor:default;'>" +
+          sum + "</td>";
+      }
+      html += "</tr>";
+    }
+    table.innerHTML = html;
+  }
+
+  function matches(cell, evt) {
+    var r = parseInt(cell.getAttribute("data-r"), 10);
+    var c = parseInt(cell.getAttribute("data-c"), 10);
+    var s = parseInt(cell.getAttribute("data-sum"), 10);
+    if (evt === "sum7") return s === 7;
+    if (evt === "sum11") return s === 11;
+    if (evt === "doubles") return r === c;
+    if (evt === "sumgte10") return s >= 10;
+    if (evt === "sumeven") return s % 2 === 0;
+    if (evt === "sumodd") return s % 2 === 1;
+    return false;
+  }
+
+  function highlight() {
+    var evt = eventSel.value;
+    var cells = table.querySelectorAll("td");
+    var count = 0;
+    var total = cells.length;
+    cells.forEach(function(cell) {
+      if (evt === "none") {
+        cell.style.background = "";
+        cell.style.fontWeight = "";
+        count = total;
+      } else if (matches(cell, evt)) {
+        cell.style.background = "color-mix(in srgb, var(--color-accent) 25%, transparent)";
+        cell.style.fontWeight = "700";
+        count++;
+      } else {
+        cell.style.background = "";
+        cell.style.fontWeight = "";
+      }
+    });
+    if (evt === "none") {
+      output.innerHTML = "Total outcomes: 36. Each outcome has probability 1/36.";
+    } else {
+      var pct = (count / 36 * 100).toFixed(1);
+      output.innerHTML = "Matching outcomes: <strong>" + count + "</strong> out of 36. " +
+        "P(event) = " + count + "/36 = <strong>" + pct + "%</strong>";
+    }
+  }
+
+  buildTable();
+  eventSel.addEventListener("change", highlight);
+  highlight();
+})();
+</script>
 
 </section>
 
-<!-- ============================================================ -->
+<!-- ================================================================== -->
 <section id="vectors">
 <h2>2.3 Vectors: Arrows That Encode Information</h2>
 
@@ -267,16 +499,17 @@ not just helpful for quantum computing - it is essential.
 <h3>Vectors in Two Dimensions</h3>
 
 <p>
-A 2D vector $\vec{v}$ can be written as a pair of numbers:
+Picture a 2D coordinate plane. A vector $\vec{v}$ can be drawn as an arrow from the origin to
+a point, and we write it as a pair of numbers stacked vertically:
 </p>
 
 $$\vec{v} = \begin{pmatrix} v_x \\ v_y \end{pmatrix}$$
 
 <p>
-The number $v_x$ is the horizontal component and $v_y$ is the vertical component. Geometrically,
-$\vec{v}$ is an arrow from the origin $(0,0)$ to the point $(v_x, v_y)$. For example,
+The number $v_x$ is the <strong>horizontal component</strong> and $v_y$ is the
+<strong>vertical component</strong>. For example,
 $\vec{v} = \begin{pmatrix} 3 \\ 2 \end{pmatrix}$ is an arrow pointing 3 units right and 2
-units up.
+units up from the origin.
 </p>
 
 <h3>Vector Addition</h3>
@@ -289,8 +522,13 @@ $$\begin{pmatrix} a_x \\ a_y \end{pmatrix} + \begin{pmatrix} b_x \\ b_y \end{pma
 
 <p>
 Geometrically, this is the "tip-to-tail" rule: place the tail of $\vec{b}$ at the tip of
-$\vec{a}$, and the sum $\vec{a} + \vec{b}$ is the arrow from the tail of $\vec{a}$ to the
-tip of $\vec{b}$. This forms a parallelogram.
+$\vec{a}$, and the sum $\vec{a} + \vec{b}$ is the arrow from the origin to the new tip.
+The two original vectors and their sum form a parallelogram - which is why this is also called
+the parallelogram rule.
+</p>
+
+<p>
+Concrete example: $\begin{pmatrix} 3 \\ 1 \end{pmatrix} + \begin{pmatrix} 1 \\ 3 \end{pmatrix} = \begin{pmatrix} 4 \\ 4 \end{pmatrix}$.
 </p>
 
 <h3>Scalar Multiplication</h3>
@@ -306,72 +544,111 @@ If $c > 1$, the arrow gets longer. If $0 < c < 1$, it gets shorter. If $c < 0$, 
 direction. If $c = 0$, it collapses to the zero vector.
 </p>
 
-<h3>Magnitude and Unit Vectors</h3>
+<h3>Magnitude (Norm) and Direction</h3>
 
 <p>
-The <strong>magnitude</strong> (length) of a vector $\vec{v} = \begin{pmatrix} v_x \\ v_y \end{pmatrix}$
+The <strong>magnitude</strong> (or length, or norm) of a vector
+$\vec{v} = \begin{pmatrix} v_x \\ v_y \end{pmatrix}$
 is given by the Pythagorean theorem:
 </p>
 
 $$\|\vec{v}\| = \sqrt{v_x^2 + v_y^2}$$
 
 <p>
-A <strong>unit vector</strong> is a vector with magnitude 1. You can turn any nonzero vector
-into a unit vector by dividing by its magnitude: $\hat{v} = \frac{\vec{v}}{\|\vec{v}\|}$.
+For example, $\left\|\begin{pmatrix} 3 \\ 4 \end{pmatrix}\right\| = \sqrt{9 + 16} = \sqrt{25} = 5$.
 </p>
 
-<div class="callout callout-key">
-<strong>Key Idea.</strong> In quantum computing, the state of a qubit is always represented by
-a unit vector. The requirement that the state vector has length 1 is precisely the normalization
-condition from probability: it ensures measurement probabilities sum to 1. This is why unit
-vectors are so important - they are the only physically valid quantum states.
-</div>
+<p>
+The <strong>direction</strong> of a vector is the angle it makes with the positive $x$-axis. Two
+vectors can have the same direction but different magnitudes, or the same magnitude but different
+directions.
+</p>
 
-<h3>The Dot Product</h3>
+<h3>Unit Vectors and Normalization</h3>
 
 <p>
-The <strong>dot product</strong> of two vectors measures how much they point in the same direction:
+A <strong>unit vector</strong> is a vector with magnitude 1. You can turn any nonzero vector
+into a unit vector by dividing by its magnitude:
+</p>
+
+$$\hat{v} = \frac{\vec{v}}{\|\vec{v}\|}$$
+
+<p>
+For instance, normalizing $\begin{pmatrix} 3 \\ 4 \end{pmatrix}$:
+$\hat{v} = \frac{1}{5}\begin{pmatrix} 3 \\ 4 \end{pmatrix} = \begin{pmatrix} 0.6 \\ 0.8 \end{pmatrix}$.
+You can verify: $\sqrt{0.6^2 + 0.8^2} = \sqrt{0.36 + 0.64} = 1$.
+</p>
+
+<div class="callout callout-key"><strong>Key Concept.</strong>
+<p>In quantum computing, the state of a qubit is always represented by
+a unit vector. The requirement that the state vector has length 1 is precisely the normalization
+condition from probability: it ensures measurement probabilities sum to 1. This is why unit
+vectors are so important - they are the only physically valid quantum states.</p>
+</div>
+
+<h3>The Dot Product (Inner Product)</h3>
+
+<p>
+The <strong>dot product</strong> of two vectors measures how much they point in the same
+direction:
 </p>
 
 $$\vec{a} \cdot \vec{b} = a_x b_x + a_y b_y = \|\vec{a}\| \, \|\vec{b}\| \cos\theta$$
 
 <p>
-where $\theta$ is the angle between them. If the dot product is zero, the vectors are
-<strong>orthogonal</strong> (perpendicular). Two orthogonal unit vectors form a
-<strong>basis</strong> - a coordinate system in which any vector can be expressed as a
-combination of them.
+where $\theta$ is the angle between them. The second form reveals the geometric meaning: the
+dot product is large and positive when vectors point in similar directions, zero when they are
+perpendicular, and negative when they point in roughly opposite directions.
 </p>
 
 <p>
-For example, the standard basis vectors $\vec{e}_1 = \begin{pmatrix} 1 \\ 0 \end{pmatrix}$ and
+If the dot product is zero, the vectors are <strong>orthogonal</strong> (perpendicular). For
+example, $\begin{pmatrix} 1 \\ 0 \end{pmatrix} \cdot \begin{pmatrix} 0 \\ 1 \end{pmatrix} = 1 \cdot 0 + 0 \cdot 1 = 0$ - these
+two vectors are indeed perpendicular.
+</p>
+
+<p>
+Two orthogonal unit vectors form a <strong>basis</strong> - a coordinate system in which any
+vector can be expressed as a combination of them. The standard basis vectors
+$\vec{e}_1 = \begin{pmatrix} 1 \\ 0 \end{pmatrix}$ and
 $\vec{e}_2 = \begin{pmatrix} 0 \\ 1 \end{pmatrix}$ are orthogonal unit vectors, and any 2D
 vector can be written as $\vec{v} = v_x \vec{e}_1 + v_y \vec{e}_2$.
 </p>
 
-<h3>Extending to Three Dimensions and Beyond</h3>
+<div class="callout callout-info"><strong>Note.</strong>
+<p>In quantum computing, the standard basis for a single qubit is
+$|0\rangle = \begin{pmatrix} 1 \\ 0 \end{pmatrix}$ and
+$|1\rangle = \begin{pmatrix} 0 \\ 1 \end{pmatrix}$. These are exactly the standard basis
+vectors with fancy notation (called "ket" notation). Any qubit state can be written as
+$|\psi\rangle = \alpha|0\rangle + \beta|1\rangle$, which is a linear combination of basis
+vectors - the same idea you just learned.</p>
+</div>
+
+<h3>Beyond Two Dimensions</h3>
 
 <p>
 Everything above extends naturally. A 3D vector has three components:
 $\vec{v} = \begin{pmatrix} v_x \\ v_y \\ v_z \end{pmatrix}$, with magnitude
-$\|\vec{v}\| = \sqrt{v_x^2 + v_y^2 + v_z^2}$. In quantum computing, we will work with vectors
-that have 2, 4, 8, or even $2^n$ components - one for each possible state of $n$ qubits. The
-algebra stays the same; only the number of components grows.
+$\|\vec{v}\| = \sqrt{v_x^2 + v_y^2 + v_z^2}$. In quantum computing, we work with vectors that
+have 2, 4, 8, or even $2^n$ components - one for each possible state of $n$ qubits. The algebra
+stays the same; only the number of components grows.
 </p>
 
 <p>
-Use the visualizer below to explore how vectors add and scale in 2D.
+Use the visualizer below to explore vectors in 2D. Draw vectors, see their sum, and compute
+dot products.
 </p>
 
 <div class="widget" id="vector-visualizer-widget">
   <div class="widget-header">2D Vector Visualizer</div>
   <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-start;">
     <div>
-      <div style="font-size: 0.85rem; margin-bottom: 0.4rem; font-weight: 500;">Vector A</div>
+      <div style="font-size: 0.85rem; margin-bottom: 0.4rem; font-weight: 500;">Vector A (blue)</div>
       <label style="font-size: 0.85rem;">x: <input type="number" id="vv-ax" value="3" step="0.5" style="width: 4rem;" aria-label="Vector A x-component"></label>
       <label style="font-size: 0.85rem;">y: <input type="number" id="vv-ay" value="1" step="0.5" style="width: 4rem;" aria-label="Vector A y-component"></label>
     </div>
     <div>
-      <div style="font-size: 0.85rem; margin-bottom: 0.4rem; font-weight: 500;">Vector B</div>
+      <div style="font-size: 0.85rem; margin-bottom: 0.4rem; font-weight: 500;">Vector B (red)</div>
       <label style="font-size: 0.85rem;">x: <input type="number" id="vv-bx" value="1" step="0.5" style="width: 4rem;" aria-label="Vector B x-component"></label>
       <label style="font-size: 0.85rem;">y: <input type="number" id="vv-by" value="3" step="0.5" style="width: 4rem;" aria-label="Vector B y-component"></label>
     </div>
@@ -380,6 +657,7 @@ Use the visualizer below to explore how vectors add and scale in 2D.
       <select id="vv-op" style="font-size: 0.85rem; padding: 0.3rem;" aria-label="Vector operation">
         <option value="add">A + B</option>
         <option value="sub">A - B</option>
+        <option value="dot">Dot product A . B</option>
         <option value="scale">Scale A by factor</option>
       </select>
       <input type="number" id="vv-scalar" value="2" step="0.5" style="width: 3.5rem; font-size: 0.85rem; display: none;" aria-label="Scalar factor">
@@ -391,10 +669,116 @@ Use the visualizer below to explore how vectors add and scale in 2D.
   </div>
   <div class="widget-output" id="vv-output" aria-live="polite" style="margin-top: 0.5rem;"></div>
 </div>
+<script>
+(function() {
+  "use strict";
+  var ax = document.getElementById("vv-ax"), ay = document.getElementById("vv-ay");
+  var bx = document.getElementById("vv-bx"), by = document.getElementById("vv-by");
+  var op = document.getElementById("vv-op"), scalar = document.getElementById("vv-scalar");
+  var btn = document.getElementById("vv-draw");
+  var svg = document.getElementById("vv-svg");
+  var output = document.getElementById("vv-output");
+  var NS = "http://www.w3.org/2000/svg";
+
+  op.addEventListener("change", function() {
+    scalar.style.display = op.value === "scale" ? "inline" : "none";
+  });
+
+  function makeMarker(svg, color) {
+    var id = "ah-" + color.replace("#", "");
+    if (document.getElementById(id)) return;
+    var defs = svg.querySelector("defs");
+    if (!defs) { defs = document.createElementNS(NS, "defs"); svg.insertBefore(defs, svg.firstChild); }
+    var m = document.createElementNS(NS, "marker");
+    m.setAttribute("id", id); m.setAttribute("markerWidth", "6"); m.setAttribute("markerHeight", "4");
+    m.setAttribute("refX", "5"); m.setAttribute("refY", "2"); m.setAttribute("orient", "auto");
+    var p = document.createElementNS(NS, "polygon");
+    p.setAttribute("points", "0 0, 6 2, 0 4"); p.setAttribute("fill", color);
+    m.appendChild(p); defs.appendChild(m);
+  }
+
+  function drawArrow(svg, x1, y1, x2, y2, color, label) {
+    var line = document.createElementNS(NS, "line");
+    line.setAttribute("x1", x1); line.setAttribute("y1", -y1);
+    line.setAttribute("x2", x2); line.setAttribute("y2", -y2);
+    line.setAttribute("stroke", color); line.setAttribute("stroke-width", "0.08");
+    line.setAttribute("marker-end", "url(#ah-" + color.replace("#","") + ")");
+    svg.appendChild(line);
+    if (label) {
+      var t = document.createElementNS(NS, "text");
+      t.setAttribute("x", x2 + 0.15); t.setAttribute("y", -y2 - 0.15);
+      t.setAttribute("fill", color); t.setAttribute("font-size", "0.5");
+      t.setAttribute("font-family", "system-ui, sans-serif");
+      t.textContent = label;
+      svg.appendChild(t);
+    }
+  }
+
+  function drawGrid(svg) {
+    for (var i = -4; i <= 4; i++) {
+      var lh = document.createElementNS(NS, "line");
+      lh.setAttribute("x1", -5); lh.setAttribute("y1", i); lh.setAttribute("x2", 5); lh.setAttribute("y2", i);
+      lh.setAttribute("stroke", i === 0 ? "var(--color-text-muted)" : "var(--color-border)");
+      lh.setAttribute("stroke-width", i === 0 ? "0.04" : "0.02");
+      svg.appendChild(lh);
+      var lv = document.createElementNS(NS, "line");
+      lv.setAttribute("x1", i); lv.setAttribute("y1", -5); lv.setAttribute("x2", i); lv.setAttribute("y2", 5);
+      lv.setAttribute("stroke", i === 0 ? "var(--color-text-muted)" : "var(--color-border)");
+      lv.setAttribute("stroke-width", i === 0 ? "0.04" : "0.02");
+      svg.appendChild(lv);
+    }
+  }
+
+  function draw() {
+    var a = { x: parseFloat(ax.value) || 0, y: parseFloat(ay.value) || 0 };
+    var b = { x: parseFloat(bx.value) || 0, y: parseFloat(by.value) || 0 };
+    svg.innerHTML = "";
+    drawGrid(svg);
+    var cA = "#4C72B0", cB = "#C44E52", cR = "#22c55e";
+    makeMarker(svg, cA); makeMarker(svg, cB); makeMarker(svg, cR);
+
+    var magA = Math.sqrt(a.x * a.x + a.y * a.y);
+    var magB = Math.sqrt(b.x * b.x + b.y * b.y);
+    var info;
+
+    if (op.value === "add") {
+      var r = { x: a.x + b.x, y: a.y + b.y };
+      drawArrow(svg, 0, 0, a.x, a.y, cA, "A");
+      drawArrow(svg, 0, 0, b.x, b.y, cB, "B");
+      drawArrow(svg, 0, 0, r.x, r.y, cR, "A+B");
+      info = "A + B = (" + r.x.toFixed(1) + ", " + r.y.toFixed(1) + ")";
+    } else if (op.value === "sub") {
+      var r2 = { x: a.x - b.x, y: a.y - b.y };
+      drawArrow(svg, 0, 0, a.x, a.y, cA, "A");
+      drawArrow(svg, 0, 0, b.x, b.y, cB, "B");
+      drawArrow(svg, 0, 0, r2.x, r2.y, cR, "A-B");
+      info = "A - B = (" + r2.x.toFixed(1) + ", " + r2.y.toFixed(1) + ")";
+    } else if (op.value === "dot") {
+      var dp = a.x * b.x + a.y * b.y;
+      drawArrow(svg, 0, 0, a.x, a.y, cA, "A");
+      drawArrow(svg, 0, 0, b.x, b.y, cB, "B");
+      var cosTheta = (magA > 0 && magB > 0) ? dp / (magA * magB) : 0;
+      var angle = Math.acos(Math.max(-1, Math.min(1, cosTheta))) * 180 / Math.PI;
+      info = "A . B = " + dp.toFixed(2) + "&emsp;|&emsp;angle = " + angle.toFixed(1) +
+        "&deg;&emsp;|&emsp;" + (Math.abs(dp) < 0.001 ? "Orthogonal!" : "");
+    } else {
+      var s = parseFloat(scalar.value) || 1;
+      var r3 = { x: s * a.x, y: s * a.y };
+      drawArrow(svg, 0, 0, a.x, a.y, cA, "A");
+      drawArrow(svg, 0, 0, r3.x, r3.y, cR, s + "A");
+      info = s + " * A = (" + r3.x.toFixed(1) + ", " + r3.y.toFixed(1) + ")";
+    }
+    output.innerHTML = info + "&emsp;|&emsp;|A| = " + magA.toFixed(3) + "&emsp;|B| = " + magB.toFixed(3);
+  }
+
+  btn.addEventListener("click", draw);
+  draw();
+})();
+</script>
 
 </section>
 
-<!-- ============================================================ -->
+<!-- ================================================================== -->
 <section id="matrices">
 <h2>2.4 Matrices: Transformations on Vectors</h2>
 
@@ -410,8 +794,9 @@ understanding matrices is absolutely essential.
 
 <p>
 A <strong>matrix</strong> is a rectangular array of numbers arranged in rows and columns. A
-matrix with $m$ rows and $n$ columns is called an $m \times n$ matrix. For example, a $2 \times 2$
-matrix looks like:
+matrix with $m$ rows and $n$ columns is called an $m \times n$ matrix. For quantum computing,
+we will mostly work with $2 \times 2$ matrices (which act on single-qubit states). A
+$2 \times 2$ matrix looks like:
 </p>
 
 $$M = \begin{pmatrix} a & b \\ c & d \end{pmatrix}$$
@@ -421,7 +806,7 @@ The entry in row $i$, column $j$ is denoted $M_{ij}$. In the matrix above, $M_{1
 $M_{12} = b$, $M_{21} = c$, and $M_{22} = d$.
 </p>
 
-<h3>Matrix-Vector Multiplication</h3>
+<h3>Matrix-Vector Multiplication: Step by Step</h3>
 
 <p>
 The most important matrix operation for us is multiplying a matrix by a vector. For a
@@ -431,47 +816,57 @@ $2 \times 2$ matrix and a 2D vector:
 $$\begin{pmatrix} a & b \\ c & d \end{pmatrix} \begin{pmatrix} x \\ y \end{pmatrix} = \begin{pmatrix} ax + by \\ cx + dy \end{pmatrix}$$
 
 <p>
-Each entry of the result is a dot product of one row of the matrix with the input vector. This
-is how a matrix transforms a vector: it takes in one vector and produces a new one.
+Each entry of the result is a dot product of one row of the matrix with the input vector. Let
+us work through a concrete example. Consider the matrix
+$M = \begin{pmatrix} 1 & 2 \\ 3 & 4 \end{pmatrix}$ and the vector
+$\vec{v} = \begin{pmatrix} 1 \\ 0 \end{pmatrix}$:
 </p>
+
+$$M\vec{v} = \begin{pmatrix} 1 & 2 \\ 3 & 4 \end{pmatrix} \begin{pmatrix} 1 \\ 0 \end{pmatrix} = \begin{pmatrix} 1 \cdot 1 + 2 \cdot 0 \\ 3 \cdot 1 + 4 \cdot 0 \end{pmatrix} = \begin{pmatrix} 1 \\ 3 \end{pmatrix}$$
 
 <p>
-For example, consider the matrix that rotates vectors by 90 degrees counterclockwise:
+The matrix has transformed $(1, 0)$ into $(1, 3)$. Now let us try a rotation. The matrix that
+rotates vectors by 90 degrees counterclockwise is:
 </p>
 
-$$R = \begin{pmatrix} 0 & -1 \\ 1 & 0 \end{pmatrix}$$
+$$R_{90} = \begin{pmatrix} 0 & -1 \\ 1 & 0 \end{pmatrix}$$
 
 <p>
 Applying it to $\vec{v} = \begin{pmatrix} 1 \\ 0 \end{pmatrix}$:
 </p>
 
-$$R\vec{v} = \begin{pmatrix} 0 & -1 \\ 1 & 0 \end{pmatrix} \begin{pmatrix} 1 \\ 0 \end{pmatrix} = \begin{pmatrix} 0 \\ 1 \end{pmatrix}$$
+$$R_{90}\vec{v} = \begin{pmatrix} 0 & -1 \\ 1 & 0 \end{pmatrix} \begin{pmatrix} 1 \\ 0 \end{pmatrix} = \begin{pmatrix} 0 \\ 1 \end{pmatrix}$$
 
 <p>
-The vector $(1, 0)$ pointing right has been rotated to $(0, 1)$ pointing up - exactly 90 degrees.
+The vector $(1, 0)$ pointing right has been rotated to $(0, 1)$ pointing up - exactly 90
+degrees counterclockwise. A matrix is a machine that eats a vector and produces a new one.
 </p>
 
 <h3>Matrix-Matrix Multiplication</h3>
 
 <p>
 You can also multiply two matrices together. The result is a new matrix that represents doing
-both transformations in sequence. For $2 \times 2$ matrices:
+both transformations in sequence:
 </p>
 
 $$\begin{pmatrix} a & b \\ c & d \end{pmatrix} \begin{pmatrix} e & f \\ g & h \end{pmatrix} = \begin{pmatrix} ae+bg & af+bh \\ ce+dg & cf+dh \end{pmatrix}$$
 
 <p>
 Each entry of the result is a dot product of a row from the first matrix with a column from
-the second. A critical fact: <strong>matrix multiplication is not commutative</strong>. In
-general, $AB \neq BA$. The order in which you apply transformations matters - rotating then
-scaling is different from scaling then rotating.
+the second.
 </p>
 
-<div class="callout callout-key">
-<strong>Key Idea.</strong> In quantum computing, applying gate $A$ followed by gate $B$ is
+<div class="callout callout-warning"><strong>Common Misconception.</strong>
+<p>Matrix multiplication is <strong>not commutative</strong>. In
+general, $AB \neq BA$. The order matters. Rotating then scaling is different from scaling then
+rotating. In quantum computing, this means the order in which you apply gates matters.</p>
+</div>
+
+<div class="callout callout-key"><strong>Key Concept.</strong>
+<p>In quantum computing, applying gate $A$ followed by gate $B$ is
 represented by the matrix product $BA$ (note the reversed order - the gate applied first goes
-on the right, closest to the vector). This non-commutativity is not a quirk; it reflects a
-deep truth about quantum operations. The order in which you manipulate a qubit matters.
+on the right, closest to the state vector). We evaluate $B(A|\psi\rangle) = (BA)|\psi\rangle$.
+</p>
 </div>
 
 <h3>The Identity Matrix</h3>
@@ -487,78 +882,212 @@ For any vector $\vec{v}$, $I\vec{v} = \vec{v}$. For any matrix $M$, $MI = IM = M
 matrix equivalent of multiplying by 1.
 </p>
 
-<h3>Matrix Inverses</h3>
+<h3>The Determinant</h3>
 
 <p>
-A matrix $M$ has an <strong>inverse</strong> $M^{-1}$ if $M M^{-1} = M^{-1} M = I$. The
-inverse "undoes" the transformation. If $M$ rotates by 90 degrees, $M^{-1}$ rotates by -90
-degrees.
+The <strong>determinant</strong> of a $2 \times 2$ matrix is a single number that tells you how
+the matrix scales areas:
+</p>
+
+$$\det\begin{pmatrix} a & b \\ c & d \end{pmatrix} = ad - bc$$
+
+<p>
+If the determinant is positive, the matrix preserves orientation. If negative, it flips
+orientation (like a reflection). If zero, the matrix collapses 2D space into a line or a
+point - it squashes information irreversibly.
 </p>
 
 <p>
-For a $2 \times 2$ matrix $M = \begin{pmatrix} a & b \\ c & d \end{pmatrix}$, the inverse is:
+Example: $\det\begin{pmatrix} 2 & 1 \\ 0 & 3 \end{pmatrix} = 2 \cdot 3 - 1 \cdot 0 = 6$.
+This matrix scales areas by a factor of 6.
+</p>
+
+<h3>Matrix Inverse</h3>
+
+<p>
+A matrix $M$ has an <strong>inverse</strong> $M^{-1}$ if $M M^{-1} = M^{-1} M = I$. The
+inverse "undoes" the transformation. For a $2 \times 2$ matrix:
 </p>
 
 $$M^{-1} = \frac{1}{ad - bc} \begin{pmatrix} d & -b \\ -c & a \end{pmatrix}$$
 
 <p>
-The quantity $ad - bc$ is the <strong>determinant</strong>. If the determinant is zero, the
-matrix has no inverse - it squashes space into a lower dimension and the transformation cannot
-be reversed.
+This formula only works when $ad - bc \neq 0$ (the determinant is nonzero). A matrix with zero
+determinant has no inverse - it is called <strong>singular</strong>.
 </p>
 
-<div class="callout callout-info">
-<strong>Looking ahead.</strong> Quantum gates are always reversible - every quantum gate matrix
+<h3>Special Matrices</h3>
+
+<p>
+Two types of special matrices will appear frequently in later chapters:
+</p>
+
+<ul>
+  <li><strong>Symmetric matrices</strong> satisfy $M = M^T$ (the matrix equals its
+  transpose - rows and columns are swapped). They have the property that all their eigenvalues
+  are real numbers.</li>
+  <li><strong>Orthogonal matrices</strong> satisfy $M^T M = I$ (the transpose is the inverse).
+  They preserve lengths and angles - think of rotations and reflections. These are the
+  real-number version of <em>unitary matrices</em>, which are central to quantum computing.</li>
+</ul>
+
+<div class="callout callout-info"><strong>Note.</strong>
+<p>Quantum gates are always reversible - every quantum gate matrix
 has an inverse. In fact, quantum gate matrices are <em>unitary</em>, which means their inverse
 equals their conjugate transpose ($M^{-1} = M^\dagger$). This is a stronger condition than
 merely being invertible, and it is what preserves the normalization of quantum states. We will
-explore unitary matrices in detail when we meet our first quantum gates.
+explore unitary matrices in detail when we meet our first quantum gates.</p>
 </div>
 
 <p>
-Use the calculator below to experiment with $2 \times 2$ matrix operations.
+Use the calculator below to experiment with $2 \times 2$ matrix-vector multiplication and see
+the geometric transformation.
 </p>
 
 <div class="widget" id="matrix-calculator-widget">
-  <div class="widget-header">2x2 Matrix Calculator</div>
+  <div class="widget-header">Matrix-Vector Visualizer</div>
   <div style="display: flex; flex-wrap: wrap; gap: 1.5rem; align-items: flex-start;">
     <div>
       <div style="font-size: 0.85rem; margin-bottom: 0.4rem; font-weight: 500;">Matrix M</div>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.3rem;">
-        <input type="number" id="mc-a" value="2" step="0.5" style="width: 4rem;" aria-label="Matrix M entry (1,1)">
-        <input type="number" id="mc-b" value="1" step="0.5" style="width: 4rem;" aria-label="Matrix M entry (1,2)">
-        <input type="number" id="mc-c" value="0" step="0.5" style="width: 4rem;" aria-label="Matrix M entry (2,1)">
-        <input type="number" id="mc-d" value="3" step="0.5" style="width: 4rem;" aria-label="Matrix M entry (2,2)">
+        <input type="number" id="mc-a" value="0" step="0.5" style="width: 4rem;" aria-label="Matrix entry (1,1)">
+        <input type="number" id="mc-b" value="-1" step="0.5" style="width: 4rem;" aria-label="Matrix entry (1,2)">
+        <input type="number" id="mc-c" value="1" step="0.5" style="width: 4rem;" aria-label="Matrix entry (2,1)">
+        <input type="number" id="mc-d" value="0" step="0.5" style="width: 4rem;" aria-label="Matrix entry (2,2)">
       </div>
     </div>
     <div>
-      <div style="font-size: 0.85rem; margin-bottom: 0.4rem; font-weight: 500;">Vector v (or Matrix N)</div>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.3rem;">
-        <input type="number" id="mc-e" value="1" step="0.5" style="width: 4rem;" aria-label="Entry (1,1) or x-component">
-        <input type="number" id="mc-f" value="0" step="0.5" style="width: 4rem;" aria-label="Entry (1,2)">
-        <input type="number" id="mc-g" value="0" step="0.5" style="width: 4rem;" aria-label="Entry (2,1) or y-component">
-        <input type="number" id="mc-h" value="1" step="0.5" style="width: 4rem;" aria-label="Entry (2,2)">
-      </div>
+      <div style="font-size: 0.85rem; margin-bottom: 0.4rem; font-weight: 500;">Vector v</div>
+      <label style="font-size: 0.85rem;">x: <input type="number" id="mc-vx" value="3" step="0.5" style="width: 4rem;" aria-label="Vector x-component"></label>
+      <label style="font-size: 0.85rem;">y: <input type="number" id="mc-vy" value="1" step="0.5" style="width: 4rem;" aria-label="Vector y-component"></label>
     </div>
     <div>
-      <div style="font-size: 0.85rem; margin-bottom: 0.4rem; font-weight: 500;">Operation</div>
-      <select id="mc-op" style="font-size: 0.85rem; padding: 0.3rem;" aria-label="Matrix operation">
-        <option value="mulvec">M * v (use first column as vector)</option>
-        <option value="mulmtx">M * N (matrix multiply)</option>
-        <option value="det">Determinant of M</option>
-        <option value="inv">Inverse of M</option>
+      <div style="font-size: 0.85rem; margin-bottom: 0.4rem; font-weight: 500;">Presets</div>
+      <select id="mc-preset" style="font-size: 0.85rem; padding: 0.3rem;" aria-label="Matrix preset">
+        <option value="custom">Custom</option>
+        <option value="rot90" selected>Rotate 90 deg</option>
+        <option value="rot45">Rotate 45 deg</option>
+        <option value="reflect">Reflect over x-axis</option>
+        <option value="scale2">Scale by 2</option>
+        <option value="shear">Shear</option>
+        <option value="identity">Identity</option>
       </select>
       <div style="margin-top: 0.5rem;">
-        <button id="mc-calc">Calculate</button>
+        <button id="mc-calc">Apply M to v</button>
       </div>
     </div>
   </div>
-  <div class="widget-output" id="mc-output" aria-live="polite"></div>
+  <div style="margin-top: 0.75rem; display: flex; justify-content: center;">
+    <svg id="mc-svg" width="320" height="320" viewBox="-5 -5 10 10" style="border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-code-bg);"></svg>
+  </div>
+  <div class="widget-output" id="mc-output" aria-live="polite" style="margin-top: 0.5rem;"></div>
 </div>
+<script>
+(function() {
+  "use strict";
+  var ga = document.getElementById("mc-a"), gb = document.getElementById("mc-b");
+  var gc = document.getElementById("mc-c"), gd = document.getElementById("mc-d");
+  var gvx = document.getElementById("mc-vx"), gvy = document.getElementById("mc-vy");
+  var preset = document.getElementById("mc-preset");
+  var btn = document.getElementById("mc-calc");
+  var svg = document.getElementById("mc-svg");
+  var output = document.getElementById("mc-output");
+  var NS = "http://www.w3.org/2000/svg";
+
+  var presets = {
+    rot90:    [0, -1, 1, 0],
+    rot45:    [0.7071, -0.7071, 0.7071, 0.7071],
+    reflect:  [1, 0, 0, -1],
+    scale2:   [2, 0, 0, 2],
+    shear:    [1, 1, 0, 1],
+    identity: [1, 0, 0, 1]
+  };
+
+  preset.addEventListener("change", function() {
+    var p = presets[preset.value];
+    if (p) {
+      ga.value = p[0]; gb.value = p[1]; gc.value = p[2]; gd.value = p[3];
+      calc();
+    }
+  });
+
+  function makeMarker(svg, color) {
+    var id = "mah-" + color.replace("#", "");
+    if (document.getElementById(id)) return;
+    var defs = svg.querySelector("defs");
+    if (!defs) { defs = document.createElementNS(NS, "defs"); svg.insertBefore(defs, svg.firstChild); }
+    var m = document.createElementNS(NS, "marker");
+    m.setAttribute("id", id); m.setAttribute("markerWidth", "6"); m.setAttribute("markerHeight", "4");
+    m.setAttribute("refX", "5"); m.setAttribute("refY", "2"); m.setAttribute("orient", "auto");
+    var poly = document.createElementNS(NS, "polygon");
+    poly.setAttribute("points", "0 0, 6 2, 0 4"); poly.setAttribute("fill", color);
+    m.appendChild(poly); defs.appendChild(m);
+  }
+
+  function drawArrow(svg, x1, y1, x2, y2, color, label) {
+    var line = document.createElementNS(NS, "line");
+    line.setAttribute("x1", x1); line.setAttribute("y1", -y1);
+    line.setAttribute("x2", x2); line.setAttribute("y2", -y2);
+    line.setAttribute("stroke", color); line.setAttribute("stroke-width", "0.08");
+    line.setAttribute("marker-end", "url(#mah-" + color.replace("#","") + ")");
+    svg.appendChild(line);
+    if (label) {
+      var t = document.createElementNS(NS, "text");
+      t.setAttribute("x", x2 + 0.15); t.setAttribute("y", -y2 - 0.15);
+      t.setAttribute("fill", color); t.setAttribute("font-size", "0.45");
+      t.setAttribute("font-family", "system-ui, sans-serif");
+      t.textContent = label;
+      svg.appendChild(t);
+    }
+  }
+
+  function drawGrid(svg) {
+    for (var i = -4; i <= 4; i++) {
+      var lh = document.createElementNS(NS, "line");
+      lh.setAttribute("x1", -5); lh.setAttribute("y1", i); lh.setAttribute("x2", 5); lh.setAttribute("y2", i);
+      lh.setAttribute("stroke", i === 0 ? "var(--color-text-muted)" : "var(--color-border)");
+      lh.setAttribute("stroke-width", i === 0 ? "0.04" : "0.02");
+      svg.appendChild(lh);
+      var lv = document.createElementNS(NS, "line");
+      lv.setAttribute("x1", i); lv.setAttribute("y1", -5); lv.setAttribute("x2", i); lv.setAttribute("y2", 5);
+      lv.setAttribute("stroke", i === 0 ? "var(--color-text-muted)" : "var(--color-border)");
+      lv.setAttribute("stroke-width", i === 0 ? "0.04" : "0.02");
+      svg.appendChild(lv);
+    }
+  }
+
+  function fmt(n) { return Math.round(n * 1000) / 1000; }
+
+  function calc() {
+    var a = parseFloat(ga.value) || 0, b = parseFloat(gb.value) || 0;
+    var c = parseFloat(gc.value) || 0, d = parseFloat(gd.value) || 0;
+    var vx = parseFloat(gvx.value) || 0, vy = parseFloat(gvy.value) || 0;
+
+    var rx = a * vx + b * vy;
+    var ry = c * vx + d * vy;
+    var det = a * d - b * c;
+
+    svg.innerHTML = "";
+    drawGrid(svg);
+    var cOrig = "#4C72B0", cResult = "#22c55e";
+    makeMarker(svg, cOrig); makeMarker(svg, cResult);
+
+    drawArrow(svg, 0, 0, vx, vy, cOrig, "v");
+    drawArrow(svg, 0, 0, rx, ry, cResult, "Mv");
+
+    output.innerHTML = "v = (" + fmt(vx) + ", " + fmt(vy) + ")" +
+      "&emsp;Mv = (" + fmt(rx) + ", " + fmt(ry) + ")" +
+      "&emsp;det(M) = " + fmt(det);
+  }
+
+  btn.addEventListener("click", calc);
+  calc();
+})();
+</script>
 
 </section>
 
-<!-- ============================================================ -->
+<!-- ================================================================== -->
 <section id="complex-numbers">
 <h2>2.5 Complex Numbers: The Missing Piece</h2>
 
@@ -596,15 +1125,21 @@ where $a$ is the <strong>real part</strong> and $b$ is the <strong>imaginary par
 $a$ and $b$ are ordinary real numbers. We write $\text{Re}(z) = a$ and $\text{Im}(z) = b$.
 </p>
 
+<h3>Arithmetic with Complex Numbers</h3>
+
 <p>
-Arithmetic with complex numbers follows the rules you already know, with the extra rule that
-$i^2 = -1$:
+Arithmetic follows the rules you already know, with the extra rule that $i^2 = -1$:
 </p>
 
 <ul>
   <li><strong>Addition:</strong> $(a + bi) + (c + di) = (a+c) + (b+d)i$</li>
+  <li><strong>Subtraction:</strong> $(a + bi) - (c + di) = (a-c) + (b-d)i$</li>
   <li><strong>Multiplication:</strong> $(a + bi)(c + di) = ac + adi + bci + bdi^2 = (ac - bd) + (ad + bc)i$</li>
 </ul>
+
+<p>
+Concrete example: $(3 + 2i)(1 - i) = 3 \cdot 1 + 3 \cdot (-i) + 2i \cdot 1 + 2i \cdot (-i) = 3 - 3i + 2i - 2i^2 = 3 - i - 2(-1) = 5 - i$.
+</p>
 
 <h3>The Complex Plane</h3>
 
@@ -614,11 +1149,17 @@ and the imaginary part on the vertical axis. This is the <strong>complex plane</
 called the Argand diagram). The complex number $3 + 2i$ sits at the point $(3, 2)$.
 </p>
 
-<h3>Magnitude and Conjugate</h3>
+<p>
+Notice the connection to vectors: a complex number $a + bi$ can be thought of as a vector
+$\begin{pmatrix} a \\ b \end{pmatrix}$ in the complex plane. This geometric view will help
+us understand what complex multiplication really does.
+</p>
+
+<h3>Magnitude (Modulus) and Conjugate</h3>
 
 <p>
-The <strong>magnitude</strong> (or absolute value) of $z = a + bi$ is the distance from the
-origin to the point $(a, b)$:
+The <strong>magnitude</strong> (or modulus, or absolute value) of $z = a + bi$ is the distance
+from the origin to the point $(a, b)$:
 </p>
 
 $$|z| = \sqrt{a^2 + b^2}$$
@@ -635,20 +1176,24 @@ It reflects $z$ across the real axis. A crucial identity links the conjugate to 
 
 $$z \bar{z} = (a + bi)(a - bi) = a^2 + b^2 = |z|^2$$
 
-<div class="callout callout-key">
-<strong>Key Idea.</strong> In quantum mechanics, the probability of a measurement outcome is
-given by $|z|^2$, where $z$ is a complex amplitude. This is the Born rule. The complex conjugate
-is essential because $|z|^2 = z \bar{z}$ is how we extract real-valued probabilities from
-complex-valued amplitudes. This is why quantum states use complex numbers: the amplitudes carry
-both magnitude (probability information) and phase (interference information).
+<p>
+This identity is used constantly in quantum mechanics to compute probabilities.
+</p>
+
+<div class="callout callout-key"><strong>Key Concept.</strong>
+<p>In quantum mechanics, the probability of a measurement outcome is
+given by $|z|^2$, where $z$ is a complex amplitude. This is the <strong>Born rule</strong>. The complex
+conjugate is essential because $|z|^2 = z \bar{z}$ is how we extract real-valued probabilities
+from complex-valued amplitudes. Complex numbers carry both magnitude (probability information)
+and phase (interference information).</p>
 </div>
 
 <h3>Polar Form</h3>
 
 <p>
-Instead of specifying a complex number by its real and imaginary parts, we can use its
-<strong>magnitude</strong> $r = |z|$ and its <strong>angle</strong> $\theta$ (measured
-counterclockwise from the positive real axis):
+Instead of specifying a complex number by its real and imaginary parts (rectangular form), we
+can use its <strong>magnitude</strong> $r = |z|$ and its <strong>angle</strong> $\theta$
+(measured counterclockwise from the positive real axis):
 </p>
 
 $$z = r(\cos\theta + i\sin\theta)$$
@@ -657,6 +1202,12 @@ $$z = r(\cos\theta + i\sin\theta)$$
 The angle $\theta$ is called the <strong>phase</strong> or <strong>argument</strong> of $z$.
 Two complex numbers with the same magnitude but different phases sit on the same circle centered
 at the origin, but at different positions on that circle.
+</p>
+
+<p>
+Converting between forms: given $z = a + bi$, we have $r = \sqrt{a^2 + b^2}$ and
+$\theta = \arctan(b/a)$ (with appropriate attention to which quadrant the point lies in).
+Conversely, $a = r\cos\theta$ and $b = r\sin\theta$.
 </p>
 
 <h3>Euler's Formula</h3>
@@ -669,34 +1220,44 @@ trigonometry:
 $$e^{i\theta} = \cos\theta + i\sin\theta$$
 
 <p>
-This is <strong>Euler's formula</strong>. It tells us that the complex exponential $e^{i\theta}$
-traces out the unit circle in the complex plane as $\theta$ varies. Using Euler's formula, the
-polar form becomes wonderfully compact:
+This is <strong>Euler's formula</strong>. It can be proved using the Taylor series expansions of
+$e^x$, $\cos x$, and $\sin x$. The key insight: $e^{i\theta}$ traces out the
+unit circle in the complex plane as $\theta$ varies from $0$ to $2\pi$.
+</p>
+
+<p>
+Using Euler's formula, the polar form becomes wonderfully compact:
 </p>
 
 $$z = r e^{i\theta}$$
 
 <p>
-Multiplication in polar form is especially elegant: you multiply magnitudes and add angles:
+Multiplication in polar form is especially elegant - you multiply magnitudes and add angles:
 </p>
 
 $$z_1 z_2 = r_1 r_2 \, e^{i(\theta_1 + \theta_2)}$$
 
 <p>
-This means multiplying by $e^{i\theta}$ is a pure rotation by angle $\theta$ - the magnitude
-stays the same, but the direction changes. When $\theta = \pi$, Euler's formula gives us the
-famous identity:
+This means multiplying by $e^{i\theta}$ is a <strong>pure rotation</strong> by angle $\theta$ -
+the magnitude stays the same, but the direction changes. When $\theta = \pi$, Euler's formula
+gives us the famous identity:
 </p>
 
 $$e^{i\pi} + 1 = 0$$
+
+<p>
+This single equation links five of the most important constants in mathematics: $e$, $i$, $\pi$,
+$1$, and $0$.
+</p>
 
 <h3>Why Quantum Mechanics Needs Complex Numbers</h3>
 
 <p>
 You might wonder: could we do quantum computing with just real numbers? The answer is no, and
-here is the intuition. Quantum mechanics is fundamentally a theory of <strong>interference</strong>.
-Two quantum states can combine and either reinforce each other (constructive interference) or
-cancel each other out (destructive interference), depending on their <strong>relative phase</strong>.
+here is the intuition. Quantum mechanics is fundamentally a theory of
+<strong>interference</strong>. Two quantum states can combine and either reinforce each other
+(constructive interference) or cancel each other out (destructive interference), depending on
+their <strong>relative phase</strong>.
 </p>
 
 <p>
@@ -708,24 +1269,24 @@ Grover's search algorithm would not work, because they rely on carefully enginee
 to amplify correct answers and suppress wrong ones.
 </p>
 
-<div class="callout callout-info">
-<strong>Looking ahead.</strong> When we write a qubit state as $|\psi\rangle = \alpha|0\rangle + \beta|1\rangle$,
+<div class="callout callout-info"><strong>Note.</strong>
+<p>When we write a qubit state as $|\psi\rangle = \alpha|0\rangle + \beta|1\rangle$,
 the amplitudes $\alpha$ and $\beta$ are complex numbers. The probabilities of measuring 0 and 1
 are $|\alpha|^2$ and $|\beta|^2$, but the phases of $\alpha$ and $\beta$ are equally important -
 they determine how the qubit interferes with other qubits and with itself after quantum gate
-operations.
+operations.</p>
 </div>
 
 <p>
-Explore complex numbers on the complex plane below. Enter a number in either rectangular
-($a + bi$) or polar ($r e^{i\theta}$) form and see it plotted.
+Explore complex numbers on the complex plane below. Enter a number and see it plotted, along
+with its conjugate, a rotation, or its square.
 </p>
 
 <div class="widget" id="complex-plane-widget">
-  <div class="widget-header">Complex Plane Visualizer</div>
+  <div class="widget-header">Complex Plane Explorer</div>
   <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-start;">
     <div>
-      <div style="font-size: 0.85rem; margin-bottom: 0.4rem; font-weight: 500;">Complex Number $z$</div>
+      <div style="font-size: 0.85rem; margin-bottom: 0.4rem; font-weight: 500;">Complex number $z$</div>
       <label style="font-size: 0.85rem;">Real: <input type="number" id="cp-re" value="3" step="0.5" style="width: 4rem;" aria-label="Real part"></label>
       <label style="font-size: 0.85rem;">Imag: <input type="number" id="cp-im" value="2" step="0.5" style="width: 4rem;" aria-label="Imaginary part"></label>
     </div>
@@ -733,7 +1294,7 @@ Explore complex numbers on the complex plane below. Enter a number in either rec
       <div style="font-size: 0.85rem; margin-bottom: 0.4rem; font-weight: 500;">Operation</div>
       <select id="cp-op" style="font-size: 0.85rem; padding: 0.3rem;" aria-label="Complex number operation">
         <option value="plot">Plot z</option>
-        <option value="conj">Plot z and conjugate</option>
+        <option value="conj">Plot z and conjugate z*</option>
         <option value="mul">Multiply by e^(i*pi/4) (rotate 45 deg)</option>
         <option value="square">Plot z and z^2</option>
       </select>
@@ -745,15 +1306,125 @@ Explore complex numbers on the complex plane below. Enter a number in either rec
   </div>
   <div class="widget-output" id="cp-output" aria-live="polite" style="margin-top: 0.5rem;"></div>
 </div>
+<script>
+(function() {
+  "use strict";
+  var reIn = document.getElementById("cp-re");
+  var imIn = document.getElementById("cp-im");
+  var opSel = document.getElementById("cp-op");
+  var btn = document.getElementById("cp-draw");
+  var svg = document.getElementById("cp-svg");
+  var output = document.getElementById("cp-output");
+  var NS = "http://www.w3.org/2000/svg";
+
+  function drawGrid(svg) {
+    for (var i = -4; i <= 4; i++) {
+      var lh = document.createElementNS(NS, "line");
+      lh.setAttribute("x1", -5); lh.setAttribute("y1", i); lh.setAttribute("x2", 5); lh.setAttribute("y2", i);
+      lh.setAttribute("stroke", i === 0 ? "var(--color-text-muted)" : "var(--color-border)");
+      lh.setAttribute("stroke-width", i === 0 ? "0.04" : "0.02");
+      svg.appendChild(lh);
+      var lv = document.createElementNS(NS, "line");
+      lv.setAttribute("x1", i); lv.setAttribute("y1", -5); lv.setAttribute("x2", i); lv.setAttribute("y2", 5);
+      lv.setAttribute("stroke", i === 0 ? "var(--color-text-muted)" : "var(--color-border)");
+      lv.setAttribute("stroke-width", i === 0 ? "0.04" : "0.02");
+      svg.appendChild(lv);
+    }
+    var reLabel = document.createElementNS(NS, "text");
+    reLabel.setAttribute("x", 4.2); reLabel.setAttribute("y", 0.4);
+    reLabel.setAttribute("fill", "var(--color-text-muted)"); reLabel.setAttribute("font-size", "0.4");
+    reLabel.textContent = "Re"; svg.appendChild(reLabel);
+    var imLabel = document.createElementNS(NS, "text");
+    imLabel.setAttribute("x", 0.2); imLabel.setAttribute("y", -4.2);
+    imLabel.setAttribute("fill", "var(--color-text-muted)"); imLabel.setAttribute("font-size", "0.4");
+    imLabel.textContent = "Im"; svg.appendChild(imLabel);
+  }
+
+  function plotPoint(svg, re, im, color, label) {
+    var sy = -im;
+    var line = document.createElementNS(NS, "line");
+    line.setAttribute("x1", 0); line.setAttribute("y1", 0);
+    line.setAttribute("x2", re); line.setAttribute("y2", sy);
+    line.setAttribute("stroke", color); line.setAttribute("stroke-width", "0.05");
+    line.setAttribute("stroke-dasharray", "0.15 0.08");
+    svg.appendChild(line);
+    var circ = document.createElementNS(NS, "circle");
+    circ.setAttribute("cx", re); circ.setAttribute("cy", sy); circ.setAttribute("r", "0.12");
+    circ.setAttribute("fill", color); svg.appendChild(circ);
+    if (label) {
+      var t = document.createElementNS(NS, "text");
+      t.setAttribute("x", re + 0.2); t.setAttribute("y", sy - 0.2);
+      t.setAttribute("fill", color); t.setAttribute("font-size", "0.4");
+      t.setAttribute("font-family", "system-ui, sans-serif");
+      t.textContent = label; svg.appendChild(t);
+    }
+  }
+
+  function fmt(n) { return Math.round(n * 1000) / 1000; }
+  function fmtC(re, im) {
+    var s = fmt(re).toString();
+    if (im >= 0) s += " + " + fmt(im) + "i";
+    else s += " - " + fmt(-im) + "i";
+    return s;
+  }
+
+  function draw() {
+    var re = parseFloat(reIn.value) || 0;
+    var im = parseFloat(imIn.value) || 0;
+    var mode = opSel.value;
+    svg.innerHTML = "";
+    drawGrid(svg);
+
+    var uc = document.createElementNS(NS, "circle");
+    uc.setAttribute("cx", 0); uc.setAttribute("cy", 0); uc.setAttribute("r", 1);
+    uc.setAttribute("fill", "none"); uc.setAttribute("stroke", "var(--color-border)");
+    uc.setAttribute("stroke-width", "0.03"); svg.appendChild(uc);
+
+    var mag = Math.sqrt(re * re + im * im);
+    var phase = Math.atan2(im, re);
+    var info = "z = " + fmtC(re, im) + "&emsp;|z| = " + fmt(mag) +
+      "&emsp;phase = " + fmt(phase * 180 / Math.PI) + " deg";
+
+    var cZ = "#4C72B0", cConj = "#C44E52", cRes = "#22c55e";
+
+    if (mode === "plot") {
+      plotPoint(svg, re, im, cZ, "z");
+    } else if (mode === "conj") {
+      plotPoint(svg, re, im, cZ, "z");
+      plotPoint(svg, re, -im, cConj, "z*");
+      info += "<br>z* = " + fmtC(re, -im) + "&emsp;|z*| = " + fmt(mag);
+    } else if (mode === "mul") {
+      var angle = Math.PI / 4;
+      var cosA = Math.cos(angle), sinA = Math.sin(angle);
+      var nr = re * cosA - im * sinA;
+      var ni = re * sinA + im * cosA;
+      plotPoint(svg, re, im, cZ, "z");
+      plotPoint(svg, nr, ni, cRes, "rotated");
+      info += "<br>z * e^(i*pi/4) = " + fmtC(nr, ni);
+    } else if (mode === "square") {
+      var sqRe = re * re - im * im;
+      var sqIm = 2 * re * im;
+      plotPoint(svg, re, im, cZ, "z");
+      plotPoint(svg, sqRe, sqIm, cRes, "z^2");
+      info += "<br>z^2 = " + fmtC(sqRe, sqIm) + "&emsp;|z^2| = " + fmt(mag * mag);
+    }
+    output.innerHTML = info;
+  }
+
+  btn.addEventListener("click", draw);
+  draw();
+})();
+</script>
 
 </section>
 
-<!-- ============================================================ -->
+<!-- ================================================================== -->
 <section id="putting-it-together">
 <h2>Putting It All Together</h2>
 
 <p>
-Let us take a moment to see how the five topics of this chapter form a unified toolkit.
+Let us take a moment to see how the five topics of this chapter form a unified toolkit for
+quantum computing.
 </p>
 
 <p>
@@ -794,38 +1465,38 @@ immediate use when we write down the state of our first qubit.
 
 </section>
 
-<!-- ============================================================ -->
+<!-- ================================================================== -->
 <section id="review">
 
 <div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Review Cards</div>
+  <div class="flashcard-deck-header">Chapter 2 Review</div>
 
   <div class="flashcard" data-card-id="ch02-binary-states">
     <div class="card-front">How many distinct values can $n$ bits represent?</div>
     <div class="card-back">$2^n$ distinct values. For example, 3 bits can represent $2^3 = 8$ values (000 through 111). This exponential growth is central to quantum computing, where $n$ qubits can exist in a superposition of all $2^n$ states simultaneously.
       <div class="flashcard-controls">
-        <button class="hard">Hard</button>
         <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
       </div>
     </div>
   </div>
 
-  <div class="flashcard" data-card-id="ch02-prob-sum">
-    <div class="card-front">What is the normalization condition for probabilities?</div>
-    <div class="card-back">The probabilities of all outcomes in a sample space must sum to 1: $\sum_{x \in S} P(x) = 1$. In quantum computing, this becomes $|\alpha|^2 + |\beta|^2 = 1$ for a qubit with amplitudes $\alpha$ and $\beta$.
+  <div class="flashcard" data-card-id="ch02-prob-sum-to-one">
+    <div class="card-front">What is the normalization condition for probabilities, and what is its quantum analogue?</div>
+    <div class="card-back">The probabilities of all outcomes in a sample space must sum to 1: $\sum_{x \in S} P(x) = 1$. In quantum computing, this becomes $|\alpha|^2 + |\beta|^2 = 1$ for a qubit with amplitudes $\alpha$ and $\beta$. Both conditions ensure that exactly one outcome occurs when we observe the system.
       <div class="flashcard-controls">
-        <button class="hard">Hard</button>
         <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
       </div>
     </div>
   </div>
 
   <div class="flashcard" data-card-id="ch02-bayes-rule">
-    <div class="card-front">What is Bayes' rule?</div>
-    <div class="card-back">$P(A | B) = \frac{P(B | A) \, P(A)}{P(B)}$. It lets you reverse conditional probabilities - computing the probability of a cause given an observed effect. It requires knowing the prior probability $P(A)$ and the likelihood $P(B | A)$.
+    <div class="card-front">State Bayes' rule and explain when you would use it.</div>
+    <div class="card-back">$P(A \mid B) = \frac{P(B \mid A) \, P(A)}{P(B)}$. Use it to reverse conditional probabilities - computing the probability of a cause given an observed effect. It requires knowing the prior probability $P(A)$ and the likelihood $P(B \mid A)$.
       <div class="flashcard-controls">
-        <button class="hard">Hard</button>
         <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
       </div>
     </div>
   </div>
@@ -834,58 +1505,28 @@ immediate use when we write down the state of our first qubit.
     <div class="card-front">Why must quantum states be unit vectors?</div>
     <div class="card-back">A unit vector has magnitude 1, which ensures that the measurement probabilities (the squared magnitudes of the vector's components) sum to 1. This is the normalization condition: $\|\vec{v}\| = 1$ guarantees a valid probability distribution over measurement outcomes.
       <div class="flashcard-controls">
-        <button class="hard">Hard</button>
         <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
       </div>
     </div>
   </div>
 
-  <div class="flashcard" data-card-id="ch02-matrix-order">
-    <div class="card-front">If you apply gate $A$ and then gate $B$, what matrix represents the combined operation?</div>
-    <div class="card-back">The matrix product $BA$ (not $AB$). The gate applied first goes on the right, closest to the state vector. This is because we evaluate $B(A|\psi\rangle)$, which equals $(BA)|\psi\rangle$. Matrix multiplication is not commutative, so order matters.
-      <div class="flashcard-controls">
-        <button class="hard">Hard</button>
-        <button class="easy">Easy</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch02-complex-conjugate">
-    <div class="card-front">What is the complex conjugate of $z = a + bi$, and how does it relate to $|z|^2$?</div>
-    <div class="card-back">The conjugate is $\bar{z} = a - bi$ (negate the imaginary part). The magnitude squared is $|z|^2 = z\bar{z} = a^2 + b^2$. In quantum mechanics, $|z|^2$ converts complex amplitudes into real probabilities via the Born rule.
-      <div class="flashcard-controls">
-        <button class="hard">Hard</button>
-        <button class="easy">Easy</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch02-euler-formula">
-    <div class="card-front">State Euler's formula and explain what $e^{i\theta}$ represents geometrically.</div>
-    <div class="card-back">$e^{i\theta} = \cos\theta + i\sin\theta$. Geometrically, $e^{i\theta}$ is the point on the unit circle in the complex plane at angle $\theta$ from the positive real axis. Multiplying a complex number by $e^{i\theta}$ rotates it by $\theta$ without changing its magnitude.
-      <div class="flashcard-controls">
-        <button class="hard">Hard</button>
-        <button class="easy">Easy</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch02-why-complex">
-    <div class="card-front">Why does quantum mechanics require complex numbers rather than just real numbers?</div>
-    <div class="card-back">Quantum mechanics relies on interference, where amplitudes combine constructively or destructively. Real numbers only allow in-phase or out-of-phase combination. Complex numbers provide a full 360 degrees of phase, enabling the rich interference patterns that quantum algorithms exploit to amplify correct answers and suppress wrong ones.
-      <div class="flashcard-controls">
-        <button class="hard">Hard</button>
-        <button class="easy">Easy</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch02-dot-product-zero">
+  <div class="flashcard" data-card-id="ch02-dot-product-orthogonal">
     <div class="card-front">What does it mean when the dot product of two vectors equals zero?</div>
-    <div class="card-back">The vectors are orthogonal (perpendicular). Since $\vec{a} \cdot \vec{b} = \|\vec{a}\|\|\vec{b}\|\cos\theta$, a zero dot product means $\cos\theta = 0$, so $\theta = 90°$. Orthogonal vectors represent completely distinguishable states in quantum computing.
+    <div class="card-back">The vectors are orthogonal (perpendicular). Since $\vec{a} \cdot \vec{b} = \|\vec{a}\|\|\vec{b}\|\cos\theta$, a zero dot product means $\cos\theta = 0$, so $\theta = 90$ degrees. In quantum computing, orthogonal state vectors represent perfectly distinguishable states.
       <div class="flashcard-controls">
-        <button class="hard">Hard</button>
         <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch02-matrix-gate-order">
+    <div class="card-front">If you apply gate $A$ and then gate $B$, what matrix represents the combined operation?</div>
+    <div class="card-back">The matrix product $BA$ (not $AB$). The gate applied first goes on the right, closest to the state vector. This is because we evaluate $B(A|\psi\rangle) = (BA)|\psi\rangle$. Matrix multiplication is not commutative, so the order of gates matters.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
       </div>
     </div>
   </div>
@@ -894,8 +1535,38 @@ immediate use when we write down the state of our first qubit.
     <div class="card-front">What happens when a $2 \times 2$ matrix has a determinant of zero?</div>
     <div class="card-back">The matrix has no inverse - it is singular. Geometrically, it collapses 2D space into a line or a point, losing information irreversibly. Quantum gates always have nonzero determinants (they are unitary), ensuring that quantum operations are always reversible.
       <div class="flashcard-controls">
-        <button class="hard">Hard</button>
         <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch02-complex-conjugate-born">
+    <div class="card-front">What is the complex conjugate of $z = a + bi$, and how does it relate to $|z|^2$?</div>
+    <div class="card-back">The conjugate is $\bar{z} = a - bi$ (negate the imaginary part). The magnitude squared is $|z|^2 = z\bar{z} = a^2 + b^2$. In quantum mechanics, $|z|^2$ converts complex amplitudes into real probabilities via the Born rule.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch02-euler-formula">
+    <div class="card-front">State Euler's formula and explain what $e^{i\theta}$ represents geometrically.</div>
+    <div class="card-back">$e^{i\theta} = \cos\theta + i\sin\theta$. Geometrically, $e^{i\theta}$ is the point on the unit circle in the complex plane at angle $\theta$ from the positive real axis. Multiplying a complex number by $e^{i\theta}$ rotates it by angle $\theta$ without changing its magnitude.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch02-why-complex-numbers">
+    <div class="card-front">Why does quantum mechanics require complex numbers rather than just real numbers?</div>
+    <div class="card-back">Quantum mechanics relies on interference, where amplitudes combine constructively or destructively. Real numbers only allow in-phase or out-of-phase combination. Complex numbers provide a full 360 degrees of phase, enabling the rich interference patterns that quantum algorithms exploit to amplify correct answers and suppress wrong ones.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
       </div>
     </div>
   </div>
@@ -903,305 +1574,3 @@ immediate use when we write down the state of our first qubit.
 </div>
 
 </section>
-
-<!-- ============================================================ -->
-<!-- Inline scripts for interactive widgets                        -->
-<!-- ============================================================ -->
-
-<script>
-// --- Base Converter Widget ---
-(function() {
-  var input = document.getElementById('bc-input');
-  var fromSel = document.getElementById('bc-from');
-  var btn = document.getElementById('bc-convert');
-  var output = document.getElementById('bc-output');
-
-  function convert() {
-    var val = input.value.trim();
-    var base = parseInt(fromSel.value, 10);
-    var num = parseInt(val, base);
-    if (isNaN(num) || num < 0) {
-      output.textContent = 'Invalid input for base ' + base + '.';
-      return;
-    }
-    var lines = [];
-    lines.push('Decimal (base 10): ' + num.toString(10));
-    lines.push('Binary  (base  2): ' + num.toString(2));
-    lines.push('Hex     (base 16): ' + num.toString(16).toUpperCase());
-    lines.push('Octal   (base  8): ' + num.toString(8));
-    output.innerHTML = lines.join('<br>');
-  }
-
-  btn.addEventListener('click', convert);
-  input.addEventListener('keydown', function(e) { if (e.key === 'Enter') convert(); });
-  convert();
-})();
-</script>
-
-<script>
-// --- Vector Visualizer Widget ---
-(function() {
-  var ax = document.getElementById('vv-ax');
-  var ay = document.getElementById('vv-ay');
-  var bx = document.getElementById('vv-bx');
-  var by = document.getElementById('vv-by');
-  var op = document.getElementById('vv-op');
-  var scalar = document.getElementById('vv-scalar');
-  var btn = document.getElementById('vv-draw');
-  var svg = document.getElementById('vv-svg');
-  var output = document.getElementById('vv-output');
-
-  op.addEventListener('change', function() {
-    scalar.style.display = op.value === 'scale' ? 'inline' : 'none';
-  });
-
-  function arrow(svg, x1, y1, x2, y2, color, label) {
-    // Flip y for SVG (positive up)
-    var sy1 = -y1, sy2 = -y2;
-    var line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-    line.setAttribute('x1', x1); line.setAttribute('y1', sy1);
-    line.setAttribute('x2', x2); line.setAttribute('y2', sy2);
-    line.setAttribute('stroke', color); line.setAttribute('stroke-width', '0.08');
-    line.setAttribute('marker-end', 'url(#ah-' + color.replace('#','') + ')');
-    svg.appendChild(line);
-    if (label) {
-      var tx = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      tx.setAttribute('x', x2 + 0.15); tx.setAttribute('y', sy2 - 0.15);
-      tx.setAttribute('fill', color); tx.setAttribute('font-size', '0.5');
-      tx.setAttribute('font-family', 'system-ui, sans-serif');
-      tx.textContent = label;
-      svg.appendChild(tx);
-    }
-  }
-
-  function ensureMarker(svg, color) {
-    var id = 'ah-' + color.replace('#','');
-    if (document.getElementById(id)) return;
-    var defs = svg.querySelector('defs');
-    if (!defs) { defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs'); svg.insertBefore(defs, svg.firstChild); }
-    var marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
-    marker.setAttribute('id', id); marker.setAttribute('markerWidth', '6'); marker.setAttribute('markerHeight', '4');
-    marker.setAttribute('refX', '5'); marker.setAttribute('refY', '2'); marker.setAttribute('orient', 'auto');
-    var poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-    poly.setAttribute('points', '0 0, 6 2, 0 4'); poly.setAttribute('fill', color);
-    marker.appendChild(poly); defs.appendChild(marker);
-  }
-
-  function drawGrid(svg) {
-    for (var i = -4; i <= 4; i++) {
-      var lh = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      lh.setAttribute('x1', -5); lh.setAttribute('y1', i); lh.setAttribute('x2', 5); lh.setAttribute('y2', i);
-      lh.setAttribute('stroke', i === 0 ? 'var(--color-text-muted)' : 'var(--color-border)');
-      lh.setAttribute('stroke-width', i === 0 ? '0.04' : '0.02');
-      svg.appendChild(lh);
-      var lv = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      lv.setAttribute('x1', i); lv.setAttribute('y1', -5); lv.setAttribute('x2', i); lv.setAttribute('y2', 5);
-      lv.setAttribute('stroke', i === 0 ? 'var(--color-text-muted)' : 'var(--color-border)');
-      lv.setAttribute('stroke-width', i === 0 ? '0.04' : '0.02');
-      svg.appendChild(lv);
-    }
-  }
-
-  function draw() {
-    var a = { x: parseFloat(ax.value) || 0, y: parseFloat(ay.value) || 0 };
-    var b = { x: parseFloat(bx.value) || 0, y: parseFloat(by.value) || 0 };
-    svg.innerHTML = '';
-    drawGrid(svg);
-    var colorA = '#4C72B0', colorB = '#C44E52', colorR = '#22c55e';
-    ensureMarker(svg, colorA); ensureMarker(svg, colorB); ensureMarker(svg, colorR);
-
-    var result, rlabel, info;
-    if (op.value === 'add') {
-      result = { x: a.x + b.x, y: a.y + b.y };
-      rlabel = 'A+B';
-      info = 'A + B = (' + result.x.toFixed(1) + ', ' + result.y.toFixed(1) + ')';
-      arrow(svg, 0, 0, a.x, a.y, colorA, 'A');
-      arrow(svg, 0, 0, b.x, b.y, colorB, 'B');
-      arrow(svg, 0, 0, result.x, result.y, colorR, rlabel);
-    } else if (op.value === 'sub') {
-      result = { x: a.x - b.x, y: a.y - b.y };
-      rlabel = 'A-B';
-      info = 'A - B = (' + result.x.toFixed(1) + ', ' + result.y.toFixed(1) + ')';
-      arrow(svg, 0, 0, a.x, a.y, colorA, 'A');
-      arrow(svg, 0, 0, b.x, b.y, colorB, 'B');
-      arrow(svg, 0, 0, result.x, result.y, colorR, rlabel);
-    } else {
-      var s = parseFloat(scalar.value) || 1;
-      result = { x: s * a.x, y: s * a.y };
-      rlabel = s + 'A';
-      info = s + ' * A = (' + result.x.toFixed(1) + ', ' + result.y.toFixed(1) + ')';
-      arrow(svg, 0, 0, a.x, a.y, colorA, 'A');
-      arrow(svg, 0, 0, result.x, result.y, colorR, rlabel);
-    }
-    var magA = Math.sqrt(a.x * a.x + a.y * a.y);
-    output.innerHTML = info + '&emsp;|&emsp;|A| = ' + magA.toFixed(3);
-  }
-
-  btn.addEventListener('click', draw);
-  draw();
-})();
-</script>
-
-<script>
-// --- Matrix Calculator Widget ---
-(function() {
-  var ga = document.getElementById('mc-a'), gb = document.getElementById('mc-b');
-  var gc = document.getElementById('mc-c'), gd = document.getElementById('mc-d');
-  var ge = document.getElementById('mc-e'), gf = document.getElementById('mc-f');
-  var gg = document.getElementById('mc-g'), gh = document.getElementById('mc-h');
-  var op = document.getElementById('mc-op');
-  var btn = document.getElementById('mc-calc');
-  var output = document.getElementById('mc-output');
-
-  function fmt(n) { return Number.isInteger(n) ? n.toString() : n.toFixed(4); }
-
-  function calc() {
-    var a = parseFloat(ga.value) || 0, b = parseFloat(gb.value) || 0;
-    var c = parseFloat(gc.value) || 0, d = parseFloat(gd.value) || 0;
-    var e = parseFloat(ge.value) || 0, f = parseFloat(gf.value) || 0;
-    var g = parseFloat(gg.value) || 0, h = parseFloat(gh.value) || 0;
-    var mode = op.value;
-
-    if (mode === 'mulvec') {
-      var rx = a * e + b * g;
-      var ry = c * e + d * g;
-      output.innerHTML = 'M * v = (' + fmt(rx) + ', ' + fmt(ry) + ')';
-    } else if (mode === 'mulmtx') {
-      var r11 = a*e + b*g, r12 = a*f + b*h;
-      var r21 = c*e + d*g, r22 = c*f + d*h;
-      output.innerHTML = 'M * N = [[ ' + fmt(r11) + ', ' + fmt(r12) + ' ], [ ' + fmt(r21) + ', ' + fmt(r22) + ' ]]';
-    } else if (mode === 'det') {
-      var det = a*d - b*c;
-      output.innerHTML = 'det(M) = ' + fmt(det);
-    } else if (mode === 'inv') {
-      var det = a*d - b*c;
-      if (Math.abs(det) < 1e-10) {
-        output.innerHTML = 'Determinant is 0 - matrix is not invertible.';
-      } else {
-        var ia = d/det, ib = -b/det, ic = -c/det, id2 = a/det;
-        output.innerHTML = 'M^(-1) = [[ ' + fmt(ia) + ', ' + fmt(ib) + ' ], [ ' + fmt(ic) + ', ' + fmt(id2) + ' ]]&emsp;(det = ' + fmt(det) + ')';
-      }
-    }
-  }
-
-  btn.addEventListener('click', calc);
-  calc();
-})();
-</script>
-
-<script>
-// --- Complex Plane Visualizer Widget ---
-(function() {
-  var reIn = document.getElementById('cp-re');
-  var imIn = document.getElementById('cp-im');
-  var opSel = document.getElementById('cp-op');
-  var btn = document.getElementById('cp-draw');
-  var svg = document.getElementById('cp-svg');
-  var output = document.getElementById('cp-output');
-
-  function drawGrid(svg) {
-    for (var i = -4; i <= 4; i++) {
-      var lh = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      lh.setAttribute('x1', -5); lh.setAttribute('y1', i); lh.setAttribute('x2', 5); lh.setAttribute('y2', i);
-      lh.setAttribute('stroke', i === 0 ? 'var(--color-text-muted)' : 'var(--color-border)');
-      lh.setAttribute('stroke-width', i === 0 ? '0.04' : '0.02');
-      svg.appendChild(lh);
-      var lv = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      lv.setAttribute('x1', i); lv.setAttribute('y1', -5); lv.setAttribute('x2', i); lv.setAttribute('y2', 5);
-      lv.setAttribute('stroke', i === 0 ? 'var(--color-text-muted)' : 'var(--color-border)');
-      lv.setAttribute('stroke-width', i === 0 ? '0.04' : '0.02');
-      svg.appendChild(lv);
-    }
-    // axis labels
-    var reLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    reLabel.setAttribute('x', 4.2); reLabel.setAttribute('y', 0.4);
-    reLabel.setAttribute('fill', 'var(--color-text-muted)'); reLabel.setAttribute('font-size', '0.4');
-    reLabel.textContent = 'Re';
-    svg.appendChild(reLabel);
-    var imLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    imLabel.setAttribute('x', 0.2); imLabel.setAttribute('y', -4.2);
-    imLabel.setAttribute('fill', 'var(--color-text-muted)'); imLabel.setAttribute('font-size', '0.4');
-    imLabel.textContent = 'Im';
-    svg.appendChild(imLabel);
-  }
-
-  function plotPoint(svg, re, im, color, label) {
-    // In SVG, y increases downward, but we want Im axis pointing up
-    var sy = -im;
-    var circ = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    circ.setAttribute('cx', re); circ.setAttribute('cy', sy); circ.setAttribute('r', '0.12');
-    circ.setAttribute('fill', color);
-    svg.appendChild(circ);
-    // line from origin
-    var line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-    line.setAttribute('x1', 0); line.setAttribute('y1', 0); line.setAttribute('x2', re); line.setAttribute('y2', sy);
-    line.setAttribute('stroke', color); line.setAttribute('stroke-width', '0.05'); line.setAttribute('stroke-dasharray', '0.15 0.08');
-    svg.appendChild(line);
-    if (label) {
-      var tx = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      tx.setAttribute('x', re + 0.2); tx.setAttribute('y', sy - 0.2);
-      tx.setAttribute('fill', color); tx.setAttribute('font-size', '0.4');
-      tx.setAttribute('font-family', 'system-ui, sans-serif');
-      tx.textContent = label;
-      svg.appendChild(tx);
-    }
-  }
-
-  function fmt(n) { return Math.round(n * 1000) / 1000; }
-
-  function fmtComplex(re, im) {
-    var s = fmt(re).toString();
-    if (im >= 0) s += ' + ' + fmt(im) + 'i';
-    else s += ' - ' + fmt(-im) + 'i';
-    return s;
-  }
-
-  function draw() {
-    var re = parseFloat(reIn.value) || 0;
-    var im = parseFloat(imIn.value) || 0;
-    var mode = opSel.value;
-    svg.innerHTML = '';
-    drawGrid(svg);
-
-    // draw unit circle for reference
-    var uc = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    uc.setAttribute('cx', 0); uc.setAttribute('cy', 0); uc.setAttribute('r', 1);
-    uc.setAttribute('fill', 'none'); uc.setAttribute('stroke', 'var(--color-border)'); uc.setAttribute('stroke-width', '0.03');
-    svg.appendChild(uc);
-
-    var mag = Math.sqrt(re * re + im * im);
-    var phase = Math.atan2(im, re);
-    var info = 'z = ' + fmtComplex(re, im) + '&emsp;|z| = ' + fmt(mag) + '&emsp;phase = ' + fmt(phase * 180 / Math.PI) + ' deg';
-
-    var colorZ = '#4C72B0', colorConj = '#C44E52', colorResult = '#22c55e';
-
-    if (mode === 'plot') {
-      plotPoint(svg, re, im, colorZ, 'z');
-    } else if (mode === 'conj') {
-      plotPoint(svg, re, im, colorZ, 'z');
-      plotPoint(svg, re, -im, colorConj, 'z*');
-      info += '<br>z* = ' + fmtComplex(re, -im);
-    } else if (mode === 'mul') {
-      // multiply by e^(i*pi/4)
-      var angle = Math.PI / 4;
-      var cosA = Math.cos(angle), sinA = Math.sin(angle);
-      var newRe = re * cosA - im * sinA;
-      var newIm = re * sinA + im * cosA;
-      plotPoint(svg, re, im, colorZ, 'z');
-      plotPoint(svg, newRe, newIm, colorResult, 'z * e^(i*pi/4)');
-      info += '<br>z * e^(i*pi/4) = ' + fmtComplex(newRe, newIm);
-    } else if (mode === 'square') {
-      var sqRe = re * re - im * im;
-      var sqIm = 2 * re * im;
-      plotPoint(svg, re, im, colorZ, 'z');
-      plotPoint(svg, sqRe, sqIm, colorResult, 'z^2');
-      info += '<br>z^2 = ' + fmtComplex(sqRe, sqIm) + '&emsp;|z^2| = ' + fmt(mag * mag);
-    }
-
-    output.innerHTML = info;
-  }
-
-  btn.addEventListener('click', draw);
-  draw();
-})();
-</script>

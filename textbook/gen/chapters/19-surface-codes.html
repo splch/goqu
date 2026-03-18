@@ -1,0 +1,732 @@
+<p>
+  The stabilizer formalism of Chapter 18 gives us a powerful language for quantum error
+  correction, but the codes we examined there - the Steane code, the 5-qubit code - require
+  every qubit to interact with many others, demanding long-range connectivity that is
+  extremely difficult to engineer in hardware. Nature, however, offers a solution: arrange
+  qubits on a two-dimensional lattice and define stabilizers using only nearest-neighbor
+  interactions. The result is the <strong>surface code</strong>, the leading candidate for
+  practical quantum error correction and the workhorse of nearly every large-scale
+  fault-tolerant quantum computing architecture proposed today.
+</p>
+
+<p>
+  The ideas trace back to Alexei Kitaev's <strong>toric code</strong> (1997), a beautiful
+  example of topological quantum error correction defined on a torus. The surface code is
+  its planar cousin, adapted for realistic hardware with boundaries. In this chapter we will
+  build the toric code from scratch, unwrap it into the surface code, learn how logical
+  operations are performed through lattice surgery, and glimpse the frontier of code design
+  with color codes and quantum LDPC codes.
+</p>
+
+<!-- ================================================================== -->
+<section id="toric-code">
+<h2>19.1 The Toric Code: Error Correction on a Lattice</h2>
+
+<p>
+  Kitaev's toric code is defined on a square lattice drawn on a torus (a surface with
+  periodic boundary conditions in both directions). Qubits live on the <strong>edges</strong>
+  of the lattice. For an $L \times L$ lattice on a torus, there are $2L^2$ edges, hence
+  $2L^2$ physical qubits.
+</p>
+
+<h3>Vertex and Plaquette Operators</h3>
+
+<p>
+  The stabilizer generators come in two types:
+</p>
+
+<ul>
+  <li>
+    <strong>Vertex operators</strong> $A_v$: for each vertex $v$, define $A_v$ as the product
+    of $X$ operators on all edges touching $v$. On a square lattice, each vertex has four
+    edges, so $A_v = X_{e_1} X_{e_2} X_{e_3} X_{e_4}$.
+  </li>
+  <li>
+    <strong>Plaquette operators</strong> $B_p$: for each face (plaquette) $p$, define $B_p$
+    as the product of $Z$ operators on all edges bounding $p$. Each plaquette has four edges,
+    so $B_p = Z_{e_1} Z_{e_2} Z_{e_3} Z_{e_4}$.
+  </li>
+</ul>
+
+<p>
+  Every vertex operator commutes with every plaquette operator. To see why: a vertex $v$ and a
+  plaquette $p$ share either 0 or 2 edges (by the geometry of the lattice). If they share 0
+  edges, $A_v$ and $B_p$ act on disjoint qubits and trivially commute. If they share 2 edges,
+  the two $X$ operators from $A_v$ anticommute with the two $Z$ operators from $B_p$ on those
+  edges, but two anticommutations yield an overall commutation (the $(-1)^2 = +1$ rule from
+  Section 18.1).
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    The toric code is a stabilizer code whose generators are geometrically local: each involves
+    only the four qubits adjacent to a single vertex or plaquette on a 2D lattice. This
+    locality makes syndrome measurement feasible with nearest-neighbor hardware.
+  </p>
+</div>
+
+<h3>Code Parameters</h3>
+
+<p>
+  For an $L \times L$ toric code:
+</p>
+
+<ul>
+  <li>Physical qubits: $n = 2L^2$ (one per edge)</li>
+  <li>Vertex operators: $L^2$, but their product is the identity ($\prod_v A_v = I$), giving $L^2 - 1$ independent generators</li>
+  <li>Plaquette operators: $L^2$, with $\prod_p B_p = I$, giving $L^2 - 1$ independent generators</li>
+  <li>Total independent stabilizer generators: $2(L^2 - 1) = 2L^2 - 2$</li>
+  <li>Logical qubits: $k = n - (n - k) = 2L^2 - (2L^2 - 2) = 2$</li>
+  <li>Code distance: $d = L$ (the shortest non-contractible loop on the torus)</li>
+</ul>
+
+<p>
+  The toric code is a $[[2L^2, 2, L]]$ code. It encodes two logical qubits because the torus
+  has two independent non-contractible cycles (one going "around" the torus and one going
+  "through" the hole).
+</p>
+
+<h3>Anyonic Excitations and Error Chains</h3>
+
+<p>
+  Errors create excitations at the endpoints of error chains. A $Z$ error on an edge flips
+  the two vertex operators sharing that edge, creating a pair of $A_v = -1$ excitations
+  called <strong>$e$-anyons</strong> (or electric charges). An $X$ error on an edge flips
+  the two plaquette operators sharing that edge, creating a pair of $B_p = -1$ excitations
+  called <strong>$m$-anyons</strong> (or magnetic vortices).
+</p>
+
+<p>
+  A chain of $Z$ errors along a path creates $e$-anyons only at the two endpoints of the
+  path - the intermediate excitations cancel in pairs. Error correction amounts to pairing
+  up the observed anyons and connecting each pair with a correction chain. As long as the
+  correction chain and the error chain together form a <em>contractible</em> loop (one that
+  can be continuously shrunk to a point on the torus), the correction succeeds. If they
+  form a non-contractible loop, a logical error occurs.
+</p>
+
+<p>
+  This topological picture - errors as anyon pairs, correction as matching, failure as
+  non-contractible loops - is the essence of topological quantum error correction.
+</p>
+
+<h3>Logical Operators on the Torus</h3>
+
+<p>
+  The toric code encodes two logical qubits, corresponding to the two topologically
+  distinct non-contractible loops on the torus. For the first logical qubit:
+</p>
+
+<ul>
+  <li>$\bar{X}_1$: a product of $X$ operators along a non-contractible loop in one direction (e.g., a vertical loop wrapping around the torus).</li>
+  <li>$\bar{Z}_1$: a product of $Z$ operators along a non-contractible loop in the perpendicular direction.</li>
+</ul>
+
+<p>
+  Similarly for the second logical qubit, with the roles of the two directions swapped. These
+  logical operators commute with all stabilizers (they correspond to non-contractible loops,
+  which cannot be written as products of local stabilizer generators) but anticommute with
+  each other in the appropriate pairs.
+</p>
+
+<p>
+  The minimum weight of any logical operator is the minimum length of a non-contractible
+  loop on the lattice, which is $L$ for an $L \times L$ torus. This gives the code distance
+  $d = L$. An error creates a logical fault only if it spans the entire width of the lattice
+  - a highly unlikely event when the physical error rate is low and $L$ is large.
+</p>
+
+<h3>Why "Topological"?</h3>
+
+<p>
+  The toric code is called topological because its code properties depend on the
+  <em>topology</em> (global shape) of the surface, not on the local geometry. Deforming the
+  lattice, stretching edges, or moving vertices does not change the code distance or the
+  number of logical qubits. All that matters is whether loops are contractible or
+  non-contractible - a purely topological distinction. This provides a natural robustness:
+  local perturbations (which correspond to contractible loops) cannot cause logical errors.
+</p>
+
+<div class="callout callout-info">
+  <strong>Note.</strong>
+  <p>
+    The toric code is the simplest example of a broader class of <strong>topological quantum
+    codes</strong> that includes the surface code, color codes, and Kitaev's quantum double
+    models. All share the property that code parameters are determined by the topology of the
+    underlying surface, providing an elegant connection between quantum error correction and
+    algebraic topology.
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="surface-code">
+<h2>19.2 The Surface Code: The Leading Candidate</h2>
+
+<p>
+  The toric code is elegant but impractical: building a torus in hardware requires periodic
+  boundary conditions that are impossible on a planar chip. The <strong>surface code</strong>
+  (also called the planar code) solves this by cutting the torus open and introducing
+  <strong>boundaries</strong>.
+</p>
+
+<h3>Lattice Structure</h3>
+
+<p>
+  The standard surface code is defined on a planar square lattice. In the "rotated" layout
+  (the most hardware-efficient version), data qubits sit at the vertices of a tilted square
+  grid, and ancilla qubits for syndrome measurement sit at the centers of each face. For a
+  distance-$d$ code:
+</p>
+
+<ul>
+  <li>Data qubits: $d^2$</li>
+  <li>$X$-type stabilizers (measuring $Z$ errors): $(d^2 - 1)/2$ plaquettes</li>
+  <li>$Z$-type stabilizers (measuring $X$ errors): $(d^2 - 1)/2$ plaquettes</li>
+  <li>Ancilla qubits: $d^2 - 1$ (one per stabilizer)</li>
+  <li>Total qubits: $2d^2 - 1$</li>
+</ul>
+
+<p>
+  The surface code encodes $k = 1$ logical qubit with distance $d$, giving parameters
+  $[[d^2, 1, d]]$ (in the rotated layout). The boundaries are of two types:
+  <strong>rough</strong> (where $X$-type stabilizers are truncated) and <strong>smooth</strong>
+  (where $Z$-type stabilizers are truncated). Alternating rough and smooth boundaries around
+  the perimeter creates a code that encodes exactly one logical qubit.
+</p>
+
+<h3>The ~1% Error Threshold</h3>
+
+<p>
+  The surface code's claim to fame is its exceptionally high error threshold: approximately
+  <strong>1%</strong> per physical gate operation under a standard depolarizing noise model,
+  and approximately <strong>0.3%</strong> under a more realistic circuit-level noise model
+  that accounts for faulty syndrome measurements. This means that if each physical operation
+  has an error rate below the threshold, increasing the code distance $d$ exponentially
+  suppresses the logical error rate:
+</p>
+
+$$p_{\text{logical}} \sim \left(\frac{p_{\text{physical}}}{p_{\text{threshold}}}\right)^{\lfloor d/2 \rfloor + 1}$$
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    The surface code threshold of approximately 1% is the highest known for any 2D topological
+    code with local stabilizers. If physical error rates are below this threshold, the logical
+    error rate decreases exponentially with code distance. This is why the surface code is
+    the leading candidate for fault-tolerant quantum computing.
+  </p>
+</div>
+
+<h3>Syndrome Measurement Cycles</h3>
+
+<p>
+  In a real implementation, syndrome measurement is not instantaneous and is itself noisy.
+  Each syndrome extraction round involves a sequence of CNOT gates between data qubits and
+  ancilla qubits, followed by measurement of the ancillas. Because measurements can err, the
+  syndrome must be extracted repeatedly - typically $d$ rounds per error correction cycle -
+  building up a three-dimensional syndrome history (two spatial dimensions plus time).
+</p>
+
+<p>
+  Decoding this 3D syndrome data is the job of the decoder. The minimum-weight perfect
+  matching (MWPM) decoder, originally proposed by Dennis, Kitaev, Landahl, and Preskill
+  (2002), treats syndrome defects as nodes in a graph and finds the minimum-weight matching.
+  Modern implementations achieve near-optimal performance with sub-microsecond latency.
+</p>
+
+<h3>Sandbox: Distance-3 Surface Code Syndrome</h3>
+
+<p>
+  The smallest interesting surface code has distance $d = 3$, using 9 data qubits and 8
+  ancilla qubits (17 total). In the sandbox below we prepare all data qubits in
+  $|0\rangle$, introduce a single $X$ error, and extract one round of $Z$-type syndromes.
+  The syndrome pattern reveals the error location.
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="16">OPENQASM 3.0;
+qubit[13] q;
+bit[13] c;
+// q[0..8] = 9 data qubits in a 3x3 grid
+// q[9..12] = 4 Z-stabilizer ancillas
+// All start in |0>, so Z-stabilizers should read +1
+// Introduce X error on data qubit 4 (center)
+x q[4];
+// Measure Z-stabilizer: Z on qubits {0,1,3,4} via ancilla q[9]
+cx q[0], q[9]; cx q[1], q[9];
+cx q[3], q[9]; cx q[4], q[9];
+// Measure Z-stabilizer: Z on qubits {1,2,4,5} via ancilla q[10]
+cx q[1], q[10]; cx q[2], q[10];
+cx q[4], q[10]; cx q[5], q[10];
+// Measure Z-stabilizer: Z on qubits {3,4,6,7} via ancilla q[11]
+cx q[3], q[11]; cx q[4], q[11];
+cx q[6], q[11]; cx q[7], q[11];
+// Measure Z-stabilizer: Z on qubits {4,5,7,8} via ancilla q[12]
+cx q[4], q[12]; cx q[5], q[12];
+cx q[7], q[12]; cx q[8], q[12];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+  With an $X$ error on the center qubit (q[4]), all four $Z$-type stabilizers that include
+  qubit 4 should flag, since $X$ anticommutes with $Z$. The ancilla qubits q[9] through
+  q[12] should all read 1, uniquely identifying the center qubit as the error location. Try
+  moving the error to a corner qubit like q[0] to see how the syndrome pattern changes.
+</p>
+
+<h3>Logical Operators on the Planar Surface Code</h3>
+
+<p>
+  Unlike the toric code (which encodes 2 logical qubits), the planar surface code encodes
+  exactly 1 logical qubit. The logical operators are chains of Paulis stretching from one
+  boundary to the opposite boundary:
+</p>
+
+<ul>
+  <li>
+    $\bar{Z}$: a chain of $Z$ operators connecting the two rough boundaries (e.g., left to
+    right across the lattice).
+  </li>
+  <li>
+    $\bar{X}$: a chain of $X$ operators connecting the two smooth boundaries (e.g., top to
+    bottom across the lattice).
+  </li>
+</ul>
+
+<p>
+  These two chains necessarily cross at least once (by the geometry of the boundaries),
+  ensuring that $\bar{X}$ and $\bar{Z}$ anticommute as required for a logical qubit. The
+  minimum length of either chain is $d$ (the code distance), ensuring that a logical error
+  requires at least $d$ physical errors.
+</p>
+
+<h3>The Surface Code as a Quantum Memory</h3>
+
+<p>
+  Before we use the surface code for computation, it serves as a <strong>quantum memory</strong>:
+  encode a logical qubit, run syndrome extraction cycles continuously, decode and correct
+  errors, and the logical information persists far longer than it would on a bare physical
+  qubit. The <strong>logical lifetime</strong> grows exponentially with code distance
+  (assuming sub-threshold physical error rates), making the surface code an excellent quantum
+  memory even before any logical gates are performed.
+</p>
+
+<p>
+  This quantum memory capability is what Google's Willow chip demonstrated in December 2024:
+  increasing the code distance from 3 to 5 to 7 each time roughly doubled the logical
+  lifetime, confirming exponential error suppression below threshold (see Chapter 20 for
+  details).
+</p>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="logical-gates">
+<h2>19.3 Logical Gates on the Surface Code</h2>
+
+<p>
+  Encoding information in the surface code protects it from noise, but we also need to
+  <em>compute</em> on the encoded information. Performing logical gates on surface-code
+  qubits without breaking the error protection is one of the central challenges of
+  fault-tolerant quantum computing.
+</p>
+
+<h3>Transversal Gates</h3>
+
+<p>
+  A <strong>transversal gate</strong> applies a physical gate independently to each qubit in
+  the code block (or pairs of corresponding qubits across two code blocks). Transversal gates
+  are automatically fault-tolerant because an error on one physical qubit cannot spread to
+  others within the same block.
+</p>
+
+<p>
+  For the surface code, the only transversal Clifford gate is the logical identity and
+  (with two code blocks) the logical CNOT. This is a consequence of the
+  <strong>Eastin-Knill theorem</strong>: no quantum error-correcting code can implement a
+  universal gate set entirely through transversal gates. We must find other methods.
+</p>
+
+<h3>Lattice Surgery</h3>
+
+<p>
+  <strong>Lattice surgery</strong>, introduced by Horsman, Fowler, Devitt, and Van Meter
+  (2012), is the dominant approach for performing logical operations on surface codes. Instead
+  of moving or braiding encoded information, lattice surgery merges and splits code patches
+  by temporarily modifying the lattice boundaries.
+</p>
+
+<p>
+  The key operation is the <strong>lattice merge</strong>: take two adjacent surface-code
+  patches and measure new stabilizers along their shared boundary, effectively joining them
+  into a single larger code that encodes one fewer logical qubit. This performs a logical
+  measurement - for example, measuring the joint parity $\bar{Z}\bar{Z}$ of two logical
+  qubits.
+</p>
+
+<p>
+  Combined with single-patch operations and classical feed-forward, lattice surgery can
+  implement:
+</p>
+
+<ul>
+  <li><strong>Logical CNOT</strong>: via merge and split operations that measure $\bar{X}\bar{X}$ or $\bar{Z}\bar{Z}$</li>
+  <li><strong>Logical Hadamard</strong>: by physically rotating the code patch (swapping rough and smooth boundaries)</li>
+  <li><strong>Logical $S$ gate</strong>: using ancilla patches prepared in specific states</li>
+  <li><strong>Logical $T$ gate</strong>: via magic state injection (Chapter 20)</li>
+</ul>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    Lattice surgery performs logical two-qubit gates by merging and splitting surface-code
+    patches along their boundaries. It requires only local operations and maintains the 2D
+    nearest-neighbor connectivity constraint, making it the most hardware-compatible approach
+    to logical operations on surface codes.
+  </p>
+</div>
+
+<h3>Merge and Split in Detail</h3>
+
+<p>
+  The lattice merge operation works in three steps:
+</p>
+
+<ol>
+  <li>
+    <strong>Prepare the boundary.</strong> The two surface-code patches are placed side by side
+    with a gap of one column between them. New ancilla qubits in this gap will mediate the
+    merge.
+  </li>
+  <li>
+    <strong>Measure merged stabilizers.</strong> For $d$ rounds, measure new stabilizer
+    generators that span the boundary between the two patches. For a $\bar{Z}\bar{Z}$
+    measurement, these are $Z$-type stabilizers connecting data qubits from both patches.
+    The merged stabilizer measurements project the two logical qubits onto a joint eigenstate
+    of $\bar{Z}\bar{Z}$, yielding the eigenvalue $\pm 1$.
+  </li>
+  <li>
+    <strong>Split.</strong> Stop measuring the boundary stabilizers and resume measuring the
+    original stabilizers of each separate patch. The patches return to being independent code
+    blocks, but the logical information has been updated by the $\bar{Z}\bar{Z}$ measurement.
+  </li>
+</ol>
+
+<p>
+  A single merge-and-split cycle takes $O(d)$ syndrome extraction rounds (to build up
+  sufficient confidence in the boundary measurement outcomes), making it the time-limiting
+  step of logical operations.
+</p>
+
+<h3>The Overhead Question</h3>
+
+<p>
+  Lattice surgery comes with significant qubit overhead. Each logical qubit requires a
+  $d \times d$ patch of physical qubits, plus routing space between patches for merge/split
+  operations. For a distance-17 surface code (needed for many practical applications), each
+  logical qubit requires roughly 600 physical qubits just for the data and syndrome qubits,
+  plus additional routing overhead. A fault-tolerant quantum computer running a useful
+  algorithm might need millions of physical qubits to support a few thousand logical qubits.
+</p>
+
+<p>
+  The routing overhead is substantial because lattice surgery requires patches to be adjacent
+  for merge operations. A quantum computation involving many logical qubits must schedule and
+  route merge operations, analogous to routing wires in a classical chip. This scheduling
+  problem is itself computationally challenging and has spawned an active research area in
+  quantum compilation and layout optimization.
+</p>
+
+<div class="callout callout-warning">
+  <strong>Common Misconception.</strong>
+  <p>
+    Lattice surgery does not physically move qubits. The data qubits remain stationary on the
+    chip throughout the computation. What changes is which stabilizers are being measured: the
+    boundary between patches is created or removed by turning stabilizer measurements on or
+    off. "Merging" and "splitting" are entirely about the pattern of measurements, not physical
+    motion.
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="color-code">
+<h2>19.4 The Color Code</h2>
+
+<p>
+  The <strong>color code</strong>, introduced by Bombin and Martin-Delgado (2006), is an
+  alternative topological code defined on a trivalent, three-colorable lattice (a lattice where
+  each face can be colored with one of three colors such that no two adjacent faces share a
+  color). Qubits live on vertices, and stabilizers are associated with faces.
+</p>
+
+<h3>Structure and Stabilizers</h3>
+
+<p>
+  For each face $f$ of the lattice, define two stabilizers:
+</p>
+
+$$A_f^X = \prod_{v \in f} X_v, \qquad A_f^Z = \prod_{v \in f} Z_v$$
+
+<p>
+  Both the $X$-type and $Z$-type stabilizer for a face act on the same set of qubits (all
+  vertices of that face). This is different from the surface code, where $X$- and $Z$-type
+  stabilizers act on different sets of qubits. The three-colorability ensures that all
+  stabilizers commute.
+</p>
+
+<h3>Advantages of the Color Code</h3>
+
+<p>
+  The color code has several advantages over the surface code:
+</p>
+
+<ul>
+  <li>
+    <strong>Transversal Clifford gates.</strong> The full Clifford group ($H$, $S$, CNOT) can
+    be implemented transversally. On the surface code, only CNOT is transversal. The
+    transversal $H$ gate maps the color code to itself (it swaps $X$- and $Z$-stabilizers,
+    but the lattice structure is preserved). The transversal $S$ gate works because $Y$-type
+    stabilizers are also in the stabilizer group.
+  </li>
+  <li>
+    <strong>Higher encoding rate.</strong> For comparable code distances, color codes use
+    somewhat fewer qubits than surface codes.
+  </li>
+</ul>
+
+<h3>Disadvantages</h3>
+
+<p>
+  However, the color code also has drawbacks:
+</p>
+
+<ul>
+  <li>
+    <strong>Lower threshold.</strong> The error threshold for the color code
+    (~0.1% under circuit-level noise) is lower than the surface code's ~0.3%. This means
+    physical qubits must be significantly better to benefit from color codes.
+  </li>
+  <li>
+    <strong>More complex stabilizers.</strong> The stabilizer weight (number of qubits per
+    stabilizer) is 6 on the standard hexagonal lattice, compared to 4 for the surface code.
+    Higher-weight stabilizers are harder to measure and more error-prone.
+  </li>
+</ul>
+
+<div class="callout callout-info">
+  <strong>Note.</strong>
+  <p>
+    Recent work has explored hybrid approaches that combine the surface code's high threshold
+    with the color code's transversal Clifford gates. For example, a computation might use
+    surface codes for most operations but convert to color codes when a transversal $S$ or
+    $H$ gate is needed, then convert back.
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="beyond-surface-codes">
+<h2>19.5 Beyond Surface Codes: qLDPC Codes</h2>
+
+<p>
+  The surface code's greatest strength - geometric locality on a 2D lattice - is also its
+  greatest limitation. A $[[d^2, 1, d]]$ code requires $d^2$ physical qubits to encode a
+  single logical qubit, giving a rate $k/n = 1/d^2$ that vanishes as the code distance
+  grows. Can we do better?
+</p>
+
+<h3>Quantum LDPC Codes</h3>
+
+<p>
+  <strong>Quantum low-density parity-check (qLDPC) codes</strong> are the quantum analogs
+  of the classical LDPC codes that underpin modern wireless communications (Wi-Fi, 5G). In a
+  qLDPC code, each stabilizer acts on at most $w$ qubits and each qubit is involved in at
+  most $w$ stabilizers, where $w$ is a constant independent of the code size. The surface
+  code is a qLDPC code with $w = 4$.
+</p>
+
+<p>
+  The breakthrough question is: can qLDPC codes achieve constant rate $k/n = \Theta(1)$ and
+  growing distance $d = \Theta(n^\alpha)$ for some $\alpha > 0$, while keeping $w$ constant?
+  In 2021, Pavel Panteleev and Gleb Kalachev showed the answer is yes: they constructed
+  <strong>asymptotically good qLDPC codes</strong> with $k = \Theta(n)$ and $d = \Theta(n)$,
+  meaning the rate and relative distance are both constant. This was a landmark result in
+  quantum coding theory.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    Asymptotically good qLDPC codes achieve $k = \Theta(n)$ logical qubits and distance
+    $d = \Theta(n)$ with constant stabilizer weight. This is a dramatic improvement over the
+    surface code's $k = 1, d = \sqrt{n}$ scaling. However, these codes require non-local
+    connectivity, making hardware implementation challenging.
+  </p>
+</div>
+
+<h3>Notable qLDPC Code Families</h3>
+
+<ul>
+  <li>
+    <strong>Hypergraph product codes</strong> (Tillich and Zemor, 2014): constructed from
+    two classical LDPC codes, achieving $d = \Theta(\sqrt{n})$ with constant rate $k/n$.
+    These are among the simplest qLDPC codes to analyze and decode.
+  </li>
+  <li>
+    <strong>Fiber bundle codes</strong> (Hastings, Haah, and O'Donnell, 2021): achieve
+    $d = \Theta(n^{3/5} / \text{polylog}(n))$, breaking the $\sqrt{n}$ distance barrier
+    of hypergraph products.
+  </li>
+  <li>
+    <strong>Quantum Tanner codes</strong> (Leverrier and Zemor, 2022): the first explicit
+    construction of asymptotically good codes ($k = \Theta(n)$, $d = \Theta(n)$),
+    based on Tanner's classical construction applied to high-dimensional expanders.
+  </li>
+  <li>
+    <strong>Bivariate bicycle codes</strong> (Bravyi, Cross, Gambetta, Maslov, Rall, and
+    Yoder, 2024): a practical family with $w = 6$ that offers substantially better
+    encoding rates than the surface code while maintaining reasonable connectivity. IBM
+    has proposed using these for near-term fault-tolerant demonstrations.
+  </li>
+</ul>
+
+<h3>The Connectivity Challenge</h3>
+
+<p>
+  The fundamental trade-off for qLDPC codes is between encoding efficiency and hardware
+  connectivity. The surface code's $w = 4$ stabilizers require only nearest-neighbor
+  interactions on a 2D grid - the natural geometry of superconducting qubit chips. qLDPC
+  codes with better parameters require non-local interactions, which must be mediated by
+  physical connections (long wires, flying qubits, or reconfigurable atom arrays) or by
+  routing protocols that introduce overhead.
+</p>
+
+<p>
+  Neutral atom platforms, where individual atoms can be physically rearranged using optical
+  tweezers, are especially promising for qLDPC codes. The ability to reconfigure connectivity
+  dynamically could make high-rate qLDPC codes practical, potentially reducing the total
+  qubit count for fault-tolerant computation by orders of magnitude compared to surface codes.
+</p>
+
+<div class="callout callout-info">
+  <strong>Note.</strong>
+  <p>
+    The choice between surface codes and qLDPC codes is not settled. Surface codes are the
+    safe, well-understood option with the highest threshold and simplest hardware requirements.
+    qLDPC codes promise dramatically better efficiency but require hardware advances in
+    connectivity. The field is actively racing to determine which approach will reach
+    practical fault tolerance first.
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="review">
+<h2>Chapter 19 Review</h2>
+
+<div class="flashcard-deck" data-component="flashcard-deck">
+  <div class="flashcard-deck-header">Chapter 19 Review</div>
+
+  <div class="flashcard" data-card-id="ch19-toric-code">
+    <div class="card-front">Describe the toric code: where do qubits live, what are the stabilizers, and what are the code parameters for an $L \times L$ lattice?</div>
+    <div class="card-back">
+      Qubits live on edges of a square lattice on a torus. Vertex operators $A_v = \prod X_e$ (product over edges touching vertex $v$) and plaquette operators $B_p = \prod Z_e$ (product over edges bounding face $p$) are the stabilizers. Parameters: $[[2L^2, 2, L]]$ - encoding 2 logical qubits with distance $L$, corresponding to the two non-contractible cycles of the torus.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch19-anyons">
+    <div class="card-front">How do errors manifest as anyonic excitations in the toric code?</div>
+    <div class="card-back">
+      A $Z$ error on an edge creates a pair of $e$-anyons (vertex defects where $A_v = -1$) at the endpoints. An $X$ error creates a pair of $m$-anyons (plaquette defects where $B_p = -1$). Error chains create anyons only at their endpoints; intermediate defects cancel. Error correction pairs the anyons and connects each pair with a correction chain. A logical error occurs when the combined error-plus-correction chain forms a non-contractible loop on the torus.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch19-surface-threshold">
+    <div class="card-front">What is the surface code's error threshold, and what does it mean practically?</div>
+    <div class="card-back">
+      The surface code has a threshold of approximately 1% under depolarizing noise (approximately 0.3% under circuit-level noise). If each physical gate error rate $p$ is below the threshold $p_{\text{th}}$, the logical error rate decreases exponentially with code distance: $p_L \sim (p/p_{\text{th}})^{\lfloor d/2 \rfloor + 1}$. This is the highest known threshold for any 2D topological code with local stabilizers.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch19-lattice-surgery">
+    <div class="card-front">What is lattice surgery and why is it the dominant approach for logical gates on surface codes?</div>
+    <div class="card-back">
+      Lattice surgery performs logical operations by merging and splitting adjacent surface-code patches along their shared boundaries. Merging measures a joint logical operator (e.g., $\bar{Z}\bar{Z}$), and splitting restores independent patches. Combined with single-patch operations and classical feed-forward, it implements the full Clifford group. It is preferred because it requires only local, 2D-nearest-neighbor operations, matching hardware constraints.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch19-eastin-knill">
+    <div class="card-front">What does the Eastin-Knill theorem say, and what is its consequence?</div>
+    <div class="card-back">
+      The Eastin-Knill theorem states that no quantum error-correcting code can implement a universal set of logical gates entirely through transversal operations. Consequently, at least one gate (typically the non-Clifford $T$ gate) must be implemented using more complex, non-transversal methods such as magic state injection and distillation (Chapter 20).
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch19-color-code">
+    <div class="card-front">What advantage does the color code have over the surface code, and what is the trade-off?</div>
+    <div class="card-back">
+      The color code supports transversal implementation of the entire Clifford group ($H$, $S$, CNOT), whereas the surface code only supports transversal CNOT. The trade-off is a lower error threshold (~0.1% vs ~0.3% under circuit-level noise) and higher-weight stabilizers (weight 6 vs weight 4), making syndrome measurement harder and requiring better physical qubits.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch19-qlpdc">
+    <div class="card-front">What are qLDPC codes, and how do they improve on the surface code's scaling?</div>
+    <div class="card-back">
+      Quantum LDPC codes have constant-weight stabilizers (each stabilizer acts on $O(1)$ qubits and each qubit participates in $O(1)$ stabilizers). Asymptotically good qLDPC codes achieve $k = \Theta(n)$ logical qubits with distance $d = \Theta(n)$, dramatically improving on the surface code's $k = 1$, $d = \sqrt{n}$ scaling. The trade-off is that they require non-local qubit connectivity, which is challenging for planar hardware.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch19-mwpm-decoder">
+    <div class="card-front">How does minimum-weight perfect matching (MWPM) decode the surface code?</div>
+    <div class="card-back">
+      Syndrome defects (locations where stabilizer measurements return $-1$) are treated as nodes in a graph. The MWPM decoder finds a pairing of defects that minimizes the total edge weight (distance between paired defects). Each pair is connected by a correction chain. If the correction chain and the original error chain together form a trivial (contractible) loop, correction succeeds. MWPM runs in polynomial time and achieves near-optimal performance.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</section>

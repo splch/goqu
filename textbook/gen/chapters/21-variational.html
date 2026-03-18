@@ -1,0 +1,838 @@
+<p>
+  In every quantum algorithm we have studied so far, the circuit is fixed before execution -
+  gates are chosen in advance, and the quantum computer runs them exactly as prescribed.
+  But what if we do not know the ideal circuit ahead of time? What if, instead, we design a
+  circuit with adjustable knobs - free parameters - and let a classical computer turn those
+  knobs until the circuit produces the answer we seek? This is the core idea behind
+  <strong>variational quantum computing</strong>, and it represents the most practical path to
+  useful quantum computation on today's noisy, limited hardware.
+</p>
+
+<p>
+  Variational algorithms are <em>hybrid</em>: they divide labor between a quantum processor
+  (which evaluates quantum states that no classical computer can efficiently represent) and a
+  classical optimizer (which adjusts parameters to minimize a cost function). This
+  collaboration between quantum and classical machines defines an entire paradigm - one that
+  includes the Variational Quantum Eigensolver (VQE), the Quantum Approximate Optimization
+  Algorithm (QAOA), and variational quantum machine learning. In this chapter we build the
+  foundations of that paradigm from first principles.
+</p>
+
+<!-- ================================================================== -->
+
+<section id="hybrid-quantum-classical-computing">
+
+<h2>21.1 Hybrid Quantum-Classical Computing</h2>
+
+<p>
+  A variational quantum algorithm follows a simple loop, repeated until convergence:
+</p>
+
+<ol>
+  <li>
+    <strong>Prepare a parameterized quantum state.</strong> Apply a circuit
+    $U(\vec{\theta})$ to some initial state $|0\rangle^{\otimes n}$, where
+    $\vec{\theta} = (\theta_1, \theta_2, \ldots, \theta_p)$ is a vector of $p$
+    real-valued parameters. The resulting state is
+    $|\psi(\vec{\theta})\rangle = U(\vec{\theta})|0\rangle^{\otimes n}$.
+  </li>
+  <li>
+    <strong>Measure an observable.</strong> Estimate the expectation value of some
+    operator $O$ in the prepared state:
+    $\langle O \rangle = \langle \psi(\vec{\theta})| O |\psi(\vec{\theta})\rangle$.
+    This requires running the circuit many times (many "shots") and averaging the results.
+  </li>
+  <li>
+    <strong>Update parameters classically.</strong> Feed the measured expectation value into
+    a classical optimization algorithm, which proposes new parameter values
+    $\vec{\theta}'$ intended to reduce (or increase) $\langle O \rangle$.
+  </li>
+  <li>
+    <strong>Repeat.</strong> Go back to step 1 with the updated parameters. Continue until
+    the cost function converges.
+  </li>
+</ol>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    The <em>variational loop</em> is a feedback cycle between a quantum processor and a
+    classical optimizer. The quantum computer evaluates a cost function that depends on a
+    parameterized quantum state, and the classical computer adjusts the parameters to
+    minimize that cost. Neither machine works alone - together, they solve problems that
+    neither could handle efficiently on its own.
+  </p>
+</div>
+
+<h3>Why Hybrid?</h3>
+
+<p>
+  Current quantum processors - often called Noisy Intermediate-Scale Quantum (NISQ) devices -
+  have tens to hundreds of qubits and limited coherence times. They cannot run the deep
+  circuits required by algorithms like Shor's factoring algorithm or full quantum phase
+  estimation. Variational algorithms are designed specifically for this regime: the quantum
+  circuits can be kept shallow (reducing errors from decoherence), while the classical
+  optimizer handles the complexity of navigating the parameter space.
+</p>
+
+<p>
+  There is a second, more fundamental reason for the hybrid approach. Quantum computers are
+  exceptionally good at preparing and measuring quantum states that have no efficient
+  classical description. But optimization - the iterative process of searching for the best
+  parameters - is something classical computers do extremely well, with decades of
+  algorithmic development behind them. The variational approach plays to each machine's
+  strengths.
+</p>
+
+<h3>Parameterized Quantum Circuits</h3>
+
+<p>
+  The heart of any variational algorithm is the <strong>parameterized quantum circuit</strong>
+  (PQC), also called an <em>ansatz</em> (from the German word for "approach" or "initial
+  guess"). A PQC is a quantum circuit in which some gates depend on continuous parameters.
+  The most common parameterized gates are rotations:
+</p>
+
+<ul>
+  <li>$R_y(\theta) = e^{-i\theta Y/2}$, which rotates a qubit around the $y$-axis of the Bloch sphere by angle $\theta$.</li>
+  <li>$R_z(\phi) = e^{-i\phi Z/2}$, which applies a phase rotation.</li>
+  <li>$R_x(\alpha) = e^{-i\alpha X/2}$, which rotates around the $x$-axis.</li>
+</ul>
+
+<p>
+  These rotation gates are combined with fixed entangling gates (typically CNOT or CZ) to
+  create circuits that can, in principle, reach any quantum state. The parameters
+  $\vec{\theta}$ are the angles of the rotation gates, and adjusting them changes the
+  quantum state produced by the circuit.
+</p>
+
+<p>
+  Consider a simple two-qubit parameterized circuit: apply $R_y(\theta_0)$ to qubit 0,
+  $R_y(\theta_1)$ to qubit 1, entangle them with a CNOT, then apply another
+  $R_y(\theta_2)$ to qubit 0. By varying $\theta_0$, $\theta_1$, and $\theta_2$, this
+  circuit can produce a rich family of two-qubit states. The simulation below lets you
+  explore this circuit by sweeping a single parameter while holding the others fixed.
+</p>
+
+<div class="simulation" data-component="simulation">
+  <div class="sim-controls">
+    <label>$\theta_0$: <input type="range" data-param="theta0" min="0" max="6.283" step="0.01" value="0"><output>0.00</output></label>
+    <label>$\theta_1$: <input type="range" data-param="theta1" min="0" max="6.283" step="0.01" value="1.57"><output>1.57</output></label>
+    <label>$\theta_2$: <input type="range" data-param="theta2" min="0" max="6.283" step="0.01" value="0"><output>0.00</output></label>
+  </div>
+  <pre class="sim-qasm">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+ry({theta0}) q[0];
+ry({theta1}) q[1];
+cx q[0], q[1];
+ry({theta2}) q[0];
+c = measure q;</pre>
+  <div class="sim-output"></div>
+</div>
+
+<p>
+  Drag the $\theta_0$ slider from $0$ to $2\pi$ while keeping $\theta_1$ and $\theta_2$
+  fixed. Watch how the output probability distribution changes smoothly as the parameter
+  varies. This smooth dependence on parameters is what makes gradient-based optimization
+  possible - small changes in $\theta$ produce small changes in the measurement statistics.
+</p>
+
+<h3>The Cost Function</h3>
+
+<p>
+  Every variational algorithm defines a <strong>cost function</strong> (also called an
+  objective function or loss function) that the classical optimizer seeks to minimize. In
+  most cases, the cost function is the expectation value of some Hermitian operator $H$:
+</p>
+
+$$C(\vec{\theta}) = \langle \psi(\vec{\theta})| H |\psi(\vec{\theta})\rangle$$
+
+<p>
+  For the Variational Quantum Eigensolver, $H$ is the Hamiltonian of a physical system, and
+  $C(\vec{\theta})$ is the energy. The variational principle of quantum mechanics guarantees
+  that $C(\vec{\theta}) \geq E_0$, where $E_0$ is the true ground-state energy. Minimizing
+  $C$ over all parameters $\vec{\theta}$ therefore yields an upper bound on - and ideally a
+  close approximation to - the ground-state energy.
+</p>
+
+<p>
+  Not every cost function is an energy. Variational algorithms have been proposed for a wide
+  range of objectives: minimizing the distance to a target state (variational state
+  preparation), maximizing the value of a combinatorial objective (QAOA), minimizing a
+  classification loss (variational quantum machine learning), and even compiling quantum
+  circuits (variational quantum compiling). In each case, the cost function is designed so
+  that the quantum computer evaluates something hard to compute classically, while the
+  classical optimizer navigates the parameter space.
+</p>
+
+<h3>Convergence and Termination</h3>
+
+<p>
+  The variational loop must eventually stop. Common termination criteria include:
+</p>
+
+<ul>
+  <li>
+    <strong>Energy convergence:</strong> Stop when $|C(\vec{\theta}^{(k)}) - C(\vec{\theta}^{(k-1)})| < \epsilon$
+    for some tolerance $\epsilon$ (e.g., $\epsilon = 10^{-3}$ Hartree for chemical accuracy).
+  </li>
+  <li>
+    <strong>Gradient norm:</strong> Stop when $||\nabla C|| < \delta$, indicating the
+    optimizer has reached a stationary point.
+  </li>
+  <li>
+    <strong>Iteration budget:</strong> Stop after a fixed number of iterations, chosen based
+    on available quantum resources.
+  </li>
+</ul>
+
+<p>
+  There is no general guarantee that the variational loop will converge to the global
+  minimum. The optimizer may get trapped in a local minimum, or the ansatz may not be
+  expressive enough to represent the true ground state. These limitations are inherent to
+  the variational approach and motivate the careful ansatz design discussed in the next
+  section.
+</p>
+
+<div class="callout callout-info">
+  <strong>Historical Note.</strong>
+  <p>
+    The variational principle has deep roots in physics, dating back to Lord Rayleigh's
+    work in the 19th century. In the quantum context, it was formalized as the
+    Rayleigh-Ritz variational method. The modern incarnation on quantum hardware was
+    proposed by Peruzzo et al. in 2014, who demonstrated the first VQE experiment on a
+    photonic quantum processor, computing the ground-state energy of helium hydride
+    ($\text{HeH}^+$).
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="ansatz-design">
+
+<h2>21.2 Ansatz Design</h2>
+
+<p>
+  The choice of ansatz - the structure of the parameterized circuit - is arguably the most
+  important decision in variational quantum computing. A good ansatz must satisfy three
+  competing requirements: it must be <em>expressive</em> enough to represent the target
+  state, <em>trainable</em> (its parameters can be efficiently optimized), and
+  <em>implementable</em> on real hardware with acceptable circuit depth.
+</p>
+
+<h3>Hardware-Efficient Ansatze</h3>
+
+<p>
+  The <strong>hardware-efficient ansatz</strong> (HEA), introduced by Kandala et al. at IBM
+  in 2017, takes a pragmatic approach: build the circuit from whatever gates the hardware
+  natively supports. A typical HEA consists of $L$ repeated layers, where each layer
+  applies single-qubit rotations to every qubit followed by a fixed pattern of entangling
+  gates (e.g., nearest-neighbor CNOTs on a linear chain).
+</p>
+
+<p>
+  For $n$ qubits and $L$ layers, a typical HEA has $O(nL)$ parameters. The circuit depth
+  is $O(L)$, which can be kept shallow by limiting the number of layers. The appeal is
+  simplicity and hardware compatibility - every gate in the circuit is directly executable
+  without decomposition.
+</p>
+
+<p>
+  The downside: hardware-efficient ansatze are not informed by the problem's structure. They
+  explore the full Hilbert space democratically, which means most of the parameter space
+  may be irrelevant to the problem at hand. As we will discuss in Section 21.4 and in
+  Chapter 22, this lack of structure can lead to <em>barren plateaus</em> - regions of the
+  parameter landscape where gradients vanish exponentially, making optimization impossible.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    A <em>hardware-efficient ansatz</em> is built from the native gate set of the quantum
+    processor. It is easy to implement but may suffer from trainability issues because it
+    does not encode problem-specific structure. The depth (number of layers) controls a
+    trade-off between expressiveness and susceptibility to noise and barren plateaus.
+  </p>
+</div>
+
+<h3>Chemically-Inspired Ansatze</h3>
+
+<p>
+  For quantum chemistry problems, a more principled approach is to design the ansatz based
+  on the physics of the system being simulated. The most prominent example is the
+  <strong>Unitary Coupled Cluster Singles and Doubles</strong> (UCCSD) ansatz:
+</p>
+
+$$|\psi_{\text{UCCSD}}\rangle = e^{T - T^\dagger} |\phi_0\rangle$$
+
+<p>
+  where $|\phi_0\rangle$ is a reference state (typically the Hartree-Fock ground state)
+  and $T = T_1 + T_2$ is the cluster operator containing single excitations ($T_1$,
+  which promote one electron from an occupied orbital to a virtual orbital) and double
+  excitations ($T_2$, which promote two electrons). The operator $e^{T - T^\dagger}$ is
+  explicitly unitary, unlike the classical coupled cluster operator $e^T$ used in
+  traditional quantum chemistry.
+</p>
+
+<p>
+  UCCSD ansatze have several advantages: they respect the symmetries of the molecule
+  (particle number, spin), they are systematically improvable (add triples, quadruples,
+  etc.), and they encode genuine chemical intuition about electron correlation. The
+  disadvantage is circuit depth - implementing $e^{T - T^\dagger}$ on a quantum computer
+  requires Trotterization, which can produce very deep circuits for large molecules.
+</p>
+
+<h3>Problem-Specific Ansatze</h3>
+
+<p>
+  Beyond chemistry, different problems call for different ansatz structures:
+</p>
+
+<ul>
+  <li>
+    <strong>QAOA ansatz:</strong> For combinatorial optimization, the Quantum Approximate
+    Optimization Algorithm uses alternating layers of a "problem" unitary
+    $e^{-i\gamma_k H_C}$ (encoding the cost function) and a "mixer" unitary
+    $e^{-i\beta_k H_M}$ (enabling transitions between states). The parameters are the
+    angles $\gamma_k$ and $\beta_k$.
+  </li>
+  <li>
+    <strong>Hamiltonian variational ansatz:</strong> Inspired by adiabatic quantum
+    computing, this ansatz applies Trotterized evolution under the target Hamiltonian
+    with variable time steps. It naturally respects the symmetries of the Hamiltonian.
+  </li>
+  <li>
+    <strong>Symmetry-preserving ansatze:</strong> Circuits designed to preserve specific
+    quantum numbers (total particle number, total spin) throughout the optimization. This
+    reduces the effective search space and often improves convergence.
+  </li>
+</ul>
+
+<h3>The Expressiveness-Trainability Trade-off</h3>
+
+<p>
+  A central tension pervades ansatz design. An ansatz with very few parameters may be fast
+  to optimize but unable to represent the target state. An ansatz with many parameters can
+  represent nearly any state but may be impossible to train - its optimization landscape
+  becomes an exponentially flat "barren plateau" (discussed further in Chapter 22). The
+  sweet spot is an ansatz that is just expressive enough: it contains the target state in
+  its reachable set but constrains the search to a low-dimensional manifold of the full
+  Hilbert space.
+</p>
+
+<p>
+  Quantitatively, the <em>expressibility</em> of an ansatz measures how uniformly its
+  parameter space covers the space of quantum states. A fully expressible ansatz (one that
+  can produce any state) forms a 2-design over the unitary group, which is precisely the
+  condition that triggers barren plateaus. Practical ansatze aim for high expressibility
+  within the subspace relevant to the problem, while having limited expressibility in
+  irrelevant directions.
+</p>
+
+<div class="callout callout-warning">
+  <strong>Common Misconception.</strong>
+  <p>
+    It is tempting to think that a more expressive ansatz is always better. In fact, the
+    opposite can be true: an ansatz that can represent <em>every</em> quantum state is
+    usually impossible to train, because the optimization landscape becomes exponentially
+    flat. The best ansatze are tailored to the problem, expressive enough to contain the
+    answer but constrained enough to guide the optimizer toward it.
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="estimating-expectation-values">
+
+<h2>21.3 The Measurement Problem: Estimating Expectation Values</h2>
+
+<p>
+  The variational loop requires evaluating $\langle \psi(\vec{\theta})| H |\psi(\vec{\theta})\rangle$,
+  but a quantum computer does not return expectation values directly. It returns individual
+  measurement outcomes - bit strings - sampled from the output distribution. To extract an
+  expectation value, we must understand how to decompose the operator $H$ into measurable
+  pieces and how many measurements ("shots") we need.
+</p>
+
+<h3>Pauli Decomposition</h3>
+
+<p>
+  Any Hermitian operator on $n$ qubits can be written as a weighted sum of Pauli strings:
+</p>
+
+$$H = \sum_{i} c_i P_i$$
+
+<p>
+  where each $P_i$ is a tensor product of Pauli operators
+  $P_i \in \{I, X, Y, Z\}^{\otimes n}$ and $c_i$ are real coefficients. For example,
+  the Hamiltonian of the hydrogen molecule (in a minimal basis) can be written as:
+</p>
+
+$$H_{\text{H}_2} = c_0 I \otimes I + c_1 Z \otimes I + c_2 I \otimes Z + c_3 Z \otimes Z + c_4 X \otimes X + c_5 Y \otimes Y$$
+
+<p>
+  with six terms. Each Pauli string can be measured independently: to measure a string like
+  $X \otimes Z$, apply a basis rotation (Hadamard on the first qubit, identity on the
+  second), then measure both qubits in the computational basis. The eigenvalues of any
+  Pauli string are $\pm 1$, so each shot returns $+1$ or $-1$, and the expectation value
+  is estimated by averaging over many shots.
+</p>
+
+<p>
+  The linearity of expectation then gives us:
+</p>
+
+$$\langle H \rangle = \sum_{i} c_i \langle P_i \rangle$$
+
+<p>
+  We measure each Pauli string separately, multiply by its coefficient, and sum the results.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    To measure $\langle H \rangle$ on a quantum computer, decompose $H$ into a sum of
+    Pauli strings $H = \sum_i c_i P_i$. Measure each $\langle P_i \rangle$ independently
+    by applying appropriate basis rotations before measurement. The total expectation
+    value is the weighted sum $\langle H \rangle = \sum_i c_i \langle P_i \rangle$.
+  </p>
+</div>
+
+<h3>Shot Budgets and Statistical Error</h3>
+
+<p>
+  Each individual measurement of a Pauli string returns $+1$ or $-1$. If the true
+  expectation value is $\langle P_i \rangle$, then after $N_s$ shots, the sample mean
+  has a standard error of:
+</p>
+
+$$\sigma_i = \frac{\sqrt{1 - \langle P_i \rangle^2}}{\sqrt{N_s}}$$
+
+<p>
+  The total error in $\langle H \rangle$ depends on how we distribute shots among the
+  Pauli terms. If there are $M$ terms and we allocate $N_s$ shots to each, the total
+  number of shots is $M \times N_s$, and the total statistical error scales as:
+</p>
+
+$$\sigma_H \propto \frac{1}{\sqrt{N_s}} \sum_{i} |c_i|$$
+
+<p>
+  This reveals a key challenge: as the system size grows, the number of Pauli terms $M$
+  can grow polynomially (e.g., $O(n^4)$ for molecular Hamiltonians with $n$ qubits), and
+  the total shot count required for a given precision grows correspondingly. Techniques like
+  <em>grouping commuting Pauli strings</em> (measuring compatible observables simultaneously)
+  can significantly reduce the measurement overhead.
+</p>
+
+<h3>Measurement Grouping</h3>
+
+<p>
+  Two Pauli strings that <em>commute</em> (i.e., $[P_i, P_j] = 0$) can be measured
+  simultaneously using the same set of shots. For example, $Z \otimes I$ and
+  $I \otimes Z$ commute (both are diagonal in the computational basis), so a single
+  measurement of both qubits provides data for both terms. More aggressive grouping
+  strategies - qubit-wise commutativity, general commutativity, or even non-commuting
+  measurement techniques - can reduce the number of distinct measurement settings from
+  hundreds or thousands down to a manageable number.
+</p>
+
+<h3>Basis Rotations for Non-Z Measurements</h3>
+
+<p>
+  A quantum computer typically measures in the computational (Z) basis. To measure a Pauli
+  string containing $X$ or $Y$ operators, we must rotate the relevant qubits before
+  measurement:
+</p>
+
+<ul>
+  <li>
+    <strong>To measure $X$:</strong> Apply a Hadamard gate $H$ before measurement. This
+    rotates the $X$ eigenbasis ($|+\rangle$, $|-\rangle$) to the $Z$ eigenbasis
+    ($|0\rangle$, $|1\rangle$).
+  </li>
+  <li>
+    <strong>To measure $Y$:</strong> Apply $R_x(\pi/2) = HS^\dagger$ before measurement.
+    This rotates the $Y$ eigenbasis to the $Z$ eigenbasis.
+  </li>
+  <li>
+    <strong>To measure $Z$:</strong> No rotation needed - measure directly in the
+    computational basis.
+  </li>
+  <li>
+    <strong>To measure $I$:</strong> The identity contributes a constant $c_0$ to the
+    energy and requires no measurement at all.
+  </li>
+</ul>
+
+<p>
+  For a Pauli string like $X \otimes Y \otimes Z$, apply $H$ to the first qubit,
+  $R_x(\pi/2)$ to the second qubit, and nothing to the third, then measure all three in
+  the computational basis. The product of measurement outcomes ($\pm 1$) gives the
+  eigenvalue of the Pauli string for that shot.
+</p>
+
+<h3>Optimal Shot Allocation</h3>
+
+<p>
+  A naive strategy allocates the same number of shots $N_s$ to each Pauli term. A smarter
+  approach allocates more shots to terms with larger coefficients $|c_i|$, since these
+  contribute more to the total energy error. The optimal allocation (minimizing total
+  variance for a fixed shot budget) assigns shots proportional to $|c_i| \cdot \text{Var}(P_i)^{1/2}$.
+  In practice, this can reduce the total number of shots needed for a given precision by a
+  factor of two or more compared to uniform allocation.
+</p>
+
+<div class="callout callout-info">
+  <strong>Practical Note.</strong>
+  <p>
+    For the hydrogen molecule in a minimal basis, the six Pauli terms can be grouped into
+    just three measurement settings. For larger molecules like LiH (with roughly 100 Pauli
+    terms in a minimal basis), grouping can reduce the number of settings by a factor of
+    five or more. Efficient measurement grouping is an active area of research and a
+    critical factor in the practical performance of variational algorithms.
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="classical-optimizers">
+
+<h2>21.4 Classical Optimizers for Quantum Circuits</h2>
+
+<p>
+  The classical optimizer is the "brain" of the variational loop. Given the current cost
+  function value $C(\vec{\theta})$, it must propose new parameters $\vec{\theta}'$ that
+  reduce $C$. This is a standard optimization problem, but with unusual challenges: the
+  cost function is noisy (estimated from finite shots), the parameter landscape may have
+  many local minima, and evaluating $C$ is expensive (it requires running a quantum circuit).
+</p>
+
+<h3>Gradient-Free Methods</h3>
+
+<p>
+  The simplest approach is to use optimizers that do not require gradient information:
+</p>
+
+<ul>
+  <li>
+    <strong>Nelder-Mead (simplex method):</strong> Maintains a simplex of $p+1$ points
+    in parameter space and iteratively reflects, expands, or contracts the simplex to
+    find a minimum. Robust to noise but converges slowly in high dimensions.
+  </li>
+  <li>
+    <strong>COBYLA (Constrained Optimization by Linear Approximation):</strong> Builds
+    linear models of the cost function and constraints. Popular in VQE because it handles
+    noisy function evaluations reasonably well.
+  </li>
+  <li>
+    <strong>SPSA (Simultaneous Perturbation Stochastic Approximation):</strong> Estimates
+    gradients using only two function evaluations per iteration, regardless of the number
+    of parameters. Particularly well-suited to noisy quantum cost functions.
+  </li>
+</ul>
+
+<h3>Gradient-Based Methods</h3>
+
+<p>
+  Gradient-based optimizers - gradient descent, Adam, L-BFGS - typically converge faster
+  than gradient-free methods when accurate gradients are available. The challenge is
+  computing $\nabla_{\vec{\theta}} C(\vec{\theta})$ on a quantum computer.
+</p>
+
+<p>
+  Classical automatic differentiation (backpropagation) does not work on quantum hardware,
+  because we cannot inspect intermediate quantum states without collapsing them. Instead,
+  the quantum computing community has developed the <strong>parameter shift rule</strong>,
+  which computes exact analytical gradients using only circuit evaluations.
+</p>
+
+<h3>The Parameter Shift Rule</h3>
+
+<p>
+  For a cost function of the form $C(\theta) = \langle 0| U^\dagger(\theta) H U(\theta) |0\rangle$,
+  where $U(\theta)$ contains a gate of the form $e^{-i\theta G/2}$ with $G$ having
+  eigenvalues $\pm 1$ (which includes all standard Pauli rotations $R_x$, $R_y$, $R_z$),
+  the partial derivative with respect to $\theta$ is:
+</p>
+
+$$\frac{\partial C}{\partial \theta} = \frac{C(\theta + s) - C(\theta - s)}{2\sin(s)}$$
+
+<p>
+  where $s = \pi/2$ is the standard shift. With $s = \pi/2$, this simplifies to:
+</p>
+
+$$\frac{\partial C}{\partial \theta} = \frac{C(\theta + \pi/2) - C(\theta - \pi/2)}{2}$$
+
+<p>
+  This is remarkable: to compute the gradient with respect to one parameter, we simply
+  evaluate the <em>same circuit</em> twice - once with $\theta$ shifted forward by
+  $\pi/2$, once shifted backward - and take the difference. No finite-difference
+  approximation is needed; the result is the exact analytical gradient.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    The <em>parameter shift rule</em> computes exact gradients of quantum cost functions:
+    $\frac{\partial C}{\partial \theta} = \frac{1}{2}[C(\theta + \pi/2) - C(\theta - \pi/2)]$.
+    Each partial derivative requires two circuit evaluations. For $p$ parameters, a full
+    gradient requires $2p$ circuit evaluations - linear in the number of parameters.
+  </p>
+</div>
+
+<p>
+  The simulation below demonstrates the parameter shift rule in action. Sweep the angle
+  $\theta_0$ to see how the energy landscape varies, and observe how the gradient
+  (the slope of the energy curve) changes sign at the minimum. The circuit prepares a
+  parameterized state and measures the expectation value of $Z \otimes Z$, simulating the
+  core operation of a variational algorithm.
+</p>
+
+<div class="simulation" data-component="simulation">
+  <div class="sim-controls">
+    <label>$\theta_0$: <input type="range" data-param="theta0" min="0" max="6.283" step="0.01" value="0"><output>0.00</output></label>
+    <label>$\theta_1$ (fixed): <input type="range" data-param="theta1" min="0" max="6.283" step="0.01" value="0.78"><output>0.78</output></label>
+  </div>
+  <pre class="sim-qasm">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+ry({theta0}) q[0];
+ry({theta1}) q[1];
+cx q[0], q[1];
+c = measure q;</pre>
+  <div class="sim-output"></div>
+</div>
+
+<p>
+  As you sweep $\theta_0$ from $0$ to $2\pi$, notice that the probability distribution
+  oscillates smoothly. The minima and maxima of the energy correspond to zeros of the
+  gradient. A gradient-based optimizer would follow the downhill direction, stepping toward
+  the nearest minimum. The parameter shift rule tells the optimizer precisely which
+  direction is downhill by evaluating the circuit at $\theta_0 \pm \pi/2$.
+</p>
+
+<h3>Choosing an Optimizer</h3>
+
+<p>
+  The choice between gradient-free and gradient-based methods depends on the problem:
+</p>
+
+<table>
+  <thead>
+    <tr><th>Property</th><th>Gradient-Free</th><th>Gradient-Based</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Circuit evaluations per step</td><td>Few (2 for SPSA)</td><td>$2p$ for full gradient</td></tr>
+    <tr><td>Convergence rate</td><td>Slow in high dimensions</td><td>Fast when landscape is smooth</td></tr>
+    <tr><td>Noise tolerance</td><td>Generally more robust</td><td>Needs many shots for accurate gradients</td></tr>
+    <tr><td>Local minima</td><td>Can escape some</td><td>Prone to getting trapped</td></tr>
+    <tr><td>Scalability</td><td>Degrades with many parameters</td><td>Scales well with smooth landscapes</td></tr>
+  </tbody>
+</table>
+
+<p>
+  In practice, many VQE implementations use a two-stage strategy: start with a gradient-free
+  method (like COBYLA) to find a rough neighborhood of the minimum, then switch to a
+  gradient-based method (like Adam or L-BFGS with parameter shift gradients) to refine the
+  answer. The SPSA optimizer occupies a middle ground - it estimates gradients stochastically
+  with just two circuit evaluations per step (regardless of the number of parameters),
+  making it efficient for high-dimensional problems at the cost of noisier gradient estimates.
+</p>
+
+<h3>Why the Parameter Shift Rule Works</h3>
+
+<p>
+  The mathematical reason behind the parameter shift rule is elegant. For a gate
+  $e^{-i\theta G/2}$ where $G$ has eigenvalues $\pm 1$, the cost function
+  $C(\theta) = \langle 0|V^\dagger e^{i\theta G/2} H e^{-i\theta G/2} V|0\rangle$ (where
+  $V$ contains all other gates) is a sinusoidal function of $\theta$:
+</p>
+
+$$C(\theta) = A + B\sin(\theta + \phi)$$
+
+<p>
+  for some constants $A$, $B$, $\phi$ determined by the rest of the circuit and the
+  observable. The derivative of a sine function is a cosine, and $\cos(\theta) =
+  \sin(\theta + \pi/2)$. Therefore:
+</p>
+
+$$\frac{dC}{d\theta} = B\cos(\theta + \phi) = \frac{C(\theta + \pi/2) - C(\theta - \pi/2)}{2}$$
+
+<p>
+  This identity holds exactly, not approximately. The parameter shift rule exploits the
+  trigonometric structure that arises naturally from Pauli rotation gates. For gates with
+  generators having more than two distinct eigenvalues, generalized parameter shift rules
+  exist that require additional circuit evaluations but maintain the same analytical
+  exactness.
+</p>
+
+<h3>SPSA: A Practical Compromise</h3>
+
+<p>
+  The SPSA (Simultaneous Perturbation Stochastic Approximation) optimizer deserves special
+  mention for variational quantum algorithms. Unlike the parameter shift rule, which
+  computes each component of the gradient separately (requiring $2p$ circuit evaluations),
+  SPSA estimates the entire gradient direction using just two circuit evaluations,
+  regardless of $p$:
+</p>
+
+$$g_k \approx \frac{C(\vec{\theta} + \epsilon \vec{\Delta}) - C(\vec{\theta} - \epsilon \vec{\Delta})}{2\epsilon \Delta_k}$$
+
+<p>
+  where $\vec{\Delta}$ is a random perturbation vector (each component drawn from $\{-1, +1\}$
+  with equal probability) and $\epsilon$ is a small step size. This estimate is unbiased on
+  average, meaning that over many iterations, SPSA converges to the same minimum as exact
+  gradient descent. The trade-off is variance: each individual gradient estimate is noisy,
+  so SPSA typically requires more iterations to converge. For circuits with hundreds of
+  parameters, the per-iteration savings of SPSA (2 evaluations vs. $2p$) can make it the
+  only feasible choice.
+</p>
+
+<div class="callout callout-warning">
+  <strong>Common Misconception.</strong>
+  <p>
+    The parameter shift rule is not a finite-difference approximation. Finite differences
+    use an infinitesimally small shift $\epsilon$ and introduce a systematic error of order
+    $O(\epsilon)$. The parameter shift rule uses a shift of exactly $\pi/2$ and yields the
+    exact analytical gradient. The only source of error is the statistical noise from
+    finite shot counts, not from the differentiation method itself.
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+
+<div class="flashcard-deck" data-component="flashcard-deck">
+  <div class="flashcard-deck-header">Chapter 21 Review</div>
+
+  <div class="flashcard" data-card-id="ch21-variational-loop">
+    <div class="card-front">Describe the four steps of the variational quantum algorithm loop.</div>
+    <div class="card-back">
+      (1) Prepare a parameterized quantum state $|\psi(\vec{\theta})\rangle = U(\vec{\theta})|0\rangle^{\otimes n}$
+      by running a parameterized circuit. (2) Measure the expectation value of an observable
+      $\langle O \rangle$. (3) Feed the result to a classical optimizer, which proposes updated
+      parameters $\vec{\theta}'$. (4) Repeat until convergence. The quantum computer evaluates
+      the cost function; the classical computer navigates the parameter space.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch21-parameterized-circuit">
+    <div class="card-front">What is a parameterized quantum circuit (PQC), and what role do rotation gates play?</div>
+    <div class="card-back">
+      A PQC (also called an ansatz) is a quantum circuit containing gates with adjustable
+      continuous parameters. Rotation gates like $R_y(\theta)$, $R_z(\phi)$, and $R_x(\alpha)$
+      provide the tunable elements - changing their angles changes the output quantum state.
+      These rotations are combined with fixed entangling gates (CNOT, CZ) to create a family of
+      states parameterized by $\vec{\theta}$.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch21-hardware-efficient-ansatz">
+    <div class="card-front">What is a hardware-efficient ansatz, and what is its main disadvantage?</div>
+    <div class="card-back">
+      A hardware-efficient ansatz (HEA) builds the parameterized circuit from the native gates
+      of the quantum hardware, using alternating layers of single-qubit rotations and
+      entangling gates. Its main disadvantage is that it does not encode problem-specific
+      structure, which can lead to barren plateaus - regions where gradients vanish
+      exponentially with qubit count, making optimization effectively impossible.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch21-uccsd-ansatz">
+    <div class="card-front">What is the UCCSD ansatz, and why is it preferred for quantum chemistry?</div>
+    <div class="card-back">
+      UCCSD (Unitary Coupled Cluster Singles and Doubles) uses the operator
+      $e^{T - T^\dagger}|\phi_0\rangle$, where $T = T_1 + T_2$ contains single and double
+      excitation operators and $|\phi_0\rangle$ is the Hartree-Fock reference state. It is
+      preferred for chemistry because it respects molecular symmetries (particle number, spin),
+      encodes physical intuition about electron correlation, and is systematically improvable.
+      Its main drawback is deep circuit depth from Trotterization.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch21-pauli-decomposition">
+    <div class="card-front">How is a Hamiltonian decomposed for measurement on a quantum computer?</div>
+    <div class="card-back">
+      Any Hermitian operator on $n$ qubits can be written as a weighted sum of Pauli strings:
+      $H = \sum_i c_i P_i$, where $P_i \in \{I, X, Y, Z\}^{\otimes n}$. Each Pauli string
+      is measured independently by applying basis rotations and measuring in the computational
+      basis. The total expectation value is $\langle H \rangle = \sum_i c_i \langle P_i \rangle$.
+      Commuting Pauli strings can be grouped and measured simultaneously to reduce shot overhead.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch21-shot-budget">
+    <div class="card-front">How does statistical error in expectation value estimation scale with the number of shots?</div>
+    <div class="card-back">
+      Each Pauli string measurement returns $\pm 1$ with some probability. The standard error
+      for a single term after $N_s$ shots is
+      $\sigma_i = \sqrt{(1 - \langle P_i \rangle^2)}/\sqrt{N_s}$, scaling as $1/\sqrt{N_s}$.
+      The total error in $\langle H \rangle$ also scales as $1/\sqrt{N_s}$, weighted by the sum
+      of absolute coefficients $\sum_i |c_i|$. Halving the error requires four times as many shots.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch21-parameter-shift-rule">
+    <div class="card-front">State the parameter shift rule and explain why it gives exact gradients.</div>
+    <div class="card-back">
+      For gates of the form $e^{-i\theta G/2}$ with $G$ having eigenvalues $\pm 1$:
+      $\frac{\partial C}{\partial \theta} = \frac{1}{2}[C(\theta + \pi/2) - C(\theta - \pi/2)]$.
+      This is exact (not a finite-difference approximation) because the cost function is a
+      sinusoidal function of $\theta$ with period $2\pi$, and the $\pi/2$ shift extracts the
+      exact first Fourier coefficient. The only error comes from finite shot noise, not the
+      differentiation method.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch21-optimizer-tradeoffs">
+    <div class="card-front">Compare gradient-free and gradient-based optimizers for variational quantum algorithms.</div>
+    <div class="card-back">
+      Gradient-free methods (Nelder-Mead, COBYLA) require fewer circuit evaluations per step
+      and are more robust to noise, but converge slowly in high dimensions. Gradient-based
+      methods (Adam, L-BFGS with parameter shift) converge faster on smooth landscapes but need
+      $2p$ circuit evaluations per step for $p$ parameters. SPSA is a hybrid approach, using
+      only two evaluations to stochastically estimate the gradient regardless of $p$. In
+      practice, a two-stage strategy often works best.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+</div>

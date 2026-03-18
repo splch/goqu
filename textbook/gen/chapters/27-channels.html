@@ -1,0 +1,702 @@
+<p>
+Quantum states evolve, interact with environments, and undergo noise. The mathematical
+framework for describing all such processes is the theory of <strong>quantum channels</strong> -
+completely positive, trace-preserving (CPTP) linear maps that transform density operators into
+density operators. Just as density operators generalize state vectors, quantum channels
+generalize unitary evolution. This chapter develops the three equivalent representations of
+quantum channels - Kraus, Choi, and Stinespring - and explores the most important channels
+in quantum information theory.
+</p>
+
+<!-- ================================================================== -->
+<section id="kraus-representation">
+<h2>27.1 Kraus Representation</h2>
+
+<p>
+A <strong>quantum channel</strong> is a linear map $\mathcal{E}$ that takes density operators
+to density operators. It must satisfy two properties: it must be <strong>completely
+positive</strong> (mapping positive operators to positive operators, even when acting on part
+of a larger system) and <strong>trace-preserving</strong> ($\text{Tr}(\mathcal{E}(\rho)) =
+\text{Tr}(\rho)$ for all $\rho$). Together, these make $\mathcal{E}$ a CPTP map.
+</p>
+
+<p>
+The most computationally convenient way to specify a quantum channel is through its
+<strong>Kraus representation</strong> (also called the operator-sum representation):
+</p>
+
+$$\mathcal{E}(\rho) = \sum_{k} K_k \rho K_k^\dagger$$
+
+<p>
+where the <strong>Kraus operators</strong> $\{K_k\}$ satisfy the completeness relation:
+</p>
+
+$$\sum_k K_k^\dagger K_k = I$$
+
+<p>
+This condition ensures trace preservation:
+$\text{Tr}(\mathcal{E}(\rho)) = \text{Tr}\!\left(\sum_k K_k \rho K_k^\dagger\right)
+= \text{Tr}\!\left(\rho \sum_k K_k^\dagger K_k\right) = \text{Tr}(\rho) = 1$.
+</p>
+
+<div class="callout callout-key">
+<strong>Key Concept.</strong>
+<p>
+The Kraus representation theorem states that a linear map $\mathcal{E}$ is completely
+positive and trace-preserving if and only if it can be written as
+$\mathcal{E}(\rho) = \sum_k K_k \rho K_k^\dagger$ with $\sum_k K_k^\dagger K_k = I$.
+This is the fundamental characterization of physically realizable quantum operations.
+</p>
+</div>
+
+<h3>Non-Uniqueness of Kraus Operators</h3>
+
+<p>
+The Kraus operators of a channel are not unique. If $\{K_k\}$ and $\{L_j\}$ are two sets
+of Kraus operators for the same channel, they are related by a unitary matrix $u_{jk}$:
+</p>
+
+$$L_j = \sum_k u_{jk} K_k$$
+
+<p>
+(padding with zero operators if the two sets have different sizes). This non-uniqueness
+parallels the non-uniqueness of ensemble decompositions of density operators and reflects
+the same physical principle: different microscopic models can produce the same observable
+channel.
+</p>
+
+<h3>Examples of Single-Kraus-Operator Channels</h3>
+
+<p>
+When there is exactly one Kraus operator, the completeness relation gives $K^\dagger K = I$,
+so $K$ must be unitary. Unitary evolution $\rho \mapsto U\rho U^\dagger$ is therefore the
+special case of a quantum channel with a single Kraus operator. All other channels have
+multiple Kraus operators and represent irreversible (noisy) processes.
+</p>
+
+<h3>Interpretation: Channels as Averaged Interactions</h3>
+
+<p>
+Each Kraus operator $K_k$ can be interpreted as the evolution conditioned on a particular
+(unobserved) outcome of an environment. The sum over $k$ represents averaging over all
+possible environmental outcomes. This connects to the physical picture of decoherence:
+information leaks into the environment, and because we do not observe the environment, we
+must average over its possible states.
+</p>
+
+<h3>Worked Example: The Bit-Flip Channel</h3>
+
+<p>
+The <strong>bit-flip channel</strong> flips a qubit with probability $p$ and leaves it
+unchanged with probability $1 - p$. The Kraus operators are:
+</p>
+
+$$K_0 = \sqrt{1 - p}\, I = \sqrt{1-p}\begin{pmatrix}1 & 0 \\ 0 & 1\end{pmatrix}, \quad K_1 = \sqrt{p}\, \sigma_x = \sqrt{p}\begin{pmatrix}0 & 1 \\ 1 & 0\end{pmatrix}$$
+
+<p>
+Verification: $K_0^\dagger K_0 + K_1^\dagger K_1 = (1-p)I + p I = I$. Applying the channel
+to a general qubit state:
+</p>
+
+$$\mathcal{E}(\rho) = (1-p)\rho + p \sigma_x \rho \sigma_x = (1-p)\begin{pmatrix}\rho_{00}&\rho_{01}\\\rho_{10}&\rho_{11}\end{pmatrix} + p\begin{pmatrix}\rho_{11}&\rho_{10}\\\rho_{01}&\rho_{00}\end{pmatrix}$$
+
+<p>
+The populations get mixed ($\rho_{00} \to (1-p)\rho_{00} + p\rho_{11}$) and the coherences
+are multiplied by $(1 - 2p)$. At $p = 1/2$, the off-diagonal elements vanish (in the bit-flip
+eigenbasis, which is the $X$ basis) and the output is diagonal. The bit-flip channel is the
+quantum analog of the binary symmetric channel from classical information theory.
+</p>
+
+<h3>The Number of Kraus Operators</h3>
+
+<p>
+For a channel on a $d$-dimensional system, at most $d^2$ Kraus operators are needed. This
+follows from the rank of the Choi matrix (Section 27.2), which is at most $d^2$. In practice,
+many important channels have far fewer Kraus operators: the amplitude damping channel needs
+only 2, and the depolarizing channel on a qubit can be written with 4 (corresponding to the
+four Pauli matrices including the identity).
+</p>
+
+<div class="callout callout-info">
+<strong>Note.</strong>
+<p>
+If we <em>do</em> learn which Kraus operator was applied (e.g., by measuring the environment),
+the map $\rho \mapsto K_k \rho K_k^\dagger / \text{Tr}(K_k \rho K_k^\dagger)$ describes
+the conditional state update. The probability of outcome $k$ is
+$p_k = \text{Tr}(K_k \rho K_k^\dagger)$. This is exactly the quantum instrument formalism
+from Chapter 26.
+</p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="choi-jamiolkowski">
+<h2>27.2 Complete Positivity and the Choi-Jamiolkowski Isomorphism</h2>
+
+<h3>Why Complete Positivity?</h3>
+
+<p>
+A map that is merely positive (sends positive operators to positive operators) is not
+necessarily physical. The reason: quantum systems may be entangled with other systems.
+If Alice applies a positive but not completely positive map to her half of an entangled
+state, the result can be a non-positive operator - not a valid density matrix.
+</p>
+
+<p>
+<strong>Complete positivity</strong> demands that $\mathcal{E} \otimes \mathcal{I}_n$ is
+positive for all $n$, where $\mathcal{I}_n$ is the identity map on an $n$-dimensional
+ancilla. This ensures that the channel produces valid states even when applied to part of
+an entangled system. The transpose map $\rho \mapsto \rho^T$ is the textbook example of a
+positive but not completely positive map: applying it to one half of a maximally entangled
+state produces an operator with a negative eigenvalue.
+</p>
+
+<h3>The Choi Matrix</h3>
+
+<p>
+The <strong>Choi-Jamiolkowski isomorphism</strong> provides a one-to-one correspondence
+between linear maps and operators on a tensor product space. Given a channel
+$\mathcal{E}: \mathcal{L}(\mathcal{H}_A) \to \mathcal{L}(\mathcal{H}_B)$, the
+<strong>Choi matrix</strong> (or Choi state) is:
+</p>
+
+$$J(\mathcal{E}) = \sum_{i,j} |i\rangle\langle j| \otimes \mathcal{E}(|i\rangle\langle j|) = (\mathcal{I} \otimes \mathcal{E})(|\Omega\rangle\langle\Omega|)$$
+
+<p>
+where $|\Omega\rangle = \sum_i |i\rangle|i\rangle$ is the (unnormalized) maximally entangled
+state. The Choi matrix encodes everything about the channel.
+</p>
+
+<div class="callout callout-key">
+<strong>Key Concept.</strong>
+<p>
+A linear map $\mathcal{E}$ is completely positive if and only if its Choi matrix $J(\mathcal{E})$
+is positive semi-definite. The map is trace-preserving if and only if
+$\text{Tr}_B(J(\mathcal{E})) = I_A$. This gives an elegant, checkable criterion: a map is a
+valid quantum channel if and only if its Choi matrix is positive semi-definite with the correct
+partial trace. This is known as the <strong>Choi theorem on completely positive maps</strong>.
+</p>
+</div>
+
+<h3>Channel-State Duality</h3>
+
+<p>
+When we normalize the Choi matrix as $\rho_{\mathcal{E}} = J(\mathcal{E})/d$, we get a valid
+density operator on the bipartite system $A'B$. This is the <strong>channel-state duality</strong>:
+every channel corresponds to a bipartite state, and every bipartite state with the correct
+marginal corresponds to a channel. This duality is extremely powerful:
+</p>
+
+<ul>
+<li><strong>Channel properties become state properties:</strong> entanglement-breaking channels
+correspond to separable Choi states, unitary channels correspond to pure maximally entangled
+Choi states.</li>
+<li><strong>Optimization over channels becomes optimization over states:</strong> many capacity
+formulas and channel comparison problems reduce to semidefinite programs on the Choi matrix.</li>
+<li><strong>Recovering Kraus operators:</strong> the eigenvectors of the Choi matrix (reshaped
+into matrices) give a set of Kraus operators. If $J(\mathcal{E}) = \sum_k |v_k\rangle\langle v_k|$,
+then the Kraus operators are obtained by reshaping each $|v_k\rangle$ into a matrix $K_k$.</li>
+</ul>
+
+<h3>Worked Example: Choi Matrix of the Dephasing Channel</h3>
+
+<p>
+For the single-qubit dephasing channel $\mathcal{E}(\rho) = (1-p)\rho + p Z\rho Z$ with
+$d = 2$, the maximally entangled state is $|\Omega\rangle = |00\rangle + |11\rangle$
+(unnormalized). The Choi matrix is:
+</p>
+
+$$J(\mathcal{E}) = (\mathcal{I} \otimes \mathcal{E})(|\Omega\rangle\langle\Omega|)$$
+
+<p>
+We compute: $|\Omega\rangle\langle\Omega| = |00\rangle\langle 00| + |00\rangle\langle 11|
++ |11\rangle\langle 00| + |11\rangle\langle 11|$. Applying $\mathcal{E}$ to the second qubit
+of each term:
+</p>
+
+$$J = |0\rangle\langle 0| \otimes \mathcal{E}(|0\rangle\langle 0|) + |0\rangle\langle 1| \otimes \mathcal{E}(|0\rangle\langle 1|) + |1\rangle\langle 0| \otimes \mathcal{E}(|1\rangle\langle 0|) + |1\rangle\langle 1| \otimes \mathcal{E}(|1\rangle\langle 1|)$$
+
+<p>
+Since $\mathcal{E}(|0\rangle\langle 0|) = |0\rangle\langle 0|$,
+$\mathcal{E}(|1\rangle\langle 1|) = |1\rangle\langle 1|$, and
+$\mathcal{E}(|0\rangle\langle 1|) = (1-2p)|0\rangle\langle 1|$, the Choi matrix in the
+$\{|00\rangle, |01\rangle, |10\rangle, |11\rangle\}$ basis is:
+</p>
+
+$$J = \begin{pmatrix} 1 & 0 & 0 & (1-2p) \\ 0 & 0 & 0 & 0 \\ 0 & 0 & 0 & 0 \\ (1-2p) & 0 & 0 & 1\end{pmatrix}$$
+
+<p>
+The eigenvalues are $1 + (1-2p)$, $1 - (1-2p)$, $0$, and $0$, i.e., $2(1-p)$ and $2p$.
+Both are non-negative for $p \in [0, 1]$, confirming complete positivity. The rank is 2 (for
+$0 < p < 1$), which means the channel needs exactly 2 Kraus operators.
+</p>
+
+<h3>Useful Properties of the Choi Matrix</h3>
+
+<p>
+Several important channel properties have clean Choi-matrix characterizations:
+</p>
+
+<table>
+  <thead>
+    <tr><th>Channel property</th><th>Choi matrix condition</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Completely positive</td><td>$J(\mathcal{E}) \geq 0$</td></tr>
+    <tr><td>Trace-preserving</td><td>$\text{Tr}_B(J(\mathcal{E})) = I_A$</td></tr>
+    <tr><td>Unital ($\mathcal{E}(I) = I$)</td><td>$\text{Tr}_A(J(\mathcal{E})) = I_B$</td></tr>
+    <tr><td>Unitary channel</td><td>$J(\mathcal{E})$ is rank 1</td></tr>
+    <tr><td>Entanglement-breaking</td><td>$J(\mathcal{E})$ is separable</td></tr>
+  </tbody>
+</table>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="common-channels">
+<h2>27.3 Common Quantum Channels</h2>
+
+<p>
+Several quantum channels appear repeatedly throughout quantum information theory. Each models
+a different type of noise or interaction with the environment. Understanding these channels
+builds intuition for the general theory and provides concrete examples for capacity calculations
+in Chapter 29.
+</p>
+
+<h3>The Depolarizing Channel</h3>
+
+<p>
+The <strong>depolarizing channel</strong> with parameter $p \in [0, 1]$ replaces the input
+state with the maximally mixed state with probability $p$:
+</p>
+
+$$\mathcal{E}_{\text{depol}}(\rho) = (1 - p)\rho + p \frac{I}{d}$$
+
+<p>
+For a single qubit ($d = 2$), this can be written with Kraus operators:
+</p>
+
+$$\mathcal{E}_{\text{depol}}(\rho) = \left(1 - \frac{3p}{4}\right)\rho + \frac{p}{4}(\sigma_x \rho \sigma_x + \sigma_y \rho \sigma_y + \sigma_z \rho \sigma_z)$$
+
+<p>
+Geometrically, the depolarizing channel uniformly shrinks the Bloch vector:
+$\vec{r} \mapsto (1 - p)\vec{r}$. It is the "worst-case" noise model in the sense that
+it treats all directions equally. The channel is unital ($\mathcal{E}(I) = I$) since the
+maximally mixed state is a fixed point.
+</p>
+
+<h3>The Dephasing Channel</h3>
+
+<p>
+The <strong>dephasing</strong> (or phase damping) channel destroys coherence without affecting
+populations. With parameter $p$:
+</p>
+
+$$\mathcal{E}_{\text{deph}}(\rho) = (1 - p)\rho + p Z\rho Z$$
+
+<p>
+where $Z = \sigma_z$. In the computational basis, this gives:
+</p>
+
+$$\begin{pmatrix} \rho_{00} & \rho_{01} \\ \rho_{10} & \rho_{11} \end{pmatrix} \mapsto \begin{pmatrix} \rho_{00} & (1 - 2p)\rho_{01} \\ (1 - 2p)\rho_{10} & \rho_{11} \end{pmatrix}$$
+
+<p>
+The diagonal elements (populations) are untouched, but the off-diagonal elements (coherences)
+are multiplied by $(1 - 2p)$. At $p = 1/2$, all coherence is destroyed and the output is
+diagonal in the computational basis. Geometrically, the Bloch sphere is compressed into an
+ellipsoid: the $z$-component is preserved while $x$ and $y$ are shrunk.
+</p>
+
+<h3>The Amplitude Damping Channel</h3>
+
+<p>
+The <strong>amplitude damping channel</strong> models energy dissipation - the process by which
+an excited state $|1\rangle$ decays to the ground state $|0\rangle$ with probability $\gamma$.
+It is the quantum analog of a lossy channel. The Kraus operators are:
+</p>
+
+$$K_0 = \begin{pmatrix} 1 & 0 \\ 0 & \sqrt{1 - \gamma} \end{pmatrix}, \quad K_1 = \begin{pmatrix} 0 & \sqrt{\gamma} \\ 0 & 0 \end{pmatrix}$$
+
+<p>
+One can verify $K_0^\dagger K_0 + K_1^\dagger K_1 = I$. The effect on a general qubit state is:
+</p>
+
+$$\begin{pmatrix} \rho_{00} & \rho_{01} \\ \rho_{10} & \rho_{11} \end{pmatrix} \mapsto \begin{pmatrix} \rho_{00} + \gamma \rho_{11} & \sqrt{1-\gamma}\,\rho_{01} \\ \sqrt{1-\gamma}\,\rho_{10} & (1-\gamma)\rho_{11} \end{pmatrix}$$
+
+<p>
+Population flows from $|1\rangle$ to $|0\rangle$: the $\rho_{11}$ entry decreases while
+$\rho_{00}$ increases. Unlike the depolarizing and dephasing channels, amplitude damping is
+<em>not</em> unital - the fixed point is $|0\rangle\langle 0|$, not $I/2$. At $\gamma = 1$,
+every input state is mapped to the ground state.
+</p>
+
+<div class="callout callout-info">
+<strong>Note.</strong>
+<p>
+The amplitude damping channel models spontaneous emission of a photon from a two-level atom.
+$K_0$ represents the "no emission" branch (the atom stays in its current state but with
+reduced $|1\rangle$ amplitude), while $K_1$ represents the "emission" branch (the atom
+transitions from $|1\rangle$ to $|0\rangle$). The parameter $\gamma$ is related to the
+decay time $T_1$ in the language of experimental quantum computing.
+</p>
+</div>
+
+<h3>The Erasure Channel</h3>
+
+<p>
+The <strong>quantum erasure channel</strong> with parameter $\epsilon$ either transmits the
+input perfectly (with probability $1 - \epsilon$) or replaces it with a fixed "erasure flag"
+state $|e\rangle$ (with probability $\epsilon$):
+</p>
+
+$$\mathcal{E}_{\text{erase}}(\rho) = (1 - \epsilon)\rho + \epsilon |e\rangle\langle e|$$
+
+<p>
+where $|e\rangle$ is orthogonal to the input Hilbert space (a third level for a qubit).
+Unlike other noise channels, the erasure channel is "honest" - the receiver knows when an
+error occurred. This makes it particularly important for understanding quantum capacity, as
+its capacity formulas are exactly computable.
+</p>
+
+<h3>The Phase-Flip Channel</h3>
+
+<p>
+The <strong>phase-flip channel</strong> applies a $Z$ gate with probability $p$:
+</p>
+
+$$\mathcal{E}_{\text{pf}}(\rho) = (1-p)\rho + p Z\rho Z$$
+
+<p>
+In the computational basis, this has the same form as the dephasing channel. However, the
+phase-flip is often discussed alongside the bit-flip as dual noise models: the bit-flip
+errors in the $Z$ basis while the phase-flip errors in the $X$ basis. Their combination
+gives the <strong>depolarizing channel</strong> when combined with the bit-phase-flip
+(applying $Y = iXZ$). Understanding these three types of errors separately - $X$, $Z$, and
+$Y$ - is the starting point for quantum error correction theory.
+</p>
+
+<h3>Summary Table</h3>
+
+<table>
+  <thead>
+    <tr><th>Channel</th><th>Effect on Bloch vector</th><th>Unital?</th><th>Key property</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Depolarizing</td><td>$\vec{r} \mapsto (1-p)\vec{r}$</td><td>Yes</td><td>Isotropic noise</td></tr>
+    <tr><td>Dephasing</td><td>Shrinks $x,y$; preserves $z$</td><td>Yes</td><td>Destroys coherence only</td></tr>
+    <tr><td>Amplitude damping</td><td>Shrinks and shifts toward $|0\rangle$</td><td>No</td><td>Models energy decay</td></tr>
+    <tr><td>Erasure</td><td>State or flag</td><td>No</td><td>Receiver knows if error occurred</td></tr>
+  </tbody>
+</table>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="stinespring">
+<h2>27.4 The Stinespring Dilation Theorem</h2>
+
+<p>
+The Kraus representation shows that any channel can be decomposed into a sum of "sandwich"
+terms $K_k \rho K_k^\dagger$. The Stinespring dilation theorem provides a different, more
+physically transparent picture: every quantum channel arises from a unitary interaction on a
+larger system followed by discarding (tracing out) part of that system.
+</p>
+
+<div class="callout callout-key">
+<strong>Key Concept.</strong>
+<p>
+<strong>Stinespring Dilation Theorem.</strong> For every quantum channel
+$\mathcal{E}: \mathcal{L}(\mathcal{H}_A) \to \mathcal{L}(\mathcal{H}_B)$, there exists
+an environment (ancilla) system $E$ with initial pure state $|0\rangle_E$ and a unitary
+$U$ on $B \otimes E$ such that:
+$$\mathcal{E}(\rho) = \text{Tr}_E\!\left(U(\rho \otimes |0\rangle\langle 0|_E)U^\dagger\right)$$
+This is called the <strong>Stinespring dilation</strong> or <strong>unitary dilation</strong>
+of the channel.
+</p>
+</div>
+
+<p>
+The theorem says that all noise and irreversibility in quantum mechanics is ultimately
+a consequence of entanglement with an unobserved environment. If we could access the
+environment, the global evolution would be perfectly reversible (unitary). The channel
+is "open system" evolution - unitary evolution of a closed system seen from the perspective
+of a subsystem. This perspective is fundamental to understanding decoherence: a qubit does
+not "lose" coherence spontaneously. Rather, it becomes entangled with its environment, and
+because we trace out the environment, the coherence appears to vanish from the qubit's
+reduced state.
+</p>
+
+<h3>Connection to Kraus Operators</h3>
+
+<p>
+The Kraus operators are extracted from the Stinespring dilation by expanding the environment
+trace. If $\{|k\rangle_E\}$ is an orthonormal basis for the environment, then:
+</p>
+
+$$K_k = \langle k|_E U |0\rangle_E$$
+
+<p>
+and the channel becomes $\mathcal{E}(\rho) = \sum_k K_k \rho K_k^\dagger$, recovering the
+Kraus form. Different choices of environment basis give different (but unitarily equivalent)
+sets of Kraus operators.
+</p>
+
+<h3>The Complementary Channel</h3>
+
+<p>
+The Stinespring dilation naturally defines the <strong>complementary channel</strong>
+$\mathcal{E}^c$, which describes what the environment receives:
+</p>
+
+$$\mathcal{E}^c(\rho) = \text{Tr}_B\!\left(U(\rho \otimes |0\rangle\langle 0|_E)U^\dagger\right)$$
+
+<p>
+While the channel $\mathcal{E}$ traces out the environment, the complementary channel traces
+out the output system. The complementary channel plays a crucial role in quantum capacity
+theory (Chapter 29): roughly, information that the environment captures is information that
+the receiver loses.
+</p>
+
+<div class="callout callout-info">
+<strong>Note.</strong>
+<p>
+The relationship between a channel and its complement generalizes the classical wiretap
+channel. The quantum capacity of a channel is determined by the balance between what the
+receiver gets and what the environment captures. For <strong>degradable channels</strong>
+(where the complementary channel can be obtained by processing the output), the quantum
+capacity has a simple single-letter formula. The amplitude damping channel is degradable;
+the depolarizing channel generally is not.
+</p>
+</div>
+
+<h3>Three Equivalent Representations</h3>
+
+<p>
+We now have three equivalent ways to describe a quantum channel, each with its own advantages:
+</p>
+
+<ol>
+<li><strong>Kraus representation</strong> $\mathcal{E}(\rho) = \sum_k K_k \rho K_k^\dagger$:
+most convenient for computation and simulation. Directly gives the channel's action on any input.</li>
+<li><strong>Choi matrix</strong> $J(\mathcal{E}) = (\mathcal{I} \otimes \mathcal{E})(|\Omega\rangle\langle\Omega|)$:
+best for checking complete positivity (just check $J \geq 0$), optimization via semidefinite
+programming, and reading off channel properties.</li>
+<li><strong>Stinespring dilation</strong> $\mathcal{E}(\rho) = \text{Tr}_E(U(\rho \otimes |0\rangle\langle 0|_E)U^\dagger)$:
+most physically transparent. Shows that every channel comes from a unitary on a larger space.
+Essential for defining the complementary channel.</li>
+</ol>
+
+<p>
+Any one representation can be converted to any other. The choice of which to use depends on
+the problem at hand.
+</p>
+
+<h3>Worked Example: Stinespring Dilation of Amplitude Damping</h3>
+
+<p>
+The amplitude damping channel has Kraus operators $K_0 = \begin{pmatrix}1&0\\0&\sqrt{1-\gamma}\end{pmatrix}$
+and $K_1 = \begin{pmatrix}0&\sqrt{\gamma}\\0&0\end{pmatrix}$. The Stinespring dilation uses a
+single environment qubit initialized to $|0\rangle_E$. The unitary $U$ on the system-environment
+space acts as:
+</p>
+
+$$U|0\rangle_S|0\rangle_E = |0\rangle_S|0\rangle_E$$
+$$U|1\rangle_S|0\rangle_E = \sqrt{1-\gamma}|1\rangle_S|0\rangle_E + \sqrt{\gamma}|0\rangle_S|1\rangle_E$$
+
+<p>
+This describes the physical process: if the atom is in the ground state $|0\rangle$, nothing
+happens. If it is in the excited state $|1\rangle$, it has probability $\gamma$ of emitting a
+photon (the environment transitions from $|0\rangle_E$ to $|1\rangle_E$) and decaying to
+$|0\rangle$. The Kraus operators are recovered as $K_k = \langle k|_E U |0\rangle_E$.
+</p>
+
+<p>
+The complementary channel sends $\rho$ to the environment's state:
+$\mathcal{E}^c(\rho) = \text{Tr}_S(U(\rho \otimes |0\rangle\langle 0|)U^\dagger)$.
+For this channel, the environment receives a state that encodes information about whether
+a decay event occurred. Because amplitude damping is degradable, the complementary channel
+can be obtained by further processing the system output, which simplifies the quantum
+capacity calculation.
+</p>
+
+<h3>Channels as Resources</h3>
+
+<p>
+A channel $\mathcal{E}$ can itself be viewed as a resource to be consumed. How much classical
+information can it transmit? How much quantum information? Can it generate entanglement? These
+questions define the various <strong>capacities</strong> of the channel, the central topic of
+Chapter 29. The Stinespring picture makes clear why capacity is fundamentally about the
+information split between receiver and environment: whatever the environment learns, the
+receiver cannot.
+</p>
+
+<h3>Composition of Channels</h3>
+
+<p>
+Channels can be composed in series and parallel. If $\mathcal{E}_1$ has Kraus operators
+$\{A_i\}$ and $\mathcal{E}_2$ has Kraus operators $\{B_j\}$:
+</p>
+
+<ul>
+<li><strong>Sequential composition</strong> (first $\mathcal{E}_1$, then $\mathcal{E}_2$):
+The composite channel $\mathcal{E}_2 \circ \mathcal{E}_1$ has Kraus operators
+$\{B_j A_i\}_{i,j}$.</li>
+<li><strong>Parallel composition</strong> ($\mathcal{E}_1$ on system $A$, $\mathcal{E}_2$ on
+system $B$): The channel $\mathcal{E}_1 \otimes \mathcal{E}_2$ has Kraus operators
+$\{A_i \otimes B_j\}_{i,j}$.</li>
+</ul>
+
+<p>
+Sequential composition models a signal passing through multiple noisy stages. Parallel
+composition models independent noise on separate qubits. The set of all quantum channels
+on a fixed system forms a monoid under sequential composition: it is closed under composition,
+associative, and has the identity channel as its unit.
+</p>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="sandbox-channels">
+<h2>Sandbox: Quantum Channel Effects</h2>
+
+<p>
+The sandbox below demonstrates the effect of noise channels on a qubit. We start with a qubit
+in the $|+\rangle$ state (equal superposition) and apply different noise models. Run the
+circuit as-is to see the pure $|+\rangle$ state, then uncomment different noise sections to
+observe their effects.
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="12">OPENQASM 3.0;
+qubit[2] q;
+bit[1] c;
+// Prepare |+> state
+h q[0];
+// --- Amplitude damping (simulate with controlled rotation) ---
+// Uncomment below: ancilla q[1] starts at |0>
+// cx q[0], q[1];
+// --- Dephasing (apply Z with some probability) ---
+// Uncomment below to apply a Z rotation (partial dephasing):
+// rz(1.0) q[0];
+// Measure in X basis to detect coherence
+h q[0];
+c[0] = measure q[0];</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+Experiments to try:
+</p>
+
+<ul>
+<li><strong>No noise:</strong> Leave only <code>h q[0];</code> before the final Hadamard. The
+output should be deterministically <code>0</code> since $H|+\rangle = |0\rangle$.</li>
+<li><strong>Simulated dephasing:</strong> Uncomment the <code>rz(1.0) q[0];</code> line. This
+rotates the phase, partially destroying the coherence measured by the final Hadamard.
+You should see a mixture of 0 and 1 outcomes.</li>
+<li><strong>Entanglement with environment:</strong> Uncomment the <code>cx q[0], q[1];</code>
+line. This entangles the qubit with an "environment" qubit. Since we only measure q[0],
+the entanglement causes decoherence - the output becomes mixed.</li>
+</ul>
+
+</section>
+
+<!-- ================================================================== -->
+
+<div class="flashcard-deck" data-component="flashcard-deck">
+  <div class="flashcard-deck-header">Chapter 27 Review</div>
+
+  <div class="flashcard" data-card-id="ch27-kraus-representation">
+    <div class="card-front">State the Kraus representation of a quantum channel and the completeness condition.</div>
+    <div class="card-back">
+      A quantum channel $\mathcal{E}$ acts as $\mathcal{E}(\rho) = \sum_k K_k \rho K_k^\dagger$, where the Kraus operators $\{K_k\}$ satisfy the completeness relation $\sum_k K_k^\dagger K_k = I$. This ensures trace preservation. A channel with a single Kraus operator is a unitary evolution; multiple Kraus operators represent irreversible (noisy) processes.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch27-complete-positivity">
+    <div class="card-front">Why must quantum channels be completely positive, not merely positive?</div>
+    <div class="card-back">
+      A merely positive map can produce non-physical (non-positive) density operators when applied to part of an entangled system. Complete positivity ensures that $\mathcal{E} \otimes \mathcal{I}_n$ is positive for all ancilla dimensions $n$. The canonical example: the transpose map $\rho \mapsto \rho^T$ is positive but not completely positive - applying it to one half of a Bell state yields an operator with negative eigenvalues.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch27-choi-matrix">
+    <div class="card-front">What is the Choi matrix, and how does it characterize a quantum channel?</div>
+    <div class="card-back">
+      The Choi matrix is $J(\mathcal{E}) = (\mathcal{I} \otimes \mathcal{E})(|\Omega\rangle\langle\Omega|)$, formed by applying the channel to one half of a maximally entangled state. A map is completely positive iff $J(\mathcal{E}) \geq 0$, and trace-preserving iff $\text{Tr}_B(J(\mathcal{E})) = I$. The Choi matrix eigenvectors (reshaped) give the Kraus operators.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch27-depolarizing-channel">
+    <div class="card-front">Describe the depolarizing channel and its effect on the Bloch vector.</div>
+    <div class="card-back">
+      The depolarizing channel is $\mathcal{E}(\rho) = (1-p)\rho + p \frac{I}{d}$, which replaces the state with the maximally mixed state with probability $p$. For a qubit, it uniformly shrinks the Bloch vector: $\vec{r} \mapsto (1-p)\vec{r}$. It is unital (preserves the identity) and treats all directions of noise equally - it is the most symmetric noise model.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch27-amplitude-damping">
+    <div class="card-front">What physical process does the amplitude damping channel model, and why is it not unital?</div>
+    <div class="card-back">
+      Amplitude damping models spontaneous emission (energy decay), such as a two-level atom emitting a photon. The $|1\rangle$ population decays toward $|0\rangle$ with probability $\gamma$. It is not unital because its fixed point is $|0\rangle\langle 0|$, not $I/2$ - the ground state is preferred. Its Kraus operators are $K_0 = \begin{pmatrix}1&0\\0&\sqrt{1-\gamma}\end{pmatrix}$ and $K_1 = \begin{pmatrix}0&\sqrt{\gamma}\\0&0\end{pmatrix}$.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch27-stinespring-dilation">
+    <div class="card-front">State the Stinespring dilation theorem and its physical interpretation.</div>
+    <div class="card-back">
+      Every quantum channel $\mathcal{E}(\rho)$ can be written as $\text{Tr}_E(U(\rho \otimes |0\rangle\langle 0|_E)U^\dagger)$ for some environment system $E$ and unitary $U$. Physically: all quantum noise arises from unitary interaction with an unobserved environment followed by tracing it out. If we could track the environment, the evolution would be perfectly reversible.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch27-complementary-channel">
+    <div class="card-front">What is the complementary channel, and why is it important for quantum capacity?</div>
+    <div class="card-back">
+      The complementary channel $\mathcal{E}^c(\rho) = \text{Tr}_B(U(\rho \otimes |0\rangle\langle 0|_E)U^\dagger)$ describes what the environment receives - it is obtained from the Stinespring dilation by tracing out the output instead of the environment. It is central to quantum capacity: information captured by the environment is lost to the receiver. For degradable channels (where $\mathcal{E}^c$ can be obtained by processing the output of $\mathcal{E}$), the quantum capacity has a simple formula.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch27-three-representations">
+    <div class="card-front">Name the three equivalent representations of a quantum channel and give one advantage of each.</div>
+    <div class="card-back">
+      (1) <strong>Kraus representation:</strong> most convenient for direct computation of the channel's output on any input. (2) <strong>Choi matrix:</strong> best for verifying complete positivity (check positive semi-definiteness) and for optimization via semidefinite programs. (3) <strong>Stinespring dilation:</strong> most physically transparent, showing channels arise from unitary evolution plus partial trace; essential for defining the complementary channel.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+</div>

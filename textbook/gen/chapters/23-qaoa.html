@@ -1,0 +1,873 @@
+<p>
+  Throughout this textbook, we have built up the mathematical machinery of quantum computing -
+  qubits, gates, entanglement, interference. Now we put that machinery to work on one of the
+  most practically important classes of problems in all of computer science: combinatorial
+  optimization. These are problems where you must find the best solution from a vast, discrete
+  set of possibilities - routing delivery trucks, scheduling airline crews, assigning frequencies
+  to cell towers, or designing integrated circuits. Many of these problems are NP-hard, meaning
+  no known classical algorithm can solve them efficiently in the worst case.
+</p>
+
+<p>
+  In 2014, Edward Farhi, Jeffrey Goldstone, and Sam Gutmann proposed the <strong>Quantum
+  Approximate Optimization Algorithm</strong> (QAOA), a hybrid quantum-classical algorithm
+  designed to tackle these problems on near-term quantum hardware. QAOA does not promise exact
+  solutions - the word "approximate" is right there in the name - but it offers a structured,
+  principled approach to finding good solutions using shallow quantum circuits. In this chapter,
+  we will build QAOA from the ground up, apply it to the canonical MaxCut problem, connect it
+  to the deeper theory of adiabatic quantum computation, and explore D-Wave's radically
+  different approach to quantum optimization.
+</p>
+
+<!-- ================================================================== -->
+
+<section id="combinatorial-optimization">
+
+<h2>23.1 Combinatorial Optimization</h2>
+
+<p>
+  A <strong>combinatorial optimization problem</strong> asks: given a finite set of candidate
+  solutions, each with an associated cost (or objective value), find the solution that maximizes
+  or minimizes that cost. The challenge is that the number of candidates grows exponentially with
+  the problem size, making exhaustive search impractical.
+</p>
+
+<h3>MaxCut: The Canonical Example</h3>
+
+<p>
+  Given an undirected graph $G = (V, E)$ with $n$ vertices and $m$ edges, the <strong>MaxCut
+  problem</strong> asks: partition the vertices into two groups (call them $S$ and $\bar{S}$) so
+  that the number of edges crossing between the two groups is maximized. An edge $(i, j)$ is
+  "cut" if vertex $i$ is in one group and vertex $j$ is in the other.
+</p>
+
+<p>
+  We encode the partition using binary variables $z_i \in \{0, 1\}$ for each vertex $i$. Vertex
+  $i$ goes into group $S$ if $z_i = 0$ and into $\bar{S}$ if $z_i = 1$. An edge $(i,j)$ is cut
+  whenever $z_i \neq z_j$, which we can express mathematically as $z_i + z_j - 2 z_i z_j$ (this
+  equals 1 when the bits differ and 0 when they match). The total number of cut edges is:
+</p>
+
+$$C(z) = \sum_{(i,j) \in E} \left( z_i + z_j - 2 z_i z_j \right)$$
+
+<p>
+  For a graph with $n$ vertices, there are $2^n$ possible partitions. A graph with just 50
+  vertices has over $10^{15}$ possible cuts - far too many to check one by one. MaxCut is
+  NP-hard: no known classical algorithm solves it exactly in polynomial time for all graphs.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    MaxCut encodes a graph partitioning problem into binary variables. The objective function
+    counts edges between the two groups. Finding the partition that maximizes this count is
+    NP-hard, making it an ideal benchmark for quantum optimization algorithms.
+  </p>
+</div>
+
+<h3>From Classical Bits to Quantum Spins</h3>
+
+<p>
+  To bring MaxCut into the quantum world, we replace each classical bit $z_i \in \{0, 1\}$ with
+  a qubit and use the Pauli-Z operator to encode the partition. Recall that $Z|0\rangle =
+  +|0\rangle$ and $Z|1\rangle = -|1\rangle$, so the eigenvalue of $Z_i$ tells us which group
+  vertex $i$ belongs to. The classical cost function translates to a quantum operator called the
+  <strong>cost Hamiltonian</strong>:
+</p>
+
+$$H_C = \frac{1}{2} \sum_{(i,j) \in E} \left( I - Z_i Z_j \right)$$
+
+<p>
+  When qubits $i$ and $j$ are in different computational basis states (one $|0\rangle$, one
+  $|1\rangle$), the term $Z_i Z_j$ evaluates to $-1$, so $(I - Z_i Z_j)/2 = 1$ - the edge
+  contributes to the cut. When they are in the same state, $Z_i Z_j = +1$ and the term
+  vanishes. The eigenvalues of $H_C$ are exactly the cut values $C(z)$ for each bitstring $z$.
+  Maximizing the cut is equivalent to finding the highest eigenvalue of $H_C$.
+</p>
+
+<h3>Beyond MaxCut: SAT and Scheduling</h3>
+
+<p>
+  The QAOA framework extends far beyond MaxCut. Any combinatorial optimization problem whose
+  objective function can be written as a sum of terms involving a bounded number of variables
+  can be encoded as a cost Hamiltonian:
+</p>
+
+<ul>
+  <li>
+    <strong>Satisfiability (SAT):</strong> Given a Boolean formula in conjunctive normal form
+    (a conjunction of clauses, each a disjunction of literals), find an assignment that satisfies
+    the maximum number of clauses. Each clause becomes a term in $H_C$ using products of
+    $Z$ operators and identity shifts.
+  </li>
+  <li>
+    <strong>Graph coloring:</strong> Assign colors to vertices so that no two adjacent vertices
+    share a color, using the minimum number of colors. The penalty for adjacent same-color
+    vertices becomes the cost Hamiltonian.
+  </li>
+  <li>
+    <strong>Scheduling:</strong> Assign jobs to time slots and machines to minimize total
+    completion time or conflicts. Constraints become penalty terms in the Hamiltonian; the
+    objective becomes the cost to minimize.
+  </li>
+  <li>
+    <strong>Portfolio optimization:</strong> Select a subset of financial assets to maximize
+    expected return while minimizing risk, subject to budget constraints. The quadratic
+    risk-return trade-off maps naturally to a QUBO (Quadratic Unconstrained Binary Optimization)
+    formulation.
+  </li>
+</ul>
+
+<p>
+  The general pattern is always the same: encode the problem as a cost Hamiltonian $H_C$ whose
+  ground state (or highest eigenstate) encodes the optimal solution, then use QAOA to prepare a
+  quantum state with high overlap on that optimal state.
+</p>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="qaoa-circuit">
+
+<h2>23.2 The QAOA Circuit</h2>
+
+<p>
+  The QAOA circuit has an elegant, layered structure. It alternates between two types of
+  unitary operations - the <strong>problem unitary</strong> (which encodes the cost function)
+  and the <strong>mixing unitary</strong> (which explores the solution space) - applied $p$
+  times, where $p$ is the number of layers (also called the circuit depth). Each layer is
+  parameterized by two angles, $\gamma_k$ and $\beta_k$, which are optimized classically.
+</p>
+
+<h3>Step 1: Initial State</h3>
+
+<p>
+  QAOA begins by preparing an equal superposition over all $2^n$ computational basis states.
+  This is achieved by applying a Hadamard gate to each of the $n$ qubits:
+</p>
+
+$$|s\rangle = H^{\otimes n} |0\rangle^{\otimes n} = \frac{1}{\sqrt{2^n}} \sum_{z \in \{0,1\}^n} |z\rangle$$
+
+<p>
+  This initial state gives every possible solution an equal amplitude. The subsequent QAOA
+  layers will reshape these amplitudes, concentrating probability on high-quality solutions.
+</p>
+
+<h3>Step 2: The Problem Unitary $U(H_C, \gamma)$</h3>
+
+<p>
+  The problem unitary applies the cost Hamiltonian as a phase rotation:
+</p>
+
+$$U(H_C, \gamma) = e^{-i \gamma H_C}$$
+
+<p>
+  For MaxCut, the cost Hamiltonian is a sum of commuting $Z_i Z_j$ terms (diagonal operators
+  commute with each other), so the exponential factors cleanly:
+</p>
+
+$$U(H_C, \gamma) = \prod_{(i,j) \in E} e^{-i \gamma (I - Z_i Z_j)/2} = \prod_{(i,j) \in E} e^{i \gamma Z_i Z_j / 2}$$
+
+<p>
+  up to a global phase. Each factor $e^{i \gamma Z_i Z_j / 2}$ is implemented by an
+  $R_{ZZ}(\gamma)$ gate - a two-qubit gate that applies a relative phase depending on whether
+  qubits $i$ and $j$ agree or disagree. In QASM, this is written as
+  <code>rzz(gamma) q[i], q[j];</code>. The problem unitary stamps the cost function into the
+  phases of the quantum state: bitstrings with higher cut values accumulate different phases
+  than those with lower cut values.
+</p>
+
+<h3>Step 3: The Mixing Unitary $U(H_B, \beta)$</h3>
+
+<p>
+  The mixing unitary is generated by a "mixer" Hamiltonian $H_B$ that does not commute with
+  $H_C$. The standard choice is the transverse-field mixer:
+</p>
+
+$$H_B = \sum_{i=1}^{n} X_i$$
+
+<p>
+  which gives the mixing unitary:
+</p>
+
+$$U(H_B, \beta) = e^{-i \beta H_B} = \prod_{i=1}^{n} e^{-i \beta X_i} = \prod_{i=1}^{n} R_X(2\beta)_i$$
+
+<p>
+  Since the individual $X_i$ operators commute with each other (they act on different qubits),
+  the product factorizes into single-qubit $R_X$ rotations. The mixer's role is to create
+  transitions between computational basis states - it "mixes" the amplitudes, allowing the
+  algorithm to explore the solution space. Without the mixer, the problem unitary would only
+  modify phases, never moving amplitude between different bitstrings.
+</p>
+
+<h3>Step 4: Layer the Unitaries</h3>
+
+<p>
+  A depth-$p$ QAOA circuit applies $p$ alternating layers of problem and mixing unitaries:
+</p>
+
+$$|\gamma, \beta\rangle = U(H_B, \beta_p) \, U(H_C, \gamma_p) \cdots U(H_B, \beta_1) \, U(H_C, \gamma_1) \, |s\rangle$$
+
+<p>
+  The full parameter set is $(\gamma_1, \ldots, \gamma_p, \beta_1, \ldots, \beta_p)$ - a total
+  of $2p$ real numbers. The quantum state $|\gamma, \beta\rangle$ depends on these parameters,
+  and the goal is to choose them so that measuring the final state yields high-quality solutions
+  with high probability.
+</p>
+
+<h3>Step 5: Measure and Optimize</h3>
+
+<p>
+  After preparing $|\gamma, \beta\rangle$, we measure all qubits in the computational basis.
+  Each measurement outcome is a bitstring $z$ representing a candidate partition. We evaluate
+  the classical cost $C(z)$ for this bitstring. Repeating many times, we estimate the expected
+  cost:
+</p>
+
+$$\langle C \rangle = \langle \gamma, \beta | H_C | \gamma, \beta \rangle$$
+
+<p>
+  A classical optimizer (such as COBYLA, Nelder-Mead, or gradient-based methods) then adjusts
+  the $2p$ parameters to maximize $\langle C \rangle$. This classical-quantum feedback loop
+  continues until the parameters converge. The best bitstring observed during the entire
+  optimization process is returned as the approximate solution.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    QAOA is a hybrid quantum-classical algorithm. The quantum computer prepares a parameterized
+    state by alternating problem and mixing unitaries. The classical computer optimizes the
+    parameters to maximize the expected cost. Increasing the depth $p$ improves the
+    approximation quality, and in the limit $p \to \infty$, QAOA can find the exact optimum.
+  </p>
+</div>
+
+<p>
+  The sandbox below implements a single-layer ($p = 1$) QAOA circuit for MaxCut on a triangle
+  graph (3 vertices, 3 edges). Each edge contributes an <code>rzz</code> gate for the problem
+  unitary, and each qubit gets an <code>rx</code> gate for the mixer. Try varying the angles
+  to see how the output distribution changes.
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="18">OPENQASM 3.0;
+qubit[3] q;
+bit[3] c;
+// Initial superposition
+h q[0]; h q[1]; h q[2];
+// Problem unitary: edges (0,1), (1,2), (0,2)
+// gamma = pi/4
+rzz(pi/4) q[0], q[1];
+rzz(pi/4) q[1], q[2];
+rzz(pi/4) q[0], q[2];
+// Mixing unitary: rx on each qubit
+// beta = pi/8
+rx(pi/4) q[0];
+rx(pi/4) q[1];
+rx(pi/4) q[2];
+// Measure
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+  For the triangle graph, the optimal MaxCut partitions cut exactly 2 out of 3 edges (you
+  cannot cut all three edges of a triangle). The optimal bitstrings are <code>001</code>,
+  <code>010</code>, <code>100</code>, <code>110</code>, <code>101</code>, and <code>011</code>
+  - any partition where the groups are not trivially all-zero or all-one. A well-tuned QAOA
+  circuit should concentrate probability on these six bitstrings while suppressing
+  <code>000</code> and <code>111</code>.
+</p>
+
+<div class="callout callout-info">
+  <strong>Note.</strong>
+  <p>
+    The <code>rx</code> gate implements $R_X(\theta) = e^{-i \theta X / 2}$, so
+    <code>rx(2*beta)</code> corresponds to the mixing unitary $e^{-i \beta X}$. In the sandbox
+    above, <code>rx(pi/4)</code> corresponds to $\beta = \pi/8$. Similarly,
+    <code>rzz(gamma)</code> implements $e^{-i \gamma Z_i Z_j / 2}$, which is the problem
+    unitary factor for each edge (up to global phase).
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="qaoa-to-adiabatic">
+
+<h2>23.3 From QAOA to the Adiabatic Theorem</h2>
+
+<p>
+  QAOA is not just a clever heuristic - it has deep roots in one of quantum mechanics' most
+  powerful results: the <strong>adiabatic theorem</strong>. Understanding this connection
+  explains why QAOA works, when it fails, and how to improve it.
+</p>
+
+<h3>The Adiabatic Theorem</h3>
+
+<p>
+  The adiabatic theorem, first formulated by Max Born and Vladimir Fock in 1928, states: if a
+  quantum system starts in the ground state of a Hamiltonian $H(0)$, and the Hamiltonian is
+  changed <em>slowly enough</em> to a final Hamiltonian $H(T)$, then the system will remain
+  in the ground state of the instantaneous Hamiltonian throughout the evolution. "Slowly enough"
+  means the evolution time $T$ must be large compared to the inverse of the minimum energy gap
+  squared between the ground state and the first excited state:
+</p>
+
+$$T \gg \frac{1}{\Delta_{\min}^2}$$
+
+<p>
+  where $\Delta_{\min} = \min_{0 \leq t \leq T} \left( E_1(t) - E_0(t) \right)$ is the
+  minimum spectral gap along the entire evolution path.
+</p>
+
+<h3>Adiabatic Quantum Computation</h3>
+
+<p>
+  Adiabatic quantum computation (AQC) exploits this theorem directly. The idea: start with a
+  simple Hamiltonian $H_B$ whose ground state is easy to prepare (the equal superposition
+  $|s\rangle$ is the ground state of $H_B = -\sum_i X_i$), and slowly interpolate to the
+  problem Hamiltonian $H_C$ whose ground state encodes the solution:
+</p>
+
+$$H(t) = \left(1 - \frac{t}{T}\right) H_B + \frac{t}{T} H_C$$
+
+<p>
+  If the interpolation is slow enough, the adiabatic theorem guarantees that the system ends
+  in the ground state of $H_C$ - the optimal solution. The required evolution time depends on
+  the minimum gap, which is problem-dependent and can be exponentially small for hard instances.
+</p>
+
+<h3>QAOA as Trotterized Adiabatic Evolution</h3>
+
+<p>
+  Here is the key insight: QAOA can be viewed as a <strong>Trotterized</strong> (discretized)
+  version of adiabatic evolution. In the Trotterization of the continuous-time evolution under
+  $H(t)$, we break the evolution into $p$ discrete steps. At step $k$, the system evolves
+  under $H_C$ for a short time $\gamma_k$ and then under $H_B$ for a short time $\beta_k$.
+  This is exactly the QAOA circuit structure:
+</p>
+
+$$|\psi\rangle = \prod_{k=1}^{p} e^{-i \beta_k H_B} \, e^{-i \gamma_k H_C} \, |s\rangle$$
+
+<p>
+  If we choose $\gamma_k$ and $\beta_k$ to mimic a linear adiabatic schedule - small at the
+  beginning (mostly mixer) and large at the end (mostly problem) - the QAOA circuit
+  approximates the continuous adiabatic evolution. As $p \to \infty$ with an appropriate choice
+  of parameters, QAOA converges to exact adiabatic evolution and finds the optimal solution.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    QAOA at depth $p$ can be understood as a $p$-step Trotterization of adiabatic quantum
+    computation. In the limit $p \to \infty$, QAOA recovers the exact adiabatic evolution
+    and is guaranteed to find the ground state of $H_C$. At finite $p$, the variational
+    freedom to optimize $\gamma$ and $\beta$ allows QAOA to outperform a naive Trotter
+    discretization of the same depth.
+  </p>
+</div>
+
+<h3>Why Variational Freedom Helps</h3>
+
+<p>
+  A crucial advantage of QAOA over a fixed Trotter schedule: the parameters $\gamma_k$ and
+  $\beta_k$ are <em>variationally optimized</em>, not fixed by a predetermined schedule. This
+  means QAOA can compensate for the discretization error inherent in using only $p$ layers.
+  Research has shown that the "Trotter errors" in QAOA can actually be beneficial - they act
+  like counterdiabatic driving terms that suppress transitions out of the ground state, allowing
+  QAOA to achieve better performance than a naive discretization of adiabatic evolution at the
+  same circuit depth.
+</p>
+
+<p>
+  This also explains a practical observation: optimal QAOA parameters often follow a smooth,
+  monotonic pattern. The $\gamma$ values tend to increase across layers (the problem Hamiltonian
+  gets stronger) while the $\beta$ values tend to decrease (the mixer gets weaker) - precisely
+  mimicking an adiabatic ramp. This pattern has been exploited to develop parameter
+  initialization strategies that reduce the classical optimization burden.
+</p>
+
+<h3>The Gap Sets the Difficulty</h3>
+
+<p>
+  The adiabatic perspective reveals why some optimization problems are harder than others for
+  QAOA. The minimum spectral gap $\Delta_{\min}$ along the interpolation path determines how
+  many QAOA layers are needed. Problems with exponentially small gaps require exponentially many
+  layers - and thus exponentially long circuits - to solve exactly. This is consistent with
+  computational complexity theory: if QAOA could efficiently solve NP-hard problems with
+  polynomial-depth circuits, it would imply P = NP.
+</p>
+
+<div class="callout callout-warning">
+  <strong>Common Misconception.</strong>
+  <p>
+    QAOA does not solve NP-hard problems efficiently. For worst-case instances of NP-hard
+    problems, the required circuit depth $p$ can grow exponentially with problem size. What QAOA
+    offers is a structured, quantum-enhanced heuristic that may find good approximate solutions
+    faster than classical heuristics for certain problem classes - but rigorous quantum advantage
+    for QAOA on practically relevant problems remains an active area of research.
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="maxcut-qaoa-simulator">
+
+<h2>23.4 Solving MaxCut with QAOA on a Simulator</h2>
+
+<p>
+  Let us now put QAOA into practice. We will solve MaxCut on a small graph, exploring how the
+  parameters $\gamma$ and $\beta$ affect the quality of the solution. The simulation below
+  implements a depth-1 QAOA circuit for MaxCut on a 4-vertex path graph with edges
+  $(0,1)$, $(1,2)$, and $(2,3)$. The optimal MaxCut for this graph cuts all 3 edges, achieved
+  by the bitstrings <code>0101</code> and <code>1010</code>.
+</p>
+
+<h3>Interactive Parameter Exploration</h3>
+
+<p>
+  Use the sliders below to adjust the QAOA parameters $\gamma$ and $\beta$. Watch how the
+  measurement distribution changes as you sweep through different parameter values. The goal
+  is to find parameters that concentrate probability on the optimal bitstrings.
+</p>
+
+<div class="simulation" data-component="simulation">
+  <div class="sim-controls">
+    <label>$\gamma$: <input type="range" data-param="gamma" min="0" max="6.283" step="0.01" value="0.50"><output>0.50</output></label>
+    <label>$\beta$: <input type="range" data-param="beta" min="0" max="3.142" step="0.01" value="0.50"><output>0.50</output></label>
+  </div>
+  <pre class="sim-qasm">OPENQASM 3.0;
+qubit[4] q;
+bit[4] c;
+// Initial superposition
+h q[0]; h q[1]; h q[2]; h q[3];
+// Problem unitary: path graph edges (0,1), (1,2), (2,3)
+rzz({gamma}) q[0], q[1];
+rzz({gamma}) q[1], q[2];
+rzz({gamma}) q[2], q[3];
+// Mixing unitary
+rx({beta}) q[0];
+rx({beta}) q[1];
+rx({beta}) q[2];
+rx({beta}) q[3];
+// Measure
+c = measure q;</pre>
+  <div class="sim-output"></div>
+</div>
+
+<p>
+  As you explore the parameter landscape, notice several features. When $\gamma = 0$, the
+  problem unitary is the identity and you get a uniform distribution over all 16 bitstrings.
+  When $\beta = 0$, the mixer is the identity and the problem unitary only adds phases (which
+  do not affect measurement probabilities after a single layer). The interesting behavior
+  emerges when both parameters are nonzero. Try values near $\gamma \approx 0.6$ and
+  $\beta \approx 1.0$ - you should see the optimal bitstrings <code>0101</code> and
+  <code>1010</code> begin to dominate the distribution.
+</p>
+
+<h3>The Optimization Landscape</h3>
+
+<p>
+  The function $\langle C \rangle(\gamma, \beta)$ defines a two-dimensional landscape for
+  depth-1 QAOA. This landscape has the following properties:
+</p>
+
+<ul>
+  <li>
+    It is periodic in both $\gamma$ (period $2\pi$) and $\beta$ (period $\pi$), because the
+    $R_{ZZ}$ and $R_X$ gates are periodic in their angles.
+  </li>
+  <li>
+    It can have multiple local maxima, making the classical optimization non-trivial. However,
+    for small graphs, the landscape is smooth and the global optimum is easy to find.
+  </li>
+  <li>
+    For depth-1 QAOA on MaxCut, analytical formulas exist for the expected cost as a function
+    of $\gamma$ and $\beta$, enabling exact optimization without sampling noise.
+  </li>
+</ul>
+
+<h3>Exercise: Build a QAOA Circuit for a Square Graph</h3>
+
+<p>
+  Now it is your turn. Construct a depth-1 QAOA circuit for MaxCut on a 4-vertex cycle
+  (square) graph with edges $(0,1)$, $(1,2)$, $(2,3)$, and $(3,0)$. The optimal MaxCut for a
+  square cuts all 4 edges, achieved by the bitstrings <code>0101</code> and <code>1010</code>.
+  Use $\gamma = \pi/4$ and $\beta = \pi/4$ as starting parameters.
+</p>
+
+<div class="exercise" data-component="exercise">
+  <div class="exercise-header">Exercise 23.1: QAOA for MaxCut on a Square</div>
+  <div class="exercise-prompt">
+    <p>
+      Build a depth-1 QAOA circuit for MaxCut on a 4-vertex cycle graph. Start with Hadamard
+      gates on all qubits, apply <code>rzz(pi/4)</code> for each of the four edges
+      (0,1), (1,2), (2,3), and (3,0), then apply <code>rx(pi/4)</code> as the mixer on each
+      qubit. The optimal bitstrings <code>0101</code> and <code>1010</code> should have the
+      highest probabilities.
+    </p>
+  </div>
+  <textarea class="code" rows="14">OPENQASM 3.0;
+qubit[4] q;
+bit[4] c;
+// Step 1: Initial superposition
+h q[0]; h q[1]; h q[2]; h q[3];
+// Step 2: Problem unitary - add rzz gates for all 4 edges
+// Your code here
+
+// Step 3: Mixing unitary - add rx gates for all 4 qubits
+// Your code here
+
+c = measure q;</textarea>
+  <div class="exercise-expected">
+    <span data-state="0101" data-prob="0.25" data-tolerance="0.12"></span>
+    <span data-state="1010" data-prob="0.25" data-tolerance="0.12"></span>
+  </div>
+  <div class="exercise-hint" style="display:none">
+    <p>
+      Add four <code>rzz(pi/4)</code> gates for the edges: <code>rzz(pi/4) q[0], q[1];</code>,
+      <code>rzz(pi/4) q[1], q[2];</code>, <code>rzz(pi/4) q[2], q[3];</code>, and
+      <code>rzz(pi/4) q[3], q[0];</code>. Then add four <code>rx(pi/4)</code> gates, one for
+      each qubit.
+    </p>
+  </div>
+  <div class="exercise-controls">
+    <button data-action="check">Check</button>
+    <button data-action="hint">Hint</button>
+  </div>
+  <div class="exercise-feedback"></div>
+</div>
+
+<h3>Scaling Up: Deeper Circuits</h3>
+
+<p>
+  Depth-1 QAOA provides a limited approximation. For the triangle graph, depth-1 QAOA achieves
+  an approximation ratio (ratio of expected cut to optimal cut) of about 0.6924 - provably
+  above the trivial 0.5 ratio of random guessing, but below the 0.878 ratio achievable by
+  the best known classical algorithm (the Goemans-Williamson semidefinite programming
+  relaxation).
+</p>
+
+<p>
+  Increasing $p$ improves the approximation ratio. At depth $p = 2$, the QAOA state depends on
+  4 parameters ($\gamma_1, \gamma_2, \beta_1, \beta_2$), and the circuit applies two rounds
+  of problem and mixing unitaries. Each additional layer adds more parameters and more
+  expressive power, but also increases the circuit depth and the difficulty of classical
+  parameter optimization. In practice, QAOA circuits with $p = 5$ to $p = 20$ are explored
+  on near-term devices, with parameter initialization strategies (such as linear ramp
+  schedules inspired by the adiabatic connection) helping the classical optimizer converge.
+</p>
+
+<div class="callout callout-info">
+  <strong>Note.</strong>
+  <p>
+    The approximation ratio of depth-1 QAOA for MaxCut on 3-regular graphs is exactly
+    $0.6924$, proven by Farhi, Goldstone, and Gutmann in their original 2014 paper. Whether
+    QAOA at any fixed depth $p$ can beat the Goemans-Williamson ratio of $0.878$ remains an
+    important open question. Some results suggest depth-$p$ QAOA on bounded-degree graphs
+    cannot surpass classical algorithms for fixed $p$, but the performance at growing $p$ (as
+    a function of problem size) may tell a different story.
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="quantum-annealing">
+
+<h2>23.5 Quantum Annealing: D-Wave's Alternative</h2>
+
+<p>
+  While QAOA runs on gate-based quantum computers, there is an entirely different approach to
+  quantum optimization: <strong>quantum annealing</strong>. The Canadian company D-Wave Systems
+  has built a series of special-purpose quantum processors based on this principle, with their
+  latest systems containing over 5,000 qubits - far more than any gate-based quantum computer,
+  though with a much more restricted set of operations.
+</p>
+
+<h3>How Quantum Annealing Works</h3>
+
+<p>
+  Quantum annealing is a physical implementation of adiabatic quantum computation (the same
+  principle that inspired QAOA). The processor implements a time-dependent Hamiltonian:
+</p>
+
+$$H(t) = A(t) \sum_i X_i + B(t) \left[ \sum_i h_i Z_i + \sum_{i<j} J_{ij} Z_i Z_j \right]$$
+
+<p>
+  At the start of the anneal ($t = 0$), $A(0)$ is large and $B(0) \approx 0$, so the system
+  is dominated by the transverse field $\sum_i X_i$ and sits in an equal superposition of all
+  bitstrings. Over a time period (typically microseconds), $A(t)$ decreases to zero while
+  $B(t)$ increases, gradually turning on the problem Hamiltonian defined by the biases $h_i$
+  and couplings $J_{ij}$. If the anneal is slow enough relative to the spectral gap, the
+  system follows the ground state and ends in the solution to the optimization problem.
+</p>
+
+<h3>The Ising Model and QUBO</h3>
+
+<p>
+  D-Wave processors natively solve problems expressed as an <strong>Ising model</strong> (with
+  spin variables $s_i \in \{-1, +1\}$) or equivalently as a Quadratic Unconstrained Binary
+  Optimization (QUBO) problem (with binary variables $x_i \in \{0, 1\}$). The user specifies
+  the coefficients $h_i$ (local biases on each qubit) and $J_{ij}$ (coupling strengths between
+  pairs of qubits), and the annealer searches for the spin configuration that minimizes the
+  total energy.
+</p>
+
+<p>
+  Many practical optimization problems - MaxCut, graph coloring, scheduling, portfolio
+  optimization, logistics routing - can be formulated as QUBO problems. The translation from
+  a high-level problem to QUBO coefficients is a well-studied field with available software
+  libraries.
+</p>
+
+<h3>Hardware Topology: Chimera and Pegasus</h3>
+
+<p>
+  A critical constraint of D-Wave processors is that qubits are not fully connected. Each
+  qubit couples to only a limited number of other qubits, determined by the hardware topology:
+</p>
+
+<ul>
+  <li>
+    <strong>Chimera topology</strong> (used in earlier D-Wave systems): a grid of unit cells,
+    each containing 8 qubits arranged as a $K_{4,4}$ bipartite graph. Each qubit connects to
+    at most 6 others. This sparse connectivity means that fully connected problems must be
+    "embedded" into the hardware graph using chains of physical qubits to represent a single
+    logical qubit.
+  </li>
+  <li>
+    <strong>Pegasus topology</strong> (used in D-Wave Advantage): a denser connectivity graph
+    where each qubit connects to 15 others. This significantly reduces the embedding overhead,
+    allowing larger problems to be solved with fewer physical qubits.
+  </li>
+</ul>
+
+<p>
+  The embedding overhead is a practical bottleneck: a fully connected $n$-variable problem may
+  require $O(n^2)$ physical qubits on a Chimera graph. The Pegasus topology improves this
+  significantly but does not eliminate it. This is fundamentally different from gate-based
+  quantum computers, where any two qubits can interact (though with SWAP gate overhead on
+  hardware with limited connectivity).
+</p>
+
+<h3>QAOA vs. Quantum Annealing</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Feature</th>
+      <th>QAOA (Gate-Based)</th>
+      <th>Quantum Annealing (D-Wave)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Hardware</td>
+      <td>Universal gate-based QPU</td>
+      <td>Special-purpose annealing QPU</td>
+    </tr>
+    <tr>
+      <td>Qubit count</td>
+      <td>~100-1000 (current)</td>
+      <td>~5000+ (current)</td>
+    </tr>
+    <tr>
+      <td>Flexibility</td>
+      <td>Any quantum algorithm</td>
+      <td>Optimization problems only</td>
+    </tr>
+    <tr>
+      <td>Error correction</td>
+      <td>Compatible with QEC</td>
+      <td>No standard QEC; uses thermal sampling</td>
+    </tr>
+    <tr>
+      <td>Parameters</td>
+      <td>Variational ($\gamma, \beta$)</td>
+      <td>Anneal schedule, chain strengths</td>
+    </tr>
+    <tr>
+      <td>Connectivity</td>
+      <td>All-to-all (with SWAP overhead)</td>
+      <td>Limited by hardware topology</td>
+    </tr>
+    <tr>
+      <td>Theoretical basis</td>
+      <td>Circuit model + adiabatic limit</td>
+      <td>Adiabatic theorem directly</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    Quantum annealing and QAOA both exploit the connection between optimization and finding
+    ground states of quantum Hamiltonians. Quantum annealing uses continuous-time adiabatic
+    evolution on special-purpose hardware. QAOA discretizes this evolution into gate-based
+    circuits that run on universal quantum computers. QAOA's variational parameters give it
+    flexibility beyond a fixed annealing schedule, while D-Wave's higher qubit count allows it
+    to tackle larger problem instances today.
+  </p>
+</div>
+
+<h3>The Quantum Advantage Debate</h3>
+
+<p>
+  Whether quantum annealing provides a genuine speedup over classical optimization algorithms
+  remains hotly debated. D-Wave systems have been benchmarked extensively against classical
+  solvers (simulated annealing, parallel tempering, semidefinite programming), and the results
+  are mixed. For many problem types and sizes tested, state-of-the-art classical solvers
+  match or outperform the quantum annealer. However, D-Wave has demonstrated competitive
+  performance on certain structured problems, and the technology continues to improve.
+</p>
+
+<p>
+  The same uncertainty applies to QAOA on gate-based hardware. Demonstrating unambiguous
+  quantum advantage for optimization - not just for contrived, worst-case problems, but for
+  practical instances at scale - remains one of the grand challenges of quantum computing
+  research.
+</p>
+
+</section>
+
+<!-- ================================================================== -->
+
+<div class="flashcard-deck" data-component="flashcard-deck">
+  <div class="flashcard-deck-header">Chapter 23 Review</div>
+
+  <div class="flashcard" data-card-id="ch23-maxcut-hamiltonian">
+    <div class="card-front">What is the cost Hamiltonian for MaxCut, and what do its eigenvalues represent?</div>
+    <div class="card-back">
+      The MaxCut cost Hamiltonian is $H_C = \frac{1}{2} \sum_{(i,j) \in E} (I - Z_i Z_j)$.
+      Each eigenvalue equals the number of edges cut by the corresponding computational basis
+      state (bitstring). Maximizing the cut is equivalent to finding the highest eigenvalue of
+      $H_C$.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch23-qaoa-structure">
+    <div class="card-front">Describe the structure of a depth-$p$ QAOA circuit. What are the two types of unitaries?</div>
+    <div class="card-back">
+      A depth-$p$ QAOA circuit starts with Hadamard gates creating an equal superposition, then
+      applies $p$ alternating layers of: (1) the problem unitary $e^{-i \gamma_k H_C}$, which
+      encodes the cost function as phase rotations, and (2) the mixing unitary $e^{-i \beta_k H_B}$,
+      which creates transitions between basis states using $R_X$ rotations. The $2p$ parameters
+      $(\gamma_1, \ldots, \gamma_p, \beta_1, \ldots, \beta_p)$ are optimized classically.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch23-problem-unitary-gates">
+    <div class="card-front">How is the MaxCut problem unitary implemented in terms of quantum gates?</div>
+    <div class="card-back">
+      Since the MaxCut cost Hamiltonian is a sum of commuting $Z_i Z_j$ terms, the problem
+      unitary factorizes as a product of $R_{ZZ}(\gamma)$ gates, one per edge:
+      $U(H_C, \gamma) = \prod_{(i,j) \in E} e^{i \gamma Z_i Z_j / 2}$. Each
+      <code>rzz(gamma)</code> gate applies a relative phase depending on whether qubits $i$ and
+      $j$ agree or disagree.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch23-mixer-role">
+    <div class="card-front">What is the role of the mixing unitary in QAOA, and what happens without it?</div>
+    <div class="card-back">
+      The mixing unitary $U(H_B, \beta) = \prod_i R_X(2\beta)_i$ creates transitions between
+      computational basis states, allowing the algorithm to explore the solution space. Without
+      the mixer, the problem unitary only modifies phases of basis states, which does not change
+      measurement probabilities. The mixer is what enables amplitude transfer between different
+      candidate solutions.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch23-qaoa-adiabatic">
+    <div class="card-front">How is QAOA connected to adiabatic quantum computation?</div>
+    <div class="card-back">
+      QAOA can be viewed as a Trotterized (discretized) version of adiabatic quantum computation.
+      The alternating problem and mixing unitaries correspond to discrete time steps of a
+      continuous adiabatic interpolation from $H_B$ to $H_C$. In the limit $p \to \infty$ with
+      appropriately chosen parameters, QAOA converges to exact adiabatic evolution and finds the
+      optimal solution. The variational freedom to optimize parameters allows QAOA to outperform
+      a fixed Trotter schedule at the same depth.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch23-adiabatic-gap">
+    <div class="card-front">What determines the difficulty of an optimization problem for adiabatic/QAOA methods?</div>
+    <div class="card-back">
+      The minimum spectral gap $\Delta_{\min}$ between the ground state and first excited state
+      along the adiabatic interpolation path determines the difficulty. The required evolution
+      time scales as $T \sim 1/\Delta_{\min}^2$. For hard instances, the gap can be
+      exponentially small, requiring exponentially many QAOA layers or exponentially long anneal
+      times.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch23-quantum-annealing">
+    <div class="card-front">How does D-Wave's quantum annealing differ from gate-based QAOA?</div>
+    <div class="card-back">
+      D-Wave uses special-purpose hardware that physically implements continuous-time adiabatic
+      evolution, ramping from a transverse field to a problem Hamiltonian. It has thousands of
+      qubits but limited connectivity (Pegasus topology, 15 neighbors per qubit) and can only
+      solve optimization problems. QAOA runs on universal gate-based hardware with fewer qubits
+      but full flexibility, and its variational parameters provide more control than a fixed
+      anneal schedule.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch23-qaoa-limitations">
+    <div class="card-front">Does QAOA solve NP-hard problems efficiently? What are its practical limitations?</div>
+    <div class="card-back">
+      No. For worst-case NP-hard instances, the required circuit depth can grow exponentially.
+      Depth-1 QAOA on MaxCut achieves an approximation ratio of about 0.6924 on 3-regular
+      graphs, below the classical Goemans-Williamson ratio of 0.878. Practical limitations
+      include noise on near-term hardware, the difficulty of classically optimizing the $2p$
+      parameters (especially for large $p$), and the lack of proven quantum advantage over
+      classical heuristics for practically relevant problem sizes.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+</div>

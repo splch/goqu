@@ -1,0 +1,1284 @@
+<p>
+  In 1994, mathematician Peter Shor showed that a quantum computer could factor large integers
+  in polynomial time - an exponential speedup over the best known classical methods. This single
+  result transformed quantum computing from a theoretical curiosity into a looming threat to the
+  cryptographic infrastructure that secures the modern internet. In this chapter we will build
+  Shor's algorithm from the ground up, starting with the factoring problem itself, working
+  through the elegant reduction to period finding, and assembling the full quantum circuit. We
+  will run small examples on a simulator and conclude by examining the far-reaching implications
+  for cryptography and the ongoing transition to post-quantum standards.
+</p>
+
+<p>
+  This chapter builds directly on Chapter 10, where we developed the Quantum Fourier Transform
+  (QFT) and quantum phase estimation (QPE). Shor's algorithm is, at its core, an application of
+  QPE to the problem of finding the period of a modular exponentiation function. It also connects
+  to Chapter 8, where we introduced the RSA cryptosystem and its dependence on the presumed
+  difficulty of factoring.
+</p>
+
+<!-- ================================================================== -->
+<section id="factoring-problem">
+<h2>11.1 The Factoring Problem and Its Importance</h2>
+
+<p>
+  The <strong>integer factorization problem</strong> is deceptively simple to state: given a
+  composite integer $N$, find two non-trivial factors $p$ and $q$ such that $N = p \times q$.
+  For small numbers this is trivial - you can see that $15 = 3 \times 5$ at a glance. But as
+  numbers grow to hundreds or thousands of digits, the problem becomes extraordinarily difficult
+  for classical computers.
+</p>
+
+<h3>Why Factoring Is Believed to Be Hard</h3>
+
+<p>
+  Multiplication is easy: given two 1000-digit primes $p$ and $q$, any laptop can compute their
+  product $N = pq$ in a fraction of a second. Factoring is the reverse operation, and it appears
+  to be fundamentally harder. This asymmetry - easy to multiply, hard to factor - is an example
+  of a <em>one-way function</em>, and it is the cornerstone of modern public-key cryptography.
+</p>
+
+<p>
+  The best known classical factoring algorithm is the <strong>general number field sieve</strong>
+  (GNFS), which runs in time:
+</p>
+
+$$O\!\left(\exp\!\left(c \cdot n^{1/3} (\log n)^{2/3}\right)\right)$$
+
+<p>
+  where $n$ is the number of bits in $N$ and $c \approx 1.9$. This is <em>sub-exponential</em>
+  but still <em>super-polynomial</em> - it grows faster than any polynomial but slower than a
+  full exponential like $2^n$. For concreteness: factoring a 2048-bit RSA modulus with the GNFS
+  on current classical hardware would take longer than the age of the universe.
+</p>
+
+<div class="callout callout-info">
+  <strong>Note.</strong>
+  <p>
+    Factoring occupies a curious place in computational complexity. It is in <strong>NP</strong>
+    (given candidate factors, verification is a single multiplication) and also in
+    <strong>co-NP</strong> (you can prove a number is prime). But it is not known to be
+    NP-complete, so it may be easier than the hardest NP problems. This intermediate status is
+    precisely what makes quantum speedup possible - Shor's algorithm does not solve NP-complete
+    problems efficiently, but it does exploit the special algebraic structure of factoring.
+  </p>
+</div>
+
+<h3>RSA Depends on Factoring Being Hard</h3>
+
+<p>
+  The RSA cryptosystem, introduced by Rivest, Shamir, and Adleman in 1977, works as follows. A
+  user generates two large primes $p$ and $q$, computes $N = pq$, and publishes $N$ as part of
+  their public key. Anyone can encrypt a message using $N$, but decryption requires knowing the
+  prime factors $p$ and $q$. The security of RSA therefore rests on the assumption that factoring
+  $N$ is computationally infeasible when $p$ and $q$ are large enough (typically 1024 bits each,
+  making $N$ a 2048-bit number).
+</p>
+
+<p>
+  Today, RSA and closely related schemes protect banking transactions, secure web browsing (TLS),
+  email encryption (PGP), software updates, and much more. If factoring became easy, all of these
+  systems would be broken. Shor's algorithm makes factoring easy - for a sufficiently powerful
+  quantum computer.
+</p>
+
+<h3>The Factoring Landscape</h3>
+
+<table>
+  <thead>
+    <tr><th>Algorithm</th><th>Type</th><th>Complexity</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Trial division</td><td>Classical</td><td>$O(\sqrt{N})$ - exponential in $n$</td></tr>
+    <tr><td>Pollard's rho</td><td>Classical</td><td>$O(N^{1/4})$ - exponential in $n$</td></tr>
+    <tr><td>Quadratic sieve</td><td>Classical</td><td>$O(\exp(c \cdot \sqrt{n \log n}))$</td></tr>
+    <tr><td>General number field sieve</td><td>Classical</td><td>$O(\exp(c \cdot n^{1/3}(\log n)^{2/3}))$</td></tr>
+    <tr><td><strong>Shor's algorithm</strong></td><td><strong>Quantum</strong></td><td>$O(n^3)$ - <strong>polynomial</strong></td></tr>
+  </tbody>
+</table>
+
+<p>
+  The jump from sub-exponential to polynomial is dramatic. For a 2048-bit number, the GNFS
+  requires on the order of $2^{112}$ operations. Shor's algorithm requires roughly $2048^3
+  \approx 8.6 \times 10^9$ quantum gate operations - a number that is large but entirely
+  feasible for a fault-tolerant quantum computer.
+</p>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="factoring-to-period">
+<h2>11.2 From Factoring to Period Finding</h2>
+
+<p>
+  The key insight of Shor's algorithm is that factoring can be reduced to a different problem -
+  <strong>order finding</strong> (also called period finding) - which a quantum computer can
+  solve efficiently. This section develops that reduction step by step.
+</p>
+
+<h3>Modular Arithmetic Review</h3>
+
+<p>
+  We write $a \equiv b \pmod{N}$ to mean that $N$ divides $(a - b)$. Equivalently, $a$ and $b$
+  have the same remainder when divided by $N$. For example:
+</p>
+
+<ul>
+  <li>$17 \equiv 2 \pmod{5}$ because $17 - 2 = 15$ is divisible by 5</li>
+  <li>$7^2 = 49 \equiv 4 \pmod{15}$ because $49 - 4 = 45$ is divisible by 15</li>
+</ul>
+
+<p>
+  The function $f(x) = a^x \bmod N$ is central to Shor's algorithm. It is computed by
+  <strong>repeated squaring</strong>: to compute $a^x \bmod N$, we express $x$ in binary and
+  repeatedly square and reduce modulo $N$, requiring only $O(\log x)$ multiplications.
+</p>
+
+<h3>The Order of an Integer</h3>
+
+<p>
+  Given an integer $a$ with $1 < a < N$ and $\gcd(a, N) = 1$ (that is, $a$ and $N$ share no
+  common factors), the <strong>order</strong> of $a$ modulo $N$ is the smallest positive integer
+  $r$ such that:
+</p>
+
+$$a^r \equiv 1 \pmod{N}$$
+
+<p>
+  For example, consider $a = 7$ and $N = 15$:
+</p>
+
+<ul>
+  <li>$7^1 \bmod 15 = 7$</li>
+  <li>$7^2 \bmod 15 = 49 \bmod 15 = 4$</li>
+  <li>$7^3 \bmod 15 = 7 \cdot 4 \bmod 15 = 28 \bmod 15 = 13$</li>
+  <li>$7^4 \bmod 15 = 7 \cdot 13 \bmod 15 = 91 \bmod 15 = 1$</li>
+</ul>
+
+<p>
+  So the order of 7 modulo 15 is $r = 4$. Notice the sequence repeats with period $r$: the
+  function $f(x) = 7^x \bmod 15$ cycles through $7, 4, 13, 1, 7, 4, 13, 1, \ldots$
+</p>
+
+<h3>The Reduction: Order Finding Gives Factors</h3>
+
+<p>
+  Here is the central theorem that makes Shor's algorithm work:
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept - The Factoring Reduction.</strong>
+  <p>
+    Suppose we know the order $r$ of a randomly chosen $a$ modulo $N$. If $r$ is even and
+    $a^{r/2} \not\equiv -1 \pmod{N}$, then at least one of the following is a non-trivial
+    factor of $N$:
+  </p>
+  <p>
+    $$\gcd(a^{r/2} - 1,\; N) \quad \text{or} \quad \gcd(a^{r/2} + 1,\; N)$$
+  </p>
+</div>
+
+<p>
+  <strong>Why does this work?</strong> Since $a^r \equiv 1 \pmod{N}$, we can write:
+</p>
+
+$$a^r - 1 \equiv 0 \pmod{N}$$
+
+<p>
+  If $r$ is even, this factors as:
+</p>
+
+$$(a^{r/2} - 1)(a^{r/2} + 1) \equiv 0 \pmod{N}$$
+
+<p>
+  This means $N$ divides the product $(a^{r/2} - 1)(a^{r/2} + 1)$. If neither factor is
+  divisible by $N$ itself (which is guaranteed when $a^{r/2} \not\equiv \pm 1 \pmod{N}$),
+  then $N$ must share a non-trivial common factor with at least one of them. The Euclidean
+  algorithm computes $\gcd$ in $O(n^2)$ time, so extracting the factors is classically
+  efficient.
+</p>
+
+<h3>Worked Example: Factoring 15</h3>
+
+<p>
+  Let us factor $N = 15$ using this reduction. Choose $a = 7$ (we already know the
+  choice must satisfy $\gcd(a, N) = 1$; since $\gcd(7, 15) = 1$, this is valid).
+</p>
+
+<ol>
+  <li>Find the order: $r = 4$ (as computed above, since $7^4 \equiv 1 \pmod{15}$).</li>
+  <li>Check: $r = 4$ is even. Good.</li>
+  <li>Compute $a^{r/2} = 7^2 = 49 \equiv 4 \pmod{15}$. Since $4 \not\equiv -1 \pmod{15}$, we
+    can proceed.</li>
+  <li>Compute the GCDs:
+    <ul>
+      <li>$\gcd(a^{r/2} - 1, N) = \gcd(48, 15) = \gcd(3, 15) = 3$</li>
+      <li>$\gcd(a^{r/2} + 1, N) = \gcd(50, 15) = \gcd(5, 15) = 5$</li>
+    </ul>
+  </li>
+  <li>We have found the factors: $15 = 3 \times 5$.</li>
+</ol>
+
+<h3>Success Probability</h3>
+
+<p>
+  Not every choice of $a$ works. The reduction can fail in two ways: $r$ might be odd, or
+  $a^{r/2} \equiv -1 \pmod{N}$. However, a theorem from number theory guarantees that for a
+  randomly chosen $a$, the probability that the reduction succeeds is at least $1 - 1/2^{k-1}$,
+  where $k$ is the number of distinct prime factors of $N$. For $N = pq$ (the RSA case, $k = 2$),
+  this gives a success probability of at least $1/2$. After a few random choices of $a$, the
+  probability of not yet having found a factor becomes negligibly small.
+</p>
+
+<h3>The Complete Classical-Quantum Split</h3>
+
+<p>
+  Shor's algorithm neatly separates into classical and quantum parts:
+</p>
+
+<ol>
+  <li><strong>Classical preprocessing:</strong> Pick a random $a$, check $\gcd(a, N) = 1$.</li>
+  <li><strong>Quantum subroutine:</strong> Find the order $r$ of $a$ modulo $N$.</li>
+  <li><strong>Classical postprocessing:</strong> If $r$ is even and $a^{r/2} \not\equiv -1
+    \pmod{N}$, compute $\gcd(a^{r/2} \pm 1, N)$. Otherwise, pick a new $a$ and repeat.</li>
+</ol>
+
+<p>
+  The quantum speedup comes entirely from step 2. Everything else is classical and efficient.
+  The next section shows how a quantum computer finds $r$.
+</p>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="quantum-period-finding">
+<h2>11.3 Quantum Period Finding with the QFT</h2>
+
+<p>
+  The order-finding problem asks us to determine the smallest $r$ such that $a^r \equiv 1
+  \pmod{N}$. The function $f(x) = a^x \bmod N$ is periodic with period $r$, and a quantum
+  computer can extract this period using the quantum Fourier transform. The technique is a direct
+  application of quantum phase estimation from Chapter 10.
+</p>
+
+<h3>The Quantum Circuit</h3>
+
+<p>
+  The quantum order-finding circuit uses two registers:
+</p>
+
+<ul>
+  <li><strong>Top register</strong> (counting register): $t$ qubits, where $t \approx 2n$ for an
+    $n$-bit number $N$. This register is where we will read out information about the period.</li>
+  <li><strong>Bottom register</strong> (work register): $n$ qubits, initialized to $|1\rangle$
+    (the value 1 in binary). This register holds the values of $a^x \bmod N$.</li>
+</ul>
+
+<p>
+  The circuit has four stages:
+</p>
+
+<ol>
+  <li>
+    <strong>Prepare uniform superposition.</strong> Apply Hadamard gates to all $t$ qubits
+    in the top register, creating:
+    $$\frac{1}{\sqrt{2^t}} \sum_{x=0}^{2^t - 1} |x\rangle |1\rangle$$
+  </li>
+  <li>
+    <strong>Apply controlled modular exponentiation.</strong> For each qubit $j$ in the top
+    register (from most significant to least), apply a controlled operation that multiplies the
+    bottom register by $a^{2^j} \bmod N$, conditioned on qubit $j$ being $|1\rangle$. This
+    transforms the state to:
+    $$\frac{1}{\sqrt{2^t}} \sum_{x=0}^{2^t - 1} |x\rangle |a^x \bmod N\rangle$$
+  </li>
+  <li>
+    <strong>Apply the inverse QFT</strong> to the top register. The QFT extracts the frequency
+    information - that is, the period - from the superposition.
+  </li>
+  <li>
+    <strong>Measure</strong> the top register. The result is a value $y$ that is close to a
+    multiple of $2^t / r$.
+  </li>
+</ol>
+
+<h3>Why the QFT Reveals the Period</h3>
+
+<p>
+  After stage 2, the top and bottom registers are entangled. If we were to measure the bottom
+  register and obtained some value $f_0 = a^{x_0} \bmod N$, the top register would collapse to
+  a superposition of all $x$ values that map to $f_0$:
+</p>
+
+$$|x_0\rangle + |x_0 + r\rangle + |x_0 + 2r\rangle + \cdots$$
+
+<p>
+  This is a state with a periodic structure - the non-zero amplitudes are evenly spaced with
+  spacing $r$. When we apply the inverse QFT to a periodic state with period $r$, the result is
+  a state concentrated on multiples of $2^t / r$. Specifically, measuring the top register yields
+  a value $y$ that satisfies:
+</p>
+
+$$y \approx k \cdot \frac{2^t}{r} \quad \text{for some integer } k \in \{0, 1, \ldots, r-1\}$$
+
+<p>
+  The key fact is that we do not need to measure the bottom register first. Because the QFT
+  operates only on the top register, the analysis works out the same whether or not we measure
+  the bottom register. The interference pattern produced by the QFT ensures that the measurement
+  outcome $y$ carries information about $r$.
+</p>
+
+<h3>Extracting the Period with Continued Fractions</h3>
+
+<p>
+  After measuring $y$ from the top register, we have the ratio $y / 2^t$, which is close to some
+  fraction $k/r$. To extract $r$, we use the <strong>continued fractions algorithm</strong>.
+</p>
+
+<p>
+  A continued fraction expansion of a real number $\alpha$ has the form:
+</p>
+
+$$\alpha = a_0 + \cfrac{1}{a_1 + \cfrac{1}{a_2 + \cfrac{1}{a_3 + \cdots}}}$$
+
+<p>
+  We write this compactly as $[a_0; a_1, a_2, a_3, \ldots]$. The <strong>convergents</strong> are
+  the rational approximations obtained by truncating the expansion: $a_0$, $a_0 + 1/a_1$,
+  $a_0 + 1/(a_1 + 1/a_2)$, and so on.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept - Continued Fractions in Shor's Algorithm.</strong>
+  <p>
+    Given the measured value $y$ and the known value $2^t$, compute the continued fraction
+    expansion of $y / 2^t$. The convergent whose denominator is less than $N$ and best
+    approximates $y / 2^t$ gives a candidate for $k/r$. The denominator of this convergent
+    is our candidate for the period $r$ (or a divisor of $r$).
+  </p>
+</div>
+
+<h3>Worked Example: Continued Fractions for Factoring 15</h3>
+
+<p>
+  Suppose we are factoring $N = 15$ with $a = 7$, using $t = 8$ qubits in the top register
+  (so $2^t = 256$). The true period is $r = 4$, so the QFT peaks occur near multiples of
+  $256 / 4 = 64$. Suppose we measure $y = 192$.
+</p>
+
+<p>
+  We compute the continued fraction expansion of $192/256 = 3/4$:
+</p>
+
+$$\frac{192}{256} = \frac{3}{4} = 0 + \cfrac{1}{1 + \cfrac{1}{3}} = [0; 1, 3]$$
+
+<p>
+  The convergents are:
+</p>
+
+<ul>
+  <li>$[0] = 0/1$</li>
+  <li>$[0; 1] = 1/1$</li>
+  <li>$[0; 1, 3] = 3/4$</li>
+</ul>
+
+<p>
+  The last convergent with denominator less than $N = 15$ is $3/4$. The denominator is $4$,
+  which is our candidate for $r$. We check: $7^4 \bmod 15 = 2401 \bmod 15 = 1$. Indeed,
+  $r = 4$.
+</p>
+
+<p>
+  What if we had measured $y = 64$ instead? Then $64/256 = 1/4 = [0; 4]$, and the convergent
+  gives denominator $4$ directly. If we measured $y = 128$, then $128/256 = 1/2 = [0; 2]$,
+  giving denominator $2$. Since $2$ divides the true period $4$, we would check $r = 2$:
+  $7^2 \bmod 15 = 4 \neq 1$, so $r = 2$ fails and we know the true period must be a multiple
+  of $2$. We could try $r = 4$ next, or simply re-run the quantum circuit.
+</p>
+
+<h3>Sandbox: Period Finding for $a = 7, N = 15$</h3>
+
+<p>
+  The sandbox below demonstrates the quantum part of period finding for factoring 15 with
+  $a = 7$. We use a simplified 4-qubit counting register and implement the controlled modular
+  multiplications as custom gates. The QFT is applied via controlled phase rotations and swaps.
+  Run the circuit and observe that the measurement outcomes cluster near multiples of $16/4 = 4$
+  (that is, near $0$, $4$, $8$, and $12$ in the 4-bit counting register).
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="24">OPENQASM 3.0;
+// Period finding for a=7, N=15
+// Top register: q[0..3] (counting, 4 qubits)
+// Bottom register: q[4..7] (work, 4 qubits, init to |1>)
+qubit[8] q;
+bit[4] c;
+
+// Initialize work register to |0001> = 1
+x q[7];
+
+// Hadamard on counting register
+h q[0]; h q[1]; h q[2]; h q[3];
+
+// Controlled modular exponentiation: a^(2^j) mod 15
+// For a=7, N=15: 7^1=7, 7^2=4, 7^4=1, 7^8=1 mod 15
+// ctrl-multiply by 7^8 mod 15 = 1 (identity, skip q[0])
+// ctrl-multiply by 7^4 mod 15 = 1 (identity, skip q[1])
+// ctrl-multiply by 7^2 mod 15 = 4
+// Multiply by 4 mod 15: maps |x> -> |4x mod 15>
+ctrl @ swap q[2], q[5], q[7];
+ctrl @ swap q[2], q[4], q[6];
+// ctrl-multiply by 7^1 mod 15 = 7
+// Multiply by 7 mod 15: maps |x> -> |7x mod 15>
+ctrl @ swap q[3], q[4], q[6];
+ctrl @ swap q[3], q[5], q[7];
+ctrl @ x q[3], q[4];
+ctrl @ x q[3], q[5];
+ctrl @ x q[3], q[6];
+ctrl @ x q[3], q[7];
+
+// Inverse QFT on counting register
+swap q[0], q[3];
+swap q[1], q[2];
+h q[0];
+cp(-pi/2) q[1], q[0];
+h q[1];
+cp(-pi/4) q[2], q[0];
+cp(-pi/2) q[2], q[1];
+h q[2];
+cp(-pi/8) q[3], q[0];
+cp(-pi/4) q[3], q[1];
+cp(-pi/2) q[3], q[2];
+h q[3];
+
+// Measure counting register
+c[0] = measure q[0];
+c[1] = measure q[1];
+c[2] = measure q[2];
+c[3] = measure q[3];</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+  You should see four peaks in the histogram, corresponding to the values $0000$, $0100$,
+  $1000$, and $1100$ (that is, $0$, $4$, $8$, and $12$ in decimal). These are the multiples of
+  $2^4 / r = 16/4 = 4$. Each of these outcomes, when processed through the continued fractions
+  algorithm, yields $r = 4$ (except for $y = 0$, which is uninformative).
+</p>
+
+<h3>Simulation: QFT Peaks Reveal the Period</h3>
+
+<p>
+  The simulation below lets you explore how the inverse QFT creates peaks at multiples of
+  $2^t / r$. Use the slider to set a phase value $\varphi$. The circuit prepares a state where
+  the phase encodes information about the period, and the inverse QFT converts this into a
+  measurement pattern. When $\varphi = k/r$ for integer $k$ and $r$, the peaks are sharp and
+  well-defined. Try $\varphi = 0.25$ (corresponding to $r = 4$, $k = 1$), $\varphi = 0.50$
+  ($r = 2$), and $\varphi = 0.75$ ($r = 4$, $k = 3$) to see how different periods produce
+  different peak patterns.
+</p>
+
+<div class="simulation" data-component="simulation">
+  <div class="sim-controls">
+    <label>Phase $\varphi$:
+      <input type="range" min="0.0" max="1.0" step="0.05" value="0.25" data-param="phi">
+      <output>0.25</output>
+    </label>
+  </div>
+  <pre class="sim-qasm" hidden>OPENQASM 3.0;
+qubit[4] q;
+bit[4] c;
+// Prepare eigenstate with phase phi = {phi}
+// Apply phase encoding followed by inverse QFT
+h q[0]; h q[1]; h q[2]; h q[3];
+// Phase kickback encoding
+cp({phi}*2*pi) q[3], q[0];
+cp({phi}*4*pi) q[2], q[0];
+cp({phi}*8*pi) q[1], q[0];
+cp({phi}*2*pi) q[3], q[1];
+cp({phi}*4*pi) q[2], q[1];
+cp({phi}*2*pi) q[3], q[2];
+// Inverse QFT
+swap q[0], q[3];
+swap q[1], q[2];
+h q[0];
+cp(-pi/2) q[1], q[0];
+h q[1];
+cp(-pi/4) q[2], q[0];
+cp(-pi/2) q[2], q[1];
+h q[2];
+cp(-pi/8) q[3], q[0];
+cp(-pi/4) q[3], q[1];
+cp(-pi/2) q[3], q[2];
+h q[3];
+c = measure q;</pre>
+  <div class="sim-output"></div>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="complete-algorithm">
+<h2>11.4 Putting It All Together: Shor's Complete Algorithm</h2>
+
+<p>
+  We now have all the pieces. Let us assemble the complete algorithm and walk through the full
+  process of factoring $N = 15$.
+</p>
+
+<h3>The Algorithm, Step by Step</h3>
+
+<div class="callout callout-key">
+  <strong>Shor's Factoring Algorithm.</strong>
+  <p>Given a composite integer $N$ to factor:</p>
+  <ol>
+    <li>If $N$ is even, return the factor $2$.</li>
+    <li>Check if $N = a^b$ for some integers $a \geq 2$, $b \geq 2$. If so, return $a$.
+      (This can be done classically in $O(n^3)$ time.)</li>
+    <li>Choose a random integer $a$ with $2 \leq a \leq N - 1$.</li>
+    <li>Compute $d = \gcd(a, N)$. If $d > 1$, return $d$ (we got lucky).</li>
+    <li><strong>[Quantum]</strong> Use the quantum order-finding subroutine to find the order
+      $r$ of $a$ modulo $N$.</li>
+    <li>If $r$ is odd, go to step 3.</li>
+    <li>If $a^{r/2} \equiv -1 \pmod{N}$, go to step 3.</li>
+    <li>Compute $\gcd(a^{r/2} - 1, N)$ and $\gcd(a^{r/2} + 1, N)$. At least one of these is a
+      non-trivial factor of $N$. Return it.</li>
+  </ol>
+</div>
+
+<h3>End-to-End Walkthrough: Factoring 15</h3>
+
+<p>
+  Let us trace through the algorithm with $N = 15$:
+</p>
+
+<p>
+  <strong>Step 1:</strong> $N = 15$ is odd - no free factor of 2.
+</p>
+
+<p>
+  <strong>Step 2:</strong> $15$ is not a perfect power ($\sqrt{15} \approx 3.87$, $15^{1/3}
+  \approx 2.47$ - neither is an integer).
+</p>
+
+<p>
+  <strong>Step 3:</strong> Choose $a = 7$.
+</p>
+
+<p>
+  <strong>Step 4:</strong> $\gcd(7, 15) = 1$, so no free factor.
+</p>
+
+<p>
+  <strong>Step 5 (Quantum):</strong> Run the quantum order-finding circuit. We prepare the
+  superposition over the counting register, apply the controlled modular exponentiation by
+  $a = 7$, apply the inverse QFT, and measure. Suppose we measure $y = 192$ from an 8-bit
+  counting register ($2^t = 256$).
+</p>
+
+<p>
+  <strong>Classical post-processing:</strong> Compute the continued fraction expansion of
+  $192/256 = 3/4$. The convergent with the largest denominator less than $N = 15$ has
+  denominator $r = 4$.
+</p>
+
+<p>
+  <strong>Step 6:</strong> $r = 4$ is even. Good.
+</p>
+
+<p>
+  <strong>Step 7:</strong> $7^{4/2} = 7^2 = 49 \equiv 4 \pmod{15}$, and $4 \neq -1 \equiv 14
+  \pmod{15}$. Good.
+</p>
+
+<p>
+  <strong>Step 8:</strong> Compute:
+</p>
+
+<ul>
+  <li>$\gcd(7^2 - 1, 15) = \gcd(48, 15) = 3$</li>
+  <li>$\gcd(7^2 + 1, 15) = \gcd(50, 15) = 5$</li>
+</ul>
+
+<p>
+  The factors of 15 are <strong>3 and 5</strong>.
+</p>
+
+<h3>Complexity Analysis</h3>
+
+<p>
+  For factoring an $n$-bit number $N$, the quantum order-finding circuit requires:
+</p>
+
+<ul>
+  <li><strong>Qubits:</strong> $O(n)$ qubits - approximately $2n$ for the counting register and
+    $n$ for the work register, plus ancilla qubits for the modular arithmetic.</li>
+  <li><strong>Controlled modular exponentiation:</strong> This is the most expensive part. Each
+    controlled multiplication modulo $N$ requires $O(n^2)$ elementary gates (using schoolbook
+    multiplication), and we need $O(n)$ such multiplications - one for each bit of the counting
+    register. Total: $O(n^3)$ gates.</li>
+  <li><strong>Inverse QFT:</strong> $O(n^2)$ gates (as we saw in Chapter 10), which is dominated
+    by the modular exponentiation cost.</li>
+  <li><strong>Classical post-processing:</strong> The continued fractions algorithm and GCD
+    computation each run in $O(n^2)$ time.</li>
+</ul>
+
+<p>
+  The overall gate complexity is $O(n^3)$, which is <strong>polynomial</strong> in the number of
+  bits. This is an exponential improvement over the best classical algorithm.
+</p>
+
+<h3>Comparison with Classical Algorithms</h3>
+
+<table>
+  <thead>
+    <tr><th>Bits ($n$)</th><th>GNFS (classical)</th><th>Shor (quantum)</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>512</td><td>$\sim 2^{63}$ operations</td><td>$\sim 1.3 \times 10^8$ gates</td></tr>
+    <tr><td>1024</td><td>$\sim 2^{86}$ operations</td><td>$\sim 1.1 \times 10^9$ gates</td></tr>
+    <tr><td>2048</td><td>$\sim 2^{112}$ operations</td><td>$\sim 8.6 \times 10^9$ gates</td></tr>
+    <tr><td>4096</td><td>$\sim 2^{142}$ operations</td><td>$\sim 6.9 \times 10^{10}$ gates</td></tr>
+  </tbody>
+</table>
+
+<p>
+  At 2048 bits, the classical cost is astronomically beyond reach, while the quantum cost is
+  within the capability of a future fault-tolerant quantum computer with thousands of logical
+  qubits.
+</p>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="poe-measurement">
+<h2>Predict, Observe, Explain: Measurement After the QFT</h2>
+
+<div class="poe" data-component="poe">
+  <div class="poe-progress">
+    <span class="poe-progress-step active">Predict</span>
+    <span class="poe-progress-step">Observe</span>
+    <span class="poe-progress-step">Explain</span>
+  </div>
+
+  <div class="poe-step active">
+    <h3>Predict</h3>
+    <p>
+      The circuit below implements quantum order finding for $a = 7$, $N = 15$, using a 4-qubit
+      counting register. The true period is $r = 4$, and the counting register has $2^4 = 16$
+      possible measurement outcomes. <strong>Before running the circuit, predict:</strong>
+    </p>
+    <ul>
+      <li>How many distinct measurement outcomes should appear with high probability?</li>
+      <li>What are those specific outcomes (in decimal)?</li>
+      <li>Why should each outcome appear with roughly equal probability?</li>
+    </ul>
+    <p>
+      Write down your predictions, then click <strong>Next</strong> to run the circuit and
+      observe what happens.
+    </p>
+    <button data-action="next">Next</button>
+  </div>
+
+  <div class="poe-step">
+    <h3>Observe</h3>
+    <p>
+      Run the circuit below and examine the histogram. Note which outcomes appear and their
+      approximate probabilities.
+    </p>
+    <div class="sandbox" data-component="sandbox" data-shots="1024">
+      <textarea class="code" rows="24">OPENQASM 3.0;
+qubit[8] q;
+bit[4] c;
+
+// Initialize work register to |1>
+x q[7];
+
+// Hadamard on counting register
+h q[0]; h q[1]; h q[2]; h q[3];
+
+// Controlled modular exponentiation for a=7, N=15
+// ctrl-7^4 mod 15 = 1 (skip q[1])
+// ctrl-7^2 mod 15 = 4
+ctrl @ swap q[2], q[5], q[7];
+ctrl @ swap q[2], q[4], q[6];
+// ctrl-7^1 mod 15 = 7
+ctrl @ swap q[3], q[4], q[6];
+ctrl @ swap q[3], q[5], q[7];
+ctrl @ x q[3], q[4];
+ctrl @ x q[3], q[5];
+ctrl @ x q[3], q[6];
+ctrl @ x q[3], q[7];
+
+// Inverse QFT
+swap q[0], q[3];
+swap q[1], q[2];
+h q[0];
+cp(-pi/2) q[1], q[0];
+h q[1];
+cp(-pi/4) q[2], q[0];
+cp(-pi/2) q[2], q[1];
+h q[2];
+cp(-pi/8) q[3], q[0];
+cp(-pi/4) q[3], q[1];
+cp(-pi/2) q[3], q[2];
+h q[3];
+
+c[0] = measure q[0];
+c[1] = measure q[1];
+c[2] = measure q[2];
+c[3] = measure q[3];</textarea>
+      <div class="sandbox-controls">
+        <button data-action="run">Run</button>
+        <button data-action="reset">Reset</button>
+      </div>
+      <div class="output"></div>
+    </div>
+    <button data-action="next">Next</button>
+  </div>
+
+  <div class="poe-step">
+    <h3>Explain</h3>
+    <p>
+      You should have observed four outcomes, each with roughly 25% probability: $0000$, $0100$,
+      $1000$, and $1100$ (decimal $0$, $4$, $8$, $12$).
+    </p>
+    <p>
+      <strong>Why these four values?</strong> The period is $r = 4$, and the counting register
+      has $2^4 = 16$ states. The inverse QFT concentrates probability on values that are
+      multiples of $16/r = 16/4 = 4$. The multiples of 4 in the range $[0, 15]$ are exactly
+      $\{0, 4, 8, 12\}$.
+    </p>
+    <p>
+      <strong>Why equal probability?</strong> Each of these four values corresponds to a
+      different value of $k$ in the equation $y = k \cdot 2^t / r$, with $k = 0, 1, 2, 3$.
+      The QFT distributes amplitude equally among all $r$ peaks.
+    </p>
+    <p>
+      <strong>Extracting the period:</strong> From any non-zero outcome, the continued fractions
+      algorithm recovers $r = 4$. For example, $y = 4$ gives $4/16 = 1/4$, so $r = 4$. And
+      $y = 12$ gives $12/16 = 3/4$, so $r = 4$. The outcome $y = 0$ is uninformative (it gives
+      $0/16 = 0$, which does not constrain $r$), but it occurs only $1/r = 25\%$ of the time.
+    </p>
+    <button data-action="complete">Complete</button>
+  </div>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="simulator">
+<h2>11.5 Running Shor's Algorithm on a Simulator</h2>
+
+<p>
+  Let us now implement and run Shor's algorithm for the simplest non-trivial case: factoring
+  $N = 15$. Even this "easy" example reveals the structure and subtlety of the algorithm.
+</p>
+
+<h3>The Modular Exponentiation Oracle</h3>
+
+<p>
+  The most complex part of Shor's circuit is the <strong>controlled modular exponentiation</strong>.
+  For general $N$, this requires a full modular multiplier circuit, which is built from modular
+  adders, comparators, and controlled swaps. For the specific case of $N = 15$, the small size
+  allows us to construct optimized oracles for each value of $a$.
+</p>
+
+<p>
+  For $a = 7$ and $N = 15$, the controlled modular multiplications are:
+</p>
+
+<ul>
+  <li>Controlled multiply by $7^1 \bmod 15 = 7$: The permutation $|x\rangle \to |7x \bmod 15\rangle$ on the 4-bit work register can be decomposed into a sequence of controlled swaps and NOT gates.</li>
+  <li>Controlled multiply by $7^2 \bmod 15 = 4$: Similarly decomposed.</li>
+  <li>Controlled multiply by $7^4 \bmod 15 = 1$: This is the identity - no gates needed.</li>
+  <li>Controlled multiply by $7^8 \bmod 15 = 1$: Also the identity.</li>
+</ul>
+
+<div class="callout callout-info">
+  <strong>Note.</strong>
+  <p>
+    For the case $N = 15$, many of the controlled multiplications reduce to the identity because
+    $7^4 \equiv 1 \pmod{15}$. This is a coincidence of the small example size. For larger $N$,
+    every controlled multiplication would be a non-trivial circuit requiring $O(n^2)$ gates.
+  </p>
+</div>
+
+<h3>Sandbox: Factor 15 with $a = 7$</h3>
+
+<p>
+  The circuit below implements the full quantum order-finding subroutine for $a = 7$, $N = 15$.
+  Run it multiple times and record the outcomes. Each non-zero outcome from the counting register
+  can be processed through the continued fractions algorithm to yield the period $r = 4$, and
+  from there the factors $3$ and $5$.
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="26">OPENQASM 3.0;
+// Full Shor's algorithm quantum subroutine
+// Factor N=15 with a=7
+qubit[8] q;
+bit[4] c;
+
+// q[0..3]: counting register (4 qubits)
+// q[4..7]: work register (4 qubits)
+
+// Init work register to |1> = |0001>
+x q[7];
+
+// Step 1: Hadamard on counting register
+h q[0]; h q[1]; h q[2]; h q[3];
+
+// Step 2: Controlled modular exponentiation
+// q[0] controls 7^8 mod 15 = 1 (identity)
+// q[1] controls 7^4 mod 15 = 1 (identity)
+// q[2] controls multiply by 7^2 mod 15 = 4
+ctrl @ swap q[2], q[5], q[7];
+ctrl @ swap q[2], q[4], q[6];
+// q[3] controls multiply by 7^1 mod 15 = 7
+ctrl @ swap q[3], q[4], q[6];
+ctrl @ swap q[3], q[5], q[7];
+ctrl @ x q[3], q[4];
+ctrl @ x q[3], q[5];
+ctrl @ x q[3], q[6];
+ctrl @ x q[3], q[7];
+
+// Step 3: Inverse QFT on counting register
+swap q[0], q[3];
+swap q[1], q[2];
+h q[0];
+cp(-pi/2) q[1], q[0];
+h q[1];
+cp(-pi/4) q[2], q[0];
+cp(-pi/2) q[2], q[1];
+h q[2];
+cp(-pi/8) q[3], q[0];
+cp(-pi/4) q[3], q[1];
+cp(-pi/2) q[3], q[2];
+h q[3];
+
+// Step 4: Measure counting register
+c[0] = measure q[0];
+c[1] = measure q[1];
+c[2] = measure q[2];
+c[3] = measure q[3];</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<h3>Interpreting the Results</h3>
+
+<p>
+  After running the circuit, you should see four outcomes with roughly equal probability. Here is
+  how each measurement maps to the period:
+</p>
+
+<table>
+  <thead>
+    <tr><th>Measured bits</th><th>Decimal $y$</th><th>$y/2^t$</th><th>Continued fraction</th><th>Candidate $r$</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>$0000$</td><td>$0$</td><td>$0/16 = 0$</td><td>$[0] = 0/1$</td><td>Uninformative</td></tr>
+    <tr><td>$0100$</td><td>$4$</td><td>$4/16 = 1/4$</td><td>$[0; 4] = 1/4$</td><td>$r = 4$</td></tr>
+    <tr><td>$1000$</td><td>$8$</td><td>$8/16 = 1/2$</td><td>$[0; 2] = 1/2$</td><td>$r = 2$ (try multiples)</td></tr>
+    <tr><td>$1100$</td><td>$12$</td><td>$12/16 = 3/4$</td><td>$[0; 1, 3] = 3/4$</td><td>$r = 4$</td></tr>
+  </tbody>
+</table>
+
+<p>
+  Three of the four outcomes directly or indirectly yield $r = 4$. The outcome $y = 8$ gives
+  $r = 2$; checking $7^2 = 49 \equiv 4 \not\equiv 1 \pmod{15}$ reveals this is not the true
+  order, so we try $2r = 4$. Alternatively, we simply re-run the circuit for another sample.
+</p>
+
+<h3>Sandbox: Factor 15 with $a = 11$</h3>
+
+<p>
+  To see that the algorithm works for different choices of $a$, try $a = 11$. Since $11^2 = 121
+  \equiv 1 \pmod{15}$, the order is $r = 2$. This means the QFT should produce peaks at
+  multiples of $16/2 = 8$, giving outcomes near $0$ and $8$.
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="22">OPENQASM 3.0;
+// Factor N=15 with a=11
+qubit[8] q;
+bit[4] c;
+
+x q[7]; // work register = |1>
+h q[0]; h q[1]; h q[2]; h q[3];
+
+// Controlled modular exponentiation for a=11
+// 11^1 mod 15 = 11, 11^2 mod 15 = 1
+// 11^4 mod 15 = 1, 11^8 mod 15 = 1
+// q[3] controls multiply by 11 mod 15
+// 11 in binary is 1011: swap and negate
+ctrl @ swap q[3], q[4], q[6];
+ctrl @ swap q[3], q[5], q[7];
+ctrl @ x q[3], q[5];
+ctrl @ x q[3], q[7];
+// q[2] controls multiply by 11^2 mod 15 = 1 (identity)
+// q[1] controls 11^4 mod 15 = 1 (identity)
+// q[0] controls 11^8 mod 15 = 1 (identity)
+
+// Inverse QFT on counting register
+swap q[0], q[3];
+swap q[1], q[2];
+h q[0];
+cp(-pi/2) q[1], q[0];
+h q[1];
+cp(-pi/4) q[2], q[0];
+cp(-pi/2) q[2], q[1];
+h q[2];
+cp(-pi/8) q[3], q[0];
+cp(-pi/4) q[3], q[1];
+cp(-pi/2) q[3], q[2];
+h q[3];
+
+c[0] = measure q[0];
+c[1] = measure q[1];
+c[2] = measure q[2];
+c[3] = measure q[3];</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+  With $r = 2$ and $a = 11$: $a^{r/2} = 11^1 = 11 \equiv 11 \pmod{15}$. Since $11 \not\equiv
+  -1 \pmod{15}$ (because $-1 \equiv 14$), we compute: $\gcd(11 - 1, 15) = \gcd(10, 15) = 5$
+  and $\gcd(11 + 1, 15) = \gcd(12, 15) = 3$. We recover the factors $3$ and $5$.
+</p>
+
+<h3>The Gap Between Textbook and Reality</h3>
+
+<p>
+  The circuits above are heavily simplified. For the general case of factoring an $n$-bit
+  number, the modular exponentiation oracle alone requires:
+</p>
+
+<ul>
+  <li>$O(n)$ controlled modular multiplications</li>
+  <li>Each multiplication decomposes into $O(n)$ modular additions</li>
+  <li>Each addition requires $O(n)$ elementary gates (Toffoli gates, CNOTs)</li>
+  <li>Total: $O(n^3)$ elementary gates, plus $O(n)$ ancilla qubits</li>
+</ul>
+
+<p>
+  For $N = 15$ (4 bits), the optimized circuits above use about 20 gates. For RSA-2048
+  ($n = 2048$ bits), a general implementation would require billions of gates. Furthermore, in a
+  real quantum computer, each logical gate must be implemented fault-tolerantly using error
+  correction codes, which multiplies the physical gate count by a factor of $10^3$ to $10^6$
+  depending on the target error rate and the error correction scheme.
+</p>
+
+<div class="callout callout-warning">
+  <strong>Common Misconception.</strong>
+  <p>
+    The simplified circuits for factoring 15 that appear in textbooks (including the sandboxes
+    above) use problem-specific optimizations that eliminate most of the modular arithmetic.
+    These optimizations exploit the specific structure of the number 15 and do not generalize.
+    A "fair" implementation of Shor's algorithm for $N = 15$ using a general-purpose modular
+    exponentiation circuit would require on the order of 10,000 gates - far more than the
+    optimized versions shown here.
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="post-quantum">
+<h2>11.6 Implications: Post-Quantum Cryptography</h2>
+
+<p>
+  Shor's algorithm does not merely factor integers - it solves the more general
+  <strong>hidden subgroup problem</strong> for abelian groups. This means it breaks not only
+  RSA but also other cryptosystems whose security relies on problems with similar algebraic
+  structure. Let us survey the damage and the defense.
+</p>
+
+<h3>Cryptographic Systems Threatened by Shor's Algorithm</h3>
+
+<p>
+  The following widely deployed cryptosystems would be completely broken by a sufficiently
+  powerful quantum computer:
+</p>
+
+<ul>
+  <li>
+    <strong>RSA</strong> (all key sizes). RSA security depends on the difficulty of factoring the
+    modulus $N = pq$. Shor's algorithm factors $N$ in polynomial time.
+  </li>
+  <li>
+    <strong>Elliptic Curve Cryptography (ECC).</strong> ECC security depends on the
+    <em>discrete logarithm problem</em> on elliptic curves. Shor's algorithm, adapted to the
+    elliptic curve group, solves this in polynomial time as well. This includes ECDSA (used in
+    Bitcoin and TLS), ECDH (key exchange), and EdDSA.
+  </li>
+  <li>
+    <strong>Diffie-Hellman key exchange</strong> (both classical and elliptic curve variants).
+    The security of Diffie-Hellman depends on the discrete logarithm problem, which Shor's
+    algorithm solves.
+  </li>
+  <li>
+    <strong>DSA</strong> (Digital Signature Algorithm). Also relies on discrete logarithms.
+  </li>
+</ul>
+
+<div class="callout callout-warning">
+  <strong>Harvest Now, Decrypt Later.</strong>
+  <p>
+    Even before a large-scale quantum computer exists, adversaries can record encrypted traffic
+    today and store it for decryption once quantum computers become available. This "harvest now,
+    decrypt later" strategy means that data with long-term sensitivity (government secrets,
+    medical records, financial data) is already at risk. The transition to quantum-resistant
+    cryptography is therefore urgent, not something that can wait until quantum computers
+    actually arrive.
+  </p>
+</div>
+
+<h3>What Shor's Algorithm Does Not Threaten</h3>
+
+<p>
+  Importantly, not all cryptography is broken by quantum computers:
+</p>
+
+<ul>
+  <li>
+    <strong>Symmetric-key cryptography</strong> (AES, ChaCha20). Grover's algorithm (Chapter 12)
+    provides a quadratic speedup for brute-force key search, effectively halving the key length.
+    This means AES-128 provides only 64 bits of quantum security, but AES-256 still provides
+    128 bits - considered sufficient. The fix is simply to use longer keys.
+  </li>
+  <li>
+    <strong>Cryptographic hash functions</strong> (SHA-256, SHA-3). Grover's algorithm reduces
+    the security of hash functions, but the impact is manageable. SHA-256 provides approximately
+    128 bits of quantum security against collision attacks, which remains adequate.
+  </li>
+</ul>
+
+<h3>NIST Post-Quantum Standards</h3>
+
+<p>
+  Recognizing the threat, the U.S. National Institute of Standards and Technology (NIST) began
+  a standardization process for post-quantum cryptographic algorithms in 2016. After eight years
+  of evaluation involving researchers worldwide, NIST published its first three post-quantum
+  standards in August 2024:
+</p>
+
+<table>
+  <thead>
+    <tr><th>Standard</th><th>Original Name</th><th>Type</th><th>Mathematical Basis</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>FIPS 203 (ML-KEM)</td>
+      <td>CRYSTALS-Kyber</td>
+      <td>Key encapsulation</td>
+      <td>Module lattices (Learning With Errors)</td>
+    </tr>
+    <tr>
+      <td>FIPS 204 (ML-DSA)</td>
+      <td>CRYSTALS-Dilithium</td>
+      <td>Digital signature</td>
+      <td>Module lattices (Short Integer Solution)</td>
+    </tr>
+    <tr>
+      <td>FIPS 205 (SLH-DSA)</td>
+      <td>SPHINCS+</td>
+      <td>Digital signature</td>
+      <td>Hash functions (stateless hash-based signatures)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>
+  Additional algorithms are in the pipeline. FIPS 206, based on the FALCON algorithm (now called
+  FN-DSA), provides a lattice-based signature scheme with smaller signatures. HQC, a code-based
+  key encapsulation mechanism, was selected for standardization in March 2025 as a backup KEM
+  that relies on different mathematical assumptions than ML-KEM, providing defense-in-depth in
+  case lattice-based assumptions are broken.
+</p>
+
+<div class="callout callout-info">
+  <strong>Note.</strong>
+  <p>
+    The post-quantum standards replace public-key cryptography only. Symmetric ciphers like
+    AES-256 and hash functions like SHA-3 are not being replaced - they just need larger
+    parameters for quantum resistance. The transition primarily affects key exchange (replacing
+    ECDH with ML-KEM), digital signatures (replacing ECDSA/EdDSA with ML-DSA or SLH-DSA), and
+    encryption (replacing RSA-OAEP with ML-KEM-based hybrid schemes).
+  </p>
+</div>
+
+<h3>Timeline: When Will Quantum Computers Break RSA?</h3>
+
+<p>
+  This is the multi-trillion-dollar question. The answer depends on the pace of hardware
+  development and algorithmic improvements:
+</p>
+
+<ul>
+  <li>
+    <strong>Current state (2026):</strong> The largest quantum computers have around 1,000-1,200
+    physical qubits. These are noisy, near-term (NISQ) devices that cannot run Shor's algorithm
+    for cryptographically meaningful numbers.
+  </li>
+  <li>
+    <strong>Resource estimates:</strong> Breaking RSA-2048 requires approximately 4,000 logical
+    qubits running Shor's algorithm. With current error correction overhead, this translates to
+    roughly 1 million physical qubits under conventional architectures. Recent research using
+    quantum low-density parity-check (QLDPC) codes suggests this could be reduced to under
+    100,000 physical qubits.
+  </li>
+  <li>
+    <strong>Industry roadmaps:</strong> Major quantum computing companies project systems with
+    hundreds of logical qubits by 2029-2030, and thousands of logical qubits in the early 2030s.
+  </li>
+  <li>
+    <strong>Expert consensus:</strong> Most estimates place a cryptographically relevant quantum
+    computer (CRQC) - one capable of breaking RSA-2048 - in the 2030-2035 timeframe. The U.S.
+    National Security Agency has set 2035 as a deadline for federal systems to transition to
+    post-quantum cryptography.
+  </li>
+</ul>
+
+<p>
+  Whether the timeline is 5 years or 15 years, the cryptographic community has concluded that the
+  transition to post-quantum standards must begin now. Cryptographic migrations are slow -
+  transitioning away from SHA-1 took over a decade after it was broken - and the "harvest now,
+  decrypt later" threat means some data is already at risk.
+</p>
+
+<h3>Summary: The Impact of Shor's Algorithm</h3>
+
+<p>
+  Shor's algorithm is arguably the most important result in quantum computing. It demonstrated
+  that quantum computers can solve a specific, practically important problem exponentially faster
+  than any known classical algorithm. Its implications include:
+</p>
+
+<ul>
+  <li>RSA, ECC, and Diffie-Hellman - the pillars of modern public-key cryptography - are
+    vulnerable to quantum attack.</li>
+  <li>A global transition to post-quantum cryptographic standards is underway, driven by NIST
+    and international counterparts.</li>
+  <li>Symmetric cryptography survives with increased key sizes.</li>
+  <li>The algorithm's structure - reducing a number-theoretic problem to period finding, then
+    using the QFT to extract the period - exemplifies the power of quantum algorithms and has
+    inspired numerous other quantum speedups for algebraic problems.</li>
+</ul>
+
+<p>
+  In the next chapter, we will encounter Grover's algorithm, which provides a different kind of
+  quantum speedup - quadratic rather than exponential - but for a much broader class of problems:
+  unstructured search.
+</p>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="review">
+<h2>Chapter 11 Review</h2>
+
+<div class="flashcard-deck" data-component="flashcard-deck">
+  <div class="flashcard-deck-header">Chapter 11 Review</div>
+
+  <div class="flashcard" data-card-id="ch11-factoring-hardness">
+    <div class="card-front">Why is integer factoring believed to be hard for classical computers, and what is the best known classical algorithm?</div>
+    <div class="card-back">
+      No polynomial-time classical algorithm is known for factoring. The best known algorithm is the general number field sieve (GNFS), which runs in sub-exponential time $O(\exp(c \cdot n^{1/3}(\log n)^{2/3}))$ where $n$ is the number of bits. For cryptographic key sizes (2048+ bits), this requires more computation than is physically feasible.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch11-reduction-to-period">
+    <div class="card-front">How does Shor's algorithm reduce factoring to period finding?</div>
+    <div class="card-back">
+      Choose a random $a$ coprime to $N$ and find the order $r$ (smallest positive integer with $a^r \equiv 1 \pmod{N}$). If $r$ is even and $a^{r/2} \not\equiv -1 \pmod{N}$, then $\gcd(a^{r/2} \pm 1, N)$ yields a non-trivial factor. This works because $a^r - 1 = (a^{r/2} - 1)(a^{r/2} + 1) \equiv 0 \pmod{N}$, so $N$ shares a factor with at least one of these terms.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch11-qft-role">
+    <div class="card-front">What role does the Quantum Fourier Transform play in Shor's algorithm?</div>
+    <div class="card-back">
+      The inverse QFT is applied to the counting register after the controlled modular exponentiation. It converts the periodic superposition (with period $r$) into a state where measurement outcomes concentrate near multiples of $2^t/r$. This is essentially quantum phase estimation applied to the unitary operator $U|x\rangle = |ax \bmod N\rangle$, whose eigenvalues encode the period $r$.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch11-continued-fractions">
+    <div class="card-front">How are continued fractions used to extract the period from a quantum measurement?</div>
+    <div class="card-back">
+      After measuring a value $y$ from the counting register, we compute the continued fraction expansion of $y/2^t$. The convergent with the largest denominator less than $N$ approximates $k/r$ for some integer $k$. The denominator of this convergent is a candidate for the period $r$ (or a factor of $r$). We verify by checking whether $a^r \equiv 1 \pmod{N}$.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch11-complexity">
+    <div class="card-front">What is the gate complexity of Shor's algorithm, and how does it compare to the best classical algorithm?</div>
+    <div class="card-back">
+      Shor's algorithm uses $O(n^3)$ quantum gates to factor an $n$-bit number, where the dominant cost is the controlled modular exponentiation ($O(n)$ multiplications, each costing $O(n^2)$ gates). The best classical algorithm (GNFS) runs in sub-exponential time. The quantum speedup is exponential: for RSA-2048 ($n = 2048$), the classical cost is $\sim 2^{112}$ operations versus $\sim 10^{10}$ quantum gates.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch11-threatened-crypto">
+    <div class="card-front">Which cryptographic systems are broken by Shor's algorithm, and which survive?</div>
+    <div class="card-back">
+      <strong>Broken:</strong> RSA (factoring), Diffie-Hellman and DSA (discrete logarithm), elliptic curve cryptography (elliptic curve discrete logarithm). <strong>Survive:</strong> Symmetric ciphers (AES-256 provides 128-bit quantum security), hash functions (SHA-256 provides ~128 bits against quantum collision attacks). Only public-key cryptography needs to be replaced; symmetric schemes just need longer keys.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch11-nist-pqc">
+    <div class="card-front">What are the NIST post-quantum cryptography standards, and what mathematical problems do they rely on?</div>
+    <div class="card-back">
+      NIST published three standards in August 2024: <strong>FIPS 203 (ML-KEM)</strong>, based on CRYSTALS-Kyber, for key encapsulation using module lattices (Learning With Errors); <strong>FIPS 204 (ML-DSA)</strong>, based on CRYSTALS-Dilithium, for digital signatures using module lattices; and <strong>FIPS 205 (SLH-DSA)</strong>, based on SPHINCS+, for digital signatures using hash-based constructions. These problems are believed to resist both classical and quantum attacks.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch11-harvest-now">
+    <div class="card-front">What is the "harvest now, decrypt later" threat, and why does it make the quantum threat urgent?</div>
+    <div class="card-back">
+      Adversaries can intercept and store encrypted communications today, then decrypt them once a sufficiently powerful quantum computer becomes available. This means data with long-term sensitivity (government secrets, medical records, financial data) is already at risk, even though quantum computers cannot yet break current encryption. Combined with the fact that cryptographic transitions take a decade or more, this makes the shift to post-quantum cryptography urgent right now.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</section>
