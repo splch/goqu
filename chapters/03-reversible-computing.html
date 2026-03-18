@@ -9,8 +9,8 @@
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/contrib/auto-render.min.js"></script>
   
+  <link rel="preload" href="../main.wasm" as="fetch" type="application/wasm" crossorigin>
   <script src="../wasm_exec.js"></script>
-  <script type="module" src="../js/app.js"></script>
   
 </head>
 <body>
@@ -60,7 +60,7 @@
     </details>
     
     <details>
-      <summary>Part 4: Quantum Algorithms: The First Wave</summary>
+      <summary>Part 4: Quantum Algorithms - The First Wave</summary>
       <ol start="9">
         
         <li value="9"><a href="09-oracles.html">Oracles and Quantum Parallelism</a></li>
@@ -203,145 +203,165 @@
       <h1>Chapter 3: Reversible Computing</h1>
       <p>
   In the first two chapters, we built a picture of computation as the manipulation of bits through
-  logic gates. We saw how gates like AND, OR, and NOT can be combined to compute anything, and
-  we learned the linear algebra that describes information mathematically. But we glossed over
-  something fundamental: most of those classical gates <em>destroy information</em>. An AND gate
-  takes two input bits and produces one output bit. Given the output <code>0</code>, you cannot
-  tell whether the inputs were <code>00</code>, <code>01</code>, or <code>10</code>. The input
-  information is gone, irreversibly.
+  logic gates, and we developed the mathematical tools - vectors, matrices, complex numbers - that
+  describe information precisely. But we glossed over something fundamental: most of those classical
+  gates <em>destroy information</em>. An AND gate takes two input bits and produces one output bit.
+  Given the output <code>0</code>, you cannot tell whether the inputs were <code>00</code>,
+  <code>01</code>, or <code>10</code>. That information is gone, irreversibly.
 </p>
 
 <p>
-  This chapter is about what happens when we demand that no information is ever lost - when every
-  computation must be reversible. The story begins with a surprising connection between computation
-  and thermodynamics, leads us through a family of reversible logic gates, and ends at the doorstep
-  of quantum computing. Reversibility is not just a nice theoretical property. It is a
-  <em>requirement</em> imposed by the laws of physics at the quantum scale, and understanding why
-  is the key to understanding why quantum computers work the way they do.
+  This chapter asks: what happens when we demand that no information is ever lost? The answer
+  takes us on a remarkable journey - from the thermodynamics of computation, through a family of
+  reversible logic gates, to the very doorstep of quantum computing. This is the bridge chapter.
+  On one side lies everything you know about classical computing. On the other side lies the
+  quantum world, where reversibility is not a choice but a law of nature. By the end of this
+  chapter, you will understand why quantum computers <em>must</em> work the way they do, and
+  you will already know several quantum gates - because you will have learned them here, in
+  their classical guise.
 </p>
+
+<!-- ================================================================== -->
 
 <section id="why-irreversibility-costs-energy">
 
 <h2>3.1 Why Irreversibility Costs Energy</h2>
 
 <p>
-  In 1961, the physicist Rolf Landauer asked a deceptively simple question: does computation
-  have a fundamental energy cost? The answer he found connects information theory directly to
-  thermodynamics, and it hinges on a single word: <em>erasure</em>.
+  In 1961, the physicist Rolf Landauer at IBM asked a deceptively simple question: does
+  computation have a fundamental energy cost? His answer revealed a deep connection between
+  information theory and thermodynamics - one that hinges on a single word: <em>erasure</em>.
 </p>
 
 <h3>The Thermodynamics of Forgetting</h3>
 
 <p>
-  Consider a single bit stored in some physical system - a tiny magnet that points up (representing
-  <code>1</code>) or down (representing <code>0</code>). The bit is in one of two definite states.
-  Now suppose we "erase" the bit by resetting it to <code>0</code>, regardless of what it was before.
-  If the bit was already <code>0</code>, nothing changes. But if it was <code>1</code>, we have
-  compressed two possible states (the bit could have been either value) into one (it is now
-  definitely <code>0</code>). We have destroyed one bit of information.
+  Consider a single bit stored in some physical system - say, a tiny magnet that points up
+  (representing <code>1</code>) or down (representing <code>0</code>). The bit is in one of
+  two definite states. Now suppose we "erase" the bit by resetting it to <code>0</code>,
+  regardless of its current value. If the bit was already <code>0</code>, nothing changes.
+  But if it was <code>1</code>, we have compressed two possible states (the bit could have been
+  either value) into one (it is now definitely <code>0</code>). We have destroyed one bit of
+  information.
 </p>
 
 <p>
-  Landauer's insight was that this information destruction has a physical consequence. The second
-  law of thermodynamics says the total entropy of a closed system cannot decrease. Information is
-  a form of entropy (this is Shannon's great insight from Chapter 2). When we erase a bit, we
-  decrease the entropy of our computational system by $k_B \ln 2$, where $k_B$ is Boltzmann's
-  constant. To satisfy the second law, this entropy must go somewhere - it gets dumped into the
-  environment as heat.
+  Landauer's insight was that this information destruction has an unavoidable physical
+  consequence. The second law of thermodynamics states that the total entropy of a closed
+  system cannot decrease. Information is a form of entropy - this is precisely Shannon's
+  insight from Chapter 2. When we erase a bit, we decrease the informational entropy of our
+  computational system by $k_B \ln 2$, where $k_B$ is Boltzmann's constant. To satisfy the
+  second law, at least this much entropy must flow into the environment, carried away as heat.
 </p>
 
 <div class="callout callout-key">
-  <strong>Key Idea.</strong>
-  <strong>Landauer's Principle:</strong> Erasing one bit of information necessarily dissipates
-  at least $k_B T \ln 2$ joules of energy as heat, where $T$ is the temperature of the
-  environment and $k_B \approx 1.38 \times 10^{-23}$ J/K is Boltzmann's constant.
+  <strong>Key Concept.</strong>
+  <p>
+    <strong>Landauer's Principle:</strong> Erasing one bit of information necessarily dissipates
+    at least $k_B T \ln 2$ joules of energy as heat, where $T$ is the temperature of the
+    environment and $k_B \approx 1.38 \times 10^{-23}$ J/K is Boltzmann's constant. Note that
+    this uses the natural logarithm ($\ln 2 \approx 0.693$), not the base-2 logarithm.
+  </p>
 </div>
 
 <p>
-  At room temperature ($T \approx 300$ K), this works out to roughly $2.85 \times 10^{-21}$ joules
-  per erased bit. That is extraordinarily small - about 100 times less energy than a single photon
-  of visible light carries. Modern transistors dissipate roughly a million times more energy per
-  operation than the Landauer limit. So in practice, Landauer's principle is not what limits the
-  energy efficiency of your laptop. But the principle is profound for what it tells us about the
-  <em>physics of information</em>: information is physical, and destroying it has an unavoidable
-  thermodynamic cost.
+  At room temperature ($T \approx 300$ K), the Landauer limit works out to roughly
+  $2.85 \times 10^{-21}$ joules per erased bit - about 0.018 electron-volts. That is
+  extraordinarily small, roughly 100 times less energy than a single photon of visible light
+  carries. Modern transistors dissipate about a million times more energy per switching
+  operation than the Landauer limit. So in practice, Landauer's principle is not what limits
+  the energy efficiency of your laptop today.
+</p>
+
+<p>
+  But the principle is profound for what it tells us about the <em>physics of information</em>.
+  Information is not abstract - it is physical, embodied in the states of physical systems.
+  Destroying information has a real, measurable thermodynamic cost. This was the first hint
+  that computation and physics are more deeply intertwined than anyone had suspected.
 </p>
 
 <h3>Which Operations Erase Information?</h3>
 
 <p>
   An operation erases information whenever it maps multiple distinct inputs to the same output.
-  In mathematical language, it is a non-injective (many-to-one) function. Consider the standard
-  logic gates:
+  In mathematical terms, it computes a non-injective (many-to-one) function. Consider the
+  standard logic gates from Chapter 1:
 </p>
 
 <ul>
   <li>
     <strong>NOT gate</strong> (1 input, 1 output): Input <code>0</code> maps to <code>1</code>,
-    and input <code>1</code> maps to <code>0</code>. This is one-to-one. Given the output, you
-    can always recover the input. The NOT gate is <em>reversible</em> and erases nothing.
+    and input <code>1</code> maps to <code>0</code>. This is one-to-one - given the output, you
+    can always uniquely recover the input. The NOT gate is <em>reversible</em> and erases nothing.
   </li>
   <li>
     <strong>AND gate</strong> (2 inputs, 1 output): Three different inputs (<code>00</code>,
     <code>01</code>, <code>10</code>) all produce output <code>0</code>. Two bits of input
-    become one bit of output. This is irreversible - one bit of information is destroyed, and
-    Landauer's principle demands at least $k_B T \ln 2$ of heat dissipation.
+    become one bit of output - one bit of information is irretrievably lost. Landauer's principle
+    demands at least $k_B T \ln 2$ of heat dissipation.
   </li>
   <li>
-    <strong>OR gate, NAND gate, NOR gate</strong>: Similarly irreversible. Multiple inputs map
-    to the same output.
+    <strong>OR, NAND, NOR gates</strong>: Similarly irreversible. Multiple input combinations
+    collapse to the same output.
   </li>
 </ul>
 
 <p>
-  The pattern is clear: any gate that has fewer output bits than input bits must be irreversible,
-  because you cannot reconstruct the input from the output. And by Landauer's principle, every
-  such gate has a minimum thermodynamic cost. But here is the key question: can we do all of
-  computation using only reversible operations?
+  The pattern is clear: any gate with fewer output bits than input bits must be irreversible,
+  because you cannot reconstruct the input from the output. By Landauer's principle, every such
+  gate has a minimum thermodynamic cost. But here is the key question for this chapter: can we
+  do all of computation using <em>only</em> reversible operations - operations that never
+  destroy information?
 </p>
 
 <div class="callout callout-info">
-  <strong>Historical note.</strong>
-  Landauer's principle was long considered a theoretical curiosity, but in 2012 a team at
-  ENS Lyon led by Eric Lutz experimentally verified it by measuring the heat dissipated when
-  erasing a single bit stored in the position of a colloidal particle. The measured heat matched
-  the $k_B T \ln 2$ prediction with remarkable precision.
+  <strong>Historical Note.</strong>
+  <p>
+    Landauer's principle was considered a theoretical curiosity for decades. In 2012, a team at
+    ENS Lyon led by Antoine Berut and Eric Lutz experimentally verified it by measuring the heat
+    dissipated when erasing a single bit stored in the position of a colloidal particle trapped
+    by a laser. The measured heat matched the $k_B T \ln 2$ prediction with remarkable precision,
+    confirming that information erasure has an irreducible thermodynamic cost.
+  </p>
 </div>
 
 </section>
+
+<!-- ================================================================== -->
 
 <section id="reversible-classical-gates">
 
 <h2>3.2 Reversible Classical Gates</h2>
 
 <p>
-  A gate is <em>reversible</em> if and only if it computes a one-to-one (bijective) function:
-  every distinct input maps to a distinct output. Equivalently, given the output, you can always
-  uniquely determine the input. This means a reversible gate must have the same number of input
-  bits and output bits - it is a permutation of the possible bit strings.
+  A logic gate is <em>reversible</em> if and only if it computes a one-to-one (bijective)
+  function: every distinct input maps to a distinct output. Equivalently, given the output, you
+  can always uniquely determine the input. This means a reversible gate must have the same number
+  of input bits and output bits - it implements a permutation of the possible bit strings.
 </p>
 
 <h3>NOT: The Simplest Reversible Gate</h3>
 
 <p>
   The NOT gate flips a single bit: $0 \to 1$ and $1 \to 0$. It is trivially reversible because
-  applying NOT again recovers the original input. In fact, NOT is its own inverse. In the
-  quantum world, this gate becomes the Pauli-X gate, one of the most fundamental quantum
-  operations.
+  applying NOT again recovers the original input - NOT is its own inverse. In the quantum world,
+  this gate becomes the Pauli-X gate, one of the most fundamental quantum operations. We will
+  meet it again in Chapter 4.
 </p>
 
 <h3>CNOT: The Controlled-NOT Gate</h3>
 
 <p>
-  The NOT gate alone cannot compute interesting functions - it only acts on one bit. We need
-  multi-bit reversible gates. The simplest is the <strong>CNOT</strong> (controlled-NOT) gate,
-  which acts on two bits: a <em>control</em> bit and a <em>target</em> bit.
+  The NOT gate alone cannot compute interesting functions - it only acts on one bit at a time.
+  We need multi-bit reversible gates. The simplest and most important is the <strong>CNOT</strong>
+  (controlled-NOT) gate, which acts on two bits: a <em>control</em> bit and a <em>target</em> bit.
 </p>
 
 <p>
-  The rule is: if the control bit is <code>1</code>, flip the target bit; if the control bit is
-  <code>0</code>, leave the target alone. Crucially, the control bit is always passed through
-  unchanged. The truth table is:
+  The rule: if the control bit is <code>1</code>, flip the target bit. If the control bit is
+  <code>0</code>, leave the target alone. The control bit always passes through unchanged.
+  Mathematically, the target output is $t_{\text{out}} = c \oplus t_{\text{in}}$ (the XOR of
+  control and target), while the control passes through as $c_{\text{out}} = c$.
 </p>
 
 <table>
@@ -357,18 +377,18 @@
 </table>
 
 <p>
-  Every row has a unique output, so the gate is reversible. In fact, CNOT is its own inverse -
-  applying it twice returns to the original state. Mathematically, the target output is
-  $t_{\text{out}} = c \oplus t_{\text{in}}$ (XOR of control and target), while the control passes
-  through as $c_{\text{out}} = c$.
+  Every row in the truth table has a unique output pair, confirming the gate is reversible. In
+  fact, CNOT is its own inverse - applying it twice returns both bits to their original values.
+  You can verify this from the truth table: applying the XOR rule twice gives
+  $c \oplus (c \oplus t) = t$.
 </p>
 
 <p>
   An important special case: when the target input is <code>0</code>, the output target becomes a
-  copy of the control. This makes CNOT act as a <strong>copy gate</strong> (also called a fan-out).
-  Try it in the sandbox below. The <code>x</code> gate sets <code>q[0]</code> to <code>1</code>,
-  and then the <code>cx</code> (CNOT) gate copies that value to <code>q[1]</code>. You should see
-  the output <code>11</code> with 100% probability.
+  copy of the control. This makes CNOT act as a <strong>copy gate</strong> (also called fan-out
+  in classical terms). Try it in the sandbox below. The <code>x</code> gate sets
+  <code>q[0]</code> to <code>1</code>, and then the <code>cx</code> (CNOT) gate copies that
+  value to <code>q[1]</code>. You should see the output <code>11</code> with 100% probability.
 </p>
 
 <div class="sandbox" data-component="sandbox" data-shots="1024">
@@ -386,22 +406,27 @@ c = measure q;</textarea>
 </div>
 
 <p>
-  Now try modifying the code: remove the <code>x q[0];</code> line so that the control stays
-  <code>0</code>. What happens? The CNOT leaves the target alone, and you should see
-  <code>00</code> with 100% probability. The CNOT perfectly copies the control bit to the target.
+  Try modifying the code: remove the <code>x q[0];</code> line so that the control stays
+  <code>0</code>. The CNOT should leave the target alone, and you will see <code>00</code> with
+  100% probability. Experiment with all four input combinations by toggling which qubits get the
+  <code>x</code> gate applied. You should be able to reproduce every row of the truth table above.
 </p>
 
 <h3>Toffoli: The Universal Reversible Gate</h3>
 
 <p>
-  The <strong>Toffoli gate</strong> (also called CCNOT, for "controlled-controlled-NOT") acts on
-  three bits: two controls and one target. The rule: flip the target if and only if <em>both</em>
-  controls are <code>1</code>. Both control bits pass through unchanged.
+  The <strong>Toffoli gate</strong> (also called CCNOT or CCX, for "controlled-controlled-NOT")
+  was introduced by Tommaso Toffoli in 1980. It acts on three bits: two controls and one target.
+  The rule: flip the target if and only if <em>both</em> controls are <code>1</code>. Both
+  control bits always pass through unchanged.
 </p>
 
 <table>
   <thead>
-    <tr><th>$a$ In</th><th>$b$ In</th><th>$t$ In</th><th>$a$ Out</th><th>$b$ Out</th><th>$t$ Out</th></tr>
+    <tr>
+      <th>$a$ In</th><th>$b$ In</th><th>$t$ In</th>
+      <th>$a$ Out</th><th>$b$ Out</th><th>$t$ Out</th>
+    </tr>
   </thead>
   <tbody>
     <tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
@@ -416,17 +441,18 @@ c = measure q;</textarea>
 </table>
 
 <p>
-  Look at the target output column when $t_{\text{in}} = 0$: the output is $a \text{ AND } b$.
-  The Toffoli gate computes the AND function reversibly by storing the result in the target
-  bit while keeping both inputs intact. This is the key trick: instead of discarding input
-  information (as a normal AND gate does), the Toffoli gate keeps it, using an extra "scratch"
-  bit for the output.
+  The target output can be written as $t_{\text{out}} = t_{\text{in}} \oplus (a \wedge b)$,
+  where $\wedge$ is the AND operation and $\oplus$ is XOR. Look at the target output column
+  when $t_{\text{in}} = 0$: the output is exactly $a \text{ AND } b$. The Toffoli gate computes
+  the AND function reversibly, storing the result in the target bit while preserving both inputs.
+  This is the fundamental trick: instead of discarding input information (as a normal AND gate
+  does), the Toffoli gate keeps it, using an extra "scratch" bit to hold the output.
 </p>
 
 <p>
   In the sandbox below, we set both controls to <code>1</code> and leave the target at
-  <code>0</code>. The Toffoli gate (<code>ccx</code>) computes AND, so the target should
-  flip to <code>1</code>, giving output <code>111</code>.
+  <code>0</code>. The Toffoli gate (<code>ccx</code>) computes AND, so the target flips to
+  <code>1</code>, giving output <code>111</code>.
 </p>
 
 <div class="sandbox" data-component="sandbox" data-shots="1024">
@@ -446,32 +472,57 @@ c = measure q;</textarea>
 
 <p>
   Try changing the inputs: set only one of the controls to <code>1</code> (remove one of the
-  <code>x</code> lines). The target should stay <code>0</code>, just like AND. The Toffoli gate
-  is remarkably powerful. It was shown by Tommaso Toffoli in 1980 to be <strong>classically
-  universal</strong>: any Boolean function can be computed using only Toffoli gates (plus
-  constant input bits). Since it is reversible, this means any classical computation can be
-  performed reversibly.
+  <code>x</code> lines). The target should stay <code>0</code>, just like AND. Try all eight
+  input combinations and verify the truth table above.
 </p>
 
+<p>
+  The Toffoli gate is remarkably powerful. Toffoli showed in 1980 that it is <strong>classically
+  universal</strong>: any Boolean function can be computed using only Toffoli gates (together with
+  constant input bits set to <code>0</code> or <code>1</code>). Here is how:
+</p>
+
+<ul>
+  <li>
+    <strong>AND:</strong> Set the target to <code>0</code>. The Toffoli gate outputs
+    $a \wedge b$ in the target position, as we just saw.
+  </li>
+  <li>
+    <strong>NOT:</strong> Set both controls to <code>1</code>. The Toffoli gate flips the
+    target, implementing NOT.
+  </li>
+  <li>
+    <strong>NAND:</strong> Compute AND with a Toffoli gate, then apply NOT to the result
+    (another Toffoli with both controls set to <code>1</code>). Since NAND is itself a
+    universal classical gate, this proves the Toffoli gate can simulate any classical circuit.
+  </li>
+</ul>
+
 <div class="callout callout-key">
-  <strong>Key Idea.</strong>
-  The Toffoli gate is a universal reversible gate. Any classical Boolean function can be computed
-  by a circuit of Toffoli gates alone, proving that reversibility does not limit computational
-  power - only the implementation strategy.
+  <strong>Key Concept.</strong>
+  <p>
+    The Toffoli gate is a universal reversible gate. Any Boolean function can be computed by a
+    circuit of Toffoli gates alone. This proves that reversibility does not limit computational
+    power - only the implementation strategy changes. We use more bits (to preserve information)
+    but can compute exactly the same functions.
+  </p>
 </div>
 
 <h3>Fredkin: The Controlled-SWAP Gate</h3>
 
 <p>
   The <strong>Fredkin gate</strong> (also called CSWAP, for "controlled-SWAP") is another
-  three-bit universal reversible gate, proposed by Edward Fredkin. It has one control bit and
-  two target bits. The rule: if the control is <code>1</code>, swap the two targets; if the
-  control is <code>0</code>, leave them alone.
+  three-bit universal reversible gate, proposed by Edward Fredkin in 1982. It has one control bit
+  and two target bits. The rule: if the control is <code>1</code>, swap the two targets. If the
+  control is <code>0</code>, leave them alone. The control bit always passes through unchanged.
 </p>
 
 <table>
   <thead>
-    <tr><th>$c$ In</th><th>$a$ In</th><th>$b$ In</th><th>$c$ Out</th><th>$a$ Out</th><th>$b$ Out</th></tr>
+    <tr>
+      <th>$c$ In</th><th>$a$ In</th><th>$b$ In</th>
+      <th>$c$ Out</th><th>$a$ Out</th><th>$b$ Out</th>
+    </tr>
   </thead>
   <tbody>
     <tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
@@ -486,16 +537,17 @@ c = measure q;</textarea>
 </table>
 
 <p>
-  The Fredkin gate is also classically universal. One useful property: when $c = 1$ and
-  $b_{\text{in}} = 0$, the output $b$ equals $a_{\text{in}}$ and the output $a$ equals
-  <code>0</code> - the gate has "moved" the value from $a$ to $b$ under the control's permission.
-  This conditional routing of information is a powerful primitive.
+  When $c = 0$, the outputs are identical to the inputs (rows 1-4). When $c = 1$, the two
+  target bits are swapped (rows 5-8). Like the Toffoli gate, the Fredkin gate is its own
+  inverse - applying it twice returns to the original state. The Fredkin gate is also classically
+  universal and has an elegant property: it is <em>conservative</em>, meaning the number of
+  <code>1</code>s in the output always equals the number of <code>1</code>s in the input.
 </p>
 
 <p>
   In the sandbox below, we set the control to <code>1</code> and put different values in the
-  two targets (<code>q[1] = 1</code>, <code>q[2] = 0</code>). The Fredkin gate (<code>cswap</code>)
-  should swap them, giving output <code>101</code>.
+  two targets (<code>q[1] = 1</code>, <code>q[2] = 0</code>). The Fredkin gate
+  (<code>cswap</code>) should swap them, giving output <code>101</code>.
 </p>
 
 <div class="sandbox" data-component="sandbox" data-shots="1024">
@@ -514,82 +566,155 @@ c = measure q;</textarea>
 </div>
 
 <p>
-  Try turning off the control (remove <code>x q[0];</code>). The swap should not happen, and
-  you should see <code>010</code> instead.
+  Try turning off the control by removing <code>x q[0];</code>. The swap should not happen,
+  and you will see <code>010</code> instead. The conditional nature of the gate is the key -
+  the control bit determines whether information flows or stays put, and this decision is itself
+  made reversibly.
 </p>
 
 </section>
+
+<!-- ================================================================== -->
 
 <section id="making-any-computation-reversible">
 
 <h2>3.3 Making Any Computation Reversible</h2>
 
 <p>
-  We have seen that universal reversible gates exist. But how do you actually convert an
-  arbitrary classical circuit into a reversible one? The answer involves a systematic technique
-  developed by Charles Bennett in 1973, and it reveals an important trade-off.
+  We have seen that universal reversible gates exist - the Toffoli gate can simulate any
+  Boolean function. But knowing that reversible computation is <em>possible</em> in principle
+  is different from knowing <em>how</em> to systematically convert an arbitrary classical circuit
+  into a reversible one. The answer involves an elegant technique developed by Charles Bennett
+  at IBM in 1973, and it reveals an important trade-off.
 </p>
 
 <h3>The Naive Approach: Keep Everything</h3>
 
 <p>
-  The simplest way to make a computation reversible is straightforward: never throw anything away.
-  Replace every irreversible gate (like AND) with a reversible equivalent (like Toffoli), and
-  keep all input bits alongside the output. An AND gate with inputs $a, b$ becomes a Toffoli
-  gate with inputs $a, b, 0$ producing outputs $a, b, a \wedge b$. The original inputs are
-  preserved, so the operation is reversible.
+  The simplest way to make a computation reversible is brute force: never throw anything away.
+  Replace every irreversible gate with a reversible equivalent and keep all input bits alongside
+  the output. An AND gate with inputs $a, b$ becomes a Toffoli gate with inputs $a, b, 0$,
+  producing outputs $a, b, a \wedge b$. The original inputs are preserved, so the operation
+  is reversible.
 </p>
 
 <p>
   Applying this to an entire circuit, every intermediate result is kept. If the original circuit
-  has $n$ gates, the reversible version might need $n$ extra "ancilla" (scratch) bits - one for
-  each gate's output. The computation is reversible, but we are drowning in <strong>garbage
-  bits</strong>: intermediate values that we computed along the way but do not need in the
+  has $n$ gates, the reversible version needs $n$ extra "ancilla" (scratch) bits - one for each
+  gate output. The computation is reversible, but we are now drowning in <strong>garbage
+  bits</strong>: intermediate values that were computed along the way but are not needed in the
   final answer.
 </p>
 
 <p>
   These garbage bits are problematic for two reasons. First, they waste space - for a long
-  computation, the number of garbage bits can be enormous. Second, and more importantly for
-  quantum computing, these bits become <em>entangled</em> with the computation in the quantum
-  setting, which can ruin quantum interference (we will see why in Part II).
+  computation, the number of garbage bits can be enormous. Second, and more critically for
+  quantum computing, garbage bits become <em>entangled</em> with the computation in the quantum
+  setting, which destroys the interference patterns that give quantum algorithms their power.
+  We will see exactly why in Part II.
 </p>
 
 <h3>Bennett's Uncomputation Trick</h3>
 
 <p>
-  Bennett's elegant solution is to <em>uncompute</em> the garbage. The idea works in three stages:
+  In 1973, Charles Bennett published a landmark paper, "Logical Reversibility of Computation,"
+  that solved the garbage problem with an elegant three-stage technique:
 </p>
 
 <ol>
   <li>
     <strong>Compute forward:</strong> Run the reversible version of the circuit, producing the
-    desired output along with garbage bits that hold all intermediate values.
+    desired output along with garbage bits holding all intermediate values.
   </li>
   <li>
     <strong>Copy the answer:</strong> Use CNOT gates to copy the final result to a clean set of
-    output bits. This is allowed because copying is reversible (CNOT with target initialized to
-    <code>0</code>).
+    output bits. Copying is reversible when the target starts at <code>0</code> (the CNOT acts
+    as a fan-out).
   </li>
   <li>
-    <strong>Uncompute (run backward):</strong> Apply every gate from step 1 in reverse order.
-    Since every gate is reversible, this "undoes" the entire forward computation, returning all
-    the garbage bits to their initial state of <code>0</code>.
+    <strong>Uncompute (run backward):</strong> Apply every gate from stage 1 in reverse order.
+    Since every gate is its own inverse (or has a known inverse), this "undoes" the entire
+    forward computation, returning all garbage bits to their initial state of <code>0</code>.
   </li>
 </ol>
 
 <p>
   After these three stages, only the clean input bits and the clean output bits remain. All
-  garbage has been erased - not by discarding it (which would be irreversible), but by
-  <em>reversibly uncomputing</em> it back to zero.
+  garbage has been erased - not by discarding it (which would be irreversible and thermodynamically
+  costly), but by <em>reversibly uncomputing</em> it back to its initial state of zero.
 </p>
 
 <div class="callout callout-key">
-  <strong>Key Idea.</strong>
-  <strong>Bennett's method:</strong> Compute forward, copy the answer, then run the computation
-  backward to clean up all intermediate garbage bits. This produces a fully reversible
-  computation with no leftover garbage - only clean inputs and outputs.
+  <strong>Key Concept.</strong>
+  <p>
+    <strong>Bennett's Theorem (1973):</strong> Any computation performed by an irreversible
+    Turing machine can be simulated by a reversible one. The technique is: compute forward, copy
+    the answer, then run the computation backward to clean up all intermediate garbage bits. This
+    produces a fully reversible computation with only clean inputs and outputs.
+  </p>
 </div>
+
+<h3>Example: Reversible AND via Uncomputation</h3>
+
+<p>
+  Let us trace through a concrete example. Suppose we want to compute $f(a,b) = a \wedge b$
+  reversibly, starting from inputs $a$ and $b$ and producing the result in a dedicated output bit,
+  with no leftover garbage.
+</p>
+
+<ol>
+  <li>
+    <strong>Stage 1 (Compute):</strong> Apply a Toffoli gate to $(a, b, 0)$. This produces
+    $(a, b, a \wedge b)$. The third bit holds our answer, but the first two bits are "garbage"
+    in the sense that they are entangled with the computation.
+  </li>
+  <li>
+    <strong>Stage 2 (Copy):</strong> Use a CNOT to copy the result: apply CNOT with the third
+    bit as control and a fresh fourth bit (initialized to <code>0</code>) as target. Now we have
+    $(a, b, a \wedge b, a \wedge b)$ - the answer is stored in the fourth bit.
+  </li>
+  <li>
+    <strong>Stage 3 (Uncompute):</strong> Apply the Toffoli gate again (it is its own inverse).
+    This restores the third bit to <code>0</code>, giving $(a, b, 0, a \wedge b)$.
+  </li>
+</ol>
+
+<p>
+  The final state is clean: inputs $a$ and $b$ are unchanged, the scratch bit is back to
+  <code>0</code>, and the output bit holds $a \wedge b$. No information was erased at any step.
+  Try this in the sandbox below - we implement the full compute-copy-uncompute pattern. With
+  $a = 1$ and $b = 1$, the output bit <code>q[3]</code> should be <code>1</code>, and the
+  scratch bit <code>q[2]</code> should return to <code>0</code>.
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="12">OPENQASM 3.0;
+qubit[4] q;
+bit[4] c;
+// Inputs: q[0]=a, q[1]=b, q[2]=scratch, q[3]=output
+x q[0];
+x q[1];
+// Stage 1: Compute AND into scratch
+ccx q[0], q[1], q[2];
+// Stage 2: Copy answer to output
+cx q[2], q[3];
+// Stage 3: Uncompute scratch
+ccx q[0], q[1], q[2];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+  You should see the result <code>1101</code> - inputs <code>q[0]=1</code> and
+  <code>q[1]=1</code> are preserved, the scratch bit <code>q[2]=0</code> has been cleaned up,
+  and the output bit <code>q[3]=1</code> holds the AND result. This is Bennett's uncomputation
+  in action. Try changing the inputs (remove one or both <code>x</code> gates) and verify that
+  the scratch bit always returns to <code>0</code>.
+</p>
 
 <h3>The Reversibility Overhead</h3>
 
@@ -600,15 +725,15 @@ c = measure q;</textarea>
 <ul>
   <li>
     <strong>Time:</strong> The computation runs forward and then backward, roughly doubling the
-    number of gate operations. In practice, the overhead is a constant factor (about 2x plus the
-    cost of copying the output).
+    number of gate operations (plus the cost of copying the output). The time overhead is a
+    constant factor of about 2x.
   </li>
   <li>
     <strong>Space:</strong> During the forward pass, all intermediate results must be stored
-    simultaneously. If the original circuit uses $S$ bits of space and runs for $T$ steps, the
-    naive reversible version needs $O(T)$ extra ancilla bits. Bennett showed that with a more
-    sophisticated pebbling strategy, this can be reduced to $O(S \log T)$ extra bits - a much
-    better trade-off, at the cost of more time.
+    simultaneously. If the original circuit uses $S$ bits of workspace and runs for $T$ steps,
+    the naive reversible version needs $O(T)$ extra ancilla bits. Bennett later showed (in 1989)
+    that with a more sophisticated "pebbling" strategy, this can be reduced to $O(S \log T)$
+    extra bits - a much better trade-off, at the cost of more computation time.
   </li>
   <li>
     <strong>Ancilla bits:</strong> You need scratch bits initialized to known values
@@ -618,172 +743,276 @@ c = measure q;</textarea>
 </ul>
 
 <p>
-  The key takeaway is that the overhead is <em>polynomial</em>, not exponential. Making a
-  computation reversible does not fundamentally change its difficulty class. Any problem solvable
-  in polynomial time on a conventional computer is solvable in polynomial time on a reversible
-  computer. Reversibility is a constraint on <em>how</em> we compute, not on <em>what</em> we
-  can compute.
+  The key takeaway: the overhead is <em>polynomial</em>, not exponential. Making a computation
+  reversible does not change its computational complexity class. Any problem solvable in
+  polynomial time on a conventional computer is solvable in polynomial time on a reversible
+  computer. Reversibility constrains <em>how</em> we compute, not <em>what</em> we can compute.
 </p>
 
 <div class="callout callout-info">
-  <strong>Space-time trade-off.</strong>
-  Bennett's pebbling technique reveals a fundamental space-time trade-off in reversible
-  computation. You can minimize garbage bits at the cost of re-running parts of the computation
-  multiple times, or you can minimize time at the cost of keeping more intermediate values. This
-  trade-off reappears throughout quantum algorithm design, where ancilla qubits are a precious
-  resource.
+  <strong>Historical Note.</strong>
+  <p>
+    Bennett's 1973 paper "Logical Reversibility of Computation" was a landmark in theoretical
+    computer science and physics. Together with Landauer's principle, it established a deep
+    connection between thermodynamics and computation. The space-time trade-off Bennett discovered
+    reappears throughout quantum algorithm design, where ancilla qubits are a precious resource
+    and uncomputation is a standard technique for cleaning up intermediate quantum states.
+  </p>
+</div>
+
+<div class="callout callout-warning">
+  <strong>Common Misconception.</strong>
+  <p>
+    It is sometimes claimed that reversible computation must be slower or less powerful than
+    irreversible computation. This is false. Bennett's theorem proves that any computation can be
+    made reversible with at most a polynomial overhead in time and space. The set of problems
+    solvable by reversible computers is exactly the same as those solvable by irreversible ones.
+  </p>
 </div>
 
 </section>
+
+<!-- ================================================================== -->
 
 <section id="why-quantum-demands-reversibility">
 
 <h2>3.4 Why Quantum Computing Demands Reversibility</h2>
 
 <p>
-  Everything we have discussed so far has been classical physics. We chose to study reversible
-  computing because of Landauer's principle and thermodynamic efficiency. But quantum mechanics
-  makes reversibility not just desirable - it makes it <em>mandatory</em>.
+  Everything we have discussed so far is classical physics. We explored reversible computing
+  because of Landauer's principle and the thermodynamics of information erasure. But now we
+  arrive at the real reason this chapter exists: quantum mechanics makes reversibility not
+  merely desirable for energy efficiency, but <em>mandatory</em> for the operation of any
+  quantum computer.
 </p>
 
-<h3>Time-Reversal Symmetry in Physics</h3>
+<h3>A Preview of Unitarity</h3>
 
 <p>
-  The fundamental laws of physics are time-reversible. If you film a collision between two
-  billiard balls and play the film backward, the reversed motion also obeys Newton's laws.
-  The same is true at the quantum level: the Schrodinger equation, which governs how quantum
-  states evolve, is time-reversible. If a quantum system can evolve from state $A$ to state $B$,
-  then there exists an evolution that takes $B$ back to $A$.
+  In Chapter 2, we learned that matrices are the natural language for transformations. In the
+  quantum world, the evolution of a quantum system is described by a special kind of matrix
+  called a <strong>unitary matrix</strong>. A matrix $U$ is unitary if its inverse equals its
+  conjugate transpose:
+</p>
+
+$$U^{-1} = U^\dagger \quad \text{equivalently,} \quad U U^\dagger = U^\dagger U = I$$
+
+<p>
+  where $I$ is the identity matrix and $U^\dagger$ denotes the conjugate transpose (transpose
+  the matrix, then take the complex conjugate of every entry). The crucial property for our
+  purposes: <strong>every unitary matrix is invertible</strong>. Given a unitary $U$, you can
+  always find $U^\dagger$ that perfectly undoes the transformation. No information is lost.
 </p>
 
 <p>
-  Mathematically, quantum time evolution is described by <strong>unitary operators</strong>. A
-  unitary operator $U$ is one whose inverse equals its conjugate transpose: $U^{-1} = U^\dagger$.
-  This is the quantum version of saying "the operation is reversible." Every unitary operator has
-  an inverse (namely $U^\dagger$), so every quantum operation can be undone.
+  This is not a design choice or an engineering preference. It is a consequence of the
+  Schrodinger equation, the fundamental law governing quantum time evolution. The Schrodinger
+  equation is time-reversible: if a quantum system can evolve from state $A$ to state $B$,
+  there exists an evolution that takes $B$ back to $A$. In physics terminology, quantum
+  evolution preserves the inner product between states - it preserves the "length" of quantum
+  state vectors.
 </p>
 
 <div class="callout callout-key">
-  <strong>Key Idea.</strong>
-  <strong>Unitarity:</strong> Quantum mechanics requires that the evolution of a closed quantum
-  system is described by a unitary matrix $U$, which is always invertible. This means quantum
-  gates are inherently reversible - they cannot destroy information. This is not a design choice;
-  it is a law of nature.
+  <strong>Key Concept.</strong>
+  <p>
+    <strong>Unitarity:</strong> Quantum mechanics requires that the evolution of a closed
+    quantum system is described by a unitary matrix $U$. Unitary matrices are always invertible
+    (the inverse is $U^\dagger$), so quantum gates are inherently reversible. An irreversible
+    operation simply cannot exist as a quantum gate - the mathematics forbids it.
+  </p>
 </div>
 
 <h3>What Unitarity Means for Gates</h3>
 
 <p>
-  In Chapter 2, we represented classical gates as truth tables. In the quantum world, gates are
-  represented as unitary matrices. Consider what this means:
+  Consider what unitarity means concretely for quantum gate design:
 </p>
 
 <ul>
   <li>
-    A unitary matrix $U$ acting on $n$ qubits is a $2^n \times 2^n$ matrix satisfying
-    $U U^\dagger = U^\dagger U = I$ (the identity matrix).
+    A quantum gate acting on $n$ qubits is represented by a $2^n \times 2^n$ unitary matrix.
+    It must satisfy $U U^\dagger = I$.
   </li>
   <li>
-    Unitary matrices preserve the length of vectors: if $|\psi\rangle$ is a valid quantum state
-    (a unit vector), then $U|\psi\rangle$ is also a valid quantum state. No information is lost
-    or gained.
+    Unitary matrices preserve the norm of vectors: if $|\psi\rangle$ is a valid quantum state
+    (a unit vector in a complex vector space), then $U|\psi\rangle$ is also a valid quantum
+    state. No probability is created or destroyed.
   </li>
   <li>
-    Unitary matrices are always invertible, and the inverse is easy to compute (just take the
-    conjugate transpose). Every quantum gate can be "run backward."
+    Every unitary matrix has an inverse, and the inverse is easy to compute - just take the
+    conjugate transpose. Every quantum gate can be "run backward."
   </li>
 </ul>
 
 <p>
-  Contrast this with an irreversible classical gate like AND. If we tried to describe AND as a
-  matrix mapping 2-bit inputs to 1-bit outputs, we would need a $2 \times 4$ matrix. Such a
-  matrix cannot be unitary (it is not even square). There is simply no way to implement an
-  irreversible operation as a quantum gate. The mathematics forbids it.
+  Now contrast this with an irreversible classical gate like AND. If we tried to describe AND
+  as a matrix mapping 2-bit inputs to 1-bit outputs, we would need a $2 \times 4$ matrix. Such
+  a matrix is not even square, let alone unitary. There is no way to implement an irreversible
+  operation as a quantum gate. The mathematics of quantum mechanics simply does not allow it.
 </p>
 
-<h3>The No-Cloning Connection</h3>
+<h3>The Gates You Already Know Are Quantum Gates</h3>
 
 <p>
-  Reversibility connects to another fundamental quantum principle: the <strong>no-cloning
-  theorem</strong>. In classical computing, we copy bits freely - it is the most basic operation
-  imaginable. We even used CNOT as a copy gate earlier in this chapter. But in the quantum world,
-  it is impossible to copy an arbitrary unknown quantum state. There is no quantum gate that takes
-  $|\psi\rangle|0\rangle$ to $|\psi\rangle|\psi\rangle$ for all possible states $|\psi\rangle$.
+  Here is the remarkable punchline: the reversible gates we studied in Section 3.2 - NOT, CNOT,
+  and Toffoli - are already quantum gates. When restricted to the classical basis states
+  $|0\rangle$ and $|1\rangle$, they behave exactly as the truth tables above describe. Their
+  unitary matrices are:
 </p>
 
 <p>
-  This might seem like it contradicts what we did with CNOT above. The resolution is subtle: CNOT
-  can copy <em>classical</em> basis states ($|0\rangle$ and $|1\rangle$) perfectly, but it cannot
-  copy arbitrary <em>superpositions</em>. When the control qubit is in a superposition, the CNOT
-  creates <em>entanglement</em> instead of a copy. This distinction between classical and quantum
-  information is at the heart of quantum computing, and we will explore it fully in Chapter 4.
+  The <strong>NOT gate</strong> (quantum name: Pauli-X) has the $2 \times 2$ unitary matrix:
 </p>
 
-<h3>The Bridge to Quantum Computing</h3>
+$$X = \begin{pmatrix} 0 & 1 \\ 1 & 0 \end{pmatrix}$$
 
 <p>
-  We can now see why this chapter is the bridge between classical and quantum computing:
+  The <strong>CNOT gate</strong> has the $4 \times 4$ unitary matrix:
+</p>
+
+$$\text{CNOT} = \begin{pmatrix} 1 & 0 & 0 & 0 \\ 0 & 1 & 0 & 0 \\ 0 & 0 & 0 & 1 \\ 0 & 0 & 1 & 0 \end{pmatrix}$$
+
+<p>
+  You can verify that these are unitary: $X X^\dagger = I$ and
+  $\text{CNOT} \cdot \text{CNOT}^\dagger = I$. In fact, since all entries are real and the
+  matrices are symmetric, each gate is its own inverse ($X = X^\dagger$ and
+  $\text{CNOT} = \text{CNOT}^\dagger$).
+</p>
+
+<p>
+  The classical reversible gates you just learned literally <em>are</em> quantum gates. The
+  Toffoli gate you ran in the sandbox above is the same Toffoli gate used in quantum error
+  correction and quantum arithmetic. The CNOT gate is the workhorse of quantum entanglement.
+  You have been doing quantum computing all along - just restricted to classical inputs.
+</p>
+
+<h3>What Quantum Computing Adds</h3>
+
+<p>
+  If reversible classical gates are already quantum gates, what makes quantum computing special?
+  The answer is <strong>superposition</strong>. Classical reversible gates operate on definite
+  bit values: <code>0</code> or <code>1</code>. Quantum gates can also operate on
+  <em>superpositions</em> of these values - states that are, in a precise mathematical sense,
+  "both 0 and 1 at once."
+</p>
+
+<p>
+  In the quantum world, we can apply a gate called the <strong>Hadamard gate</strong> ($H$) to
+  put a qubit into an equal superposition of $|0\rangle$ and $|1\rangle$. Then, when we apply
+  a CNOT gate, something extraordinary happens: instead of copying a classical bit, the CNOT
+  creates <em>entanglement</em> - a quantum correlation with no classical analog. Try it in the
+  sandbox below. The Hadamard gate on <code>q[0]</code> creates a superposition, and the CNOT
+  entangles <code>q[0]</code> with <code>q[1]</code>. You should see roughly 50%
+  <code>00</code> and 50% <code>11</code>, but never <code>01</code> or <code>10</code>.
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="7">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+h q[0];
+cx q[0], q[1];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+  This is a preview of quantum behavior that we will explore fully in Chapter 4 and beyond. The
+  circuit above creates a <em>Bell state</em>, one of the most important quantum states in all
+  of quantum information science. The same CNOT gate that classically copies a bit quantum
+  mechanically creates entanglement. The gate is the same; the magic comes from the
+  superposition of the input.
+</p>
+
+<div class="callout callout-warning">
+  <strong>Common Misconception.</strong>
+  <p>
+    It is tempting to think that quantum computing gets its power from parallelism - from
+    processing all possible inputs at once. This is misleading. The real source of quantum
+    computational advantage is <em>interference</em>: the ability of quantum amplitudes to add
+    constructively (boosting correct answers) and destructively (canceling wrong answers).
+    Interference is only possible because quantum operations are reversible (unitary). An
+    irreversible operation would collapse the delicate amplitude patterns that interference
+    requires.
+  </p>
+</div>
+
+<h3>The Bridge Is Complete</h3>
+
+<p>
+  Let us summarize the chain of reasoning that connects classical computing to quantum computing:
 </p>
 
 <ol>
   <li>
-    <strong>Classical gates are generally irreversible</strong> (AND, OR, NAND), destroying
-    information and dissipating energy.
+    <strong>Classical gates are generally irreversible</strong> (AND, OR, NAND). They destroy
+    information and, by Landauer's principle, dissipate heat.
   </li>
   <li>
     <strong>Reversible classical gates exist</strong> (NOT, CNOT, Toffoli, Fredkin) and are
-    computationally universal - they can do everything irreversible gates can do.
+    computationally universal. Bennett's theorem guarantees any computation can be made
+    reversible with only polynomial overhead.
   </li>
   <li>
-    <strong>Quantum mechanics demands reversibility.</strong> Quantum evolution is unitary, so
-    quantum gates must be reversible. Fortunately, we have just proven this is not a limitation -
-    reversible gates can compute anything.
+    <strong>Quantum mechanics demands reversibility.</strong> Quantum evolution is unitary,
+    so quantum gates must be reversible. But we just showed this is not a limitation -
+    reversible gates can compute anything classical gates can.
   </li>
   <li>
-    <strong>Quantum computing adds something new.</strong> Quantum gates are reversible, but they
-    can also act on <em>superpositions</em> - states that are "both 0 and 1 at once." This is
-    where quantum computing gets its power, not from reversibility alone, but from reversibility
-    <em>combined with superposition and entanglement</em>.
+    <strong>Quantum computing adds superposition and entanglement.</strong> The reversible gates
+    you already know (NOT, CNOT, Toffoli) become quantum gates. Adding superposition to these
+    reversible operations opens up interference - a computational resource with no classical
+    analog.
   </li>
 </ol>
 
 <p>
-  The reversible classical gates we studied in this chapter - NOT, CNOT, and Toffoli - reappear
-  directly as quantum gates. The Pauli-X gate is the quantum NOT. The quantum CNOT creates
-  entanglement. The quantum Toffoli gate is used in quantum error correction and quantum
-  arithmetic. You already know these gates; in Part II, you will see what happens when they act
-  on quantum states.
+  Classical reversible computing is, quite literally, a special case of quantum computing. Every
+  classical reversible circuit is a valid quantum circuit that happens to use only classical
+  (basis state) inputs. Quantum computing extends this by allowing inputs, intermediate states,
+  and gates that exploit the full richness of quantum mechanics.
 </p>
 
 <div class="callout callout-key">
-  <strong>Key Idea.</strong>
-  Reversible computing is the classical foundation of quantum computing. Every quantum gate is
-  a reversible gate operating on a richer state space (quantum states instead of classical bits).
-  The transition from classical to quantum is not a change in computational structure - it is an
-  expansion of the space of allowed states.
+  <strong>Key Concept.</strong>
+  <p>
+    Reversible computing is the classical foundation of quantum computing. Every quantum gate is
+    a reversible operation on a richer state space (quantum states instead of classical bits).
+    The transition from classical to quantum is not a change in computational structure - it is
+    an expansion of the allowed states from $\{0, 1\}$ to the full continuum of quantum
+    superpositions.
+  </p>
 </div>
 
 <p>
-  With the classical foundations laid - bits, gates, linear algebra, and now reversibility - we
-  are ready to enter the quantum world. In Chapter 4, we will meet the qubit: a quantum bit that
-  obeys all the reversibility constraints we have studied, but opens up an entirely new landscape
-  of computational possibilities.
+  With the classical foundations now complete - bits, gates, linear algebra, probability, and
+  reversibility - we are ready to cross the bridge into the quantum world. In Chapter 4, we
+  will meet the <strong>qubit</strong>: a quantum bit that obeys all the reversibility
+  constraints we have studied, but exists in a vast, continuous state space that classical bits
+  cannot access. The Bloch sphere, superposition, measurement, and interference await. The
+  quantum journey begins.
 </p>
 
 </section>
 
-<!-- Flashcards -->
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 3 Review Cards</div>
+<!-- ================================================================== -->
 
-  <div class="flashcard" data-card-id="ch03-landauer">
-    <div class="card-front">What is Landauer's principle, and what is the minimum energy cost of erasing one bit?</div>
+<div class="flashcard-deck" data-component="flashcard-deck">
+  <div class="flashcard-deck-header">Chapter 3 Review</div>
+
+  <div class="flashcard" data-card-id="ch03-landauer-principle">
+    <div class="card-front">What is Landauer's principle, and what is the minimum energy to erase one bit?</div>
     <div class="card-back">
       Landauer's principle states that erasing one bit of information necessarily dissipates at
       least $k_B T \ln 2$ joules of energy as heat, where $k_B$ is Boltzmann's constant and $T$
-      is the temperature. At room temperature, this is approximately $2.85 \times 10^{-21}$ J.
-      The principle connects information to thermodynamics: destroying information increases the
-      entropy of the environment.
+      is the temperature. At room temperature (~300 K), this is approximately
+      $2.85 \times 10^{-21}$ J. The principle connects information to thermodynamics: destroying
+      information increases the entropy of the environment.
       <div class="flashcard-controls">
         <button class="easy">Easy</button>
         <button class="hard">Hard</button>
@@ -791,14 +1020,13 @@ c = measure q;</textarea>
     </div>
   </div>
 
-  <div class="flashcard" data-card-id="ch03-reversible-gate">
-    <div class="card-front">What makes a logic gate reversible? Give an example of a reversible gate and an irreversible gate.</div>
+  <div class="flashcard" data-card-id="ch03-reversible-gate-definition">
+    <div class="card-front">What makes a logic gate reversible, and what constraint does this place on the number of inputs and outputs?</div>
     <div class="card-back">
       A gate is reversible if it computes a one-to-one (bijective) function: every distinct input
       maps to a distinct output, so the input can always be recovered from the output. A reversible
-      gate must have the same number of input and output bits. Example: NOT is reversible
-      (0 maps to 1, 1 maps to 0 - no information lost). AND is irreversible (inputs 00, 01, and
-      10 all produce output 0 - input cannot be recovered).
+      gate must have the same number of input and output bits - it implements a permutation of all
+      possible bit strings of that length.
       <div class="flashcard-controls">
         <button class="easy">Easy</button>
         <button class="hard">Hard</button>
@@ -806,14 +1034,13 @@ c = measure q;</textarea>
     </div>
   </div>
 
-  <div class="flashcard" data-card-id="ch03-toffoli">
-    <div class="card-front">What is the Toffoli gate, and why is it significant?</div>
+  <div class="flashcard" data-card-id="ch03-cnot-operation">
+    <div class="card-front">Describe the CNOT gate. What are its inputs, outputs, and operation?</div>
     <div class="card-back">
-      The Toffoli gate (CCNOT) is a three-bit reversible gate with two controls and one target.
-      It flips the target if and only if both controls are 1. It is significant because it is
-      <em>classically universal</em>: any Boolean function can be computed using only Toffoli
-      gates and constant input bits. This proves that reversibility does not limit computational
-      power. When the target starts at 0, the Toffoli gate computes AND reversibly.
+      The CNOT (controlled-NOT) gate has two inputs: a control bit and a target bit. The control
+      passes through unchanged. The target is flipped (XORed) if and only if the control is 1.
+      Output: $c_{\text{out}} = c$, $t_{\text{out}} = c \oplus t$. CNOT is its own inverse and,
+      when the target starts at 0, acts as a copy gate.
       <div class="flashcard-controls">
         <button class="easy">Easy</button>
         <button class="hard">Hard</button>
@@ -821,15 +1048,14 @@ c = measure q;</textarea>
     </div>
   </div>
 
-  <div class="flashcard" data-card-id="ch03-bennett">
-    <div class="card-front">Describe Bennett's uncomputation technique for removing garbage bits in reversible computation.</div>
+  <div class="flashcard" data-card-id="ch03-toffoli-universality">
+    <div class="card-front">What is the Toffoli gate, and why is it called "universal"?</div>
     <div class="card-back">
-      Bennett's method has three stages: (1) Compute forward using reversible gates, producing
-      the desired output plus garbage bits holding intermediate values. (2) Copy the final result
-      to clean output bits using CNOT. (3) Run the entire forward computation in reverse to
-      uncompute all garbage bits back to zero. The result is a clean reversible computation with
-      only inputs and outputs - no leftover garbage. The cost is roughly doubling the computation
-      time.
+      The Toffoli gate (CCNOT) is a three-bit gate with two controls and one target. It flips
+      the target if and only if both controls are 1. It is classically universal because any
+      Boolean function can be computed using only Toffoli gates and constant inputs. With the
+      target set to 0, it computes AND reversibly. This proves reversibility does not limit
+      computational power.
       <div class="flashcard-controls">
         <button class="easy">Easy</button>
         <button class="hard">Hard</button>
@@ -837,15 +1063,13 @@ c = measure q;</textarea>
     </div>
   </div>
 
-  <div class="flashcard" data-card-id="ch03-unitarity">
-    <div class="card-front">Why does quantum mechanics require that quantum gates be reversible?</div>
+  <div class="flashcard" data-card-id="ch03-fredkin-gate">
+    <div class="card-front">How does the Fredkin gate (CSWAP) operate, and what is its distinguishing property?</div>
     <div class="card-back">
-      Quantum time evolution is governed by unitary operators ($U U^\dagger = I$), which are
-      always invertible. This is a consequence of the time-reversal symmetry in the Schrodinger
-      equation. Since every unitary operator has an inverse ($U^\dagger$), every quantum operation
-      can be undone - quantum gates are inherently reversible. An irreversible operation like AND
-      cannot be represented as a unitary matrix (it maps a 4-dimensional space to a 2-dimensional
-      space), so it simply cannot exist as a quantum gate.
+      The Fredkin gate has one control bit and two target bits. If the control is 1, the two
+      targets are swapped; if the control is 0, they pass through unchanged. Its distinguishing
+      property is that it is conservative: the number of 1s in the output always equals the
+      number of 1s in the input. Like the Toffoli gate, it is classically universal.
       <div class="flashcard-controls">
         <button class="easy">Easy</button>
         <button class="hard">Hard</button>
@@ -853,15 +1077,45 @@ c = measure q;</textarea>
     </div>
   </div>
 
-  <div class="flashcard" data-card-id="ch03-bridge">
+  <div class="flashcard" data-card-id="ch03-bennett-uncomputation">
+    <div class="card-front">Describe Bennett's three-stage uncomputation technique for making computations reversible.</div>
+    <div class="card-back">
+      (1) Compute forward using reversible gates, producing the answer plus garbage bits holding
+      intermediate values. (2) Copy the final answer to clean output bits using CNOT gates.
+      (3) Run the entire forward computation in reverse order, uncomputing all garbage bits back
+      to zero. Result: a clean reversible computation with only inputs and outputs, no leftover
+      garbage. Cost: roughly 2x the original computation time.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch03-unitarity-reversibility">
+    <div class="card-front">Why does quantum mechanics require that all quantum gates be reversible?</div>
+    <div class="card-back">
+      Quantum time evolution is governed by unitary operators ($U U^\dagger = I$), a consequence
+      of the Schrodinger equation's time-reversal symmetry. Every unitary operator has an inverse
+      ($U^\dagger$), so every quantum operation can be undone. An irreversible gate like AND
+      would require a non-square matrix (e.g., $2 \times 4$), which cannot be unitary. Quantum
+      mechanics simply does not permit irreversible operations on closed systems.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch03-classical-quantum-bridge">
     <div class="card-front">How does reversible computing bridge classical and quantum computation?</div>
     <div class="card-back">
-      Classical gates (NOT, CNOT, Toffoli) that are reversible map directly to quantum gates
-      (Pauli-X, quantum CNOT, quantum Toffoli). Since reversible classical gates are already
-      computationally universal, the quantum requirement of unitarity (reversibility) does not
-      limit what can be computed. Quantum computing adds power not from reversibility itself, but
-      from combining reversible operations with superposition and entanglement - a richer state
-      space than classical bits allow.
+      Classical reversible gates (NOT, CNOT, Toffoli) are directly quantum gates (Pauli-X,
+      quantum CNOT, quantum Toffoli). Since reversible classical gates are computationally
+      universal, the quantum requirement of unitarity does not limit what can be computed.
+      Quantum computing adds power not from reversibility itself, but from combining reversible
+      gates with superposition and entanglement, enabling interference - a resource with no
+      classical analog.
       <div class="flashcard-controls">
         <button class="easy">Easy</button>
         <button class="hard">Hard</button>
@@ -869,6 +1123,7 @@ c = measure q;</textarea>
     </div>
   </div>
 </div>
+
     </article>
 
     
@@ -893,5 +1148,315 @@ c = measure q;</textarea>
       }
     });
   </script>
+  
+  <script>
+  "use strict";
+  
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function isDark() { return window.matchMedia("(prefers-color-scheme: dark)").matches; }
+  function renderMath(el) {
+    if (typeof renderMathInElement === "function")
+      renderMathInElement(el, { delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}], throwOnError: false });
+  }
+
+  
+  var wasmReady = null;
+  function ensureWasm() {
+    if (!wasmReady) {
+      wasmReady = (async function() {
+        var go = new Go();
+        var result = await WebAssembly.instantiateStreaming(fetch("../main.wasm"), go.importObject);
+        go.run(result.instance);
+      })();
+    }
+    return wasmReady;
+  }
+
+  
+  var SRS_KEY = "goqu-srs";
+  function srsLoad() { try { return JSON.parse(localStorage.getItem(SRS_KEY) || "{}"); } catch(e) { return {}; } }
+  function srsSave(d) { localStorage.setItem(SRS_KEY, JSON.stringify(d)); }
+  function getCardState(id) { var d = srsLoad(); return d[id] || {interval:1, ease:2.5, due:0, reps:0}; }
+  function reviewCard(id, q) {
+    var d = srsLoad(), s = d[id] || {interval:1, ease:2.5, due:0, reps:0};
+    if (q >= 3) {
+      s.reps++;
+      if (s.reps === 1) s.interval = 1;
+      else if (s.reps === 2) s.interval = 6;
+      else s.interval = Math.round(s.interval * s.ease);
+      s.ease = Math.max(1.3, s.ease + 0.1 - (5-q)*(0.08 + (5-q)*0.02));
+    } else { s.reps = 0; s.interval = 1; }
+    s.due = Date.now() + s.interval * 86400000;
+    d[id] = s; srsSave(d);
+  }
+
+  
+  function initSandbox(el) {
+    var code = el.querySelector(".code"), output = el.querySelector(".output");
+    if (!code || !output) return;
+    var runBtn = el.querySelector('[data-action="run"]'), resetBtn = el.querySelector('[data-action="reset"]');
+    var shotsEl = el.querySelector("[data-shots]"), orig = code.value;
+    function shots() { return parseInt(shotsEl ? shotsEl.value : el.dataset.shots || "1024", 10); }
+    async function run() {
+      await ensureWasm();
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(code.value, shots(), isDark()));
+        if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+        output.innerHTML = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+    if (runBtn) runBtn.addEventListener("click", run);
+    if (resetBtn) resetBtn.addEventListener("click", function() { code.value = orig; });
+    if (el.hasAttribute("data-autorun")) run();
+  }
+
+  
+  function initSimulation(el) {
+    var tmplEl = el.querySelector(".sim-qasm"), output = el.querySelector(".sim-output");
+    var sliders = el.querySelectorAll('input[type="range"]');
+    var selects = el.querySelectorAll("select[data-param]");
+    if (!tmplEl || !output || (sliders.length === 0 && selects.length === 0)) return;
+    var tmpl = tmplEl.textContent, pending = false;
+    var useNoisy = el.hasAttribute("data-noisy");
+    var useComparison = el.hasAttribute("data-comparison");
+    var useExpectation = el.hasAttribute("data-expectation");
+    var useClifford = el.hasAttribute("data-clifford");
+    async function update() {
+      if (pending) return; pending = true;
+      await ensureWasm();
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var params = {};
+        sliders.forEach(function(s) { params[s.dataset.param] = parseFloat(s.value); var o = s.parentElement.querySelector("output"); if (o) o.textContent = parseFloat(s.value).toFixed(2); });
+        selects.forEach(function(s) { params[s.dataset.param] = s.value; });
+        var qasm = tmpl;
+        for (var k in params) qasm = qasm.replaceAll("{"+k+"}", params[k].toString());
+        var html = "";
+        if (useComparison && window.compareIdealNoisy) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.compareIdealNoisy(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="comparison-panels"><div class="comparison-panel"><h4>Ideal</h4>' + (r.idealHistogramSVG||"") + '</div><div class="comparison-panel"><h4>Noisy</h4>' + (r.noisyHistogramSVG||"") + '</div></div>';
+          if (r.stateCitySVG) html += r.stateCitySVG;
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useNoisy && window.runNoisyQASM) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.runNoisyQASM(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"") + (r.stateCitySVG||"");
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useClifford && window.runClifford) {
+          var r = JSON.parse(window.runClifford(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"");
+          if (r.stabilizers) { html += '<div class="stabilizer-table"><h4>Stabilizers</h4><table>'; r.stabilizers.forEach(function(s) { html += '<tr><td>' + formatStabilizer(s) + '</td></tr>'; }); html += '</table></div>'; }
+        } else if (useExpectation && window.computeExpectation) {
+          var pauliStr = params.pauliStr || el.dataset.pauli || "Z";
+          var r = JSON.parse(window.computeExpectation(qasm, pauliStr, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="sim-stats"><span>&lt;' + esc(pauliStr) + '&gt; = ' + r.expectation.toFixed(6) + '</span></div>';
+        } else {
+          var r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+          
+          if (el.hasAttribute("data-bloch") && window.getStateVector && window.renderBloch) {
+            try {
+              var sv = JSON.parse(window.getStateVector(qasm));
+              if (sv.amplitudes && sv.amplitudes.length === 2) {
+                var a = sv.amplitudes;
+                var blochSVG = window.renderBloch(a[0].re, a[0].im, a[1].re, a[1].im, isDark());
+                if (blochSVG) html += blochSVG;
+              }
+            } catch(e) {   }
+          }
+        }
+        output.innerHTML = html;
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+      pending = false;
+    }
+    sliders.forEach(function(s) { s.addEventListener("input", update); });
+    selects.forEach(function(s) { s.addEventListener("change", update); });
+    update();
+  }
+
+  
+  function formatStabilizer(s) {
+    if (!s) return "";
+    var sign = s[0], ops = s.slice(1), html = '<span class="stab-sign">' + esc(sign) + '</span>';
+    for (var i = 0; i < ops.length; i++) {
+      var c = ops[i], cls = "stab-" + c.toLowerCase();
+      html += '<span class="' + cls + '">' + c + '</span>';
+    }
+    return html;
+  }
+
+  
+  function initExercise(el) {
+    var code = el.querySelector(".code"), feedback = el.querySelector(".exercise-feedback");
+    var checkBtn = el.querySelector('[data-action="check"]');
+    var hintBtn = el.querySelector('[data-action="hint"]'), hintEl = el.querySelector(".exercise-hint");
+    if (!code || !feedback || !checkBtn) return;
+    var expected = {}, tol = 0.1;
+    var expEl = el.querySelector(".exercise-expected");
+    if (expEl) expEl.querySelectorAll("[data-state]").forEach(function(span) {
+      expected[span.dataset.state] = parseFloat(span.dataset.prob);
+      if (span.dataset.tolerance) tol = parseFloat(span.dataset.tolerance);
+    });
+    checkBtn.addEventListener("click", async function() {
+      await ensureWasm();
+      feedback.className = "exercise-feedback visible";
+      feedback.textContent = "Checking...";
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(code.value, 1024, isDark()));
+        if (r.error) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + r.error; return; }
+        if (Object.keys(expected).length === 0) { feedback.className = "exercise-feedback visible pass"; feedback.innerHTML = "Circuit ran successfully."; return; }
+        var prob = JSON.parse(window.getProbabilities(code.value, isDark()));
+        if (prob.error) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + prob.error; return; }
+        var actual = {};
+        for (var i = 0; i < prob.labels.length; i++) actual[prob.labels[i]] = prob.probabilities[i];
+        var ok = true, msgs = [];
+        for (var s in expected) {
+          var a = actual[s] || 0, p = expected[s];
+          if (Math.abs(a - p) > tol) { ok = false; msgs.push("|" + s + "\u27E9: expected " + (p*100|0) + "%, got " + (a*100|0) + "%"); }
+        }
+        if (ok) { feedback.className = "exercise-feedback visible pass"; feedback.innerHTML = "Correct! Your circuit produces the expected output."; }
+        else { feedback.className = "exercise-feedback visible fail"; feedback.innerHTML = "Not quite. " + msgs.join("; ") + "."; }
+        renderMath(feedback);
+      } catch(e) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + e.message; }
+    });
+    if (hintBtn && hintEl) hintBtn.addEventListener("click", function() { hintEl.style.display = hintEl.style.display === "none" ? "block" : "none"; });
+  }
+
+  
+  function initFlashcardDeck(el) {
+    el.querySelectorAll(".flashcard").forEach(function(card) {
+      var id = card.dataset.cardId;
+      if (!id) return;
+      var state = getCardState(id);
+      if (state.due > 0 && state.due > Date.now()) card.classList.add("reviewed");
+      card.addEventListener("click", function(e) {
+        if (e.target.closest("button")) return;
+        card.classList.toggle("flipped");
+        var back = card.querySelector(".card-back");
+        if (back) renderMath(back);
+      });
+      var easyBtn = card.querySelector(".easy"), hardBtn = card.querySelector(".hard");
+      if (easyBtn) easyBtn.addEventListener("click", function() { reviewCard(id, 4); card.classList.remove("flipped"); card.classList.add("reviewed"); });
+      if (hardBtn) hardBtn.addEventListener("click", function() { reviewCard(id, 2); card.classList.remove("flipped"); });
+    });
+  }
+
+  
+  function initPOE(el) {
+    var steps = el.querySelectorAll(".poe-step"), prog = el.querySelectorAll(".poe-progress-step");
+    if (steps.length === 0) return;
+    var cur = 0;
+    function show(idx) {
+      steps.forEach(function(s,i) { s.classList.toggle("active", i === idx); });
+      prog.forEach(function(s,i) { s.classList.remove("active","done"); if (i < idx) s.classList.add("done"); if (i === idx) s.classList.add("active"); });
+      cur = idx;
+      var active = steps[idx];
+      if (active) active.querySelectorAll('.sandbox:not([data-initialized])').forEach(function(sb) { sb.setAttribute("data-initialized","true"); initSandbox(sb); });
+    }
+    el.querySelectorAll('[data-action="next"]').forEach(function(btn) { btn.addEventListener("click", function() { if (cur < steps.length - 1) show(cur + 1); }); });
+    el.querySelectorAll('[data-action="complete"]').forEach(function(btn) { btn.addEventListener("click", function() { prog.forEach(function(s) { s.classList.remove("active"); s.classList.add("done"); }); }); });
+    show(0);
+  }
+
+  
+  function initStepThrough(el) {
+    var qasmEl = el.querySelector(".step-qasm");
+    var output = el.querySelector(".step-output");
+    var prevBtn = el.querySelector('[data-action="prev"]');
+    var nextBtn = el.querySelector('[data-action="next"]');
+    var stepInfo = el.querySelector(".step-info");
+    if (!qasmEl || !output) return;
+    var qasm = qasmEl.textContent;
+    var mode = el.dataset.mode || "clifford"; 
+    var steps = null, cur = -1;
+
+    async function load() {
+      await ensureWasm();
+      try {
+        if (mode === "clifford" && window.cliffordStepThrough) {
+          var r = JSON.parse(window.cliffordStepThrough(qasm));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+          
+          steps.unshift({gate: "init", qubits: [], stabilizers: r.steps.length > 0 ? null : []});
+        } else if (mode === "grover" && window.groverStepThrough) {
+          var nq = parseInt(el.dataset.qubits || "2", 10);
+          var targets = JSON.parse(el.dataset.targets || "[]");
+          var r = JSON.parse(window.groverStepThrough(nq, targets.join(",")));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+        }
+        if (steps && steps.length > 0) { cur = 0; renderStep(); }
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    function renderStep() {
+      if (!steps || cur < 0 || cur >= steps.length) return;
+      var s = steps[cur];
+      var html = "";
+      if (mode === "clifford") {
+        if (s.gate === "init") {
+          html = '<p class="step-label">Initial state |0...0&gt;</p>';
+          
+          if (steps.length > 1 && steps[1].stabilizers) {
+            var nq = steps[1].stabilizers[0].length - 1;
+            html += '<div class="stabilizer-table"><table>';
+            for (var i = 0; i < nq; i++) {
+              var row = "+";
+              for (var j = 0; j < nq; j++) row += (j === i) ? "Z" : "I";
+              html += '<tr><td>' + formatStabilizer(row) + '</td></tr>';
+            }
+            html += '</table></div>';
+          }
+        } else {
+          html = '<p class="step-label">After <strong>' + esc(s.gate) + '</strong> on qubit' + (s.qubits.length > 1 ? 's ' : ' ') + s.qubits.join(', ') + '</p>';
+          if (s.stabilizers) {
+            html += '<div class="stabilizer-table"><table>';
+            s.stabilizers.forEach(function(st) { html += '<tr><td>' + formatStabilizer(st) + '</td></tr>'; });
+            html += '</table></div>';
+          }
+        }
+      } else if (mode === "grover") {
+        html = '<p class="step-label">Iteration ' + s.iteration + '</p>';
+        if (s.probabilities) {
+          html += '<div class="amplitude-bars">';
+          for (var i = 0; i < s.probabilities.length; i++) {
+            var label = i.toString(2).padStart(Math.ceil(Math.log2(s.probabilities.length)), '0');
+            var pct = (s.probabilities[i] * 100).toFixed(1);
+            var isTarget = el.dataset.targets && JSON.parse(el.dataset.targets).indexOf(i) >= 0;
+            html += '<div class="amp-bar' + (isTarget ? ' target' : '') + '"><div class="amp-fill" style="height:' + pct + '%"></div><span class="amp-label">|' + label + '&gt;</span><span class="amp-value">' + pct + '%</span></div>';
+          }
+          html += '</div>';
+        }
+      }
+      output.innerHTML = html;
+      if (stepInfo) stepInfo.textContent = "Step " + cur + " / " + (steps.length - 1);
+      if (prevBtn) prevBtn.disabled = (cur === 0);
+      if (nextBtn) nextBtn.disabled = (cur >= steps.length - 1);
+    }
+
+    if (prevBtn) prevBtn.addEventListener("click", function() { if (cur > 0) { cur--; renderStep(); } });
+    if (nextBtn) nextBtn.addEventListener("click", function() { if (steps && cur < steps.length - 1) { cur++; renderStep(); } });
+    load();
+  }
+
+  
+  document.addEventListener("DOMContentLoaded", function() {
+    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough};
+    document.querySelectorAll("[data-component]").forEach(function(el) { var fn = reg[el.dataset.component]; if (fn) fn(el); });
+  });
+  </script>
+  
 </body>
 </html>

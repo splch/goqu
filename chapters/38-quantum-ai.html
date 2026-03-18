@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chapter 38: Quantum Computing and Artificial Intelligence - Goqu Textbook</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/contrib/auto-render.min.js"></script>
+  
+  <link rel="preload" href="../main.wasm" as="fetch" type="application/wasm" crossorigin>
+  <script src="../wasm_exec.js"></script>
+  
+</head>
+<body>
+  <input type="checkbox" id="nav-toggle" hidden>
+  <label for="nav-toggle" class="nav-hamburger" aria-label="Toggle navigation">
+    <span></span><span></span><span></span>
+  </label>
+
+  <nav class="sidebar" aria-label="Table of contents">
+    <a href="../index.html" class="sidebar-logo">Goqu Textbook</a>
+    
+    <details>
+      <summary>Part 1: The World of Classical Computing</summary>
+      <ol start="1">
+        
+        <li value="1"><a href="01-computation.html">What Is Computation?</a></li>
+        
+        <li value="2"><a href="02-math-of-information.html">The Mathematics of Information</a></li>
+        
+        <li value="3"><a href="03-reversible-computing.html">Reversible Computing</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 2: Entering the Quantum World</summary>
+      <ol start="4">
+        
+        <li value="4"><a href="04-the-first-qubit.html">The First Qubit</a></li>
+        
+        <li value="5"><a href="05-quantum-gates.html">Quantum Gates</a></li>
+        
+        <li value="6"><a href="06-entanglement.html">Multiple Qubits and Entanglement</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 3: Quantum Protocols</summary>
+      <ol start="7">
+        
+        <li value="7"><a href="07-teleportation.html">Quantum Teleportation and Communication</a></li>
+        
+        <li value="8"><a href="08-cryptography.html">Quantum Cryptography</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 4: Quantum Algorithms - The First Wave</summary>
+      <ol start="9">
+        
+        <li value="9"><a href="09-oracles.html">Oracles and Quantum Parallelism</a></li>
+        
+        <li value="10"><a href="10-qft.html">The Quantum Fourier Transform</a></li>
+        
+        <li value="11"><a href="11-shor.html">Shor&#39;s Algorithm</a></li>
+        
+        <li value="12"><a href="12-grover.html">Grover&#39;s Algorithm</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 5: Real Quantum Hardware</summary>
+      <ol start="13">
+        
+        <li value="13"><a href="13-hardware.html">How to Build a Quantum Computer</a></li>
+        
+        <li value="14"><a href="14-noise.html">Noise, Decoherence, and the NISQ Era</a></li>
+        
+        <li value="15"><a href="15-programming.html">Programming Quantum Computers</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 6: Quantum Error Correction</summary>
+      <ol start="16">
+        
+        <li value="16"><a href="16-classical-ec.html">Classical Error Correction Refresher</a></li>
+        
+        <li value="17"><a href="17-qec-fundamentals.html">Quantum Error Correction Fundamentals</a></li>
+        
+        <li value="18"><a href="18-stabilizers.html">The Stabilizer Formalism</a></li>
+        
+        <li value="19"><a href="19-surface-codes.html">Surface Codes and Topological Protection</a></li>
+        
+        <li value="20"><a href="20-fault-tolerance.html">Fault-Tolerant Quantum Computing</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 7: Variational and Near-Term Algorithms</summary>
+      <ol start="21">
+        
+        <li value="21"><a href="21-variational.html">The Variational Quantum Computing Paradigm</a></li>
+        
+        <li value="22"><a href="22-vqe.html">Variational Quantum Eigensolver (VQE)</a></li>
+        
+        <li value="23"><a href="23-qaoa.html">Quantum Approximate Optimization (QAOA)</a></li>
+        
+        <li value="24"><a href="24-qml.html">Quantum Machine Learning</a></li>
+        
+        <li value="25"><a href="25-error-mitigation.html">Quantum Error Mitigation</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 8: Quantum Information Theory</summary>
+      <ol start="26">
+        
+        <li value="26"><a href="26-states-measurements.html">Quantum States and Measurements, Revisited</a></li>
+        
+        <li value="27"><a href="27-channels.html">Quantum Channels and Operations</a></li>
+        
+        <li value="28"><a href="28-entropy.html">Quantum Entropy and Information</a></li>
+        
+        <li value="29"><a href="29-shannon.html">Quantum Shannon Theory</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 9: Quantum Complexity and Computation Theory</summary>
+      <ol start="30">
+        
+        <li value="30"><a href="30-complexity.html">Quantum Computational Complexity</a></li>
+        
+        <li value="31"><a href="31-hidden-subgroup.html">The Hidden Subgroup Problem and Beyond</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 10: Quantum Simulation</summary>
+      <ol start="32">
+        
+        <li value="32"><a href="32-simulation-why.html">Why Quantum Simulation Matters</a></li>
+        
+        <li value="33"><a href="33-digital-simulation.html">Digital Quantum Simulation</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 11: Quantum Networking, Cryptography, and Sensing</summary>
+      <ol start="34">
+        
+        <li value="34"><a href="34-quantum-internet.html">The Quantum Internet</a></li>
+        
+        <li value="35"><a href="35-advanced-crypto.html">Advanced Quantum Cryptography</a></li>
+        
+        <li value="36"><a href="36-sensing.html">Quantum Sensing and Metrology</a></li>
+        
+      </ol>
+    </details>
+    
+    <details open>
+      <summary>Part 12: Frontiers and the Future</summary>
+      <ol start="37">
+        
+        <li value="37"><a href="37-topological.html">Topological Quantum Computing</a></li>
+        
+        <li value="38"><a href="38-quantum-ai.html" aria-current="page">Quantum Computing and Artificial Intelligence</a></li>
+        
+        <li value="39"><a href="39-open-problems.html">Open Problems in Quantum Computing</a></li>
+        
+        <li value="40"><a href="40-ecosystem.html">The Quantum Computing Ecosystem Today</a></li>
+        
+        <li value="41"><a href="41-career.html">Building Your Quantum Computing Career</a></li>
+        
+        <li value="42"><a href="42-what-next.html">What Comes Next</a></li>
+        
+      </ol>
+    </details>
+    
+  </nav>
+
+  <main>
+    
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="../index.html">Home</a> / <a href="../index.html#part-12">Part 12</a> / <span>Chapter 38</span>
+    </nav>
+    
+
+    <article>
+      <h1>Chapter 38: Quantum Computing and Artificial Intelligence</h1>
+      <p>
+  Two of the most transformative technologies of the 21st century - quantum computing
+  and artificial intelligence - are on a collision course. Not a destructive collision,
+  but a <em>creative</em> one. Quantum computers promise to accelerate machine learning
+  algorithms. AI promises to solve some of quantum computing's hardest engineering
+  problems. And at the intersection, a new discipline is emerging that may be greater
+  than the sum of its parts.
+</p>
+
+<p>
+  This chapter maps the terrain of quantum-AI convergence. We examine three directions:
+  quantum computing as a tool <em>for</em> AI, quantum hardware as a component
+  <em>within</em> AI pipelines, and AI as a tool <em>for</em> quantum computing. We
+  close with the convergence thesis - the idea that these two fields will eventually
+  become inseparable.
+</p>
+
+<div class="callout callout-info">
+  <strong>Prerequisites.</strong>
+  <p>Familiarity with quantum circuits (Chapters 5-6), variational algorithms (Chapter 24),
+  and a general awareness of machine learning concepts (training, neural networks,
+  optimization) will be helpful. No deep ML expertise is required.</p>
+</div>
+
+<!-- ================================================================== -->
+<section id="quantum-enhanced-ai">
+<h2>38.1 Quantum-Enhanced Classical AI</h2>
+
+<p>
+  The central hope of <strong>quantum machine learning</strong> (QML) is that quantum
+  computers can speed up or improve classical AI tasks. The theoretical foundations are
+  compelling: quantum systems can represent exponentially large feature spaces, perform
+  certain linear algebra operations exponentially faster, and sample from distributions
+  that classical computers cannot efficiently access.
+</p>
+
+<h3>Quantum Kernels</h3>
+
+<p>
+  A <strong>kernel method</strong> is a classical ML technique that maps data into a
+  high-dimensional feature space where a simple linear classifier can separate classes
+  that are tangled in the original space. Quantum kernel methods use a quantum circuit
+  to define the feature map. Given a data point $\mathbf{x}$, a parameterized circuit
+  $U(\mathbf{x})$ maps it to a quantum state $|\phi(\mathbf{x})\rangle$. The kernel
+  function is the overlap:
+</p>
+
+$$K(\mathbf{x}, \mathbf{x'}) = |\langle \phi(\mathbf{x}) | \phi(\mathbf{x'}) \rangle|^2$$
+
+<p>
+  Because the quantum feature space has dimension $2^n$ for $n$ qubits, quantum kernels
+  can in principle capture correlations that classical kernels miss. However, a crucial
+  caveat: theoretical work by Huang et al. (2021) showed that quantum kernel advantages
+  exist only for problems with specific structure. For generic datasets, quantum kernels
+  offer no systematic advantage over classical methods.
+</p>
+
+<h3>Variational Quantum Classifiers</h3>
+
+<p>
+  The <strong>variational quantum classifier</strong> (VQC) is a hybrid quantum-classical
+  approach where a parameterized quantum circuit serves as the model, and a classical
+  optimizer tunes the parameters to minimize a loss function. Think of it as a quantum
+  neural network, though the analogy is imperfect.
+</p>
+
+<p>
+  The circuit typically has three stages: (1) encode classical data into qubit states
+  (the <em>encoding layer</em>), (2) apply parameterized gates (the <em>variational
+  layer</em>), and (3) measure qubits to extract predictions. Training proceeds by
+  evaluating the circuit on training data, computing the loss, and using gradient
+  descent (with gradients estimated via the parameter-shift rule) to update parameters.
+</p>
+
+<h3>Quantum Speedups for Linear Algebra</h3>
+
+<p>
+  Many ML algorithms reduce to linear algebra: matrix inversion, singular value
+  decomposition, principal component analysis. The <strong>HHL algorithm</strong>
+  (Harrow-Hassidim-Lloyd, 2009) solves systems of linear equations exponentially faster
+  than classical methods, under specific conditions. If ML tasks can be reformulated
+  as linear systems problems, quantum speedups may follow.
+</p>
+
+<p>
+  The practical impact remains debated. HHL requires quantum RAM for data loading
+  (which does not yet exist at scale), and "dequantization" results by Tang (2019)
+  showed that for many low-rank problems, classical algorithms inspired by the quantum
+  approach can achieve similar speedups. The honest assessment: quantum advantage for
+  ML exists in theory for specific problem classes, but demonstrating it convincingly
+  on practical problems remains an open challenge.
+</p>
+
+<div class="callout callout-warning">
+  <strong>Hype Check.</strong>
+  Many claims of "quantum speedup for AI" compare quantum algorithms against deliberately
+  weak classical baselines. A meaningful quantum advantage for machine learning must be
+  measured against the best known classical algorithm for the same problem, including
+  classical algorithms inspired by quantum techniques (dequantization). As of 2026, no
+  quantum ML algorithm has demonstrated an unambiguous, practical advantage on a
+  real-world dataset at scale.
+</div>
+
+</section>
+
+<hr />
+
+<!-- ================================================================== -->
+<section id="quantum-in-ai-pipelines">
+<h2>38.2 Quantum Processors in AI Pipelines</h2>
+
+<p>
+  Rather than replacing classical AI entirely, a more near-term vision places quantum
+  processors as <strong>co-processors</strong> within larger classical AI pipelines -
+  analogous to how GPUs accelerate specific computations within a CPU-orchestrated
+  workflow. Several companies are actively exploring this approach.
+</p>
+
+<h3>IonQ's Quantum-Enhanced LLMs</h3>
+
+<p>
+  In May 2025, IonQ published research on a hybrid quantum-classical architecture for
+  <strong>fine-tuning large language models</strong>. The approach takes a pre-trained
+  classical LLM and incorporates a parameterized quantum circuit as an additional layer.
+  In their experiments, the hybrid model was repurposed for sentiment analysis, and the
+  quantum-enhanced version outperformed classical-only fine-tuning methods that used a
+  comparable number of parameters.
+</p>
+
+<p>
+  The key insight is that the quantum layer acts as an extremely parameter-efficient
+  adapter. A quantum circuit with $n$ qubits and $d$ layers has $O(nd)$ parameters but
+  operates in a $2^n$-dimensional Hilbert space. For tasks where the relevant features
+  live in a high-dimensional space but the training data is limited, this parameter
+  efficiency may provide a genuine advantage.
+</p>
+
+<p>
+  IonQ also demonstrated <strong>quantum-enhanced generative adversarial networks</strong>
+  (qGANs) for materials science, using quantum circuits to generate synthetic images of
+  rare steel microstructure anomalies. The quantum GAN outperformed classical models
+  of similar size in image quality, a promising result for data-scarce industrial
+  applications.
+</p>
+
+<h3>Quantum Layers in Classical Networks</h3>
+
+<p>
+  The broader paradigm is the <strong>quantum layer</strong>: a quantum circuit embedded
+  within an otherwise classical neural network. Libraries such as PennyLane (by Xanadu)
+  and TensorFlow Quantum (by Google) enable seamless integration of quantum circuits as
+  differentiable layers in classical deep learning frameworks. The gradient of a quantum
+  circuit with respect to its parameters can be computed using the <strong>parameter-shift
+  rule</strong>:
+</p>
+
+$$\frac{\partial}{\partial \theta_i} \langle C(\boldsymbol{\theta}) \rangle = \frac{1}{2}\left[\langle C(\boldsymbol{\theta} + \frac{\pi}{2}\mathbf{e}_i) \rangle - \langle C(\boldsymbol{\theta} - \frac{\pi}{2}\mathbf{e}_i) \rangle\right]$$
+
+<p>
+  This enables end-to-end backpropagation through hybrid quantum-classical models, with
+  the quantum circuit's parameters updated alongside the classical network's weights.
+</p>
+
+<h3>Interactive Demo: Quantum Classifier</h3>
+
+<p>
+  The sandbox below implements a simple variational quantum classifier. The circuit
+  encodes a two-feature input using rotation gates, applies a parameterized variational
+  layer, and measures one qubit. Try modifying the rotation angles to see how the
+  classification boundary changes.
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="14">OPENQASM 3.0;
+// Simple variational quantum classifier
+// Encoding: Ry rotations parameterized by input features
+// Variational: Rz-CNOT-Ry ansatz
+qubit[2] q;
+bit[1] c;
+
+// Encode data point (x1=1.2, x2=0.8) via Ry rotations
+ry(1.2) q[0];
+ry(0.8) q[1];
+
+// Variational layer (trainable parameters)
+rz(0.5) q[0]; rz(0.3) q[1];
+cx q[0], q[1];
+ry(0.7) q[0]; ry(0.2) q[1];
+
+// Measure classification qubit
+c[0] = measure q[0];</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+  The probability of measuring $|0\rangle$ vs. $|1\rangle$ corresponds to the classifier's
+  prediction. Try adjusting the variational parameters (the angles in the <code>rz</code>
+  and <code>ry</code> gates after the encoding) to see how the output distribution shifts.
+  In a real QML workflow, a classical optimizer would tune these parameters automatically
+  to minimize classification error.
+</p>
+
+</section>
+
+<hr />
+
+<!-- ================================================================== -->
+<section id="ai-for-quantum">
+<h2>38.3 AI for Quantum Computing</h2>
+
+<p>
+  While the previous sections asked "what can quantum computers do for AI?", this section
+  inverts the question: <strong>what can AI do for quantum computers?</strong> The answer,
+  it turns out, may be more immediately impactful. Quantum computers are extraordinarily
+  complex systems with noise, calibration drift, and exponentially complex error patterns.
+  AI - particularly deep learning - excels at exactly this kind of messy pattern
+  recognition.
+</p>
+
+<h3>Google's AlphaQubit</h3>
+
+<p>
+  In late 2024, Google DeepMind and Google Quantum AI jointly introduced
+  <strong>AlphaQubit</strong>, a neural-network-based decoder for quantum error correction.
+  The system was published in <em>Nature</em> and represents perhaps the most compelling
+  example of AI improving quantum computing.
+</p>
+
+<p>
+  Quantum error correction works by spreading one logical qubit across many physical
+  qubits and repeatedly measuring <strong>stabilizers</strong> (syndrome extraction) to
+  detect errors without disturbing the encoded information. The critical computational
+  challenge is <strong>decoding</strong>: given the syndrome measurements, determine what
+  errors most likely occurred and how to correct them.
+</p>
+
+<p>
+  Decoding is computationally hard because real quantum hardware exhibits correlated
+  noise, cross-talk between qubits, leakage to non-computational states, and
+  measurement errors. Classical decoders based on minimum-weight perfect matching
+  (MWPM) assume simplified noise models and struggle with these real-world complexities.
+</p>
+
+<p>
+  AlphaQubit uses a <strong>transformer-based architecture</strong> - the same deep
+  learning framework behind large language models - trained in two stages:
+</p>
+
+<ol>
+  <li><strong>Pretraining on synthetic data:</strong> The model is trained on millions
+    of simulated error correction rounds with realistic noise models, learning the
+    general structure of error patterns.</li>
+  <li><strong>Fine-tuning on experimental data:</strong> The model is then fine-tuned
+    on actual syndrome data from Google's quantum processors, adapting to the specific
+    noise characteristics of real hardware.</li>
+</ol>
+
+<p>
+  The results are striking. On Google's Sycamore processor, AlphaQubit made
+  <strong>6% fewer errors</strong> than tensor network decoders and <strong>30% fewer
+  errors</strong> than correlated matching. On the newer Willow processor, AlphaQubit
+  achieved a scaling factor of 2.14x - meaning that for each step up in code distance
+  (from distance 3 to 5 to 7), the logical error rate dropped exponentially.
+</p>
+
+<p>
+  By 2025, Google integrated AlphaQubit into custom ASIC controllers, addressing the
+  original limitation that neural network inference was too slow for real-time decoding
+  in superconducting processors.
+</p>
+
+<h3>Other AI Applications in Quantum Computing</h3>
+
+<p>
+  AlphaQubit is the flagship example, but AI is being applied across the quantum stack:
+</p>
+
+<ul>
+  <li><strong>Circuit optimization:</strong> Reinforcement learning agents that discover
+    shorter circuit decompositions, reducing gate counts and exposure to noise.</li>
+  <li><strong>Calibration:</strong> ML models that predict optimal pulse parameters for
+    quantum gates, reducing calibration time from hours to minutes.</li>
+  <li><strong>Noise characterization:</strong> Neural networks that learn the full noise
+    profile of a quantum processor from experimental data, enabling better error
+    mitigation.</li>
+  <li><strong>Architecture design:</strong> AI-assisted exploration of qubit connectivity
+    graphs and error-correcting code structures tailored to specific hardware
+    constraints.</li>
+  <li><strong>Quantum chemistry:</strong> ML models that predict good initial parameters
+    for variational quantum eigensolvers, reducing the number of expensive quantum
+    circuit evaluations needed.</li>
+</ul>
+
+<div class="callout callout-key">
+  <strong>Key Concept: The Virtuous Cycle.</strong>
+  AI makes quantum computers work better (through smarter error correction, calibration,
+  and circuit optimization). Better quantum computers may eventually make AI work better
+  (through quantum-enhanced training and inference). This creates a potential
+  <strong>virtuous cycle</strong> where each technology accelerates the other.
+</div>
+
+</section>
+
+<hr />
+
+<!-- ================================================================== -->
+<section id="convergence-thesis">
+<h2>38.4 The Convergence Thesis</h2>
+
+<p>
+  The <strong>convergence thesis</strong> holds that quantum computing and artificial
+  intelligence are not merely complementary technologies but are destined to merge into
+  a unified computational paradigm. The argument proceeds in three stages:
+</p>
+
+<p>
+  <strong>Stage 1: Mutual Assistance (Now - ~2030).</strong> AI helps build better quantum
+  computers; quantum computers provide modest speedups for specific AI subroutines. The
+  technologies remain distinct, with different hardware, software stacks, and expert
+  communities. This is where we are today.
+</p>
+
+<p>
+  <strong>Stage 2: Integration (~2030 - ~2040).</strong> Quantum processors become
+  standard co-processors in AI data centers, similar to how GPUs became standard in
+  the 2010s. Quantum layers in neural networks become routine. AI-driven quantum error
+  correction runs autonomously. The two fields share a common software ecosystem.
+</p>
+
+<p>
+  <strong>Stage 3: Unification (~2040+).</strong> Quantum-native AI architectures emerge
+  that have no classical analogue - systems that learn, reason, and generalize in ways
+  that exploit quantum mechanics fundamentally. The distinction between "quantum" and
+  "classical" computing dissolves into a spectrum.
+</p>
+
+<p>
+  Is the convergence thesis correct? It is too early to say with certainty. The
+  skeptical view notes that classical deep learning has been remarkably effective without
+  quantum assistance, and the overhead of quantum error correction may negate any speedup
+  for typical ML workloads. The optimistic view notes that the intersection of exponential
+  quantum state spaces with the learning capacity of neural networks has barely been
+  explored, and the most powerful applications likely have not been imagined yet.
+</p>
+
+<p>
+  What is not in doubt is that the two fields are already deeply intertwined. Every major
+  quantum computing company employs AI techniques, and every major AI company is
+  investing in quantum computing research. The convergence is happening - the only
+  question is how far it will go.
+</p>
+
+<div class="callout callout-info">
+  <strong>What to Watch.</strong>
+  The single most important metric for quantum-AI convergence is whether a quantum-enhanced
+  ML model achieves state-of-the-art performance on a benchmark that matters to the broader
+  AI community - not a toy problem, not a problem engineered to favor quantum, but a standard
+  benchmark like ImageNet, GLUE, or a Kaggle competition. As of 2026, this has not happened.
+  When it does, the convergence thesis will shift from speculation to engineering reality.
+</div>
+
+</section>
+
+<hr />
+
+<!-- ================================================================== -->
+<section id="ch38-review">
+<h2>Chapter 38 Review</h2>
+
+<div class="flashcard-deck" data-component="flashcard-deck">
+  <div class="flashcard-deck-header">Chapter 38 Review</div>
+
+  <div class="flashcard" data-card-id="ch38-quantum-kernel">
+    <div class="card-front">What is a quantum kernel, and when might it provide an advantage over classical kernels?</div>
+    <div class="card-back">
+      A quantum kernel uses a quantum circuit $U(\mathbf{x})$ to map data into a $2^n$-dimensional Hilbert space, with the kernel function $K(\mathbf{x}, \mathbf{x'}) = |\langle\phi(\mathbf{x})|\phi(\mathbf{x'})\rangle|^2$. A quantum advantage exists only for problems with specific structure where the relevant features align with the quantum feature space. For generic datasets, quantum kernels offer no systematic advantage.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch38-parameter-shift">
+    <div class="card-front">How are gradients of quantum circuits computed for training hybrid models?</div>
+    <div class="card-back">
+      The parameter-shift rule: $\frac{\partial}{\partial \theta_i}\langle C\rangle = \frac{1}{2}[\langle C(\theta_i + \pi/2)\rangle - \langle C(\theta_i - \pi/2)\rangle]$. This requires two circuit evaluations per parameter per gradient component. It enables end-to-end backpropagation through hybrid quantum-classical models, integrating quantum layers with classical deep learning frameworks.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch38-ionq-llm-finetuning">
+    <div class="card-front">How did IonQ use quantum circuits to fine-tune a large language model?</div>
+    <div class="card-back">
+      IonQ incorporated a parameterized quantum circuit as an additional layer in a pre-trained classical LLM. The quantum layer acts as a parameter-efficient adapter: $n$ qubits with $d$ layers has $O(nd)$ parameters but operates in $2^n$-dimensional space. For sentiment analysis, the hybrid model outperformed classical-only methods using comparable parameter counts.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch38-alphaqubit">
+    <div class="card-front">What is AlphaQubit and why is it significant?</div>
+    <div class="card-back">
+      AlphaQubit is a transformer-based neural network decoder for quantum error correction, developed by Google DeepMind and Google Quantum AI. Trained in two stages (pretraining on synthetic data, fine-tuning on experimental data), it achieved 6% fewer errors than tensor network decoders and 30% fewer than correlated matching on Google's Sycamore processor. It demonstrates that AI can meaningfully improve quantum computer performance.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch38-dequantization">
+    <div class="card-front">What is "dequantization" and why does it matter for quantum ML claims?</div>
+    <div class="card-back">
+      Dequantization refers to classical algorithms (pioneered by Tang, 2019) that achieve speedups similar to quantum algorithms for low-rank linear algebra problems. These results show that some claimed quantum ML advantages evaporate when compared against the best classical techniques. Any meaningful quantum ML advantage must be benchmarked against dequantized classical baselines.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch38-convergence-stages">
+    <div class="card-front">What are the three stages of the quantum-AI convergence thesis?</div>
+    <div class="card-back">
+      Stage 1 (now - ~2030): Mutual assistance, where AI helps build quantum computers and quantum provides modest AI speedups. Stage 2 (~2030-2040): Integration, where quantum processors become standard AI co-processors. Stage 3 (~2040+): Unification, where quantum-native AI architectures emerge with no classical analogue. As of 2026, we are in early Stage 1.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+</section>
+
+    </article>
+
+    
+    <nav class="chapter-nav" aria-label="Chapter navigation">
+      <a href="37-topological.html" class="prev">&larr; Chapter 37: Topological Quantum Computing</a>
+      <span class="nav-spacer"></span>
+      <a href="39-open-problems.html" class="next">Chapter 39: Open Problems in Quantum Computing &rarr;</a>
+    </nav>
+    
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof renderMathInElement !== "undefined") {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "$", right: "$", display: false}
+          ],
+          throwOnError: false
+        });
+      }
+    });
+  </script>
+  
+  <script>
+  "use strict";
+  
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function isDark() { return window.matchMedia("(prefers-color-scheme: dark)").matches; }
+  function renderMath(el) {
+    if (typeof renderMathInElement === "function")
+      renderMathInElement(el, { delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}], throwOnError: false });
+  }
+
+  
+  var wasmReady = null;
+  function ensureWasm() {
+    if (!wasmReady) {
+      wasmReady = (async function() {
+        var go = new Go();
+        var result = await WebAssembly.instantiateStreaming(fetch("../main.wasm"), go.importObject);
+        go.run(result.instance);
+      })();
+    }
+    return wasmReady;
+  }
+
+  
+  var SRS_KEY = "goqu-srs";
+  function srsLoad() { try { return JSON.parse(localStorage.getItem(SRS_KEY) || "{}"); } catch(e) { return {}; } }
+  function srsSave(d) { localStorage.setItem(SRS_KEY, JSON.stringify(d)); }
+  function getCardState(id) { var d = srsLoad(); return d[id] || {interval:1, ease:2.5, due:0, reps:0}; }
+  function reviewCard(id, q) {
+    var d = srsLoad(), s = d[id] || {interval:1, ease:2.5, due:0, reps:0};
+    if (q >= 3) {
+      s.reps++;
+      if (s.reps === 1) s.interval = 1;
+      else if (s.reps === 2) s.interval = 6;
+      else s.interval = Math.round(s.interval * s.ease);
+      s.ease = Math.max(1.3, s.ease + 0.1 - (5-q)*(0.08 + (5-q)*0.02));
+    } else { s.reps = 0; s.interval = 1; }
+    s.due = Date.now() + s.interval * 86400000;
+    d[id] = s; srsSave(d);
+  }
+
+  
+  function initSandbox(el) {
+    var code = el.querySelector(".code"), output = el.querySelector(".output");
+    if (!code || !output) return;
+    var runBtn = el.querySelector('[data-action="run"]'), resetBtn = el.querySelector('[data-action="reset"]');
+    var shotsEl = el.querySelector("[data-shots]"), orig = code.value;
+    function shots() { return parseInt(shotsEl ? shotsEl.value : el.dataset.shots || "1024", 10); }
+    async function run() {
+      await ensureWasm();
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(code.value, shots(), isDark()));
+        if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+        output.innerHTML = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+    if (runBtn) runBtn.addEventListener("click", run);
+    if (resetBtn) resetBtn.addEventListener("click", function() { code.value = orig; });
+    if (el.hasAttribute("data-autorun")) run();
+  }
+
+  
+  function initSimulation(el) {
+    var tmplEl = el.querySelector(".sim-qasm"), output = el.querySelector(".sim-output");
+    var sliders = el.querySelectorAll('input[type="range"]');
+    var selects = el.querySelectorAll("select[data-param]");
+    if (!tmplEl || !output || (sliders.length === 0 && selects.length === 0)) return;
+    var tmpl = tmplEl.textContent, pending = false;
+    var useNoisy = el.hasAttribute("data-noisy");
+    var useComparison = el.hasAttribute("data-comparison");
+    var useExpectation = el.hasAttribute("data-expectation");
+    var useClifford = el.hasAttribute("data-clifford");
+    async function update() {
+      if (pending) return; pending = true;
+      await ensureWasm();
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var params = {};
+        sliders.forEach(function(s) { params[s.dataset.param] = parseFloat(s.value); var o = s.parentElement.querySelector("output"); if (o) o.textContent = parseFloat(s.value).toFixed(2); });
+        selects.forEach(function(s) { params[s.dataset.param] = s.value; });
+        var qasm = tmpl;
+        for (var k in params) qasm = qasm.replaceAll("{"+k+"}", params[k].toString());
+        var html = "";
+        if (useComparison && window.compareIdealNoisy) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.compareIdealNoisy(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="comparison-panels"><div class="comparison-panel"><h4>Ideal</h4>' + (r.idealHistogramSVG||"") + '</div><div class="comparison-panel"><h4>Noisy</h4>' + (r.noisyHistogramSVG||"") + '</div></div>';
+          if (r.stateCitySVG) html += r.stateCitySVG;
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useNoisy && window.runNoisyQASM) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.runNoisyQASM(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"") + (r.stateCitySVG||"");
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useClifford && window.runClifford) {
+          var r = JSON.parse(window.runClifford(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"");
+          if (r.stabilizers) { html += '<div class="stabilizer-table"><h4>Stabilizers</h4><table>'; r.stabilizers.forEach(function(s) { html += '<tr><td>' + formatStabilizer(s) + '</td></tr>'; }); html += '</table></div>'; }
+        } else if (useExpectation && window.computeExpectation) {
+          var pauliStr = params.pauliStr || el.dataset.pauli || "Z";
+          var r = JSON.parse(window.computeExpectation(qasm, pauliStr, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="sim-stats"><span>&lt;' + esc(pauliStr) + '&gt; = ' + r.expectation.toFixed(6) + '</span></div>';
+        } else {
+          var r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+          
+          if (el.hasAttribute("data-bloch") && window.getStateVector && window.renderBloch) {
+            try {
+              var sv = JSON.parse(window.getStateVector(qasm));
+              if (sv.amplitudes && sv.amplitudes.length === 2) {
+                var a = sv.amplitudes;
+                var blochSVG = window.renderBloch(a[0].re, a[0].im, a[1].re, a[1].im, isDark());
+                if (blochSVG) html += blochSVG;
+              }
+            } catch(e) {   }
+          }
+        }
+        output.innerHTML = html;
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+      pending = false;
+    }
+    sliders.forEach(function(s) { s.addEventListener("input", update); });
+    selects.forEach(function(s) { s.addEventListener("change", update); });
+    update();
+  }
+
+  
+  function formatStabilizer(s) {
+    if (!s) return "";
+    var sign = s[0], ops = s.slice(1), html = '<span class="stab-sign">' + esc(sign) + '</span>';
+    for (var i = 0; i < ops.length; i++) {
+      var c = ops[i], cls = "stab-" + c.toLowerCase();
+      html += '<span class="' + cls + '">' + c + '</span>';
+    }
+    return html;
+  }
+
+  
+  function initExercise(el) {
+    var code = el.querySelector(".code"), feedback = el.querySelector(".exercise-feedback");
+    var checkBtn = el.querySelector('[data-action="check"]');
+    var hintBtn = el.querySelector('[data-action="hint"]'), hintEl = el.querySelector(".exercise-hint");
+    if (!code || !feedback || !checkBtn) return;
+    var expected = {}, tol = 0.1;
+    var expEl = el.querySelector(".exercise-expected");
+    if (expEl) expEl.querySelectorAll("[data-state]").forEach(function(span) {
+      expected[span.dataset.state] = parseFloat(span.dataset.prob);
+      if (span.dataset.tolerance) tol = parseFloat(span.dataset.tolerance);
+    });
+    checkBtn.addEventListener("click", async function() {
+      await ensureWasm();
+      feedback.className = "exercise-feedback visible";
+      feedback.textContent = "Checking...";
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(code.value, 1024, isDark()));
+        if (r.error) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + r.error; return; }
+        if (Object.keys(expected).length === 0) { feedback.className = "exercise-feedback visible pass"; feedback.innerHTML = "Circuit ran successfully."; return; }
+        var prob = JSON.parse(window.getProbabilities(code.value, isDark()));
+        if (prob.error) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + prob.error; return; }
+        var actual = {};
+        for (var i = 0; i < prob.labels.length; i++) actual[prob.labels[i]] = prob.probabilities[i];
+        var ok = true, msgs = [];
+        for (var s in expected) {
+          var a = actual[s] || 0, p = expected[s];
+          if (Math.abs(a - p) > tol) { ok = false; msgs.push("|" + s + "\u27E9: expected " + (p*100|0) + "%, got " + (a*100|0) + "%"); }
+        }
+        if (ok) { feedback.className = "exercise-feedback visible pass"; feedback.innerHTML = "Correct! Your circuit produces the expected output."; }
+        else { feedback.className = "exercise-feedback visible fail"; feedback.innerHTML = "Not quite. " + msgs.join("; ") + "."; }
+        renderMath(feedback);
+      } catch(e) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + e.message; }
+    });
+    if (hintBtn && hintEl) hintBtn.addEventListener("click", function() { hintEl.style.display = hintEl.style.display === "none" ? "block" : "none"; });
+  }
+
+  
+  function initFlashcardDeck(el) {
+    el.querySelectorAll(".flashcard").forEach(function(card) {
+      var id = card.dataset.cardId;
+      if (!id) return;
+      var state = getCardState(id);
+      if (state.due > 0 && state.due > Date.now()) card.classList.add("reviewed");
+      card.addEventListener("click", function(e) {
+        if (e.target.closest("button")) return;
+        card.classList.toggle("flipped");
+        var back = card.querySelector(".card-back");
+        if (back) renderMath(back);
+      });
+      var easyBtn = card.querySelector(".easy"), hardBtn = card.querySelector(".hard");
+      if (easyBtn) easyBtn.addEventListener("click", function() { reviewCard(id, 4); card.classList.remove("flipped"); card.classList.add("reviewed"); });
+      if (hardBtn) hardBtn.addEventListener("click", function() { reviewCard(id, 2); card.classList.remove("flipped"); });
+    });
+  }
+
+  
+  function initPOE(el) {
+    var steps = el.querySelectorAll(".poe-step"), prog = el.querySelectorAll(".poe-progress-step");
+    if (steps.length === 0) return;
+    var cur = 0;
+    function show(idx) {
+      steps.forEach(function(s,i) { s.classList.toggle("active", i === idx); });
+      prog.forEach(function(s,i) { s.classList.remove("active","done"); if (i < idx) s.classList.add("done"); if (i === idx) s.classList.add("active"); });
+      cur = idx;
+      var active = steps[idx];
+      if (active) active.querySelectorAll('.sandbox:not([data-initialized])').forEach(function(sb) { sb.setAttribute("data-initialized","true"); initSandbox(sb); });
+    }
+    el.querySelectorAll('[data-action="next"]').forEach(function(btn) { btn.addEventListener("click", function() { if (cur < steps.length - 1) show(cur + 1); }); });
+    el.querySelectorAll('[data-action="complete"]').forEach(function(btn) { btn.addEventListener("click", function() { prog.forEach(function(s) { s.classList.remove("active"); s.classList.add("done"); }); }); });
+    show(0);
+  }
+
+  
+  function initStepThrough(el) {
+    var qasmEl = el.querySelector(".step-qasm");
+    var output = el.querySelector(".step-output");
+    var prevBtn = el.querySelector('[data-action="prev"]');
+    var nextBtn = el.querySelector('[data-action="next"]');
+    var stepInfo = el.querySelector(".step-info");
+    if (!qasmEl || !output) return;
+    var qasm = qasmEl.textContent;
+    var mode = el.dataset.mode || "clifford"; 
+    var steps = null, cur = -1;
+
+    async function load() {
+      await ensureWasm();
+      try {
+        if (mode === "clifford" && window.cliffordStepThrough) {
+          var r = JSON.parse(window.cliffordStepThrough(qasm));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+          
+          steps.unshift({gate: "init", qubits: [], stabilizers: r.steps.length > 0 ? null : []});
+        } else if (mode === "grover" && window.groverStepThrough) {
+          var nq = parseInt(el.dataset.qubits || "2", 10);
+          var targets = JSON.parse(el.dataset.targets || "[]");
+          var r = JSON.parse(window.groverStepThrough(nq, targets.join(",")));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+        }
+        if (steps && steps.length > 0) { cur = 0; renderStep(); }
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    function renderStep() {
+      if (!steps || cur < 0 || cur >= steps.length) return;
+      var s = steps[cur];
+      var html = "";
+      if (mode === "clifford") {
+        if (s.gate === "init") {
+          html = '<p class="step-label">Initial state |0...0&gt;</p>';
+          
+          if (steps.length > 1 && steps[1].stabilizers) {
+            var nq = steps[1].stabilizers[0].length - 1;
+            html += '<div class="stabilizer-table"><table>';
+            for (var i = 0; i < nq; i++) {
+              var row = "+";
+              for (var j = 0; j < nq; j++) row += (j === i) ? "Z" : "I";
+              html += '<tr><td>' + formatStabilizer(row) + '</td></tr>';
+            }
+            html += '</table></div>';
+          }
+        } else {
+          html = '<p class="step-label">After <strong>' + esc(s.gate) + '</strong> on qubit' + (s.qubits.length > 1 ? 's ' : ' ') + s.qubits.join(', ') + '</p>';
+          if (s.stabilizers) {
+            html += '<div class="stabilizer-table"><table>';
+            s.stabilizers.forEach(function(st) { html += '<tr><td>' + formatStabilizer(st) + '</td></tr>'; });
+            html += '</table></div>';
+          }
+        }
+      } else if (mode === "grover") {
+        html = '<p class="step-label">Iteration ' + s.iteration + '</p>';
+        if (s.probabilities) {
+          html += '<div class="amplitude-bars">';
+          for (var i = 0; i < s.probabilities.length; i++) {
+            var label = i.toString(2).padStart(Math.ceil(Math.log2(s.probabilities.length)), '0');
+            var pct = (s.probabilities[i] * 100).toFixed(1);
+            var isTarget = el.dataset.targets && JSON.parse(el.dataset.targets).indexOf(i) >= 0;
+            html += '<div class="amp-bar' + (isTarget ? ' target' : '') + '"><div class="amp-fill" style="height:' + pct + '%"></div><span class="amp-label">|' + label + '&gt;</span><span class="amp-value">' + pct + '%</span></div>';
+          }
+          html += '</div>';
+        }
+      }
+      output.innerHTML = html;
+      if (stepInfo) stepInfo.textContent = "Step " + cur + " / " + (steps.length - 1);
+      if (prevBtn) prevBtn.disabled = (cur === 0);
+      if (nextBtn) nextBtn.disabled = (cur >= steps.length - 1);
+    }
+
+    if (prevBtn) prevBtn.addEventListener("click", function() { if (cur > 0) { cur--; renderStep(); } });
+    if (nextBtn) nextBtn.addEventListener("click", function() { if (steps && cur < steps.length - 1) { cur++; renderStep(); } });
+    load();
+  }
+
+  
+  document.addEventListener("DOMContentLoaded", function() {
+    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough};
+    document.querySelectorAll("[data-component]").forEach(function(el) { var fn = reg[el.dataset.component]; if (fn) fn(el); });
+  });
+  </script>
+  
+</body>
+</html>

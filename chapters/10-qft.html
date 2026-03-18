@@ -1,0 +1,1671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chapter 10: The Quantum Fourier Transform - Goqu Textbook</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/contrib/auto-render.min.js"></script>
+  
+  <link rel="preload" href="../main.wasm" as="fetch" type="application/wasm" crossorigin>
+  <script src="../wasm_exec.js"></script>
+  
+</head>
+<body>
+  <input type="checkbox" id="nav-toggle" hidden>
+  <label for="nav-toggle" class="nav-hamburger" aria-label="Toggle navigation">
+    <span></span><span></span><span></span>
+  </label>
+
+  <nav class="sidebar" aria-label="Table of contents">
+    <a href="../index.html" class="sidebar-logo">Goqu Textbook</a>
+    
+    <details>
+      <summary>Part 1: The World of Classical Computing</summary>
+      <ol start="1">
+        
+        <li value="1"><a href="01-computation.html">What Is Computation?</a></li>
+        
+        <li value="2"><a href="02-math-of-information.html">The Mathematics of Information</a></li>
+        
+        <li value="3"><a href="03-reversible-computing.html">Reversible Computing</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 2: Entering the Quantum World</summary>
+      <ol start="4">
+        
+        <li value="4"><a href="04-the-first-qubit.html">The First Qubit</a></li>
+        
+        <li value="5"><a href="05-quantum-gates.html">Quantum Gates</a></li>
+        
+        <li value="6"><a href="06-entanglement.html">Multiple Qubits and Entanglement</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 3: Quantum Protocols</summary>
+      <ol start="7">
+        
+        <li value="7"><a href="07-teleportation.html">Quantum Teleportation and Communication</a></li>
+        
+        <li value="8"><a href="08-cryptography.html">Quantum Cryptography</a></li>
+        
+      </ol>
+    </details>
+    
+    <details open>
+      <summary>Part 4: Quantum Algorithms - The First Wave</summary>
+      <ol start="9">
+        
+        <li value="9"><a href="09-oracles.html">Oracles and Quantum Parallelism</a></li>
+        
+        <li value="10"><a href="10-qft.html" aria-current="page">The Quantum Fourier Transform</a></li>
+        
+        <li value="11"><a href="11-shor.html">Shor&#39;s Algorithm</a></li>
+        
+        <li value="12"><a href="12-grover.html">Grover&#39;s Algorithm</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 5: Real Quantum Hardware</summary>
+      <ol start="13">
+        
+        <li value="13"><a href="13-hardware.html">How to Build a Quantum Computer</a></li>
+        
+        <li value="14"><a href="14-noise.html">Noise, Decoherence, and the NISQ Era</a></li>
+        
+        <li value="15"><a href="15-programming.html">Programming Quantum Computers</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 6: Quantum Error Correction</summary>
+      <ol start="16">
+        
+        <li value="16"><a href="16-classical-ec.html">Classical Error Correction Refresher</a></li>
+        
+        <li value="17"><a href="17-qec-fundamentals.html">Quantum Error Correction Fundamentals</a></li>
+        
+        <li value="18"><a href="18-stabilizers.html">The Stabilizer Formalism</a></li>
+        
+        <li value="19"><a href="19-surface-codes.html">Surface Codes and Topological Protection</a></li>
+        
+        <li value="20"><a href="20-fault-tolerance.html">Fault-Tolerant Quantum Computing</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 7: Variational and Near-Term Algorithms</summary>
+      <ol start="21">
+        
+        <li value="21"><a href="21-variational.html">The Variational Quantum Computing Paradigm</a></li>
+        
+        <li value="22"><a href="22-vqe.html">Variational Quantum Eigensolver (VQE)</a></li>
+        
+        <li value="23"><a href="23-qaoa.html">Quantum Approximate Optimization (QAOA)</a></li>
+        
+        <li value="24"><a href="24-qml.html">Quantum Machine Learning</a></li>
+        
+        <li value="25"><a href="25-error-mitigation.html">Quantum Error Mitigation</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 8: Quantum Information Theory</summary>
+      <ol start="26">
+        
+        <li value="26"><a href="26-states-measurements.html">Quantum States and Measurements, Revisited</a></li>
+        
+        <li value="27"><a href="27-channels.html">Quantum Channels and Operations</a></li>
+        
+        <li value="28"><a href="28-entropy.html">Quantum Entropy and Information</a></li>
+        
+        <li value="29"><a href="29-shannon.html">Quantum Shannon Theory</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 9: Quantum Complexity and Computation Theory</summary>
+      <ol start="30">
+        
+        <li value="30"><a href="30-complexity.html">Quantum Computational Complexity</a></li>
+        
+        <li value="31"><a href="31-hidden-subgroup.html">The Hidden Subgroup Problem and Beyond</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 10: Quantum Simulation</summary>
+      <ol start="32">
+        
+        <li value="32"><a href="32-simulation-why.html">Why Quantum Simulation Matters</a></li>
+        
+        <li value="33"><a href="33-digital-simulation.html">Digital Quantum Simulation</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 11: Quantum Networking, Cryptography, and Sensing</summary>
+      <ol start="34">
+        
+        <li value="34"><a href="34-quantum-internet.html">The Quantum Internet</a></li>
+        
+        <li value="35"><a href="35-advanced-crypto.html">Advanced Quantum Cryptography</a></li>
+        
+        <li value="36"><a href="36-sensing.html">Quantum Sensing and Metrology</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 12: Frontiers and the Future</summary>
+      <ol start="37">
+        
+        <li value="37"><a href="37-topological.html">Topological Quantum Computing</a></li>
+        
+        <li value="38"><a href="38-quantum-ai.html">Quantum Computing and Artificial Intelligence</a></li>
+        
+        <li value="39"><a href="39-open-problems.html">Open Problems in Quantum Computing</a></li>
+        
+        <li value="40"><a href="40-ecosystem.html">The Quantum Computing Ecosystem Today</a></li>
+        
+        <li value="41"><a href="41-career.html">Building Your Quantum Computing Career</a></li>
+        
+        <li value="42"><a href="42-what-next.html">What Comes Next</a></li>
+        
+      </ol>
+    </details>
+    
+  </nav>
+
+  <main>
+    
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="../index.html">Home</a> / <a href="../index.html#part-4">Part 4</a> / <span>Chapter 10</span>
+    </nav>
+    
+
+    <article>
+      <h1>Chapter 10: The Quantum Fourier Transform</h1>
+      <p>
+  Throughout this textbook, we have built up an increasingly powerful toolkit for quantum
+  computation - from single-qubit gates and superposition to multi-qubit entanglement and
+  oracle-based algorithms. Now we arrive at one of the most important building blocks in all
+  of quantum computing: the <strong>Quantum Fourier Transform</strong> (QFT). It is the engine
+  inside Shor's factoring algorithm, the backbone of quantum phase estimation, and the key to
+  an entire family of quantum speedups.
+</p>
+
+<p>
+  But before we dive into the quantum version, we need to understand what a Fourier transform
+  <em>does</em> in the first place. The core idea is surprisingly intuitive: a Fourier
+  transform finds hidden patterns in data. It takes a signal that looks complicated in one
+  representation and reveals the simple, repeating components underneath. This is one of the
+  most useful ideas in all of mathematics and engineering - and its quantum counterpart
+  inherits that power while operating exponentially faster in the right circumstances.
+</p>
+
+<!-- ================================================================== -->
+<section id="classical-fourier">
+<h2>10.1 Classical Fourier Transforms: Finding Hidden Patterns</h2>
+
+<h3>Decomposing Signals into Frequencies</h3>
+
+<p>
+  Imagine you are listening to a chord played on a piano - say, middle C, E, and G struck
+  simultaneously. Your ear hears a single complex sound wave, a jagged, irregular pressure
+  pattern oscillating in the air. Yet somehow your brain effortlessly separates it into three
+  distinct notes. How? Your inner ear is essentially performing a Fourier transform: it
+  decomposes the complex wave into its constituent frequencies.
+</p>
+
+<p>
+  This is precisely what the Fourier transform does mathematically. Given a signal - any
+  function of time - it produces a new function of <em>frequency</em> that tells you how much
+  of each frequency is present in the original signal. The original signal lives in the
+  <strong>time domain</strong>; the transformed version lives in the <strong>frequency
+  domain</strong>.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    The Fourier transform converts a signal from the time domain (what happens at each moment)
+    to the frequency domain (how much of each frequency is present). Any signal can be
+    decomposed into a sum of simple sinusoidal waves at different frequencies.
+  </p>
+</div>
+
+<p>
+  This idea has staggeringly broad applications. Audio engineers use it to isolate instruments
+  in a recording. Doctors use it to reconstruct images in MRI scanners. Telecommunications
+  systems use it to pack multiple phone calls onto a single cable. Astronomers use it to
+  detect the faint periodic signals of exoplanets orbiting distant stars.
+</p>
+
+<h3>The Discrete Fourier Transform (DFT)</h3>
+
+<p>
+  In the digital world, we work with <em>discrete</em> data - a finite list of $N$ numbers
+  rather than a continuous function. The <strong>Discrete Fourier Transform</strong> (DFT)
+  takes a vector of $N$ complex numbers $(x_0, x_1, \ldots, x_{N-1})$ and produces a new
+  vector $(y_0, y_1, \ldots, y_{N-1})$ defined by:
+</p>
+
+$$y_k = \frac{1}{\sqrt{N}} \sum_{j=0}^{N-1} x_j \, \omega^{jk}$$
+
+<p>
+  where $\omega = e^{2\pi i / N}$ is a primitive $N$-th root of unity. Recall from Chapter 2
+  that $e^{i\theta} = \cos\theta + i\sin\theta$, so $\omega$ is a complex number that sits on
+  the unit circle at angle $2\pi/N$. The powers $\omega^{jk}$ sweep around the unit circle,
+  creating the sinusoidal patterns that probe each frequency.
+</p>
+
+<p>
+  We can write the DFT compactly as a matrix-vector multiplication $\mathbf{y} = F_N \mathbf{x}$,
+  where the DFT matrix $F_N$ has entries:
+</p>
+
+$$(F_N)_{jk} = \frac{1}{\sqrt{N}} \omega^{jk}$$
+
+<p>
+  For $N = 4$ with $\omega = e^{2\pi i/4} = i$, the DFT matrix is:
+</p>
+
+$$F_4 = \frac{1}{2} \begin{pmatrix} 1 & 1 & 1 & 1 \\ 1 & i & i^2 & i^3 \\ 1 & i^2 & i^4 & i^6 \\ 1 & i^3 & i^6 & i^9 \end{pmatrix} = \frac{1}{2} \begin{pmatrix} 1 & 1 & 1 & 1 \\ 1 & i & -1 & -i \\ 1 & -1 & 1 & -1 \\ 1 & -i & -1 & i \end{pmatrix}$$
+
+<p>
+  The key player here is $\omega = e^{2\pi i/N}$, the <strong>primitive $N$-th root of
+  unity</strong>. Its powers $\omega^0, \omega^1, \omega^2, \ldots, \omega^{N-1}$ are $N$
+  equally spaced points on the unit circle in the complex plane, and they satisfy the crucial
+  property $\omega^N = 1$. The DFT essentially measures how well the input data "resonates"
+  with each of these $N$ rotational frequencies.
+</p>
+
+<p>
+  Computing this matrix-vector product directly requires $N$ multiplications for each of the
+  $N$ output values, giving a total of $O(N^2)$ arithmetic operations. For large $N$, this
+  becomes prohibitively expensive. For example, processing one second of CD-quality audio
+  ($N = 44{,}100$ samples) would require nearly two billion operations with the naive approach.
+</p>
+
+<h3>The Fast Fourier Transform (FFT)</h3>
+
+<p>
+  In 1965, James Cooley and John Tukey published an algorithm that changed scientific
+  computing forever: the <strong>Fast Fourier Transform</strong> (FFT). The FFT computes
+  exactly the same result as the DFT but exploits a divide-and-conquer strategy to reduce the
+  cost from $O(N^2)$ to $O(N \log N)$.
+</p>
+
+<p>
+  The key insight is that the DFT of size $N$ can be split into two DFTs of size $N/2$ - one
+  on the even-indexed elements and one on the odd-indexed elements - and then the two halves
+  can be combined with only $O(N)$ additional work. Applying this recursion $\log_2 N$ times
+  yields the $O(N \log N)$ bound.
+</p>
+
+<p>
+  To put this speedup in perspective: for $N = 2^{20} \approx 10^6$ data points, the naive
+  DFT requires about $10^{12}$ operations, while the FFT requires only about $2 \times 10^7$.
+  That is a factor of $50{,}000$ faster. The FFT is sometimes called one of the most important
+  algorithms of the 20th century, and for good reason - it made digital signal processing
+  practical.
+</p>
+
+<div class="callout callout-info">
+  <strong>Note.</strong>
+  <p>
+    The FFT algorithm was actually discovered earlier by Gauss around 1805, but his notes were
+    not published until long after his death. Cooley and Tukey independently rediscovered it in
+    the context of Cold War-era signal processing for detecting nuclear tests.
+  </p>
+</div>
+
+<p>
+  As impressive as the FFT is, can we do even better? Classically, $O(N \log N)$ appears to be
+  essentially optimal for computing the full Fourier transform. But on a quantum computer, we
+  are about to see something remarkable: the same mathematical transformation can be performed
+  using only $O(\log^2 N)$ elementary operations - an exponential speedup in the number of
+  gates.
+</p>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="qft-circuit">
+<h2>10.2 The Quantum Fourier Transform Circuit</h2>
+
+<h3>Definition: From Computational Basis to Fourier Basis</h3>
+
+<p>
+  The Quantum Fourier Transform is the quantum-mechanical analogue of the classical DFT. It is
+  a unitary operation that acts on a quantum register of $n$ qubits and transforms
+  computational basis states into Fourier basis states. Specifically, the QFT maps:
+</p>
+
+$$\text{QFT} |j\rangle = \frac{1}{\sqrt{N}} \sum_{k=0}^{N-1} e^{2\pi i jk/N} |k\rangle$$
+
+<p>
+  where $N = 2^n$ and $j$ ranges from $0$ to $N - 1$. Comparing this to the classical DFT,
+  we see the same formula: each computational basis state $|j\rangle$ is mapped to a
+  superposition of all basis states, with the amplitude of $|k\rangle$ being
+  $\frac{1}{\sqrt{N}} e^{2\pi i jk/N}$.
+</p>
+
+<p>
+  More generally, the QFT acts linearly on any input state:
+</p>
+
+$$\text{QFT} \left( \sum_{j=0}^{N-1} x_j |j\rangle \right) = \sum_{k=0}^{N-1} y_k |k\rangle$$
+
+<p>
+  where $(y_0, y_1, \ldots, y_{N-1})$ is the DFT of $(x_0, x_1, \ldots, x_{N-1})$. The QFT
+  matrix is exactly the DFT matrix $F_N$ - but implemented as a quantum gate.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    The QFT is a unitary gate that performs the Discrete Fourier Transform on the amplitudes of
+    a quantum state. It maps computational basis states to Fourier basis states:
+    $|j\rangle \mapsto \frac{1}{\sqrt{N}} \sum_{k=0}^{N-1} e^{2\pi i jk/N} |k\rangle$.
+  </p>
+</div>
+
+<h3>Product Representation: The Key to the Circuit</h3>
+
+<p>
+  The crucial insight that makes the QFT efficient is that the output state can be written as a
+  <em>tensor product</em> of single-qubit states. Using the binary fraction notation where
+  $0.j_1 j_2 \cdots j_m = j_1/2 + j_2/4 + \cdots + j_m/2^m$, the QFT of a basis state
+  $|j\rangle = |j_1 j_2 \cdots j_n\rangle$ can be written as:
+</p>
+
+$$\text{QFT}|j_1 j_2 \cdots j_n\rangle = \frac{1}{\sqrt{2^n}} \left( |0\rangle + e^{2\pi i \, 0.j_n} |1\rangle \right) \otimes \left( |0\rangle + e^{2\pi i \, 0.j_{n-1}j_n} |1\rangle \right) \otimes \cdots \otimes \left( |0\rangle + e^{2\pi i \, 0.j_1 j_2 \cdots j_n} |1\rangle \right)$$
+
+<p>
+  This product form is remarkable for several reasons. First, the output is <em>not
+  entangled</em> - it factors into a tensor product of individual qubit states. Second, each
+  factor has the form $\frac{1}{\sqrt{2}}(|0\rangle + e^{i\phi}|1\rangle)$ for some phase
+  $\phi$, which is a state we can produce using Hadamard gates and controlled phase rotations.
+  Third, and most importantly, the phase on the $m$-th qubit from the right depends only on the
+  $m$ least significant bits of the input $j$. This locality of dependence is what makes the
+  circuit efficient.
+</p>
+
+<p>
+  Let us verify the product formula for a small case. For $n = 2$ with input $|j\rangle = |j_1 j_2\rangle = |11\rangle = |3\rangle$:
+</p>
+
+$$\text{QFT}|3\rangle = \frac{1}{2}\sum_{k=0}^{3} e^{2\pi i \cdot 3k/4}|k\rangle = \frac{1}{2}\left(|0\rangle + e^{i3\pi/2}|1\rangle + e^{i3\pi}|2\rangle + e^{i9\pi/2}|3\rangle\right)$$
+
+$$= \frac{1}{2}(|0\rangle - i|1\rangle - |2\rangle + i|3\rangle)$$
+
+<p>
+  The product form gives: $\frac{1}{\sqrt{2}}(|0\rangle + e^{2\pi i \cdot 0.1}|1\rangle) \otimes \frac{1}{\sqrt{2}}(|0\rangle + e^{2\pi i \cdot 0.11}|1\rangle)$. Since $0.1_2 = 1/2$ we get $e^{i\pi} = -1$, and $0.11_2 = 3/4$ gives $e^{i3\pi/2} = -i$. So the product is $\frac{1}{2}(|0\rangle - |1\rangle)(|0\rangle - i|1\rangle) = \frac{1}{2}(|00\rangle - i|01\rangle - |10\rangle + i|11\rangle)$, which matches after relabeling $|00\rangle = |0\rangle$, $|01\rangle = |1\rangle$, $|10\rangle = |2\rangle$, $|11\rangle = |3\rangle$.
+</p>
+
+<h3>Building the Circuit: Hadamards and Controlled Phase Gates</h3>
+
+<p>
+  The QFT circuit is constructed from two types of gates:
+</p>
+
+<ul>
+  <li>
+    <strong>Hadamard gate (H):</strong> Creates the superposition
+    $|0\rangle \mapsto \frac{1}{\sqrt{2}}(|0\rangle + |1\rangle)$ and
+    $|1\rangle \mapsto \frac{1}{\sqrt{2}}(|0\rangle - |1\rangle)$.
+  </li>
+  <li>
+    <strong>Controlled phase gate $\text{CP}(\theta)$:</strong> Applies a phase shift of
+    $e^{i\theta}$ to the target qubit only when the control qubit is $|1\rangle$. In the QFT,
+    the rotation angles are always $\theta = \pi/2^k$ for various values of $k$.
+  </li>
+</ul>
+
+<p>
+  The circuit processes qubits one at a time, from the most significant (qubit 0) to the least
+  significant (qubit $n-1$). For each qubit $q_m$:
+</p>
+
+<ol>
+  <li>Apply a Hadamard gate to $q_m$.</li>
+  <li>For each subsequent qubit $q_k$ where $k > m$, apply a controlled phase gate
+    $\text{CP}(\pi/2^{k-m})$ with $q_k$ as control and $q_m$ as target.</li>
+</ol>
+
+<p>
+  For a 3-qubit QFT ($n = 3$, $N = 8$), the circuit proceeds as follows:
+</p>
+
+<ol>
+  <li>Apply H to $q_0$.</li>
+  <li>Apply $\text{CP}(\pi/2)$ controlled by $q_1$, targeting $q_0$.</li>
+  <li>Apply $\text{CP}(\pi/4)$ controlled by $q_2$, targeting $q_0$.</li>
+  <li>Apply H to $q_1$.</li>
+  <li>Apply $\text{CP}(\pi/2)$ controlled by $q_2$, targeting $q_1$.</li>
+  <li>Apply H to $q_2$.</li>
+  <li>Apply SWAP between $q_0$ and $q_2$ (bit reversal).</li>
+</ol>
+
+<p>
+  Let us trace through why each gate is needed. After the Hadamard on $q_0$, the first qubit
+  is in the state $\frac{1}{\sqrt{2}}(|0\rangle + e^{2\pi i \, 0.j_1}|1\rangle)$, since the
+  Hadamard introduces a phase of $\pi$ (which equals $e^{2\pi i \cdot j_1/2}$) when $j_1 = 1$.
+  The subsequent controlled phase gates add the finer phase contributions: the
+  $\text{CP}(\pi/2)$ gate controlled by $q_1$ adds the $j_2/4$ term, and the
+  $\text{CP}(\pi/4)$ gate controlled by $q_2$ adds the $j_3/8$ term. Together, these produce
+  the factor $(|0\rangle + e^{2\pi i \, 0.j_1 j_2 j_3}|1\rangle)/\sqrt{2}$.
+</p>
+
+<h3>The Bit Reversal Step</h3>
+
+<p>
+  There is one subtlety. The product representation shows that the <em>first</em> qubit of the
+  output should carry the phase $e^{2\pi i \, 0.j_n}$ (depending only on the least significant
+  input bit), while the <em>last</em> qubit should carry the full phase
+  $e^{2\pi i \, 0.j_1 j_2 \cdots j_n}$ (depending on all input bits). But the circuit
+  naturally produces the qubits in the opposite order - the first qubit processed ends up with
+  the most complex phase.
+</p>
+
+<p>
+  The fix is simple: after all the Hadamard and controlled-phase operations, we apply SWAP
+  gates to reverse the order of the qubits. For $n$ qubits, this requires $\lfloor n/2 \rfloor$
+  SWAP gates: swap qubit 0 with qubit $n-1$, qubit 1 with qubit $n-2$, and so on.
+</p>
+
+<h3>Worked Example: 3-Qubit QFT on $|5\rangle = |101\rangle$</h3>
+
+<p>
+  Let us trace the 3-qubit QFT circuit on the input state $|5\rangle = |101\rangle$, so
+  $j_1 = 1$, $j_2 = 0$, $j_3 = 1$. The expected output is:
+</p>
+
+$$\text{QFT}|5\rangle = \frac{1}{\sqrt{8}} \sum_{k=0}^{7} e^{2\pi i \cdot 5k/8} |k\rangle$$
+
+<p>
+  In product form, the output should be:
+</p>
+
+$$\frac{1}{\sqrt{2}}\left(|0\rangle + e^{2\pi i \cdot 0.1}|1\rangle\right) \otimes \frac{1}{\sqrt{2}}\left(|0\rangle + e^{2\pi i \cdot 0.01}|1\rangle\right) \otimes \frac{1}{\sqrt{2}}\left(|0\rangle + e^{2\pi i \cdot 0.101}|1\rangle\right)$$
+
+<p>
+  Computing the binary fractions: $0.1_2 = 1/2$, so $e^{2\pi i \cdot 1/2} = e^{i\pi} = -1$.
+  Next, $0.01_2 = 1/4$, so $e^{2\pi i \cdot 1/4} = e^{i\pi/2} = i$. Finally,
+  $0.101_2 = 1/2 + 1/8 = 5/8$, so $e^{2\pi i \cdot 5/8} = e^{i \cdot 5\pi/4}$.
+</p>
+
+<p>
+  So the output (after bit reversal) is:
+</p>
+
+$$\frac{1}{2\sqrt{2}} \left(|0\rangle - |1\rangle\right) \otimes \left(|0\rangle + i|1\rangle\right) \otimes \left(|0\rangle + e^{i5\pi/4}|1\rangle\right)$$
+
+<p>
+  Now let us verify this step by step through the circuit. The initial state is
+  $|q_0 q_1 q_2\rangle = |1\,0\,1\rangle$.
+</p>
+
+<p>
+  <strong>Step 1: H on $q_0$.</strong> Since $q_0 = |1\rangle$, the Hadamard gives
+  $\frac{1}{\sqrt{2}}(|0\rangle - |1\rangle)$. State becomes
+  $\frac{1}{\sqrt{2}}(|0\rangle - |1\rangle) \otimes |0\rangle \otimes |1\rangle$.
+</p>
+
+<p>
+  <strong>Step 2: CP($\pi/2$) with $q_1$ controlling $q_0$.</strong> Since $q_1 = |0\rangle$,
+  the controlled phase does nothing. State unchanged.
+</p>
+
+<p>
+  <strong>Step 3: CP($\pi/4$) with $q_2$ controlling $q_0$.</strong> Since $q_2 = |1\rangle$,
+  a phase of $e^{i\pi/4}$ is applied to $q_0$ when $q_0 = |1\rangle$. State becomes
+  $\frac{1}{\sqrt{2}}(|0\rangle - e^{i\pi/4}|1\rangle) \otimes |0\rangle \otimes |1\rangle$.
+  Note: the existing $-1$ phase combines with $e^{i\pi/4}$ to give $-e^{i\pi/4} = e^{i\pi} \cdot e^{i\pi/4} = e^{i5\pi/4}$.
+  So $q_0$ is now $\frac{1}{\sqrt{2}}(|0\rangle + e^{i5\pi/4}|1\rangle)$.
+</p>
+
+<p>
+  <strong>Step 4: H on $q_1$.</strong> Since $q_1 = |0\rangle$, the Hadamard gives
+  $\frac{1}{\sqrt{2}}(|0\rangle + |1\rangle)$.
+</p>
+
+<p>
+  <strong>Step 5: CP($\pi/2$) with $q_2$ controlling $q_1$.</strong> Since $q_2 = |1\rangle$,
+  a phase of $e^{i\pi/2} = i$ is applied to $q_1$ when $q_1 = |1\rangle$. So $q_1$ becomes
+  $\frac{1}{\sqrt{2}}(|0\rangle + i|1\rangle)$.
+</p>
+
+<p>
+  <strong>Step 6: H on $q_2$.</strong> Since $q_2 = |1\rangle$, the Hadamard gives
+  $\frac{1}{\sqrt{2}}(|0\rangle - |1\rangle)$.
+</p>
+
+<p>
+  Before the SWAP, the state is:
+</p>
+
+$$\frac{1}{2\sqrt{2}} \left(|0\rangle + e^{i5\pi/4}|1\rangle\right) \otimes \left(|0\rangle + i|1\rangle\right) \otimes \left(|0\rangle - |1\rangle\right)$$
+
+<p>
+  <strong>Step 7: SWAP $q_0$ and $q_2$.</strong> This reverses the qubit order, giving:
+</p>
+
+$$\frac{1}{2\sqrt{2}} \left(|0\rangle - |1\rangle\right) \otimes \left(|0\rangle + i|1\rangle\right) \otimes \left(|0\rangle + e^{i5\pi/4}|1\rangle\right)$$
+
+<p>
+  This matches our expected product form exactly, confirming the circuit is correct.
+</p>
+
+<h3>Sandbox: 3-Qubit QFT Circuit</h3>
+
+<p>
+  Run the 3-qubit QFT circuit below and observe the output distribution. The input state
+  $|101\rangle = |5\rangle$ is prepared first, then the QFT is applied. Because the QFT
+  produces a uniform superposition with different phases on each basis state, all 8 outcomes
+  should appear with roughly equal probability (about 12.5% each). Try changing the input
+  state by modifying the X gates.
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="16">OPENQASM 3.0;
+qubit[3] q;
+bit[3] c;
+
+// Prepare input |101> = |5>
+x q[0];
+x q[2];
+
+// QFT circuit
+h q[0];
+cp(pi/2) q[0], q[1];
+cp(pi/4) q[0], q[2];
+h q[1];
+cp(pi/2) q[1], q[2];
+h q[2];
+swap q[0], q[2];
+
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<div class="callout callout-info">
+  <strong>Note.</strong>
+  <p>
+    The QFT of any computational basis state produces a <em>uniform</em> probability
+    distribution - every output state has probability $1/N$. The information is encoded
+    entirely in the <em>phases</em> of the amplitudes, which are invisible to measurement.
+    This is why the QFT is useful as a subroutine (where subsequent operations can exploit the
+    phase information) rather than as a standalone algorithm.
+  </p>
+</div>
+
+<h3>The General $n$-Qubit QFT Circuit</h3>
+
+<p>
+  Generalizing the 3-qubit example, the QFT circuit for $n$ qubits follows a systematic
+  pattern. We can write it as a sequence of $n$ stages, where stage $m$ (for $m = 0, 1, \ldots, n-1$) processes qubit $q_m$:
+</p>
+
+<ol>
+  <li>Apply H to $q_m$.</li>
+  <li>For $k = m+1, m+2, \ldots, n-1$: apply $\text{CP}(\pi/2^{k-m})$ with control $q_k$ and target $q_m$.</li>
+</ol>
+
+<p>
+  After all $n$ stages, apply $\lfloor n/2 \rfloor$ SWAP gates to reverse the qubit order.
+  The rotation angles decrease as the controlling qubit gets farther from the target: the
+  nearest neighbor contributes $\pi/2$, the next contributes $\pi/4$, then $\pi/8$, and so on.
+  The $k$-th controlled rotation in stage $m$ applies the phase $\pi/2^{k-m}$, which
+  corresponds to adding the bit $j_{k+1}$ at position $2^{-(k-m+1)}$ in the binary fraction
+  $0.j_{m+1} j_{m+2} \cdots j_n$.
+</p>
+
+<h3>Gate Count</h3>
+
+<p>
+  For $n$ qubits, the QFT circuit requires:
+</p>
+
+<ul>
+  <li>$n$ Hadamard gates (one per qubit)</li>
+  <li>$n(n-1)/2$ controlled phase gates (for qubit $m$, there are $n - m - 1$ controlled
+    rotations from subsequent qubits)</li>
+  <li>$\lfloor n/2 \rfloor$ SWAP gates for bit reversal</li>
+</ul>
+
+<p>
+  The total gate count is $n + n(n-1)/2 + \lfloor n/2 \rfloor = O(n^2)$ gates. This quadratic
+  scaling in the number of qubits is the source of the QFT's exponential advantage, as we will
+  see in the next section.
+</p>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="qft-speedup">
+<h2>10.3 Why the QFT Is Exponentially Faster</h2>
+
+<h3>Comparing Gate Counts</h3>
+
+<p>
+  Let us be very precise about the comparison between the QFT and its classical counterparts.
+  Suppose we want to compute the Fourier transform of $N = 2^n$ data points:
+</p>
+
+<table>
+  <thead>
+    <tr><th>Algorithm</th><th>Number of Operations</th><th>In Terms of $n$ Qubits</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Naive DFT</td><td>$O(N^2)$</td><td>$O(2^{2n})$</td></tr>
+    <tr><td>Classical FFT</td><td>$O(N \log N)$</td><td>$O(n \cdot 2^n)$</td></tr>
+    <tr><td>Quantum QFT</td><td>$O(n^2)$ gates</td><td>$O(n^2)$</td></tr>
+  </tbody>
+</table>
+
+<p>
+  The difference is dramatic. For $n = 30$ qubits ($N \approx 10^9$ data points):
+</p>
+
+<ul>
+  <li>Classical FFT: approximately $30 \times 10^9 = 3 \times 10^{10}$ operations</li>
+  <li>QFT: approximately $30^2 = 900$ gates</li>
+</ul>
+
+<p>
+  That is a speedup factor of over 30 million. And the gap grows exponentially with $n$: for
+  each additional qubit, the classical cost roughly doubles while the quantum cost grows only
+  linearly.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    The QFT requires $O(n^2)$ quantum gates to transform $N = 2^n$ amplitudes, compared to
+    $O(n \cdot 2^n)$ classical operations for the FFT. This is an exponential speedup in the
+    number of gates - from exponential to polynomial in $n$.
+  </p>
+</div>
+
+<h3>The Catch: Input and Output Encoding</h3>
+
+<p>
+  If the QFT is so much faster, why not use it to replace the classical FFT in all
+  applications? There is a fundamental catch, and understanding it is essential for
+  appreciating what quantum algorithms can and cannot do.
+</p>
+
+<p>
+  The catch is twofold:
+</p>
+
+<ol>
+  <li>
+    <strong>Loading classical data is expensive.</strong> The QFT operates on the
+    <em>amplitudes</em> of a quantum state. If you have a classical dataset of $N$ numbers and
+    want to load them as amplitudes of an $n$-qubit state, you generally need $O(N)$ gates to
+    prepare that state - wiping out the exponential advantage. There is no known general method
+    to load $N$ arbitrary classical values into $n = \log_2 N$ qubits in fewer than $O(N)$
+    steps.
+  </li>
+  <li>
+    <strong>Reading out the full result is expensive.</strong> Even after the QFT transforms
+    the amplitudes, you cannot directly read all $N$ output amplitudes. Measuring the quantum
+    state collapses it, giving you a single sample. To reconstruct all $N$ output values to
+    reasonable precision, you would need to repeat the entire computation $O(N)$ times.
+  </li>
+</ol>
+
+<div class="callout callout-warning">
+  <strong>Common Misconception.</strong>
+  <p>
+    The QFT does <em>not</em> let you compute the Fourier transform of arbitrary classical
+    data exponentially faster than the FFT. The exponential speedup in gate count applies only
+    to the transformation itself, not to the input preparation or output readout. The QFT is
+    powerful when used as a subroutine within a larger quantum algorithm where the input is
+    already in quantum form.
+  </p>
+</div>
+
+<h3>When the QFT Shines</h3>
+
+<p>
+  The QFT becomes genuinely powerful in situations where:
+</p>
+
+<ul>
+  <li>
+    <strong>The input is already quantum.</strong> In algorithms like Shor's and quantum phase
+    estimation, the data to be Fourier-transformed is produced by prior quantum operations.
+    There is no classical loading step.
+  </li>
+  <li>
+    <strong>You do not need the full output.</strong> Typically, the QFT is followed by a
+    measurement, and the goal is to extract a single piece of information (such as the period
+    of a function or the phase of an eigenvalue) rather than all $N$ Fourier coefficients.
+  </li>
+  <li>
+    <strong>The structure of the problem aligns with Fourier analysis.</strong> Problems
+    involving periodicity, hidden subgroups, or phase estimation are natural fits for the QFT.
+  </li>
+</ul>
+
+<p>
+  This is a recurring theme in quantum computing: quantum speedups are not universal
+  accelerators. They arise from the interplay between quantum superposition, interference, and
+  the mathematical structure of specific problems. The QFT is the tool that converts phase
+  information (encoded in amplitudes) into measurable outcomes (encoded in basis state
+  probabilities), and it does so with extraordinary efficiency.
+</p>
+
+<h3>Approximate QFT</h3>
+
+<p>
+  For practical quantum computing, there is an additional optimization. In the exact QFT
+  circuit, the controlled phase rotations become extremely small for distant qubits - for
+  example, $\text{CP}(\pi/2^{n-1})$ involves a phase angle that is exponentially small in $n$.
+  On a real quantum computer, such tiny rotations are both difficult to implement precisely and
+  contribute negligibly to the final result.
+</p>
+
+<p>
+  The <strong>approximate QFT</strong> simply omits all controlled rotations with angles below
+  a chosen threshold. If we keep only rotations of size $\pi/2^m$ or larger (for some cutoff
+  $m$), the gate count drops from $O(n^2)$ to $O(n \cdot m)$, and for $m = O(\log n)$ the
+  approximation error is negligible. This gives an $O(n \log n)$ circuit that is essentially as
+  accurate as the exact QFT for practical purposes - matching the classical FFT's $O(N \log N)$
+  in a different sense, but still operating on quantum amplitudes rather than classical data.
+</p>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="phase-estimation">
+<h2>10.4 Quantum Phase Estimation: Extracting Eigenvalues</h2>
+
+<h3>The Problem</h3>
+
+<p>
+  Quantum Phase Estimation (QPE) is arguably the most important application of the QFT and one
+  of the most consequential algorithms in quantum computing. It solves the following problem:
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    <strong>Phase Estimation Problem:</strong> Given a unitary operator $U$ and one of its
+    eigenvectors $|\psi\rangle$ satisfying $U|\psi\rangle = e^{2\pi i \theta}|\psi\rangle$,
+    estimate the eigenvalue phase $\theta$ to $n$ bits of precision.
+  </p>
+</div>
+
+<p>
+  Why is this important? Many quantum algorithms reduce their core computation to estimating
+  eigenvalues of unitary operators. Shor's factoring algorithm uses QPE to find the period of a
+  modular exponentiation function. The HHL algorithm for solving linear systems uses QPE to
+  extract eigenvalues of a matrix. Quantum simulation algorithms use QPE to measure the energy
+  levels of quantum systems. Estimating phases is, in a deep sense, what quantum computers do
+  best.
+</p>
+
+<h3>The QPE Circuit</h3>
+
+<p>
+  The QPE circuit uses two quantum registers:
+</p>
+
+<ul>
+  <li>
+    <strong>Counting register:</strong> $n$ ancilla qubits, initialized to $|0\rangle^{\otimes n}$.
+    These will hold the binary representation of $\theta$ at the end.
+  </li>
+  <li>
+    <strong>Eigenstate register:</strong> Contains the eigenvector $|\psi\rangle$ of $U$.
+  </li>
+</ul>
+
+<p>
+  The algorithm proceeds in three stages:
+</p>
+
+<p>
+  <strong>Stage 1: Superposition.</strong> Apply Hadamard gates to all $n$ ancilla qubits,
+  creating an equal superposition:
+</p>
+
+$$|0\rangle^{\otimes n} \xrightarrow{H^{\otimes n}} \frac{1}{\sqrt{2^n}} \sum_{k=0}^{2^n - 1} |k\rangle$$
+
+<p>
+  <strong>Stage 2: Controlled unitary powers.</strong> Apply controlled-$U^{2^k}$ operations,
+  where the $k$-th ancilla qubit controls $U^{2^k}$ acting on the eigenstate register. Since
+  $U|\psi\rangle = e^{2\pi i \theta}|\psi\rangle$, we have
+  $U^{2^k}|\psi\rangle = e^{2\pi i \cdot 2^k \theta}|\psi\rangle$. The controlled operation
+  kicks this phase back onto the control qubit (this is the phase kickback trick from
+  Chapter 9):
+</p>
+
+$$\frac{1}{\sqrt{2}}(|0\rangle + |1\rangle)|\psi\rangle \xrightarrow{C\text{-}U^{2^k}} \frac{1}{\sqrt{2}}(|0\rangle + e^{2\pi i \cdot 2^k \theta}|1\rangle)|\psi\rangle$$
+
+<p>
+  After all controlled-$U$ operations, the state of the counting register is:
+</p>
+
+$$\frac{1}{\sqrt{2^n}} \sum_{k=0}^{2^n - 1} e^{2\pi i \theta k} |k\rangle$$
+
+<p>
+  Look carefully at this expression. It is a superposition over all basis states $|k\rangle$
+  with amplitudes proportional to $e^{2\pi i \theta k}$. This is exactly the state you would
+  get by applying the QFT to $|2^n \theta\rangle$ (assuming $\theta$ can be written exactly in
+  $n$ bits as $\theta = \theta_1/2 + \theta_2/4 + \cdots + \theta_n/2^n$). The eigenstate
+  register remains unchanged in the state $|\psi\rangle$ throughout, since it is always acted
+  upon by powers of $U$ for which $|\psi\rangle$ is an eigenvector.
+</p>
+
+<p>
+  This is the deep connection: the controlled unitary operations encode $\theta$ into the
+  phases of the counting register in exactly the Fourier basis. The inverse QFT then converts
+  from the Fourier basis back to the computational basis, revealing $\theta$ directly.
+</p>
+
+<p>
+  <strong>Stage 3: Inverse QFT.</strong> Apply the inverse QFT ($\text{QFT}^{\dagger}$) to the
+  counting register. Since the state is the QFT of $|2^n \theta\rangle$, the inverse QFT
+  recovers $|2^n \theta\rangle$ - the binary representation of $\theta$ stored in the ancilla
+  qubits.
+</p>
+
+$$\frac{1}{\sqrt{2^n}} \sum_{k=0}^{2^n-1} e^{2\pi i \theta k} |k\rangle \xrightarrow{\text{QFT}^{\dagger}} |\tilde{\theta}\rangle$$
+
+<p>
+  where $\tilde{\theta}$ is the $n$-bit binary approximation to $2^n \theta$. Measuring the
+  counting register then gives $\tilde{\theta}$, from which we obtain
+  $\theta \approx \tilde{\theta}/2^n$.
+</p>
+
+<h3>Precision and Success Probability</h3>
+
+<p>
+  If $\theta$ can be represented exactly in $n$ bits (i.e., $2^n \theta$ is an integer), then
+  QPE produces the exact answer with certainty. When $\theta$ is not exactly representable,
+  the measurement outcome is the closest $n$-bit approximation, with success probability at
+  least $4/\pi^2 \approx 0.405$.
+</p>
+
+<p>
+  To boost the success probability to $1 - \epsilon$, we can use $O(\log(1/\epsilon))$
+  additional ancilla qubits. With $n + \lceil\log_2(2 + 1/(2\epsilon))\rceil$ ancilla qubits,
+  the probability of obtaining an $n$-bit accurate estimate is at least $1 - \epsilon$.
+</p>
+
+<table>
+  <thead>
+    <tr><th>Ancilla Qubits</th><th>Precision</th><th>Example</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>3</td><td>$1/8 = 0.125$</td><td>Distinguish 8 evenly-spaced phases</td></tr>
+    <tr><td>5</td><td>$1/32 \approx 0.031$</td><td>About 2 decimal digits</td></tr>
+    <tr><td>10</td><td>$1/1024 \approx 0.001$</td><td>About 3 decimal digits</td></tr>
+    <tr><td>20</td><td>$1/1048576 \approx 10^{-6}$</td><td>About 6 decimal digits</td></tr>
+  </tbody>
+</table>
+
+<h3>How QPE Works: A Summary</h3>
+
+<p>
+  It is worth pausing to appreciate the elegance of QPE. The algorithm has three conceptual
+  stages, each exploiting a different quantum phenomenon:
+</p>
+
+<ol>
+  <li>
+    <strong>Superposition</strong> (Hadamard gates): Creates a uniform superposition over all
+    $2^n$ values of the counting register, allowing the circuit to "test" all possible phases
+    simultaneously.
+  </li>
+  <li>
+    <strong>Phase kickback</strong> (controlled-$U^{2^k}$ gates): The eigenvalue phases of $U$
+    are kicked back onto the ancilla qubits, encoding $\theta$ into the relative phases of the
+    superposition. This is the same phase kickback mechanism that powered the Deutsch-Jozsa and
+    Bernstein-Vazirani algorithms in Chapter 9, but here it is applied to each ancilla qubit
+    with exponentially increasing powers of $U$.
+  </li>
+  <li>
+    <strong>Interference</strong> (inverse QFT): The inverse QFT causes constructive
+    interference at the state $|2^n \theta\rangle$ and destructive interference elsewhere,
+    concentrating the probability amplitude onto the correct answer. This is the Fourier
+    transform doing what it does best: extracting a hidden frequency from a signal.
+  </li>
+</ol>
+
+<h3>Example: Estimating the Phase of the T Gate</h3>
+
+<p>
+  Let us work through a concrete example. The T gate (also known as the $\pi/8$ gate from
+  Chapter 5) has the matrix:
+</p>
+
+$$T = \begin{pmatrix} 1 & 0 \\ 0 & e^{i\pi/4} \end{pmatrix}$$
+
+<p>
+  Its eigenstates are $|0\rangle$ with eigenvalue 1 and $|1\rangle$ with eigenvalue
+  $e^{i\pi/4}$. Let us use QPE to estimate the phase of the eigenvalue $e^{i\pi/4}$ associated
+  with eigenvector $|1\rangle$.
+</p>
+
+<p>
+  We have $T|1\rangle = e^{i\pi/4}|1\rangle = e^{2\pi i \cdot (1/8)}|1\rangle$, so
+  $\theta = 1/8 = 0.001_2$ in binary. With 3 ancilla qubits, we can represent $\theta$
+  exactly.
+</p>
+
+<p>
+  The circuit uses 3 ancilla qubits and 1 eigenstate qubit:
+</p>
+
+<ol>
+  <li>Initialize the eigenstate qubit to $|1\rangle$ with an X gate.</li>
+  <li>Apply H to each ancilla qubit.</li>
+  <li>Apply controlled-$T^{2^k}$ from ancilla $k$ to the eigenstate qubit:
+    <ul>
+      <li>Ancilla 0 controls $T^{4} = T^4$. Since $T^8 = I$ (the T gate has order 8),
+        $T^4 = Z$ (which applies phase $e^{i\pi}$).</li>
+      <li>Ancilla 1 controls $T^{2}= S$ (the S gate, applying phase $e^{i\pi/2}$).</li>
+      <li>Ancilla 2 controls $T^{1} = T$ (applying phase $e^{i\pi/4}$).</li>
+    </ul>
+  </li>
+  <li>Apply the inverse QFT to the 3 ancilla qubits.</li>
+  <li>Measure the ancilla qubits to read off $\theta$.</li>
+</ol>
+
+<p>
+  After the controlled unitaries, the ancilla register is in the state:
+</p>
+
+$$\frac{1}{2\sqrt{2}} \sum_{k=0}^{7} e^{2\pi i k/8} |k\rangle$$
+
+<p>
+  The inverse QFT maps this to $|001\rangle = |1\rangle$, which represents
+  $\tilde{\theta} = 1$. Since $\theta = \tilde{\theta}/2^n = 1/8$, we recover the correct phase.
+</p>
+
+<h3>Sandbox: QPE for the T Gate</h3>
+
+<p>
+  The circuit below implements QPE with 3 ancilla qubits to estimate the phase of the T gate
+  acting on $|1\rangle$. The expected measurement result on the ancilla qubits is $|001\rangle$,
+  corresponding to $\theta = 1/8$. Run it and verify that $|001\rangle$ appears with
+  probability close to 100%.
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="28">OPENQASM 3.0;
+qubit[4] q;
+bit[3] c;
+
+// q[0..2] = ancilla (counting register)
+// q[3]    = eigenstate register
+
+// Prepare eigenstate |1>
+x q[3];
+
+// Hadamard on ancillas
+h q[0];
+h q[1];
+h q[2];
+
+// Controlled-U^(2^k) operations
+// Ancilla 0 controls T^4 = Z
+cp(pi) q[0], q[3];
+// Ancilla 1 controls T^2 = S
+cp(pi/2) q[1], q[3];
+// Ancilla 2 controls T^1 = T
+cp(pi/4) q[2], q[3];
+
+// Inverse QFT on ancilla qubits
+swap q[0], q[2];
+h q[2];
+cp(-pi/2) q[1], q[2];
+h q[1];
+cp(-pi/4) q[0], q[2];
+cp(-pi/2) q[0], q[1];
+h q[0];
+
+c[0] = measure q[0];
+c[1] = measure q[1];
+c[2] = measure q[2];</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<div class="callout callout-info">
+  <strong>Note.</strong>
+  <p>
+    In the inverse QFT, every gate from the forward QFT is replaced by its conjugate transpose
+    (Hermitian adjoint) and applied in reverse order. For controlled phase gates, this means
+    replacing $\text{CP}(\phi)$ with $\text{CP}(-\phi)$. The Hadamard gate is its own inverse
+    ($H^{\dagger} = H$), so Hadamards remain unchanged.
+  </p>
+</div>
+
+<h3>QPE as a Building Block</h3>
+
+<p>
+  QPE is not just an algorithm - it is a fundamental primitive that powers many of the most
+  important quantum algorithms:
+</p>
+
+<ul>
+  <li>
+    <strong>Shor's algorithm</strong> (Chapter 11): Uses QPE to find the period of modular
+    exponentiation, which is then used to factor integers. The unitary $U$ implements
+    multiplication by a constant modulo $N$, and QPE extracts the period from the eigenvalue
+    phases.
+  </li>
+  <li>
+    <strong>HHL algorithm:</strong> Solves systems of linear equations $A\mathbf{x} = \mathbf{b}$
+    exponentially faster than classical methods (under certain conditions). QPE extracts the
+    eigenvalues of $A$, which are then inverted to construct the solution.
+  </li>
+  <li>
+    <strong>Quantum simulation:</strong> To find the energy levels of a quantum system with
+    Hamiltonian $H$, one constructs $U = e^{iHt}$ and uses QPE to estimate the eigenvalues of
+    $U$, which encode the energies. This was Feynman's original motivation for quantum
+    computing.
+  </li>
+  <li>
+    <strong>Quantum counting:</strong> Combines QPE with Grover's algorithm (Chapter 9) to
+    estimate the number of solutions to a search problem, rather than just finding one.
+  </li>
+</ul>
+
+<p>
+  The pattern is always the same: encode the problem as a unitary operator, prepare or
+  approximate its eigenvector, and use QPE to extract the eigenvalue phase that contains the
+  answer. The QFT (in its inverse form) is the final step that converts the phase information
+  into a measurable bit string.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    Quantum Phase Estimation combines controlled unitary powers with the inverse QFT to convert
+    eigenvalue phases into measurable bit strings. It is the central subroutine in Shor's
+    algorithm, HHL, quantum simulation, and quantum counting. Using $n$ ancilla qubits, it
+    estimates the phase $\theta$ to $n$ bits of precision.
+  </p>
+</div>
+
+<h3>The Inverse QFT: Running the Circuit Backwards</h3>
+
+<p>
+  Since the QFT is a unitary operation, its inverse $\text{QFT}^{\dagger}$ exists and can be
+  implemented by reversing the circuit: apply each gate's conjugate transpose in the opposite
+  order. Concretely, for the inverse QFT:
+</p>
+
+<ol>
+  <li>First perform the SWAP gates (bit reversal) - since SWAP is its own inverse, this is
+    unchanged.</li>
+  <li>Then process qubits in reverse order (from qubit $n-1$ down to qubit 0).</li>
+  <li>For each qubit, apply the controlled phase gates with <em>negated</em> angles
+    ($-\pi/2^k$ instead of $\pi/2^k$) in reverse order, followed by a Hadamard.</li>
+</ol>
+
+<p>
+  The inverse QFT has exactly the same gate count as the forward QFT: $O(n^2)$ gates. It
+  converts Fourier basis states back into computational basis states, making the encoded phase
+  information accessible to measurement.
+</p>
+
+</section>
+
+<p>
+  With the QFT and QPE in hand, we have the two central tools needed for the crown jewel of
+  quantum algorithms. In the next chapter, we will see how Peter Shor combined QPE with modular
+  arithmetic to create an algorithm that can factor large integers in polynomial time - a feat
+  that threatens the very foundations of modern cryptography and remains one of the strongest
+  motivations for building large-scale quantum computers.
+</p>
+
+<!-- ================================================================== -->
+
+<h3>Interactive: QFT Circuit Builder</h3>
+<p>
+  Build a Quantum Fourier Transform circuit for different qubit counts and see the
+  circuit structure, output probabilities, and generated QASM code.
+</p>
+<div class="widget" id="qft-widget">
+  <div class="widget-header">Quantum Fourier Transform</div>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label>Qubits: <select id="qft-qubits"><option>2</option><option selected>3</option><option>4</option><option>5</option></select></label>
+    <button onclick="runQFTWidget()">Build QFT</button>
+  </div>
+  <div class="widget-output" id="qft-output"></div>
+</div>
+<script>
+async function runQFTWidget() {
+  await ensureWasm();
+  var nq = parseInt(document.getElementById('qft-qubits').value);
+  var out = document.getElementById('qft-output');
+  out.innerHTML = '<p style="color:var(--color-text-muted)">Building...</p>';
+  await new Promise(function(r) { setTimeout(r, 0); });
+  try {
+    var r = JSON.parse(window.runQFT(nq, "", isDark()));
+    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+    out.innerHTML = (r.circuitSVG||'') + (r.histogramSVG||'');
+    if (r.qasmCode) out.innerHTML += '<details><summary>Generated QASM</summary><pre>' + esc(r.qasmCode) + '</pre></details>';
+  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+}
+</script>
+
+<!-- ================================================================== -->
+
+<h3>Interactive: Quantum Phase Estimation</h3>
+<p>
+  QPE estimates the eigenvalue phase of a unitary operator. Select a gate (whose eigenvalue
+  on $|1\rangle$ is $e^{2\pi i \phi}$), choose the number of precision bits, and watch
+  QPE recover the phase from the measurement histogram.
+</p>
+<div class="widget" id="qpe-widget">
+  <div class="widget-header">Quantum Phase Estimation</div>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label>Gate: <select id="qpe-gate">
+      <option value="T">T (phase 1/8)</option>
+      <option value="S" selected>S (phase 1/4)</option>
+      <option value="Z">Z (phase 1/2)</option>
+    </select></label>
+    <label>Precision bits: <select id="qpe-bits">
+      <option>2</option>
+      <option selected>3</option>
+      <option>4</option>
+      <option>5</option>
+      <option>6</option>
+    </select></label>
+    <label>Shots: <input type="number" id="qpe-shots" value="1024" min="1" max="65536" style="width:5.5rem;"></label>
+    <button onclick="runQPEWidget()">Run QPE</button>
+  </div>
+  <div class="widget-output" id="qpe-output"></div>
+</div>
+<script>
+async function runQPEWidget() {
+  await ensureWasm();
+  var gateType = document.getElementById('qpe-gate').value;
+  var bits = parseInt(document.getElementById('qpe-bits').value);
+  var shots = parseInt(document.getElementById('qpe-shots').value) || 1024;
+  var out = document.getElementById('qpe-output');
+  out.innerHTML = '<p style="color:var(--color-text-muted)">Running QPE...</p>';
+  await new Promise(function(r) { setTimeout(r, 0); });
+  try {
+    var r = JSON.parse(window.runQPE(gateType, bits, shots, isDark()));
+    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+    var html = '';
+    if (r.circuitSVG) html += r.circuitSVG;
+    if (r.histogramSVG) html += r.histogramSVG;
+    if (r.result) html += '<div class="sim-stats"><span>' + esc(r.result) + '</span></div>';
+    if (r.qasmCode) html += '<details><summary>Generated QASM</summary><pre>' + esc(r.qasmCode) + '</pre></details>';
+    out.innerHTML = html;
+  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+}
+</script>
+
+<!-- ================================================================== -->
+
+<section id="review">
+<h2>Chapter 10 Review</h2>
+
+<div class="flashcard-deck" data-component="flashcard-deck">
+  <div class="flashcard-deck-header">Chapter 10 Review</div>
+
+  <div class="flashcard" data-card-id="ch10-dft-purpose">
+    <div class="card-front">What does the Discrete Fourier Transform do?</div>
+    <div class="card-back">
+      The DFT converts a signal from the time domain to the frequency domain. Given $N$ complex numbers $(x_0, \ldots, x_{N-1})$, it produces $N$ complex numbers $(y_0, \ldots, y_{N-1})$ where $y_k = \frac{1}{\sqrt{N}} \sum_{j=0}^{N-1} x_j \, e^{2\pi i jk/N}$. Each output component $y_k$ represents the amplitude and phase of the frequency-$k$ component present in the input signal.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch10-fft-complexity">
+    <div class="card-front">What are the time complexities of the naive DFT and the FFT?</div>
+    <div class="card-back">
+      The naive DFT requires $O(N^2)$ operations (matrix-vector multiplication). The Fast Fourier Transform (FFT) uses a divide-and-conquer strategy to compute the same result in $O(N \log N)$ operations, which is an enormous practical speedup for large $N$.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch10-qft-definition">
+    <div class="card-front">How does the QFT act on a computational basis state $|j\rangle$?</div>
+    <div class="card-back">
+      The QFT maps $|j\rangle \mapsto \frac{1}{\sqrt{N}} \sum_{k=0}^{N-1} e^{2\pi i jk/N} |k\rangle$, where $N = 2^n$. It creates a uniform superposition of all basis states, with the amplitude of each $|k\rangle$ carrying a phase proportional to $jk/N$. This is mathematically identical to the classical DFT applied to the amplitudes.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch10-qft-gates">
+    <div class="card-front">What gates are used in the QFT circuit, and what are the controlled rotation angles?</div>
+    <div class="card-back">
+      The QFT circuit uses Hadamard gates, controlled phase gates $\text{CP}(\pi/2^k)$, and SWAP gates. For each qubit $q_m$, a Hadamard is applied followed by controlled phase rotations from each subsequent qubit $q_k$ ($k > m$) with angle $\pi/2^{k-m}$. SWAP gates at the end reverse the qubit order (bit reversal).
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch10-qft-gate-count">
+    <div class="card-front">How many gates does the QFT require, and how does this compare to the classical FFT?</div>
+    <div class="card-back">
+      The QFT requires $O(n^2)$ gates on $n$ qubits, transforming $N = 2^n$ amplitudes. The classical FFT requires $O(N \log N) = O(n \cdot 2^n)$ operations. The QFT is exponentially faster in gate count: polynomial in $n$ versus exponential in $n$. However, this advantage applies only when the data is already in quantum form.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch10-qft-catch">
+    <div class="card-front">Why can the QFT not simply replace the classical FFT for processing classical data?</div>
+    <div class="card-back">
+      Two reasons: (1) Loading $N$ classical data values into $n = \log_2 N$ qubits as amplitudes generally requires $O(N)$ operations, negating the exponential gate savings. (2) Reading the full output requires $O(N)$ measurements due to wavefunction collapse. The QFT is powerful as a subroutine when the input is already quantum and only limited output information is needed.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch10-qpe-problem">
+    <div class="card-front">What problem does Quantum Phase Estimation solve?</div>
+    <div class="card-back">
+      QPE estimates the phase $\theta$ in the eigenvalue equation $U|\psi\rangle = e^{2\pi i \theta}|\psi\rangle$. Given a unitary $U$ and its eigenvector $|\psi\rangle$, QPE uses $n$ ancilla qubits to determine $\theta$ to $n$ bits of precision. The circuit applies controlled-$U^{2^k}$ powers followed by the inverse QFT.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch10-qpe-applications">
+    <div class="card-front">Name four major quantum algorithms that use Quantum Phase Estimation as a subroutine.</div>
+    <div class="card-back">
+      (1) Shor's algorithm uses QPE to find the period of modular exponentiation for integer factoring. (2) The HHL algorithm uses QPE to extract matrix eigenvalues for solving linear systems. (3) Quantum simulation uses QPE with $U = e^{iHt}$ to find energy eigenvalues of Hamiltonians. (4) Quantum counting combines QPE with Grover's algorithm to estimate the number of solutions to a search problem.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</section>
+
+    </article>
+
+    
+    <nav class="chapter-nav" aria-label="Chapter navigation">
+      <a href="09-oracles.html" class="prev">&larr; Chapter 9: Oracles and Quantum Parallelism</a>
+      <span class="nav-spacer"></span>
+      <a href="11-shor.html" class="next">Chapter 11: Shor&#39;s Algorithm &rarr;</a>
+    </nav>
+    
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof renderMathInElement !== "undefined") {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "$", right: "$", display: false}
+          ],
+          throwOnError: false
+        });
+      }
+    });
+  </script>
+  
+  <script>
+  "use strict";
+  
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function isDark() { return window.matchMedia("(prefers-color-scheme: dark)").matches; }
+  function renderMath(el) {
+    if (typeof renderMathInElement === "function")
+      renderMathInElement(el, { delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}], throwOnError: false });
+  }
+
+  
+  var wasmReady = null;
+  function ensureWasm() {
+    if (!wasmReady) {
+      wasmReady = (async function() {
+        var go = new Go();
+        var result = await WebAssembly.instantiateStreaming(fetch("../main.wasm"), go.importObject);
+        go.run(result.instance);
+      })();
+    }
+    return wasmReady;
+  }
+
+  
+  var SRS_KEY = "goqu-srs";
+  function srsLoad() { try { return JSON.parse(localStorage.getItem(SRS_KEY) || "{}"); } catch(e) { return {}; } }
+  function srsSave(d) { localStorage.setItem(SRS_KEY, JSON.stringify(d)); }
+  function getCardState(id) { var d = srsLoad(); return d[id] || {interval:1, ease:2.5, due:0, reps:0}; }
+  function reviewCard(id, q) {
+    var d = srsLoad(), s = d[id] || {interval:1, ease:2.5, due:0, reps:0};
+    if (q >= 3) {
+      s.reps++;
+      if (s.reps === 1) s.interval = 1;
+      else if (s.reps === 2) s.interval = 6;
+      else s.interval = Math.round(s.interval * s.ease);
+      s.ease = Math.max(1.3, s.ease + 0.1 - (5-q)*(0.08 + (5-q)*0.02));
+    } else { s.reps = 0; s.interval = 1; }
+    s.due = Date.now() + s.interval * 86400000;
+    d[id] = s; srsSave(d);
+  }
+
+  
+  function initSandbox(el) {
+    var code = el.querySelector(".code"), output = el.querySelector(".output");
+    if (!code || !output) return;
+    var runBtn = el.querySelector('[data-action="run"]'), resetBtn = el.querySelector('[data-action="reset"]');
+    var shotsEl = el.querySelector("[data-shots]"), orig = code.value;
+    function shots() { return parseInt(shotsEl ? shotsEl.value : el.dataset.shots || "1024", 10); }
+    async function run() {
+      await ensureWasm();
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(code.value, shots(), isDark()));
+        if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+        output.innerHTML = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+    if (runBtn) runBtn.addEventListener("click", run);
+    if (resetBtn) resetBtn.addEventListener("click", function() { code.value = orig; });
+    if (el.hasAttribute("data-autorun")) run();
+  }
+
+  
+  function initSimulation(el) {
+    var tmplEl = el.querySelector(".sim-qasm"), output = el.querySelector(".sim-output");
+    var sliders = el.querySelectorAll('input[type="range"]');
+    var selects = el.querySelectorAll("select[data-param]");
+    if (!tmplEl || !output || (sliders.length === 0 && selects.length === 0)) return;
+    var tmpl = tmplEl.textContent, pending = false;
+    var useNoisy = el.hasAttribute("data-noisy");
+    var useComparison = el.hasAttribute("data-comparison");
+    var useExpectation = el.hasAttribute("data-expectation");
+    var useClifford = el.hasAttribute("data-clifford");
+    async function update() {
+      if (pending) return; pending = true;
+      await ensureWasm();
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var params = {};
+        sliders.forEach(function(s) { params[s.dataset.param] = parseFloat(s.value); var o = s.parentElement.querySelector("output"); if (o) o.textContent = parseFloat(s.value).toFixed(2); });
+        selects.forEach(function(s) { params[s.dataset.param] = s.value; });
+        var qasm = tmpl;
+        for (var k in params) qasm = qasm.replaceAll("{"+k+"}", params[k].toString());
+        var html = "";
+        if (useComparison && window.compareIdealNoisy) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.compareIdealNoisy(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="comparison-panels"><div class="comparison-panel"><h4>Ideal</h4>' + (r.idealHistogramSVG||"") + '</div><div class="comparison-panel"><h4>Noisy</h4>' + (r.noisyHistogramSVG||"") + '</div></div>';
+          if (r.stateCitySVG) html += r.stateCitySVG;
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useNoisy && window.runNoisyQASM) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.runNoisyQASM(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"") + (r.stateCitySVG||"");
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useClifford && window.runClifford) {
+          var r = JSON.parse(window.runClifford(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"");
+          if (r.stabilizers) { html += '<div class="stabilizer-table"><h4>Stabilizers</h4><table>'; r.stabilizers.forEach(function(s) { html += '<tr><td>' + formatStabilizer(s) + '</td></tr>'; }); html += '</table></div>'; }
+        } else if (useExpectation && window.computeExpectation) {
+          var pauliStr = params.pauliStr || el.dataset.pauli || "Z";
+          var r = JSON.parse(window.computeExpectation(qasm, pauliStr, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="sim-stats"><span>&lt;' + esc(pauliStr) + '&gt; = ' + r.expectation.toFixed(6) + '</span></div>';
+        } else {
+          var r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+          
+          if (el.hasAttribute("data-bloch") && window.getStateVector && window.renderBloch) {
+            try {
+              var sv = JSON.parse(window.getStateVector(qasm));
+              if (sv.amplitudes && sv.amplitudes.length === 2) {
+                var a = sv.amplitudes;
+                var blochSVG = window.renderBloch(a[0].re, a[0].im, a[1].re, a[1].im, isDark());
+                if (blochSVG) html += blochSVG;
+              }
+            } catch(e) {   }
+          }
+        }
+        output.innerHTML = html;
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+      pending = false;
+    }
+    sliders.forEach(function(s) { s.addEventListener("input", update); });
+    selects.forEach(function(s) { s.addEventListener("change", update); });
+    update();
+  }
+
+  
+  function formatStabilizer(s) {
+    if (!s) return "";
+    var sign = s[0], ops = s.slice(1), html = '<span class="stab-sign">' + esc(sign) + '</span>';
+    for (var i = 0; i < ops.length; i++) {
+      var c = ops[i], cls = "stab-" + c.toLowerCase();
+      html += '<span class="' + cls + '">' + c + '</span>';
+    }
+    return html;
+  }
+
+  
+  function initExercise(el) {
+    var code = el.querySelector(".code"), feedback = el.querySelector(".exercise-feedback");
+    var checkBtn = el.querySelector('[data-action="check"]');
+    var hintBtn = el.querySelector('[data-action="hint"]'), hintEl = el.querySelector(".exercise-hint");
+    if (!code || !feedback || !checkBtn) return;
+    var expected = {}, tol = 0.1;
+    var expEl = el.querySelector(".exercise-expected");
+    if (expEl) expEl.querySelectorAll("[data-state]").forEach(function(span) {
+      expected[span.dataset.state] = parseFloat(span.dataset.prob);
+      if (span.dataset.tolerance) tol = parseFloat(span.dataset.tolerance);
+    });
+    checkBtn.addEventListener("click", async function() {
+      await ensureWasm();
+      feedback.className = "exercise-feedback visible";
+      feedback.textContent = "Checking...";
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(code.value, 1024, isDark()));
+        if (r.error) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + r.error; return; }
+        if (Object.keys(expected).length === 0) { feedback.className = "exercise-feedback visible pass"; feedback.innerHTML = "Circuit ran successfully."; return; }
+        var prob = JSON.parse(window.getProbabilities(code.value, isDark()));
+        if (prob.error) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + prob.error; return; }
+        var actual = {};
+        for (var i = 0; i < prob.labels.length; i++) actual[prob.labels[i]] = prob.probabilities[i];
+        var ok = true, msgs = [];
+        for (var s in expected) {
+          var a = actual[s] || 0, p = expected[s];
+          if (Math.abs(a - p) > tol) { ok = false; msgs.push("|" + s + "\u27E9: expected " + (p*100|0) + "%, got " + (a*100|0) + "%"); }
+        }
+        if (ok) { feedback.className = "exercise-feedback visible pass"; feedback.innerHTML = "Correct! Your circuit produces the expected output."; }
+        else { feedback.className = "exercise-feedback visible fail"; feedback.innerHTML = "Not quite. " + msgs.join("; ") + "."; }
+        renderMath(feedback);
+      } catch(e) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + e.message; }
+    });
+    if (hintBtn && hintEl) hintBtn.addEventListener("click", function() { hintEl.style.display = hintEl.style.display === "none" ? "block" : "none"; });
+  }
+
+  
+  function initFlashcardDeck(el) {
+    el.querySelectorAll(".flashcard").forEach(function(card) {
+      var id = card.dataset.cardId;
+      if (!id) return;
+      var state = getCardState(id);
+      if (state.due > 0 && state.due > Date.now()) card.classList.add("reviewed");
+      card.addEventListener("click", function(e) {
+        if (e.target.closest("button")) return;
+        card.classList.toggle("flipped");
+        var back = card.querySelector(".card-back");
+        if (back) renderMath(back);
+      });
+      var easyBtn = card.querySelector(".easy"), hardBtn = card.querySelector(".hard");
+      if (easyBtn) easyBtn.addEventListener("click", function() { reviewCard(id, 4); card.classList.remove("flipped"); card.classList.add("reviewed"); });
+      if (hardBtn) hardBtn.addEventListener("click", function() { reviewCard(id, 2); card.classList.remove("flipped"); });
+    });
+  }
+
+  
+  function initPOE(el) {
+    var steps = el.querySelectorAll(".poe-step"), prog = el.querySelectorAll(".poe-progress-step");
+    if (steps.length === 0) return;
+    var cur = 0;
+    function show(idx) {
+      steps.forEach(function(s,i) { s.classList.toggle("active", i === idx); });
+      prog.forEach(function(s,i) { s.classList.remove("active","done"); if (i < idx) s.classList.add("done"); if (i === idx) s.classList.add("active"); });
+      cur = idx;
+      var active = steps[idx];
+      if (active) active.querySelectorAll('.sandbox:not([data-initialized])').forEach(function(sb) { sb.setAttribute("data-initialized","true"); initSandbox(sb); });
+    }
+    el.querySelectorAll('[data-action="next"]').forEach(function(btn) { btn.addEventListener("click", function() { if (cur < steps.length - 1) show(cur + 1); }); });
+    el.querySelectorAll('[data-action="complete"]').forEach(function(btn) { btn.addEventListener("click", function() { prog.forEach(function(s) { s.classList.remove("active"); s.classList.add("done"); }); }); });
+    show(0);
+  }
+
+  
+  function initStepThrough(el) {
+    var qasmEl = el.querySelector(".step-qasm");
+    var output = el.querySelector(".step-output");
+    var prevBtn = el.querySelector('[data-action="prev"]');
+    var nextBtn = el.querySelector('[data-action="next"]');
+    var stepInfo = el.querySelector(".step-info");
+    if (!qasmEl || !output) return;
+    var qasm = qasmEl.textContent;
+    var mode = el.dataset.mode || "clifford"; 
+    var steps = null, cur = -1;
+
+    async function load() {
+      await ensureWasm();
+      try {
+        if (mode === "clifford" && window.cliffordStepThrough) {
+          var r = JSON.parse(window.cliffordStepThrough(qasm));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+          
+          steps.unshift({gate: "init", qubits: [], stabilizers: r.steps.length > 0 ? null : []});
+        } else if (mode === "grover" && window.groverStepThrough) {
+          var nq = parseInt(el.dataset.qubits || "2", 10);
+          var targets = JSON.parse(el.dataset.targets || "[]");
+          var r = JSON.parse(window.groverStepThrough(nq, targets.join(",")));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+        }
+        if (steps && steps.length > 0) { cur = 0; renderStep(); }
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    function renderStep() {
+      if (!steps || cur < 0 || cur >= steps.length) return;
+      var s = steps[cur];
+      var html = "";
+      if (mode === "clifford") {
+        if (s.gate === "init") {
+          html = '<p class="step-label">Initial state |0...0&gt;</p>';
+          
+          if (steps.length > 1 && steps[1].stabilizers) {
+            var nq = steps[1].stabilizers[0].length - 1;
+            html += '<div class="stabilizer-table"><table>';
+            for (var i = 0; i < nq; i++) {
+              var row = "+";
+              for (var j = 0; j < nq; j++) row += (j === i) ? "Z" : "I";
+              html += '<tr><td>' + formatStabilizer(row) + '</td></tr>';
+            }
+            html += '</table></div>';
+          }
+        } else {
+          html = '<p class="step-label">After <strong>' + esc(s.gate) + '</strong> on qubit' + (s.qubits.length > 1 ? 's ' : ' ') + s.qubits.join(', ') + '</p>';
+          if (s.stabilizers) {
+            html += '<div class="stabilizer-table"><table>';
+            s.stabilizers.forEach(function(st) { html += '<tr><td>' + formatStabilizer(st) + '</td></tr>'; });
+            html += '</table></div>';
+          }
+        }
+      } else if (mode === "grover") {
+        html = '<p class="step-label">Iteration ' + s.iteration + '</p>';
+        if (s.probabilities) {
+          html += '<div class="amplitude-bars">';
+          for (var i = 0; i < s.probabilities.length; i++) {
+            var label = i.toString(2).padStart(Math.ceil(Math.log2(s.probabilities.length)), '0');
+            var pct = (s.probabilities[i] * 100).toFixed(1);
+            var isTarget = el.dataset.targets && JSON.parse(el.dataset.targets).indexOf(i) >= 0;
+            html += '<div class="amp-bar' + (isTarget ? ' target' : '') + '"><div class="amp-fill" style="height:' + pct + '%"></div><span class="amp-label">|' + label + '&gt;</span><span class="amp-value">' + pct + '%</span></div>';
+          }
+          html += '</div>';
+        }
+      }
+      output.innerHTML = html;
+      if (stepInfo) stepInfo.textContent = "Step " + cur + " / " + (steps.length - 1);
+      if (prevBtn) prevBtn.disabled = (cur === 0);
+      if (nextBtn) nextBtn.disabled = (cur >= steps.length - 1);
+    }
+
+    if (prevBtn) prevBtn.addEventListener("click", function() { if (cur > 0) { cur--; renderStep(); } });
+    if (nextBtn) nextBtn.addEventListener("click", function() { if (steps && cur < steps.length - 1) { cur++; renderStep(); } });
+    load();
+  }
+
+  
+  document.addEventListener("DOMContentLoaded", function() {
+    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough};
+    document.querySelectorAll("[data-component]").forEach(function(el) { var fn = reg[el.dataset.component]; if (fn) fn(el); });
+  });
+  </script>
+  
+</body>
+</html>

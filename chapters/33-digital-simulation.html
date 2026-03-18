@@ -1,0 +1,1598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chapter 33: Digital Quantum Simulation - Goqu Textbook</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/contrib/auto-render.min.js"></script>
+  
+  <link rel="preload" href="../main.wasm" as="fetch" type="application/wasm" crossorigin>
+  <script src="../wasm_exec.js"></script>
+  
+</head>
+<body>
+  <input type="checkbox" id="nav-toggle" hidden>
+  <label for="nav-toggle" class="nav-hamburger" aria-label="Toggle navigation">
+    <span></span><span></span><span></span>
+  </label>
+
+  <nav class="sidebar" aria-label="Table of contents">
+    <a href="../index.html" class="sidebar-logo">Goqu Textbook</a>
+    
+    <details>
+      <summary>Part 1: The World of Classical Computing</summary>
+      <ol start="1">
+        
+        <li value="1"><a href="01-computation.html">What Is Computation?</a></li>
+        
+        <li value="2"><a href="02-math-of-information.html">The Mathematics of Information</a></li>
+        
+        <li value="3"><a href="03-reversible-computing.html">Reversible Computing</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 2: Entering the Quantum World</summary>
+      <ol start="4">
+        
+        <li value="4"><a href="04-the-first-qubit.html">The First Qubit</a></li>
+        
+        <li value="5"><a href="05-quantum-gates.html">Quantum Gates</a></li>
+        
+        <li value="6"><a href="06-entanglement.html">Multiple Qubits and Entanglement</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 3: Quantum Protocols</summary>
+      <ol start="7">
+        
+        <li value="7"><a href="07-teleportation.html">Quantum Teleportation and Communication</a></li>
+        
+        <li value="8"><a href="08-cryptography.html">Quantum Cryptography</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 4: Quantum Algorithms - The First Wave</summary>
+      <ol start="9">
+        
+        <li value="9"><a href="09-oracles.html">Oracles and Quantum Parallelism</a></li>
+        
+        <li value="10"><a href="10-qft.html">The Quantum Fourier Transform</a></li>
+        
+        <li value="11"><a href="11-shor.html">Shor&#39;s Algorithm</a></li>
+        
+        <li value="12"><a href="12-grover.html">Grover&#39;s Algorithm</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 5: Real Quantum Hardware</summary>
+      <ol start="13">
+        
+        <li value="13"><a href="13-hardware.html">How to Build a Quantum Computer</a></li>
+        
+        <li value="14"><a href="14-noise.html">Noise, Decoherence, and the NISQ Era</a></li>
+        
+        <li value="15"><a href="15-programming.html">Programming Quantum Computers</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 6: Quantum Error Correction</summary>
+      <ol start="16">
+        
+        <li value="16"><a href="16-classical-ec.html">Classical Error Correction Refresher</a></li>
+        
+        <li value="17"><a href="17-qec-fundamentals.html">Quantum Error Correction Fundamentals</a></li>
+        
+        <li value="18"><a href="18-stabilizers.html">The Stabilizer Formalism</a></li>
+        
+        <li value="19"><a href="19-surface-codes.html">Surface Codes and Topological Protection</a></li>
+        
+        <li value="20"><a href="20-fault-tolerance.html">Fault-Tolerant Quantum Computing</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 7: Variational and Near-Term Algorithms</summary>
+      <ol start="21">
+        
+        <li value="21"><a href="21-variational.html">The Variational Quantum Computing Paradigm</a></li>
+        
+        <li value="22"><a href="22-vqe.html">Variational Quantum Eigensolver (VQE)</a></li>
+        
+        <li value="23"><a href="23-qaoa.html">Quantum Approximate Optimization (QAOA)</a></li>
+        
+        <li value="24"><a href="24-qml.html">Quantum Machine Learning</a></li>
+        
+        <li value="25"><a href="25-error-mitigation.html">Quantum Error Mitigation</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 8: Quantum Information Theory</summary>
+      <ol start="26">
+        
+        <li value="26"><a href="26-states-measurements.html">Quantum States and Measurements, Revisited</a></li>
+        
+        <li value="27"><a href="27-channels.html">Quantum Channels and Operations</a></li>
+        
+        <li value="28"><a href="28-entropy.html">Quantum Entropy and Information</a></li>
+        
+        <li value="29"><a href="29-shannon.html">Quantum Shannon Theory</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 9: Quantum Complexity and Computation Theory</summary>
+      <ol start="30">
+        
+        <li value="30"><a href="30-complexity.html">Quantum Computational Complexity</a></li>
+        
+        <li value="31"><a href="31-hidden-subgroup.html">The Hidden Subgroup Problem and Beyond</a></li>
+        
+      </ol>
+    </details>
+    
+    <details open>
+      <summary>Part 10: Quantum Simulation</summary>
+      <ol start="32">
+        
+        <li value="32"><a href="32-simulation-why.html">Why Quantum Simulation Matters</a></li>
+        
+        <li value="33"><a href="33-digital-simulation.html" aria-current="page">Digital Quantum Simulation</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 11: Quantum Networking, Cryptography, and Sensing</summary>
+      <ol start="34">
+        
+        <li value="34"><a href="34-quantum-internet.html">The Quantum Internet</a></li>
+        
+        <li value="35"><a href="35-advanced-crypto.html">Advanced Quantum Cryptography</a></li>
+        
+        <li value="36"><a href="36-sensing.html">Quantum Sensing and Metrology</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 12: Frontiers and the Future</summary>
+      <ol start="37">
+        
+        <li value="37"><a href="37-topological.html">Topological Quantum Computing</a></li>
+        
+        <li value="38"><a href="38-quantum-ai.html">Quantum Computing and Artificial Intelligence</a></li>
+        
+        <li value="39"><a href="39-open-problems.html">Open Problems in Quantum Computing</a></li>
+        
+        <li value="40"><a href="40-ecosystem.html">The Quantum Computing Ecosystem Today</a></li>
+        
+        <li value="41"><a href="41-career.html">Building Your Quantum Computing Career</a></li>
+        
+        <li value="42"><a href="42-what-next.html">What Comes Next</a></li>
+        
+      </ol>
+    </details>
+    
+  </nav>
+
+  <main>
+    
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="../index.html">Home</a> / <a href="../index.html#part-10">Part 10</a> / <span>Chapter 33</span>
+    </nav>
+    
+
+    <article>
+      <h1>Chapter 33: Digital Quantum Simulation</h1>
+      <p>
+  In the previous chapter, we saw why quantum simulation matters and the difference between analog
+  and digital approaches. Now we dive into the details of <strong>digital quantum simulation</strong>
+  - the systematic decomposition of quantum time evolution into quantum gates. We will develop
+  the Trotter-Suzuki method from scratch, explore advanced techniques like qubitization and
+  quantum signal processing, and see how these tools are applied to the two most important
+  application domains: quantum chemistry and condensed matter physics.
+</p>
+
+<!-- ================================================================== -->
+<section id="hamiltonian-simulation-core">
+<h2>33.1 Hamiltonian Simulation: The Core Problem</h2>
+
+<p>
+  The central problem of digital quantum simulation is this: given a Hamiltonian $H$ acting on
+  $n$ qubits, an initial state $|\psi(0)\rangle$, and a time $t$, implement the unitary
+  operator $e^{-iHt}$ as a quantum circuit. The output state $|\psi(t)\rangle = e^{-iHt}
+  |\psi(0)\rangle$ is the solution to the Schrodinger equation:
+</p>
+
+$$i\frac{d}{dt}|\psi(t)\rangle = H|\psi(t)\rangle$$
+
+<p>
+  The Hamiltonian $H$ is a $2^n \times 2^n$ Hermitian matrix. Exponentiating it directly would
+  require manipulating this exponentially large matrix - exactly the classical bottleneck we are
+  trying to avoid. The key insight is that physically relevant Hamiltonians have <em>structure</em>
+  that can be exploited.
+</p>
+
+<h3>Local Hamiltonians</h3>
+
+<p>
+  Most physical Hamiltonians are <strong>local</strong>: they decompose as a sum of terms, each
+  acting on a small number of qubits:
+</p>
+
+$$H = \sum_{j=1}^{m} H_j$$
+
+<p>
+  where each $H_j$ acts non-trivially on at most $k$ qubits (typically $k = 2$ for pairwise
+  interactions). Examples include:
+</p>
+
+<ul>
+  <li>
+    <strong>Ising model:</strong> $H = J\sum_{\langle i,j \rangle} Z_i Z_j + h\sum_i X_i$.
+    Each term acts on at most 2 qubits.
+  </li>
+  <li>
+    <strong>Heisenberg model:</strong> $H = J\sum_{\langle i,j \rangle} (X_i X_j + Y_i Y_j +
+    Z_i Z_j)$. Pairwise interactions between neighboring spins.
+  </li>
+  <li>
+    <strong>Electronic structure Hamiltonians:</strong> After second quantization and a mapping
+    to qubits (Jordan-Wigner or Bravyi-Kitaev), molecular Hamiltonians become sums of Pauli
+    tensor products.
+  </li>
+</ul>
+
+<p>
+  The locality condition is crucial: while $e^{-iHt}$ is an exponentially large matrix, each
+  $e^{-iH_j t}$ acts on only a few qubits and can be implemented with $O(1)$ quantum gates.
+  The challenge is that $e^{-i(H_1 + H_2)t} \neq e^{-iH_1 t} e^{-iH_2 t}$ in general, because
+  $H_1$ and $H_2$ typically do not commute.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    The Hamiltonian simulation problem asks: given $H = \sum_j H_j$ (a sum of local terms),
+    implement $e^{-iHt}$ as a quantum circuit to accuracy $\epsilon$. The difficulty comes from
+    non-commutativity: $[H_j, H_k] \neq 0$ in general, so we cannot simply apply each term's
+    evolution independently. Trotterization and more advanced methods handle this
+    non-commutativity.
+  </p>
+</div>
+
+<h3>Complexity of Hamiltonian Simulation</h3>
+
+<p>
+  For a Hamiltonian with $m$ local terms, the simulation cost depends on:
+</p>
+
+<ul>
+  <li>
+    $t$: the simulation time (longer times require more work).
+  </li>
+  <li>
+    $m$: the number of terms in the Hamiltonian.
+  </li>
+  <li>
+    $\|H\|$: the norm of the Hamiltonian (stronger interactions are harder).
+  </li>
+  <li>
+    $\epsilon$: the desired accuracy (tighter precision costs more).
+  </li>
+</ul>
+
+<p>
+  Different simulation methods achieve different trade-offs among these parameters. The
+  theoretical optimum is $O(\alpha t + \log(1/\epsilon))$ queries, where $\alpha$ characterizes
+  the access model (e.g., the 1-norm of coefficients). This optimal scaling is achieved by
+  qubitization and QSVT (Section 33.3).
+</p>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="trotterization">
+<h2>33.2 Trotterization</h2>
+
+<p>
+  The Trotter-Suzuki decomposition is the simplest and most widely used method for Hamiltonian
+  simulation. It is named after Hale Trotter (1959) and Masuo Suzuki (1976), who developed the
+  mathematical theory of product formulas for operator exponentials.
+</p>
+
+<h3>First-Order Trotter Formula</h3>
+
+<p>
+  The idea is straightforward. Although $e^{-i(A+B)t} \neq e^{-iAt} e^{-iBt}$ when $[A,B]
+  \neq 0$, the Trotter formula says that the product becomes a good approximation when we divide
+  time into small steps:
+</p>
+
+$$e^{-i(A+B)t} = \lim_{n \to \infty} \left( e^{-iAt/n} \, e^{-iBt/n} \right)^n$$
+
+<p>
+  For finite $n$ (the number of Trotter steps), the error is:
+</p>
+
+$$\left\| e^{-i(A+B)t} - \left( e^{-iAt/n} \, e^{-iBt/n} \right)^n \right\| \leq \frac{t^2 \|[A,B]\|}{2n}$$
+
+<p>
+  The error scales as $O(t^2/n)$, so to achieve accuracy $\epsilon$, we need $n = O(t^2 /
+  \epsilon)$ Trotter steps. For a Hamiltonian with $m$ terms, $H = \sum_{j=1}^m H_j$, one Trotter
+  step applies all $m$ individual evolutions, so the total gate count is $O(m \cdot t^2/\epsilon)$.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    <strong>First-order Trotterization:</strong> Approximate $e^{-iHt}$ by dividing time into
+    $n$ small steps and applying each term's evolution sequentially:
+    $e^{-iHt} \approx \left(\prod_{j=1}^m e^{-iH_j t/n}\right)^n$. The error is
+    $O(m^2 \|H\|^2 t^2/n)$, requiring $n = O(m^2 \|H\|^2 t^2/\epsilon)$ steps for accuracy
+    $\epsilon$.
+  </p>
+</div>
+
+<h3>Second-Order Suzuki-Trotter Formula</h3>
+
+<p>
+  A better approximation symmetrizes the product. The second-order Suzuki-Trotter formula is:
+</p>
+
+$$S_2(t) = \prod_{j=1}^{m} e^{-iH_j t/2} \prod_{j=m}^{1} e^{-iH_j t/2}$$
+
+<p>
+  This "palindrome" structure (forward then backward) cancels the leading-order error term,
+  giving:
+</p>
+
+$$\left\| e^{-iHt} - S_2(t/n)^n \right\| = O\left(\frac{t^3}{n^2}\right)$$
+
+<p>
+  The error now scales as $O(t^3/n^2)$ - a significant improvement. To achieve accuracy
+  $\epsilon$, we need $n = O(t^{3/2}/\sqrt{\epsilon})$ steps, which is fewer than the
+  first-order formula requires.
+</p>
+
+<h3>Higher-Order Formulas</h3>
+
+<p>
+  Suzuki showed how to recursively construct product formulas of any even order $2k$:
+</p>
+
+$$S_{2k}(t) = S_{2k-2}(p_k t)^2 \, S_{2k-2}((1 - 4p_k)t) \, S_{2k-2}(p_k t)^2$$
+
+<p>
+  where $p_k = (4 - 4^{1/(2k-1)})^{-1}$. The $2k$-th order formula has error
+  $O(t^{2k+1}/n^{2k})$. Higher orders converge faster with $n$ but require more gate operations
+  per step (the formulas become longer). In practice, the optimal order depends on the specific
+  Hamiltonian and desired accuracy.
+</p>
+
+<h3>Implementing Trotter Steps for the Ising Model</h3>
+
+<p>
+  Let us implement Trotterization for the transverse-field Ising model on two qubits:
+</p>
+
+$$H = J \, Z_0 Z_1 + h(X_0 + X_1)$$
+
+<p>
+  One Trotter step requires:
+</p>
+
+<ol>
+  <li>
+    $e^{-iJ Z_0 Z_1 \Delta t}$: This is the $\text{Rzz}(2J\Delta t)$ gate, which applies a
+    $ZZ$ rotation. In QASM: <code>rzz(2*J*dt) q[0], q[1]</code>.
+  </li>
+  <li>
+    $e^{-ihX_0 \Delta t}$: This is the $\text{Rx}(2h\Delta t)$ gate on qubit 0. In QASM:
+    <code>rx(2*h*dt) q[0]</code>.
+  </li>
+  <li>
+    $e^{-ihX_1 \Delta t}$: Same rotation on qubit 1. In QASM: <code>rx(2*h*dt) q[1]</code>.
+  </li>
+</ol>
+
+<p>
+  Try the sandbox below. It simulates the Ising model with $J = 1$, $h = 0.5$, total time
+  $t = \pi/2$, using a variable number of Trotter steps. The code uses 4 steps (each with
+  $\Delta t = \pi/8$).
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="22">OPENQASM 3.0;
+// Trotter simulation of H = Z*Z + 0.5*(X+X)
+// Total time t = pi/2, using 4 Trotter steps
+// dt = pi/8 per step; J=1, h=0.5
+qubit[2] q;
+bit[2] c;
+// Initial state: |10> (first qubit excited)
+x q[0];
+// Trotter step 1
+rzz(pi/4) q[0], q[1]; // 2*J*dt = 2*1*pi/8
+rx(pi/8) q[0];         // 2*h*dt = 2*0.5*pi/8
+rx(pi/8) q[1];
+// Trotter step 2
+rzz(pi/4) q[0], q[1];
+rx(pi/8) q[0];
+rx(pi/8) q[1];
+// Trotter step 3
+rzz(pi/4) q[0], q[1];
+rx(pi/8) q[0];
+rx(pi/8) q[1];
+// Trotter step 4
+rzz(pi/4) q[0], q[1];
+rx(pi/8) q[0];
+rx(pi/8) q[1];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+  The circuit above starts with qubit 0 in state $|1\rangle$ and qubit 1 in state $|0\rangle$,
+  then simulates the Ising Hamiltonian for time $t = \pi/2$. The $ZZ$ interaction causes
+  energy exchange between the qubits, while the transverse field $X$ induces spin flips. You
+  should see a non-trivial probability distribution over all four basis states, reflecting the
+  quantum dynamics.
+</p>
+
+<p>
+  Try modifying the code: reduce to 2 Trotter steps (double the angles per step) or increase
+  to 8 steps (halve the angles). With more steps, the simulation becomes more accurate, but
+  the circuit becomes deeper. This trade-off is at the heart of Trotterization.
+</p>
+
+<h3>The Heisenberg Model: Three Interaction Terms</h3>
+
+<p>
+  The Heisenberg model $H = J(X_i X_j + Y_i Y_j + Z_i Z_j)$ requires three interaction gates
+  per bond per Trotter step:
+</p>
+
+<ul>
+  <li>$e^{-iJ X_i X_j \Delta t}$: the $\text{Rxx}(2J\Delta t)$ gate</li>
+  <li>$e^{-iJ Y_i Y_j \Delta t}$: the $\text{Ryy}(2J\Delta t)$ gate</li>
+  <li>$e^{-iJ Z_i Z_j \Delta t}$: the $\text{Rzz}(2J\Delta t)$ gate</li>
+</ul>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="20">OPENQASM 3.0;
+// Trotter simulation of Heisenberg model
+// H = J*(XX + YY + ZZ) on 2 qubits, J=1
+// Total time t = pi/4, 3 Trotter steps
+qubit[2] q;
+bit[2] c;
+// Initial state: |10> (spin flip on qubit 0)
+x q[0];
+// Trotter step 1 (dt = pi/12)
+rxx(pi/6) q[0], q[1]; // 2*J*dt
+ryy(pi/6) q[0], q[1];
+rzz(pi/6) q[0], q[1];
+// Trotter step 2
+rxx(pi/6) q[0], q[1];
+ryy(pi/6) q[0], q[1];
+rzz(pi/6) q[0], q[1];
+// Trotter step 3
+rxx(pi/6) q[0], q[1];
+ryy(pi/6) q[0], q[1];
+rzz(pi/6) q[0], q[1];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+  This sandbox simulates the Heisenberg spin chain: starting with qubit 0 in $|1\rangle$ and
+  qubit 1 in $|0\rangle$, the $XX + YY + ZZ$ interaction causes the spin excitation to hop
+  between sites. The Heisenberg model conserves total spin, so you should see significant
+  probability only on $|10\rangle$ and $|01\rangle$ (the one-excitation sector), with very
+  little probability on $|00\rangle$ or $|11\rangle$ (which would indicate Trotter error).
+</p>
+
+<h3>Trotter Error in Practice</h3>
+
+<p>
+  The theoretical error bounds for Trotterization are often pessimistic. Childs, Su, Tran,
+  Wiebe, and Zhu (2021) developed a refined "commutator scaling" theory that exploits the
+  commutativity structure of the Hamiltonian terms. Their key insight: the Trotter error depends
+  not on the norms of individual terms but on the norms of their <em>commutators</em>. If many
+  terms commute (or nearly commute), the actual error is much smaller than the worst-case bound
+  predicts.
+</p>
+
+<p>
+  For instance, in a lattice Hamiltonian where terms on distant sites commute exactly, the
+  commutator-based bound gives errors that are tight to within a factor of approximately 5,
+  compared to the naive bound which can overestimate by orders of magnitude.
+</p>
+
+<div class="callout callout-warning">
+  <strong>Common Misconception.</strong>
+  <p>
+    It is sometimes believed that higher-order Trotter formulas are always better. In practice,
+    the optimal order depends on the simulation parameters. Higher-order formulas have smaller
+    error per step but require more gates per step (the formula length grows exponentially with
+    order). For short simulations or low precision, first- or second-order formulas may actually
+    use fewer total gates than fourth- or sixth-order formulas.
+  </p>
+</div>
+
+<h3>Interactive: Trotter-Suzuki Simulation</h3>
+<p>
+  Build a Trotter circuit for time evolution under a Hamiltonian. Increase the number of
+  steps to improve accuracy, and compare first-order (Lie-Trotter) with second-order
+  (Suzuki-Trotter) decompositions.
+</p>
+<div class="widget" id="trotter-widget">
+  <div class="widget-header">Trotter-Suzuki Circuit Builder</div>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label>Hamiltonian: <select id="trotter-ham" onchange="trotterHamChanged()">
+      <option value="1.0*ZZ+0.5*XI+0.5*IX" selected>Ising 2Q</option>
+      <option value="1.0*XX+1.0*YY+1.0*ZZ">Heisenberg 2Q</option>
+      <option value="custom">Custom</option>
+    </select></label>
+    <label id="trotter-custom-label" style="display:none;">H = <input type="text" id="trotter-custom" value="1.0*ZZ+0.5*XI" style="width:14rem;font-family:monospace;font-size:0.85rem;"></label>
+    <label>Steps: <select id="trotter-steps">
+      <option>1</option>
+      <option>2</option>
+      <option selected>3</option>
+      <option>5</option>
+      <option>10</option>
+    </select></label>
+    <label>Order: <select id="trotter-order">
+      <option value="1" selected>1st order (Lie-Trotter)</option>
+      <option value="2">2nd order (Suzuki-Trotter)</option>
+    </select></label>
+  </div>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label>Time $t$: <input type="range" id="trotter-time" min="0.1" max="3.0" step="0.1" value="1.0"><output id="trotter-time-val">1.0</output></label>
+    <button onclick="runTrotterWidget()">Simulate</button>
+  </div>
+  <div class="widget-output" id="trotter-output"></div>
+</div>
+<script>
+document.getElementById('trotter-time').addEventListener('input', function() {
+  document.getElementById('trotter-time-val').textContent = parseFloat(this.value).toFixed(1);
+});
+function trotterHamChanged() {
+  var sel = document.getElementById('trotter-ham');
+  document.getElementById('trotter-custom-label').style.display = sel.value === 'custom' ? '' : 'none';
+}
+async function runTrotterWidget() {
+  await ensureWasm();
+  var sel = document.getElementById('trotter-ham');
+  var ham = sel.value === 'custom' ? document.getElementById('trotter-custom').value : sel.value;
+  var time = parseFloat(document.getElementById('trotter-time').value);
+  var steps = parseInt(document.getElementById('trotter-steps').value);
+  var order = parseInt(document.getElementById('trotter-order').value);
+  var out = document.getElementById('trotter-output');
+  out.innerHTML = '<p style="color:var(--color-text-muted)">Building Trotter circuit...</p>';
+  await new Promise(function(r) { setTimeout(r, 0); });
+  try {
+    var r = JSON.parse(window.runTrotter(ham, time, steps, order, isDark()));
+    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+    var html = (r.circuitSVG || '');
+    html += '<div class="sim-stats">';
+    html += '<span>Trotter steps: ' + r.steps + '</span>';
+    html += '<span>Order: ' + (r.order === 2 ? '2nd (Suzuki-Trotter)' : '1st (Lie-Trotter)') + '</span>';
+    html += '<span>&langle;H&rangle;: ' + r.expectation.toFixed(4) + '</span>';
+    html += '</div>';
+    if (r.qasmCode) html += '<details><summary>Generated QASM</summary><pre>' + esc(r.qasmCode) + '</pre></details>';
+    out.innerHTML = html;
+  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+}
+</script>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="advanced-techniques">
+<h2>33.3 Advanced Techniques: Qubitization and QSP</h2>
+
+<p>
+  While Trotterization is intuitive and practical, it is not asymptotically optimal. The gate
+  count for first-order Trotter scales as $O(m^2 t^2/\epsilon)$, which has suboptimal dependence
+  on both $t$ and $\epsilon$. Two advanced techniques achieve the theoretically optimal scaling:
+  <strong>qubitization</strong> (Low and Chuang, 2019) and <strong>quantum signal processing</strong>
+  (Low and Chuang, 2017), unified under the QSVT framework (Chapter 31).
+</p>
+
+<h3>Linear Combinations of Unitaries (LCU)</h3>
+
+<p>
+  Before describing qubitization, we need the <strong>LCU lemma</strong> (Childs and Wiebe,
+  2012). Suppose the Hamiltonian can be written as a linear combination of unitaries:
+</p>
+
+$$H = \sum_{j=1}^{m} \alpha_j U_j, \quad \alpha_j > 0$$
+
+<p>
+  where each $U_j$ is a unitary operator. For Pauli Hamiltonians (which arise from quantum
+  chemistry), this decomposition is natural: each $U_j$ is a tensor product of Pauli operators,
+  and $\alpha_j$ is the corresponding coefficient.
+</p>
+
+<p>
+  The LCU technique uses two operations:
+</p>
+
+<ul>
+  <li>
+    <strong>PREPARE:</strong> A unitary that maps $|0\rangle$ to $\sum_j \sqrt{\alpha_j/\lambda}
+    |j\rangle$, where $\lambda = \sum_j \alpha_j$ is the 1-norm.
+  </li>
+  <li>
+    <strong>SELECT:</strong> A controlled unitary that maps $|j\rangle|\psi\rangle$ to
+    $|j\rangle U_j |\psi\rangle$.
+  </li>
+</ul>
+
+<p>
+  Using these, one can implement a <em>block encoding</em> of $H/\lambda$: the unitary
+  $U = \text{PREPARE}^\dagger \cdot \text{SELECT} \cdot \text{PREPARE}$ satisfies
+  $\langle 0 | U | 0 \rangle = H/\lambda$ (projecting the ancilla register). This block encoding
+  is the gateway to qubitization and QSVT.
+</p>
+
+<h3>Qubitization</h3>
+
+<p>
+  Qubitization, developed by Low and Chuang (2019), converts a block encoding of $H/\lambda$ into
+  a quantum walk operator whose eigenvalues encode the eigenvalues of $H$. Specifically, the
+  "qubitized walk operator" $W$ has eigenvalues $e^{\pm i \arccos(\lambda_k/\lambda)}$, where
+  $\lambda_k$ are the eigenvalues of $H$.
+</p>
+
+<p>
+  The key property of qubitization is that it embeds the Hamiltonian's eigenvalues into an
+  $SU(2)$ subspace - a two-dimensional space for each eigenvalue. This embedding is exactly what
+  quantum signal processing needs: by applying a sequence of signal processing rotations to $W$,
+  one can implement any polynomial transformation of the eigenvalues.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    <strong>Qubitization</strong> converts a block encoding of $H$ into a quantum walk operator
+    $W$ whose eigenvalues are $e^{\pm i\arccos(\lambda_k/\lambda)}$. Combined with quantum
+    signal processing, it achieves $O(\lambda t + \log(1/\epsilon)/\log\log(1/\epsilon))$ query
+    complexity for Hamiltonian simulation - optimal in both $t$ and $\epsilon$ up to doubly
+    logarithmic factors.
+  </p>
+</div>
+
+<h3>Achieving Optimal Simulation</h3>
+
+<p>
+  To simulate $e^{-iHt}$ using qubitization and QSP:
+</p>
+
+<ol>
+  <li>
+    Construct a block encoding of $H/\lambda$ using PREPARE and SELECT oracles.
+  </li>
+  <li>
+    Build the qubitized walk operator $W$.
+  </li>
+  <li>
+    Find QSP angles $\phi_0, \ldots, \phi_d$ such that the polynomial $P(x) \approx
+    e^{-i\lambda t \cdot x}$ (a polynomial approximation to the complex exponential).
+  </li>
+  <li>
+    Apply the QSP sequence: alternating $W$ with single-qubit rotations determined by the
+    angles $\phi_k$.
+  </li>
+</ol>
+
+<p>
+  The degree of the polynomial $P$ needed to approximate $e^{-i\lambda t x}$ to accuracy
+  $\epsilon$ is $d = O(\lambda t + \log(1/\epsilon)/\log\log(1/\epsilon))$. Each degree requires
+  one use of $W$ (which uses one PREPARE and one SELECT), giving the total query complexity.
+</p>
+
+<h3>Comparison of Simulation Methods</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Method</th>
+      <th>Query Complexity</th>
+      <th>Key Advantage</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1st-order Trotter</td>
+      <td>$O(m^2 \lambda^2 t^2 / \epsilon)$</td>
+      <td>Simple implementation</td>
+    </tr>
+    <tr>
+      <td>2nd-order Trotter</td>
+      <td>$O(m^2 \lambda^2 t^{3/2} / \sqrt{\epsilon})$</td>
+      <td>Better $\epsilon$ scaling</td>
+    </tr>
+    <tr>
+      <td>$2k$-th order Trotter</td>
+      <td>$O(m^2 (\lambda t)^{1+1/2k} / \epsilon^{1/2k})$</td>
+      <td>Tunable time vs precision trade-off</td>
+    </tr>
+    <tr>
+      <td>LCU (Taylor series)</td>
+      <td>$O(\lambda t \cdot \text{polylog}(\lambda t / \epsilon))$</td>
+      <td>Near-optimal in $t$ and $\epsilon$</td>
+    </tr>
+    <tr>
+      <td>Qubitization + QSP</td>
+      <td>$O(\lambda t + \log(1/\epsilon))$</td>
+      <td>Optimal (up to log log factors)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>
+  The progression from Trotterization to qubitization represents a journey from $O(t^2/\epsilon)$
+  to $O(t + \log(1/\epsilon))$ - a dramatic improvement in asymptotic complexity. However, the
+  constant factors and ancilla requirements of advanced methods can be substantial, and for many
+  practical instances (moderate $t$, modest $\epsilon$), Trotterization with optimized ordering
+  remains competitive.
+</p>
+
+<div class="callout callout-info">
+  <strong>Historical Note.</strong>
+  <p>
+    The quest for optimal Hamiltonian simulation has a rich history. Lloyd (1996) gave the first
+    efficient simulation using Trotterization. Berry, Ahokas, Cleve, and Sanders (2007) achieved
+    sublinear scaling in $1/\epsilon$ using Taylor series truncation. Berry, Childs, Cleve,
+    Kothari, and Somma (2015) achieved near-optimal scaling using a truncated Taylor series with
+    LCU. Low and Chuang (2017, 2019) achieved the optimal $O(t + \log(1/\epsilon))$ scaling
+    using QSP and qubitization, closing a line of research spanning two decades.
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="simulating-chemistry">
+<h2>33.4 Simulating Chemistry</h2>
+
+<p>
+  Quantum chemistry is the flagship application of quantum simulation. The goal is to compute
+  the electronic structure of molecules: the energies, wavefunctions, and properties of
+  electrons in the Coulomb potential of atomic nuclei. This is the foundation of all of
+  chemistry, materials science, and much of biology.
+</p>
+
+<h3>The Electronic Structure Problem</h3>
+
+<p>
+  Under the Born-Oppenheimer approximation (nuclei are stationary), the electronic Hamiltonian
+  for a molecule is:
+</p>
+
+$$H_{\text{elec}} = -\sum_i \frac{\nabla_i^2}{2} - \sum_{i,A} \frac{Z_A}{|r_i - R_A|} + \sum_{i < j} \frac{1}{|r_i - r_j|}$$
+
+<p>
+  The three terms represent: kinetic energy of electrons, electron-nuclear attraction, and
+  electron-electron repulsion. It is the electron-electron repulsion (the last term) that makes
+  the problem hard: it couples all electrons together, creating the "correlation" that classical
+  methods struggle to capture.
+</p>
+
+<h3>Second Quantization and Qubit Mapping</h3>
+
+<p>
+  To simulate this on a quantum computer, we first express $H_{\text{elec}}$ in
+  <strong>second quantization</strong> using a finite basis of molecular orbitals:
+</p>
+
+$$H = \sum_{pq} h_{pq} \, a_p^\dagger a_q + \frac{1}{2}\sum_{pqrs} h_{pqrs} \, a_p^\dagger a_q^\dagger a_r a_s$$
+
+<p>
+  where $a_p^\dagger$ and $a_p$ are fermionic creation and annihilation operators, and $h_{pq}$,
+  $h_{pqrs}$ are one- and two-electron integrals computed classically. The operators satisfy
+  anticommutation relations $\{a_p, a_q^\dagger\} = \delta_{pq}$.
+</p>
+
+<p>
+  We then map fermionic operators to qubit operators using one of several encodings:
+</p>
+
+<ul>
+  <li>
+    <strong>Jordan-Wigner transformation:</strong> Maps each orbital to one qubit. The occupation
+    $n_p = a_p^\dagger a_p$ becomes $(I - Z_p)/2$. Creation operators become strings of $Z$
+    operators (to enforce antisymmetry). The result is a Hamiltonian expressed as a sum of Pauli
+    strings: $H = \sum_k \alpha_k P_k$, where each $P_k$ is a tensor product of Pauli operators.
+  </li>
+  <li>
+    <strong>Bravyi-Kitaev transformation:</strong> An alternative mapping that reduces the length
+    of Pauli strings from $O(n)$ to $O(\log n)$, at the cost of more complex encoding.
+  </li>
+</ul>
+
+<p>
+  For a molecule described by $M$ molecular orbitals, the qubit Hamiltonian has $M$ qubits and
+  $O(M^4)$ Pauli terms (from the two-electron integrals). This is the Hamiltonian we simulate.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    Quantum chemistry simulation proceeds in three steps: (1) compute classical integrals
+    $h_{pq}$, $h_{pqrs}$ for a chosen basis set; (2) map the fermionic Hamiltonian to a qubit
+    Hamiltonian via Jordan-Wigner or Bravyi-Kitaev encoding; (3) simulate the qubit Hamiltonian
+    on a quantum computer using Trotterization, LCU, or qubitization. The qubit count equals the
+    number of molecular orbitals; the gate count scales with the number of Hamiltonian terms.
+  </p>
+</div>
+
+<h3>A Simple Example: Hydrogen Molecule</h3>
+
+<p>
+  The simplest non-trivial molecule is H$_2$. In a minimal basis (STO-3G), H$_2$ requires 4
+  spin-orbitals and thus 4 qubits. After applying symmetries and simplifications, the qubit
+  Hamiltonian in the Jordan-Wigner encoding reduces to:
+</p>
+
+$$H_{\text{H}_2} = g_0 I + g_1 Z_0 + g_2 Z_1 + g_3 Z_0 Z_1 + g_4 X_0 X_1 + g_5 Y_0 Y_1$$
+
+<p>
+  where the coefficients $g_k$ depend on the internuclear distance. The $XX$ and $YY$ terms
+  come from electron hopping, while the $ZZ$ term comes from electron-electron repulsion. We can
+  simulate this with Trotter steps using the gates we already know:
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="22">OPENQASM 3.0;
+// Simplified H2 simulation (2 active qubits)
+// H ~ -0.4 ZZ + 0.2 XX + 0.2 YY + field terms
+// 2 Trotter steps with dt = pi/8
+qubit[2] q;
+bit[2] c;
+// Hartree-Fock initial state: |01> (1 electron in each orbital)
+x q[1];
+// Trotter step 1
+rzz(-pi/10) q[0], q[1]; // ZZ coupling
+rxx(pi/20) q[0], q[1];  // XX hopping
+ryy(pi/20) q[0], q[1];  // YY hopping
+rz(pi/16) q[0];         // single-qubit Z field
+rz(pi/16) q[1];
+// Trotter step 2
+rzz(-pi/10) q[0], q[1];
+rxx(pi/20) q[0], q[1];
+ryy(pi/20) q[0], q[1];
+rz(pi/16) q[0];
+rz(pi/16) q[1];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+  This sandbox simulates a simplified H$_2$ Hamiltonian starting from the Hartree-Fock state
+  $|01\rangle$. The $ZZ$ term represents electron-electron interaction, while $XX$ and $YY$
+  terms represent electron hopping (correlation). Run the circuit and observe the output: the
+  presence of $|10\rangle$ probability indicates electron correlation beyond the mean-field
+  (Hartree-Fock) approximation. This is precisely the quantum advantage - capturing correlation
+  effects that classical mean-field methods miss.
+</p>
+
+<h3>Resource Estimates for Real Molecules</h3>
+
+<p>
+  For industrially relevant molecules, the resource requirements are substantial:
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Molecule</th>
+      <th>Application</th>
+      <th>Qubits (est.)</th>
+      <th>Trotter Gates (est.)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>H$_2$ (minimal basis)</td>
+      <td>Benchmark</td>
+      <td>4</td>
+      <td>$\sim 100$</td>
+    </tr>
+    <tr>
+      <td>LiH</td>
+      <td>Battery materials</td>
+      <td>12</td>
+      <td>$\sim 10^4$</td>
+    </tr>
+    <tr>
+      <td>FeMoCo (nitrogenase)</td>
+      <td>Nitrogen fixation catalyst</td>
+      <td>$\sim 100-200$</td>
+      <td>$\sim 10^{11}-10^{14}$</td>
+    </tr>
+    <tr>
+      <td>Cytochrome P450</td>
+      <td>Drug metabolism</td>
+      <td>$\sim 200-400$</td>
+      <td>$\sim 10^{12}-10^{15}$</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>
+  The FeMoCo active site of nitrogenase - the enzyme responsible for biological nitrogen fixation
+  - is a prime target for quantum simulation. Understanding how FeMoCo catalyzes the conversion
+  of $\text{N}_2$ to $\text{NH}_3$ at ambient temperature and pressure (a reaction that
+  industrially requires extreme conditions in the Haber-Bosch process) could revolutionize
+  fertilizer production and reduce its enormous carbon footprint.
+</p>
+
+<div class="callout callout-warning">
+  <strong>Common Misconception.</strong>
+  <p>
+    Quantum computers will not replace all of classical chemistry. For many molecules, classical
+    methods (DFT, CCSD(T), DMRG) work well. Quantum advantage is expected specifically for
+    <em>strongly correlated</em> systems - those with near-degenerate orbitals, transition metal
+    complexes, and bond-breaking reactions - where classical methods fail or require uncontrolled
+    approximations. The goal is not to replace classical chemistry but to extend its reach into
+    regimes it cannot currently handle.
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="condensed-matter">
+<h2>33.5 Simulating Materials and Condensed Matter</h2>
+
+<p>
+  Beyond molecules, quantum simulation can address fundamental questions in condensed matter
+  physics - the study of solids, liquids, and other many-body systems. Many of the most
+  important open questions in physics involve quantum many-body systems that are beyond the
+  reach of classical simulation.
+</p>
+
+<h3>The Hubbard Model</h3>
+
+<p>
+  The Hubbard model is perhaps the most important unsolved model in condensed matter physics:
+</p>
+
+$$H = -t \sum_{\langle i,j \rangle, \sigma} c_{i\sigma}^\dagger c_{j\sigma} + U \sum_i n_{i\uparrow} n_{i\downarrow}$$
+
+<p>
+  Despite its simplicity (only two parameters, $t$ and $U$), the 2D Hubbard model is believed to
+  capture the essential physics of high-temperature superconductivity in cuprate materials. Yet
+  its phase diagram remains unknown in important parameter regimes. Classical methods - quantum
+  Monte Carlo, DMRG, dynamical mean-field theory - each have limitations (the sign problem,
+  dimensionality restrictions, or mean-field approximations) that prevent a definitive solution.
+</p>
+
+<p>
+  A quantum computer could simulate the Hubbard model directly. Using the Jordan-Wigner
+  transformation on a 2D lattice, the Hamiltonian maps to a qubit Hamiltonian with nearest-neighbor
+  hopping terms (long Pauli strings due to the Jordan-Wigner encoding) and on-site interaction
+  terms ($ZZ$ type). Trotterization then proceeds as before, with $\text{Rxx}$, $\text{Ryy}$
+  gates for hopping and $\text{Rzz}$ gates for interactions.
+</p>
+
+<h3>Topological Phases</h3>
+
+<p>
+  Some of the most exotic quantum phases of matter are <strong>topological phases</strong> -
+  states characterized not by local order parameters (like magnetization) but by global
+  topological invariants. Examples include:
+</p>
+
+<ul>
+  <li>
+    <strong>Topological insulators:</strong> Materials that are insulating in their bulk but
+    conduct on their surface through topologically protected edge states.
+  </li>
+  <li>
+    <strong>Fractional quantum Hall states:</strong> Two-dimensional electron gases in strong
+    magnetic fields that exhibit fractionalized excitations (anyons) with exotic exchange
+    statistics.
+  </li>
+  <li>
+    <strong>Quantum spin liquids:</strong> Magnetic materials where quantum fluctuations prevent
+    ordering even at zero temperature, potentially hosting anyonic excitations useful for
+    topological quantum computing.
+  </li>
+</ul>
+
+<p>
+  Quantum simulation can probe these phases by preparing ground states of topological
+  Hamiltonians and measuring topological invariants (e.g., entanglement entropy, string order
+  parameters). This is an area where analog quantum simulators (particularly Rydberg atom
+  arrays) have already made significant experimental progress.
+</p>
+
+<h3>Lattice Gauge Theories</h3>
+
+<p>
+  Quantum field theories - the theoretical framework of particle physics - can be discretized
+  on a lattice for numerical simulation. <strong>Lattice gauge theories</strong> describe the
+  strong nuclear force (quantum chromodynamics) and electroweak interactions. Classical lattice
+  Monte Carlo methods are powerful for equilibrium properties but fail for real-time dynamics
+  (due to the sign problem) and for systems at finite density (relevant to neutron stars and
+  heavy-ion collisions).
+</p>
+
+<p>
+  Quantum simulation of lattice gauge theories is a rapidly growing field. The Hamiltonian
+  formulation of lattice gauge theories maps naturally to qubit systems (with gauge constraints
+  implemented via energy penalties or symmetry-preserving encodings). Early quantum simulations
+  have demonstrated proof-of-concept for 1+1 dimensional models (Schwinger model, lattice QED),
+  and scaling to higher dimensions is an active area of research.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    Condensed matter applications of quantum simulation include: the 2D Hubbard model
+    (high-temperature superconductivity), topological phases of matter (topological insulators,
+    quantum spin liquids), and lattice gauge theories (real-time dynamics of quantum field
+    theories). These problems share a common feature: classical methods face fundamental
+    limitations (sign problem, entanglement growth, dimensionality) that quantum simulation
+    can potentially overcome.
+  </p>
+</div>
+
+<h3>Near-Term Prospects</h3>
+
+<p>
+  What can we realistically expect from quantum simulation in the near term? The answer depends
+  on the hardware:
+</p>
+
+<ul>
+  <li>
+    <strong>NISQ era (now - ~2030):</strong> Noisy quantum computers with 50-1000 qubits and
+    limited circuit depth. Variational algorithms (VQE, QAOA) and shallow Trotter circuits can
+    address small molecules and lattice models. Results must be carefully benchmarked against
+    classical methods. Some scientific insights (e.g., qualitative phase diagrams) may be
+    achievable even without full error correction.
+  </li>
+  <li>
+    <strong>Early fault-tolerant era (~2030+):</strong> Logical qubits with low error rates
+    enabling deeper circuits. First applications where quantum simulation provides unambiguous
+    advantages over all classical methods - likely in quantum chemistry (molecules with 50-100
+    orbitals) or small lattice models.
+  </li>
+  <li>
+    <strong>Full-scale fault-tolerant era:</strong> Thousands of logical qubits with arbitrary
+    circuit depth. Industrial-scale quantum chemistry, materials design, and simulation of
+    quantum field theories. This is when the vision of Feynman's 1982 proposal is fully realized.
+  </li>
+</ul>
+
+<div class="callout callout-info">
+  <strong>Historical Note.</strong>
+  <p>
+    The first quantum simulation experiments were demonstrations of simple lattice models on
+    trapped-ion and superconducting platforms around 2010-2012. By 2023, analog simulators with
+    over 200 atoms (Rydberg arrays, cold atoms in optical lattices) were probing many-body
+    physics beyond the reach of exact classical simulation. Digital simulation has progressed
+    from 2-qubit demonstrations to circuits on 100+ qubits, though at noise levels that limit
+    accuracy. The field is in a period of rapid experimental progress, with each year bringing
+    larger systems, lower error rates, and more sophisticated simulation protocols.
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+
+<h3>Interactive: Hamiltonian Expectation Value</h3>
+<p>
+  A key output of digital quantum simulation is the expectation value of an observable
+  on the time-evolved state. Adjust the evolution parameter below to see how the
+  $\langle ZZ \rangle$ expectation value changes as the simulated Ising interaction
+  evolves the system.
+</p>
+<div class="simulation" data-component="simulation" data-expectation="true" data-pauli="ZZ">
+  <div class="sim-controls">
+    <label>Coupling $t$: <input type="range" data-param="t" min="0" max="3.14" step="0.01" value="0.50"><output>0.50</output></label>
+  </div>
+  <pre class="sim-qasm">OPENQASM 3.0;
+qubit[2] q;
+rx(0.5) q[0];
+rx(0.5) q[1];
+rzz({t}) q[0], q[1];</pre>
+  <div class="sim-output"></div>
+</div>
+
+<!-- ================================================================== -->
+
+<div class="flashcard-deck" data-component="flashcard-deck">
+  <div class="flashcard-deck-header">Chapter 33 Review</div>
+
+  <div class="flashcard" data-card-id="ch33-hamiltonian-simulation-problem">
+    <div class="card-front">State the Hamiltonian simulation problem. What makes it challenging?</div>
+    <div class="card-back">
+      Given $H = \sum_j H_j$ (a sum of local terms), implement $e^{-iHt}$ as a quantum circuit
+      to accuracy $\epsilon$. The challenge is non-commutativity: $[H_j, H_k] \neq 0$ in general,
+      so $e^{-i(H_j + H_k)t} \neq e^{-iH_j t} e^{-iH_k t}$. We cannot simply apply each term's
+      evolution independently. Trotterization and advanced methods (LCU, qubitization) handle this
+      by carefully controlling the approximation error.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch33-first-order-trotter">
+    <div class="card-front">State the first-order Trotter formula and its error scaling.</div>
+    <div class="card-back">
+      The first-order Trotter formula approximates $e^{-iHt}$ by dividing time into $n$ steps:
+      $e^{-iHt} \approx (\prod_j e^{-iH_j t/n})^n$. The error is $O(t^2 \|[A,B]\|/n)$ for two
+      terms, or more generally $O(m^2 \|H\|^2 t^2/n)$ for $m$ terms. To achieve accuracy
+      $\epsilon$, we need $n = O(t^2/\epsilon)$ steps, giving total gate count $O(m t^2/\epsilon)$.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch33-suzuki-trotter-improvement">
+    <div class="card-front">How does the second-order Suzuki-Trotter formula improve on the first-order formula?</div>
+    <div class="card-back">
+      The second-order formula symmetrizes the product: $S_2(t) = \prod_j e^{-iH_j t/2}
+      \prod_{j=m}^1 e^{-iH_j t/2}$ (forward then backward). This "palindrome" structure cancels
+      the leading error term, giving $O(t^3/n^2)$ error instead of $O(t^2/n)$. For accuracy
+      $\epsilon$, this requires $n = O(t^{3/2}/\sqrt{\epsilon})$ steps - fewer than first-order.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch33-qubitization-optimal">
+    <div class="card-front">What query complexity does qubitization + QSP achieve for Hamiltonian simulation?</div>
+    <div class="card-back">
+      Qubitization combined with quantum signal processing achieves $O(\lambda t +
+      \log(1/\epsilon)/\log\log(1/\epsilon))$ query complexity, where $\lambda = \sum_j |\alpha_j|$
+      is the 1-norm of the Hamiltonian coefficients. This is optimal in both $t$ and $\epsilon$
+      (up to doubly logarithmic factors), a dramatic improvement over Trotter's
+      $O(t^2/\epsilon)$.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch33-jordan-wigner">
+    <div class="card-front">Describe the Jordan-Wigner transformation and its role in quantum chemistry simulation.</div>
+    <div class="card-back">
+      The Jordan-Wigner transformation maps fermionic creation/annihilation operators to qubit
+      (Pauli) operators. Each orbital maps to one qubit; occupation $n_p = a_p^\dagger a_p$ becomes
+      $(I - Z_p)/2$. Creation operators acquire strings of $Z$ operators to enforce fermionic
+      antisymmetry. The molecular Hamiltonian becomes a sum of Pauli strings $H = \sum_k \alpha_k
+      P_k$, which can then be simulated by Trotterization or other methods.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch33-chemistry-advantage">
+    <div class="card-front">For which types of chemical systems is quantum advantage expected? Where are classical methods sufficient?</div>
+    <div class="card-back">
+      Quantum advantage is expected for <strong>strongly correlated</strong> systems: transition
+      metal complexes, near-degenerate orbitals, bond-breaking reactions, and open-shell species
+      (e.g., FeMoCo, cytochrome P450). Classical methods (DFT, CCSD(T), DMRG) work well for
+      weakly correlated, closed-shell molecules. The goal is to extend computational chemistry's
+      reach into the strongly correlated regime, not to replace classical methods entirely.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch33-lcu-technique">
+    <div class="card-front">What are the PREPARE and SELECT oracles in the LCU technique?</div>
+    <div class="card-back">
+      For $H = \sum_j \alpha_j U_j$: <strong>PREPARE</strong> maps $|0\rangle$ to
+      $\sum_j \sqrt{\alpha_j/\lambda}|j\rangle$ (encoding coefficients as amplitudes).
+      <strong>SELECT</strong> maps $|j\rangle|\psi\rangle \to |j\rangle U_j|\psi\rangle$
+      (controlled application of unitaries). Together, $\text{PREPARE}^\dagger \cdot
+      \text{SELECT} \cdot \text{PREPARE}$ gives a block encoding of $H/\lambda$, the starting
+      point for qubitization and QSVT.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch33-condensed-matter-applications">
+    <div class="card-front">Name three key condensed matter problems targeted by quantum simulation.</div>
+    <div class="card-back">
+      (1) <strong>2D Hubbard model:</strong> believed to explain high-temperature superconductivity
+      in cuprates; phase diagram unknown due to the fermion sign problem. (2) <strong>Topological
+      phases:</strong> quantum spin liquids, fractional quantum Hall states, characterized by
+      nonlocal entanglement. (3) <strong>Lattice gauge theories:</strong> real-time dynamics of
+      quantum field theories (QCD, Schwinger model), where classical Monte Carlo fails for
+      dynamical and finite-density problems.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+    </article>
+
+    
+    <nav class="chapter-nav" aria-label="Chapter navigation">
+      <a href="32-simulation-why.html" class="prev">&larr; Chapter 32: Why Quantum Simulation Matters</a>
+      <span class="nav-spacer"></span>
+      <a href="34-quantum-internet.html" class="next">Chapter 34: The Quantum Internet &rarr;</a>
+    </nav>
+    
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof renderMathInElement !== "undefined") {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "$", right: "$", display: false}
+          ],
+          throwOnError: false
+        });
+      }
+    });
+  </script>
+  
+  <script>
+  "use strict";
+  
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function isDark() { return window.matchMedia("(prefers-color-scheme: dark)").matches; }
+  function renderMath(el) {
+    if (typeof renderMathInElement === "function")
+      renderMathInElement(el, { delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}], throwOnError: false });
+  }
+
+  
+  var wasmReady = null;
+  function ensureWasm() {
+    if (!wasmReady) {
+      wasmReady = (async function() {
+        var go = new Go();
+        var result = await WebAssembly.instantiateStreaming(fetch("../main.wasm"), go.importObject);
+        go.run(result.instance);
+      })();
+    }
+    return wasmReady;
+  }
+
+  
+  var SRS_KEY = "goqu-srs";
+  function srsLoad() { try { return JSON.parse(localStorage.getItem(SRS_KEY) || "{}"); } catch(e) { return {}; } }
+  function srsSave(d) { localStorage.setItem(SRS_KEY, JSON.stringify(d)); }
+  function getCardState(id) { var d = srsLoad(); return d[id] || {interval:1, ease:2.5, due:0, reps:0}; }
+  function reviewCard(id, q) {
+    var d = srsLoad(), s = d[id] || {interval:1, ease:2.5, due:0, reps:0};
+    if (q >= 3) {
+      s.reps++;
+      if (s.reps === 1) s.interval = 1;
+      else if (s.reps === 2) s.interval = 6;
+      else s.interval = Math.round(s.interval * s.ease);
+      s.ease = Math.max(1.3, s.ease + 0.1 - (5-q)*(0.08 + (5-q)*0.02));
+    } else { s.reps = 0; s.interval = 1; }
+    s.due = Date.now() + s.interval * 86400000;
+    d[id] = s; srsSave(d);
+  }
+
+  
+  function initSandbox(el) {
+    var code = el.querySelector(".code"), output = el.querySelector(".output");
+    if (!code || !output) return;
+    var runBtn = el.querySelector('[data-action="run"]'), resetBtn = el.querySelector('[data-action="reset"]');
+    var shotsEl = el.querySelector("[data-shots]"), orig = code.value;
+    function shots() { return parseInt(shotsEl ? shotsEl.value : el.dataset.shots || "1024", 10); }
+    async function run() {
+      await ensureWasm();
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(code.value, shots(), isDark()));
+        if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+        output.innerHTML = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+    if (runBtn) runBtn.addEventListener("click", run);
+    if (resetBtn) resetBtn.addEventListener("click", function() { code.value = orig; });
+    if (el.hasAttribute("data-autorun")) run();
+  }
+
+  
+  function initSimulation(el) {
+    var tmplEl = el.querySelector(".sim-qasm"), output = el.querySelector(".sim-output");
+    var sliders = el.querySelectorAll('input[type="range"]');
+    var selects = el.querySelectorAll("select[data-param]");
+    if (!tmplEl || !output || (sliders.length === 0 && selects.length === 0)) return;
+    var tmpl = tmplEl.textContent, pending = false;
+    var useNoisy = el.hasAttribute("data-noisy");
+    var useComparison = el.hasAttribute("data-comparison");
+    var useExpectation = el.hasAttribute("data-expectation");
+    var useClifford = el.hasAttribute("data-clifford");
+    async function update() {
+      if (pending) return; pending = true;
+      await ensureWasm();
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var params = {};
+        sliders.forEach(function(s) { params[s.dataset.param] = parseFloat(s.value); var o = s.parentElement.querySelector("output"); if (o) o.textContent = parseFloat(s.value).toFixed(2); });
+        selects.forEach(function(s) { params[s.dataset.param] = s.value; });
+        var qasm = tmpl;
+        for (var k in params) qasm = qasm.replaceAll("{"+k+"}", params[k].toString());
+        var html = "";
+        if (useComparison && window.compareIdealNoisy) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.compareIdealNoisy(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="comparison-panels"><div class="comparison-panel"><h4>Ideal</h4>' + (r.idealHistogramSVG||"") + '</div><div class="comparison-panel"><h4>Noisy</h4>' + (r.noisyHistogramSVG||"") + '</div></div>';
+          if (r.stateCitySVG) html += r.stateCitySVG;
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useNoisy && window.runNoisyQASM) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.runNoisyQASM(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"") + (r.stateCitySVG||"");
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useClifford && window.runClifford) {
+          var r = JSON.parse(window.runClifford(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"");
+          if (r.stabilizers) { html += '<div class="stabilizer-table"><h4>Stabilizers</h4><table>'; r.stabilizers.forEach(function(s) { html += '<tr><td>' + formatStabilizer(s) + '</td></tr>'; }); html += '</table></div>'; }
+        } else if (useExpectation && window.computeExpectation) {
+          var pauliStr = params.pauliStr || el.dataset.pauli || "Z";
+          var r = JSON.parse(window.computeExpectation(qasm, pauliStr, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="sim-stats"><span>&lt;' + esc(pauliStr) + '&gt; = ' + r.expectation.toFixed(6) + '</span></div>';
+        } else {
+          var r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+          
+          if (el.hasAttribute("data-bloch") && window.getStateVector && window.renderBloch) {
+            try {
+              var sv = JSON.parse(window.getStateVector(qasm));
+              if (sv.amplitudes && sv.amplitudes.length === 2) {
+                var a = sv.amplitudes;
+                var blochSVG = window.renderBloch(a[0].re, a[0].im, a[1].re, a[1].im, isDark());
+                if (blochSVG) html += blochSVG;
+              }
+            } catch(e) {   }
+          }
+        }
+        output.innerHTML = html;
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+      pending = false;
+    }
+    sliders.forEach(function(s) { s.addEventListener("input", update); });
+    selects.forEach(function(s) { s.addEventListener("change", update); });
+    update();
+  }
+
+  
+  function formatStabilizer(s) {
+    if (!s) return "";
+    var sign = s[0], ops = s.slice(1), html = '<span class="stab-sign">' + esc(sign) + '</span>';
+    for (var i = 0; i < ops.length; i++) {
+      var c = ops[i], cls = "stab-" + c.toLowerCase();
+      html += '<span class="' + cls + '">' + c + '</span>';
+    }
+    return html;
+  }
+
+  
+  function initExercise(el) {
+    var code = el.querySelector(".code"), feedback = el.querySelector(".exercise-feedback");
+    var checkBtn = el.querySelector('[data-action="check"]');
+    var hintBtn = el.querySelector('[data-action="hint"]'), hintEl = el.querySelector(".exercise-hint");
+    if (!code || !feedback || !checkBtn) return;
+    var expected = {}, tol = 0.1;
+    var expEl = el.querySelector(".exercise-expected");
+    if (expEl) expEl.querySelectorAll("[data-state]").forEach(function(span) {
+      expected[span.dataset.state] = parseFloat(span.dataset.prob);
+      if (span.dataset.tolerance) tol = parseFloat(span.dataset.tolerance);
+    });
+    checkBtn.addEventListener("click", async function() {
+      await ensureWasm();
+      feedback.className = "exercise-feedback visible";
+      feedback.textContent = "Checking...";
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(code.value, 1024, isDark()));
+        if (r.error) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + r.error; return; }
+        if (Object.keys(expected).length === 0) { feedback.className = "exercise-feedback visible pass"; feedback.innerHTML = "Circuit ran successfully."; return; }
+        var prob = JSON.parse(window.getProbabilities(code.value, isDark()));
+        if (prob.error) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + prob.error; return; }
+        var actual = {};
+        for (var i = 0; i < prob.labels.length; i++) actual[prob.labels[i]] = prob.probabilities[i];
+        var ok = true, msgs = [];
+        for (var s in expected) {
+          var a = actual[s] || 0, p = expected[s];
+          if (Math.abs(a - p) > tol) { ok = false; msgs.push("|" + s + "\u27E9: expected " + (p*100|0) + "%, got " + (a*100|0) + "%"); }
+        }
+        if (ok) { feedback.className = "exercise-feedback visible pass"; feedback.innerHTML = "Correct! Your circuit produces the expected output."; }
+        else { feedback.className = "exercise-feedback visible fail"; feedback.innerHTML = "Not quite. " + msgs.join("; ") + "."; }
+        renderMath(feedback);
+      } catch(e) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + e.message; }
+    });
+    if (hintBtn && hintEl) hintBtn.addEventListener("click", function() { hintEl.style.display = hintEl.style.display === "none" ? "block" : "none"; });
+  }
+
+  
+  function initFlashcardDeck(el) {
+    el.querySelectorAll(".flashcard").forEach(function(card) {
+      var id = card.dataset.cardId;
+      if (!id) return;
+      var state = getCardState(id);
+      if (state.due > 0 && state.due > Date.now()) card.classList.add("reviewed");
+      card.addEventListener("click", function(e) {
+        if (e.target.closest("button")) return;
+        card.classList.toggle("flipped");
+        var back = card.querySelector(".card-back");
+        if (back) renderMath(back);
+      });
+      var easyBtn = card.querySelector(".easy"), hardBtn = card.querySelector(".hard");
+      if (easyBtn) easyBtn.addEventListener("click", function() { reviewCard(id, 4); card.classList.remove("flipped"); card.classList.add("reviewed"); });
+      if (hardBtn) hardBtn.addEventListener("click", function() { reviewCard(id, 2); card.classList.remove("flipped"); });
+    });
+  }
+
+  
+  function initPOE(el) {
+    var steps = el.querySelectorAll(".poe-step"), prog = el.querySelectorAll(".poe-progress-step");
+    if (steps.length === 0) return;
+    var cur = 0;
+    function show(idx) {
+      steps.forEach(function(s,i) { s.classList.toggle("active", i === idx); });
+      prog.forEach(function(s,i) { s.classList.remove("active","done"); if (i < idx) s.classList.add("done"); if (i === idx) s.classList.add("active"); });
+      cur = idx;
+      var active = steps[idx];
+      if (active) active.querySelectorAll('.sandbox:not([data-initialized])').forEach(function(sb) { sb.setAttribute("data-initialized","true"); initSandbox(sb); });
+    }
+    el.querySelectorAll('[data-action="next"]').forEach(function(btn) { btn.addEventListener("click", function() { if (cur < steps.length - 1) show(cur + 1); }); });
+    el.querySelectorAll('[data-action="complete"]').forEach(function(btn) { btn.addEventListener("click", function() { prog.forEach(function(s) { s.classList.remove("active"); s.classList.add("done"); }); }); });
+    show(0);
+  }
+
+  
+  function initStepThrough(el) {
+    var qasmEl = el.querySelector(".step-qasm");
+    var output = el.querySelector(".step-output");
+    var prevBtn = el.querySelector('[data-action="prev"]');
+    var nextBtn = el.querySelector('[data-action="next"]');
+    var stepInfo = el.querySelector(".step-info");
+    if (!qasmEl || !output) return;
+    var qasm = qasmEl.textContent;
+    var mode = el.dataset.mode || "clifford"; 
+    var steps = null, cur = -1;
+
+    async function load() {
+      await ensureWasm();
+      try {
+        if (mode === "clifford" && window.cliffordStepThrough) {
+          var r = JSON.parse(window.cliffordStepThrough(qasm));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+          
+          steps.unshift({gate: "init", qubits: [], stabilizers: r.steps.length > 0 ? null : []});
+        } else if (mode === "grover" && window.groverStepThrough) {
+          var nq = parseInt(el.dataset.qubits || "2", 10);
+          var targets = JSON.parse(el.dataset.targets || "[]");
+          var r = JSON.parse(window.groverStepThrough(nq, targets.join(",")));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+        }
+        if (steps && steps.length > 0) { cur = 0; renderStep(); }
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    function renderStep() {
+      if (!steps || cur < 0 || cur >= steps.length) return;
+      var s = steps[cur];
+      var html = "";
+      if (mode === "clifford") {
+        if (s.gate === "init") {
+          html = '<p class="step-label">Initial state |0...0&gt;</p>';
+          
+          if (steps.length > 1 && steps[1].stabilizers) {
+            var nq = steps[1].stabilizers[0].length - 1;
+            html += '<div class="stabilizer-table"><table>';
+            for (var i = 0; i < nq; i++) {
+              var row = "+";
+              for (var j = 0; j < nq; j++) row += (j === i) ? "Z" : "I";
+              html += '<tr><td>' + formatStabilizer(row) + '</td></tr>';
+            }
+            html += '</table></div>';
+          }
+        } else {
+          html = '<p class="step-label">After <strong>' + esc(s.gate) + '</strong> on qubit' + (s.qubits.length > 1 ? 's ' : ' ') + s.qubits.join(', ') + '</p>';
+          if (s.stabilizers) {
+            html += '<div class="stabilizer-table"><table>';
+            s.stabilizers.forEach(function(st) { html += '<tr><td>' + formatStabilizer(st) + '</td></tr>'; });
+            html += '</table></div>';
+          }
+        }
+      } else if (mode === "grover") {
+        html = '<p class="step-label">Iteration ' + s.iteration + '</p>';
+        if (s.probabilities) {
+          html += '<div class="amplitude-bars">';
+          for (var i = 0; i < s.probabilities.length; i++) {
+            var label = i.toString(2).padStart(Math.ceil(Math.log2(s.probabilities.length)), '0');
+            var pct = (s.probabilities[i] * 100).toFixed(1);
+            var isTarget = el.dataset.targets && JSON.parse(el.dataset.targets).indexOf(i) >= 0;
+            html += '<div class="amp-bar' + (isTarget ? ' target' : '') + '"><div class="amp-fill" style="height:' + pct + '%"></div><span class="amp-label">|' + label + '&gt;</span><span class="amp-value">' + pct + '%</span></div>';
+          }
+          html += '</div>';
+        }
+      }
+      output.innerHTML = html;
+      if (stepInfo) stepInfo.textContent = "Step " + cur + " / " + (steps.length - 1);
+      if (prevBtn) prevBtn.disabled = (cur === 0);
+      if (nextBtn) nextBtn.disabled = (cur >= steps.length - 1);
+    }
+
+    if (prevBtn) prevBtn.addEventListener("click", function() { if (cur > 0) { cur--; renderStep(); } });
+    if (nextBtn) nextBtn.addEventListener("click", function() { if (steps && cur < steps.length - 1) { cur++; renderStep(); } });
+    load();
+  }
+
+  
+  document.addEventListener("DOMContentLoaded", function() {
+    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough};
+    document.querySelectorAll("[data-component]").forEach(function(el) { var fn = reg[el.dataset.component]; if (fn) fn(el); });
+  });
+  </script>
+  
+</body>
+</html>

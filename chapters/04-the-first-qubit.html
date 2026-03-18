@@ -9,8 +9,8 @@
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/contrib/auto-render.min.js"></script>
   
+  <link rel="preload" href="../main.wasm" as="fetch" type="application/wasm" crossorigin>
   <script src="../wasm_exec.js"></script>
-  <script type="module" src="../js/app.js"></script>
   
 </head>
 <body>
@@ -60,7 +60,7 @@
     </details>
     
     <details>
-      <summary>Part 4: Quantum Algorithms: The First Wave</summary>
+      <summary>Part 4: Quantum Algorithms - The First Wave</summary>
       <ol start="9">
         
         <li value="9"><a href="09-oracles.html">Oracles and Quantum Parallelism</a></li>
@@ -202,11 +202,21 @@
     <article>
       <h1>Chapter 4: The First Qubit</h1>
       <p>
-  Everything you have learned so far - bits, logic gates, reversible circuits - has been building to this moment. In Part I, we saw that classical computation is powerful but ultimately limited: every bit is either 0 or 1, every gate maps definite inputs to definite outputs, and every computation proceeds along a single, predictable path. Now we cross the threshold into a fundamentally different kind of computing, one where a single bit of quantum information - a <strong>qubit</strong> - can do things no classical bit ever could.
+  Everything you have learned so far - bits, logic gates, reversible circuits - has been building
+  to this moment. In Part I, we saw that classical computation is powerful but ultimately limited:
+  every bit is either 0 or 1, every gate maps definite inputs to definite outputs, and every
+  computation proceeds along a single, predictable path. Now we cross the threshold into a
+  fundamentally different kind of computing, one where a single bit of quantum information -
+  a <strong>qubit</strong> - can do things no classical bit ever could.
 </p>
 
 <p>
-  This chapter is the pivot point of the entire textbook. By the end of it, you will understand the three ideas that make quantum computing possible: superposition, measurement, and interference. You will see these ideas first through a physical experiment you can almost do on your kitchen table, then through geometry, and finally through the precise language of mathematics. Take your time here. The rest of the book builds directly on what you learn in the next few sections.
+  This chapter is the pivot point of the entire textbook. By the end of it, you will understand
+  the three ideas that make quantum computing possible: superposition, measurement, and
+  interference. You will see these ideas first through a physical experiment with polarized light,
+  then through the geometry of the Bloch sphere, and finally through the precise language of
+  linear algebra and Dirac notation. Take your time here. The rest of the book builds directly
+  on what you learn in the next few sections.
 </p>
 
 <!-- ================================================================== -->
@@ -214,58 +224,113 @@
 <h2>4.1 What Makes Quantum Different</h2>
 
 <p>
-  If you had to explain quantum computing to a friend in sixty seconds, you would need exactly three ideas. Not one, not two - all three are required, and none of them alone is sufficient. They are:
+  If you had to explain quantum computing to a friend in sixty seconds, you would need exactly
+  three ideas. Not one, not two - all three are required, and none of them alone is sufficient.
+  They are:
 </p>
 
 <ol>
-  <li><strong>Superposition</strong> - A qubit can exist in a combination of 0 and 1 at the same time.</li>
-  <li><strong>Measurement</strong> - When you look at a qubit, the superposition collapses to a single definite outcome.</li>
-  <li><strong>Interference</strong> - Quantum states can combine so that some outcomes reinforce each other and others cancel out.</li>
+  <li><strong>Superposition</strong> - A qubit can exist in a combination of 0 and 1 simultaneously.</li>
+  <li><strong>Measurement</strong> - When you observe a qubit, the superposition collapses to a single definite outcome.</li>
+  <li><strong>Interference</strong> - Quantum amplitudes can combine so that some outcomes reinforce each other and others cancel out.</li>
 </ol>
 
 <p>
-  Let us build intuition for each of these in turn, starting with analogies from everyday life, and then sharpening them into precise concepts.
+  Let us build intuition for each of these, starting with analogies from everyday experience
+  and then sharpening them into precise concepts.
 </p>
 
-<h3>Superposition: Being in Two States at Once</h3>
+<h3>Superposition: Not Just Classical Uncertainty</h3>
 
 <p>
-  Consider a coin spinning in the air. Before it lands, is it heads or tails? Neither - or rather, both possibilities are "alive" simultaneously. The coin has not yet committed to an outcome. A qubit in superposition is something like this: it carries the potential for both 0 and 1, with each possibility having a specific weight (called an <strong>amplitude</strong>) that determines how likely each outcome is when we finally look.
-</p>
-
-<p>
-  But the analogy has an important flaw. A spinning coin is actually in some definite physical state at every instant - we just do not know which side will land up. A qubit in superposition is genuinely not in the state 0 or the state 1. The superposition is not about our ignorance; it is a real, physical feature of the quantum world. This distinction matters enormously, and we will sharpen it throughout this chapter.
-</p>
-
-<h3>Measurement: The Moment of Decision</h3>
-
-<p>
-  With a classical bit, you can read its value as many times as you like, and it stays the same. Measurement in the quantum world is radically different. When you measure a qubit in superposition, two things happen: (1) you get a definite result, either 0 or 1, and (2) the superposition is destroyed. The qubit is now in whatever state you observed. If you measure it again, you will get the same answer - but the original superposition is gone forever.
+  Consider a coin spinning in the air. Before it lands, is it heads or tails? Neither - both
+  possibilities are "alive" simultaneously. A qubit in superposition is something like this: it
+  carries the potential for both 0 and 1, with each possibility having a specific weight (called
+  an <strong>amplitude</strong>) that determines how likely each outcome is when we finally look.
 </p>
 
 <p>
-  This is not a limitation of our instruments. It is a fundamental law of nature. There is no gentler way to extract information from a qubit. Every measurement disturbs the system. This forces quantum algorithm designers to think very carefully about <em>when</em> and <em>how</em> they measure.
+  But the analogy has a critical flaw, and getting this right matters enormously. A spinning coin
+  is in some definite physical state at every instant - we just lack the information to predict
+  which side will land up. Our uncertainty is about our <em>knowledge</em>, not about the coin
+  itself. A qubit in superposition is genuinely different: it is not secretly in state 0 or
+  secretly in state 1 with us merely ignorant of which. The superposition is a real, physical
+  property of the system. We know this because quantum superpositions produce effects - specifically,
+  interference - that classical uncertainty cannot.
 </p>
 
-<h3>Interference: The Secret Weapon</h3>
-
-<p>
-  If superposition were the whole story, quantum computing would be no more powerful than flipping coins. The real power comes from <strong>interference</strong>. Think of ripples on a pond. When two ripples meet, they can either reinforce each other (constructive interference, making a bigger wave) or cancel each other out (destructive interference, flattening the water). Quantum amplitudes work the same way.
-</p>
-
-<p>
-  A quantum algorithm is essentially a choreography of interference. You set up a superposition over many possible answers, then apply operations that cause wrong answers to interfere destructively (canceling each other out) while correct answers interfere constructively (reinforcing each other). When you finally measure, the correct answer appears with high probability - not because the computer tried every possibility sequentially, but because the mathematics of interference concentrated the probability where you need it.
-</p>
-
-<div class="callout callout-key">
-  <strong>The Quantum Computing Trinity</strong>
+<div class="callout callout-warning">
+  <strong>Common Misconception.</strong>
   <p>
-    <strong>Superposition</strong> creates possibilities. <strong>Interference</strong> shapes them. <strong>Measurement</strong> reveals the answer. All three are essential. Superposition without interference is just randomness. Interference without measurement gives no output. And measurement without superposition gives you a classical bit.
+    "A qubit in superposition is in both states at the same time, like a coin that is heads AND
+    tails." This is misleading. The qubit is not simultaneously 0 and 1 in the way you might
+    picture two coins sitting on a table. Instead, the qubit is in a <em>single, well-defined
+    quantum state</em> that happens to have components along both $|0\rangle$ and $|1\rangle$.
+    Superposition is a property of the state, not a doubling of reality. The spinning coin
+    analogy captures the "uncommitted" feeling of superposition, but fails to capture the fact
+    that quantum uncommittedness can produce interference while classical uncertainty cannot.
   </p>
 </div>
 
+<h3>Measurement: The Moment of Commitment</h3>
+
 <p>
-  Now let us see these ideas in action. The sandbox below runs a simple quantum program: it creates a qubit, puts it in superposition with the Hadamard gate (which we will study in detail soon), and measures it 1024 times. Before you run it, take a moment to predict what you will see.
+  With a classical bit, you can read its value as many times as you like, and it remains unchanged.
+  Measurement in the quantum world is radically different. When you measure a qubit in
+  superposition, two things happen simultaneously: (1) you get a definite result, either 0 or 1,
+  chosen randomly according to specific probabilities, and (2) the superposition is destroyed.
+  The qubit snaps into whatever state you observed. If you measure it again immediately, you will
+  get the same answer - but the original superposition is gone forever.
+</p>
+
+<p>
+  This is not a limitation of our instruments. No matter how carefully you design your measuring
+  device, every measurement of a qubit in superposition disturbs it. This is a fundamental law of
+  nature, not an engineering problem to be solved. It forces quantum algorithm designers to think
+  very carefully about <em>when</em> and <em>how</em> they extract information from their qubits.
+</p>
+
+<h3>Interference: The Real Source of Quantum Power</h3>
+
+<p>
+  If superposition were the whole story, quantum computing would be no more powerful than flipping
+  coins. The real computational power comes from <strong>interference</strong>. Think of ripples on
+  a pond. When two circular wave fronts meet, they can reinforce each other (constructive
+  interference, making a taller wave) or cancel each other out (destructive interference,
+  flattening the water). The height of a water wave can be positive (crest) or negative (trough),
+  and when waves overlap, their heights add algebraically. A crest meeting a trough of equal
+  size produces nothing.
+</p>
+
+<p>
+  Quantum amplitudes work the same way. Each amplitude is a number that can be positive, negative,
+  or even complex-valued. When a quantum computation combines multiple paths to the same outcome,
+  the amplitudes along those paths add up. Paths with amplitudes of opposite sign cancel;
+  paths with amplitudes of the same sign reinforce. A quantum algorithm is essentially a
+  choreography of interference: you set up a superposition over many possible answers, then apply
+  operations that cause wrong answers to interfere destructively while correct answers interfere
+  constructively. When you finally measure, the correct answer appears with high probability.
+</p>
+
+<div class="callout callout-key">
+  <strong>The Quantum Computing Trinity.</strong>
+  <p>
+    <strong>Superposition</strong> creates possibilities.
+    <strong>Interference</strong> shapes them.
+    <strong>Measurement</strong> reveals the answer.
+    All three are essential. Superposition without interference is just randomness. Interference
+    without measurement gives no output. And measurement without superposition gives you a
+    classical bit.
+  </p>
+</div>
+
+<h3>Your First Quantum Experiment</h3>
+
+<p>
+  Let us see these ideas in action. The exercise below runs a simple quantum program: it creates
+  a qubit (which starts in state $|0\rangle$), applies a <strong>Hadamard gate</strong> (which
+  creates an equal superposition - we will study it in detail soon), and measures the result
+  1024 times. Before you run it, make a prediction.
 </p>
 
 <div class="poe" data-component="poe">
@@ -276,13 +341,19 @@
   </div>
   <div class="poe-step poe-predict active">
     <h3>Predict</h3>
-    <p>A qubit starts in state $|0\rangle$. We apply a Hadamard gate (which creates an equal superposition) and then measure it. If we repeat this experiment 1024 times, how many times will we see the outcome 0, and how many times will we see 1? Will the split be exactly 50/50, or something else?</p>
+    <p>
+      A qubit starts in state $|0\rangle$. We apply a Hadamard gate (which creates an equal
+      superposition) and then measure. If we repeat this experiment 1024 times, how many times
+      will we see outcome 0 and how many times will we see outcome 1? Will the split be exactly
+      50/50, or will it fluctuate?
+    </p>
     <textarea rows="3" placeholder="Write your prediction here before continuing..."></textarea>
     <button data-action="next">Submit Prediction</button>
   </div>
   <div class="poe-step poe-observe">
     <h3>Observe</h3>
-    <p>Run the circuit and examine the histogram. How does the result compare to your prediction?</p>
+    <p>Run the circuit and examine the histogram. Click "Run Again" a few times. Do you get
+    exactly the same counts each time?</p>
     <div class="sandbox" data-component="sandbox" data-shots="1024" data-autorun>
       <textarea class="code" rows="6">OPENQASM 3.0;
 qubit[1] q;
@@ -294,19 +365,29 @@ c = measure q;</textarea>
       </div>
       <div class="output"></div>
     </div>
-    <p>Try clicking "Run Again" several times. Do you get exactly the same counts each time?</p>
     <button data-action="next">Continue to Explanation</button>
   </div>
   <div class="poe-step poe-explain">
     <h3>Explain</h3>
     <p>
-      The Hadamard gate placed the qubit into an <strong>equal superposition</strong> of $|0\rangle$ and $|1\rangle$. In this state, the probability of measuring 0 is exactly 50%, and the probability of measuring 1 is exactly 50%. Over 1024 shots, you should see the counts roughly split around 512 each - but not exactly, because each individual measurement is genuinely random.
+      The Hadamard gate placed the qubit into an <strong>equal superposition</strong> of
+      $|0\rangle$ and $|1\rangle$. In this state, the probability of measuring 0 is exactly 50%,
+      and the probability of measuring 1 is exactly 50%. Over 1024 shots, you should see the
+      counts roughly split around 512 each - but not exactly, because each individual measurement
+      is genuinely random.
     </p>
     <p>
-      This is different from a classical coin flip in a profound way. A fair coin's randomness comes from our inability to control the flip precisely. A qubit's randomness is <em>intrinsic</em> - even with perfect knowledge of the quantum state, the outcome of each measurement is fundamentally unpredictable. This was one of the most unsettling discoveries in the history of physics, and it remains true today.
+      This randomness is different from a classical coin flip in a profound way. A fair coin's
+      randomness comes from our inability to control the flip precisely - if we knew the exact
+      force, angle, and air resistance, we could predict the outcome. A qubit's randomness is
+      <em>intrinsic</em>: even with perfect knowledge of the quantum state, the outcome of each
+      measurement is fundamentally unpredictable. This was one of the most unsettling discoveries
+      in the history of physics, and it remains true today.
     </p>
     <p>
-      Notice also that each time you run the experiment, you get slightly different counts. The probabilities are fixed at 50/50, but the actual counts fluctuate - just like flipping a fair coin 1024 times will not always give exactly 512 heads.
+      Each time you click "Run Again," you get slightly different counts. The underlying
+      probabilities are fixed at exactly 50/50, but the actual counts fluctuate due to statistical
+      sampling - just as flipping a fair coin 1024 times rarely gives exactly 512 heads.
     </p>
     <button data-action="complete">Complete</button>
   </div>
@@ -319,115 +400,228 @@ c = measure q;</textarea>
 <h2>4.2 Polarized Light: Your First Quantum System</h2>
 
 <p>
-  Before we dive into the abstract mathematics of qubits, let us ground our intuition in a physical system you can actually see and touch: <strong>polarized light</strong>. This is not merely an analogy - polarization of a single photon is a genuine qubit, and the experiments below demonstrate real quantum mechanics.
+  Before we dive into abstract mathematics, let us ground our intuition in a physical system you
+  can actually see and touch: <strong>polarized light</strong>. This is not merely a teaching
+  analogy. The polarization of a single photon is a genuine two-level quantum system - a real
+  qubit, used in actual quantum cryptography systems. The experiments below demonstrate quantum
+  superposition, measurement, and state transformation using nothing more than polarizing filters.
 </p>
 
 <h3>What Is Polarization?</h3>
 
 <p>
-  Light is an electromagnetic wave. As it travels toward you, the electric field oscillates in a plane perpendicular to the direction of travel. The orientation of that oscillation is the light's <strong>polarization</strong>. If the electric field oscillates vertically, we call it vertically polarized ($\uparrow$). If it oscillates horizontally, we call it horizontally polarized ($\rightarrow$). The light can also oscillate at any angle in between, or even trace out a circle (circular polarization), but let us start with vertical and horizontal.
+  Light is an electromagnetic wave. As it travels toward you, the electric field oscillates in a
+  plane perpendicular to the direction of travel. The orientation of that oscillation is the
+  light's <strong>polarization</strong>. If the electric field oscillates vertically, we call it
+  vertically polarized. If it oscillates horizontally, we call it horizontally polarized. These two
+  orthogonal polarization directions form a natural pair of basis states - just like $|0\rangle$
+  and $|1\rangle$ for a qubit:
+</p>
+
+<ul>
+  <li>Vertical polarization $\leftrightarrow$ $|0\rangle$</li>
+  <li>Horizontal polarization $\leftrightarrow$ $|1\rangle$</li>
+</ul>
+
+<p>
+  A photon can also be polarized at any angle between vertical and horizontal. A photon polarized
+  at 45 degrees is in a superposition of vertical and horizontal - exactly analogous to a qubit in
+  a superposition of $|0\rangle$ and $|1\rangle$.
 </p>
 
 <h3>Experiment 1: A Single Polarizing Filter</h3>
 
 <p>
-  Take a polarizing filter - the same material used in polarized sunglasses - and hold it in front of an unpolarized light source. Roughly half the light passes through. The transmitted light is now polarized along the filter's transmission axis. Rotate the filter: the brightness of the transmitted light stays the same, because unpolarized light has no preferred direction.
+  Take a polarizing filter - the same material used in polarized sunglasses - and hold it in
+  front of an unpolarized light source. Roughly half the light passes through. The transmitted
+  light is now polarized along the filter's transmission axis. Rotate the filter: the brightness
+  stays the same, because unpolarized light has no preferred direction.
 </p>
 
 <p>
-  Here is the quantum interpretation: each photon arriving at the filter is in a superposition of "pass" and "block" relative to the filter's axis. The filter acts as a <strong>measurement device</strong>. Each photon either passes (outcome 1) or is absorbed (outcome 0). For unpolarized light, the probability is 50/50 - exactly like our Hadamard gate experiment above.
+  Here is the quantum interpretation: each incoming photon is in a random superposition of
+  "pass" and "block" relative to the filter's axis. The filter acts as a <strong>measurement
+  device</strong>. Each photon either passes through (outcome: polarized along the filter axis)
+  or is absorbed (outcome: polarized perpendicular to the axis). For unpolarized light, the
+  probability is 50/50 - exactly like measuring our Hadamard-prepared qubit.
 </p>
 
-<h3>Experiment 2: Two Filters</h3>
+<h3>Experiment 2: Two Crossed Filters</h3>
 
 <p>
-  Now place two polarizing filters in sequence. Align them both vertically: all the light that passes the first filter also passes the second. Now rotate the second filter to be horizontal (90 degrees from the first): no light gets through. This makes intuitive sense - vertically polarized light cannot pass through a horizontal filter.
+  Now place two polarizing filters in sequence. Align them both vertically: all the light that
+  passes the first filter also passes the second, because vertically polarized photons are
+  already in the "pass" state for a vertical filter. Now rotate the second filter to be
+  horizontal (90 degrees from the first): <strong>no light gets through</strong>.
 </p>
 
 <p>
-  In quantum language: the first filter prepares the photon in the state "vertically polarized." The second filter measures "are you horizontally polarized?" Since vertical and horizontal are orthogonal (completely different) states, the probability of passing is zero. This is the quantum version of: if a bit is definitely 0, measuring it will always give 0, never 1.
+  In quantum language: the first filter prepares each photon in the state "vertically polarized"
+  ($|0\rangle$). The second filter measures "are you horizontally polarized?" ($|1\rangle$).
+  Since vertical and horizontal are orthogonal states, the probability of passing is zero. This
+  is the quantum analogue of: if a qubit is definitely $|0\rangle$, measuring it will never
+  yield $|1\rangle$.
+</p>
+
+<p>
+  More generally, when polarized light hits a filter at angle $\theta$ relative to its
+  polarization, the probability of transmission is $\cos^2\theta$. This is
+  <strong>Malus's law</strong>, discovered experimentally in 1809. In quantum language, it is
+  just the Born rule applied to photon polarization.
 </p>
 
 <h3>Experiment 3: The Surprise - Three Filters</h3>
 
 <p>
-  Here is where things get genuinely strange. Start with two crossed filters (vertical, then horizontal) so that no light passes through. Now insert a third filter between them, oriented at 45 degrees. Classically, adding an extra barrier should block even more light. But what actually happens?
+  Here is where things get genuinely strange. Start with two crossed filters (vertical, then
+  horizontal) so that no light passes through. Now insert a third filter <em>between</em> them,
+  oriented at 45 degrees. Classically, adding an extra barrier should block even more light. But
+  what actually happens?
 </p>
 
 <p>
-  <em>Light comes through.</em>
+  <strong>Light comes through.</strong>
 </p>
 
 <p>
-  This result baffled physicists when it was first demonstrated, but it follows directly from superposition and measurement. Here is the chain of events:
+  This result baffled physicists when it was first analyzed by Paul Dirac in his 1930 textbook
+  <em>The Principles of Quantum Mechanics</em>. But it follows directly from superposition and
+  the fact that measurement changes the state. Here is the chain of events, step by step:
 </p>
 
 <ol>
-  <li>The first filter (vertical) transmits vertically polarized photons.</li>
-  <li>A vertically polarized photon hits the 45-degree filter. Relative to this filter's axis, the photon is in a superposition: it has a $\cos(45°) = 1/\sqrt{2}$ amplitude to pass and a $\sin(45°) = 1/\sqrt{2}$ amplitude to be blocked. So 50% of photons pass, and those that do are now polarized at 45 degrees. The measurement has <strong>changed</strong> the state.</li>
-  <li>A 45-degree photon hits the horizontal filter. Relative to this axis, it again has a $\cos(45°) = 1/\sqrt{2}$ amplitude to pass. So 50% of the surviving photons make it through.</li>
+  <li>
+    <strong>First filter (vertical):</strong> Transmits vertically polarized photons.
+    State after: $|V\rangle$ (our $|0\rangle$).
+  </li>
+  <li>
+    <strong>Second filter (45 degrees):</strong> A vertically polarized photon encountering a
+    45-degree filter is in a superposition relative to that filter's axis. By Malus's law, the
+    probability of transmission is $\cos^2(45°) = (1/\sqrt{2})^2 = 1/2$. So 50% of photons pass.
+    The key point: photons that pass are now polarized at 45 degrees. <strong>The measurement
+    changed the state.</strong>
+  </li>
+  <li>
+    <strong>Third filter (horizontal):</strong> A 45-degree photon encountering a horizontal
+    filter is again in a superposition. The probability of transmission is
+    $\cos^2(45°) = 1/2$. So 50% of the surviving photons make it through.
+  </li>
 </ol>
 
 <p>
-  The final result: 25% of the original vertically polarized photons pass through all three filters. Inserting a filter in the path actually <em>increased</em> the amount of light getting through from 0% to 25%. This is not a trick - it is a direct consequence of the fact that quantum measurement changes the state. The 45-degree filter did not merely observe the photon; it transformed it into a new state that now has a chance of passing the horizontal filter.
+  The final result: $1 \times \frac{1}{2} \times \frac{1}{2} = \frac{1}{4}$ of the original
+  vertically polarized photons pass through all three filters. Inserting a filter between two
+  crossed filters <em>increased</em> the amount of light getting through from 0% to 25%. Adding
+  an absorber let more light through.
 </p>
 
-<div class="callout callout-info">
-  <strong>Why Polarization Matters</strong>
+<p>
+  This is not a trick or an illusion. It is a direct consequence of the fact that quantum
+  measurement changes the state. The 45-degree filter did not merely <em>observe</em> the
+  photon's polarization - it <em>transformed</em> it into a new state (45-degree polarization)
+  that now has a nonzero chance of passing the horizontal filter. No classical model of "the
+  photon is secretly either vertical or horizontal and we just don't know which" can reproduce
+  this result.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
   <p>
-    Polarized light is not just a teaching tool. Photon polarization is used in real quantum key distribution systems (Chapter 8) and forms the basis of many quantum optics experiments. The two polarization states of a photon - say horizontal and vertical - form a genuine two-level quantum system: a qubit.
+    The three-filter experiment demonstrates all three quantum ideas at once:
+    <strong>superposition</strong> (the photon's polarization state relative to each filter),
+    <strong>measurement</strong> (each filter collapses the state and transforms it), and
+    <strong>interference</strong> (the way amplitudes combine through successive filters).
+    Photon polarization is not just an analogy for a qubit - it <em>is</em> a qubit, used in
+    real quantum key distribution systems.
   </p>
 </div>
 
-<p>
-  The three-filter experiment demonstrates all three of our key ideas: the photon is in a <strong>superposition</strong> relative to each filter, <strong>measurement</strong> by each filter collapses and transforms the state, and the way amplitudes combine through sequential filters is a form of <strong>interference</strong>. Keep this experiment in mind as we move to the abstract representation.
-</p>
+<div class="callout callout-info">
+  <strong>Note.</strong>
+  <p>
+    If you have polarized sunglasses, you can try a version of this experiment at home. Hold two
+    pairs of sunglasses at 90 degrees to each other (no light passes through). Then insert a
+    third lens at 45 degrees between them. You should see the dark overlap region brighten. The
+    effect is most dramatic with film polarizers, but works with any polarizing lenses.
+  </p>
+</div>
 
 </section>
 
 <!-- ================================================================== -->
 <section id="qubit-geometrically">
-<h2>4.3 The Qubit, Geometrically</h2>
+<h2>4.3 The Qubit, Geometrically (The Bloch Sphere)</h2>
 
 <p>
-  A classical bit has two states: 0 and 1. You could represent these as two points on a line. A qubit, by contrast, can exist in a continuous infinity of states - every possible superposition of $|0\rangle$ and $|1\rangle$. What shape captures all these possibilities?
+  A classical bit has two states: 0 and 1. You could represent these as two points on a line. A
+  qubit, by contrast, can exist in a continuous infinity of states - every possible superposition
+  of $|0\rangle$ and $|1\rangle$, with every possible relative phase. What geometric shape
+  captures all these possibilities?
 </p>
 
 <p>
-  The answer is a sphere: the <strong>Bloch sphere</strong>. Every single-qubit state corresponds to exactly one point on the surface of this unit sphere. It is one of the most important visualizations in all of quantum computing, and learning to read it will give you geometric intuition for everything that follows.
+  The answer is a sphere: the <strong>Bloch sphere</strong>, named after the physicist Felix
+  Bloch. Every single-qubit pure state corresponds to exactly one point on the surface of this
+  unit sphere. It is one of the most important visualizations in all of quantum computing, and
+  learning to read it will give you geometric intuition for everything that follows.
 </p>
 
 <h3>Reading the Bloch Sphere</h3>
 
 <p>
-  The Bloch sphere uses two angles, $\theta$ (theta) and $\phi$ (phi), to specify any qubit state:
+  The Bloch sphere uses two angles to specify any qubit state:
+</p>
+
+<ul>
+  <li>$\theta$ (theta) - the <strong>polar angle</strong>, measured from the north pole. Range: $0 \leq \theta \leq \pi$.</li>
+  <li>$\phi$ (phi) - the <strong>azimuthal angle</strong>, measured from the positive $x$-axis in the equatorial plane. Range: $0 \leq \phi < 2\pi$.</li>
+</ul>
+
+<p>
+  The key landmarks on the sphere:
 </p>
 
 <ul>
   <li><strong>North pole</strong> ($\theta = 0$): the state $|0\rangle$.</li>
   <li><strong>South pole</strong> ($\theta = \pi$): the state $|1\rangle$.</li>
-  <li><strong>Equator</strong> ($\theta = \pi/2$): equal superpositions of $|0\rangle$ and $|1\rangle$ with various phases. The state $|+\rangle = \frac{1}{\sqrt{2}}(|0\rangle + |1\rangle)$ sits on the positive $x$-axis. The state $|-\rangle = \frac{1}{\sqrt{2}}(|0\rangle - |1\rangle)$ sits on the negative $x$-axis.</li>
-  <li><strong>$\theta$</strong> controls the latitude: how far from the north pole (how much $|1\rangle$ is mixed in).</li>
-  <li><strong>$\phi$</strong> controls the longitude: the relative phase between $|0\rangle$ and $|1\rangle$.</li>
+  <li><strong>Positive $x$-axis</strong> ($\theta = \pi/2, \phi = 0$): the state $|+\rangle = \frac{1}{\sqrt{2}}(|0\rangle + |1\rangle)$.</li>
+  <li><strong>Negative $x$-axis</strong> ($\theta = \pi/2, \phi = \pi$): the state $|-\rangle = \frac{1}{\sqrt{2}}(|0\rangle - |1\rangle)$.</li>
+  <li><strong>Positive $y$-axis</strong> ($\theta = \pi/2, \phi = \pi/2$): the state $|{+i}\rangle = \frac{1}{\sqrt{2}}(|0\rangle + i|1\rangle)$.</li>
+  <li><strong>Negative $y$-axis</strong> ($\theta = \pi/2, \phi = 3\pi/2$): the state $|{-i}\rangle = \frac{1}{\sqrt{2}}(|0\rangle - i|1\rangle)$.</li>
 </ul>
 
 <p>
-  In mathematical terms, any single-qubit state can be written as:
+  Two important patterns emerge from this map:
+</p>
+
+<ul>
+  <li><strong>$\theta$ controls the measurement probabilities.</strong> At the north pole ($\theta = 0$), measuring always gives 0. At the south pole ($\theta = \pi$), measuring always gives 1. At the equator ($\theta = \pi/2$), you get a 50/50 split. Points in between give intermediate probabilities.</li>
+  <li><strong>$\phi$ controls the relative phase.</strong> Moving around the equator changes the phase relationship between the $|0\rangle$ and $|1\rangle$ components without changing the measurement probabilities. The states $|+\rangle$ and $|-\rangle$ both give 50/50 outcomes in the computational basis, but they sit at opposite points on the equator and behave very differently under quantum gates.</li>
+</ul>
+
+<p>
+  The mathematical formula connecting the Bloch sphere angles to the qubit state vector is:
 </p>
 
 $$|\psi\rangle = \cos\frac{\theta}{2}\,|0\rangle + e^{i\phi}\sin\frac{\theta}{2}\,|1\rangle$$
 
 <p>
-  Do not worry if the $e^{i\phi}$ factor looks mysterious - we will explain it in Section 4.4. For now, just notice that $\theta$ determines the measurement probabilities (the balance between $|0\rangle$ and $|1\rangle$), while $\phi$ determines the phase (a hidden angle that does not affect measurement probabilities directly, but is crucial for interference).
+  Do not worry if the $e^{i\phi}$ factor looks mysterious - we will explain it in Section 4.4.
+  For now, just note that $\theta$ appears as $\theta/2$ in the formula. This half-angle
+  convention means that moving from the north pole to the south pole requires $\theta$ to go
+  from 0 to $\pi$ (not $2\pi$), which is the natural range for a polar angle on a sphere.
 </p>
 
-<h3>Interactive Bloch Sphere</h3>
+<h3>Interactive Bloch Sphere Explorer</h3>
 
 <p>
-  Use the sliders below to explore the Bloch sphere. Adjust $\theta$ to move between the north pole ($|0\rangle$) and the south pole ($|1\rangle$). Adjust $\phi$ to rotate around the equator. Watch how the histogram changes as you vary $\theta$, and notice that $\phi$ does not affect the measurement probabilities at all - it only changes the direction on the equator.
+  Use the sliders below to explore the Bloch sphere. Adjust $\theta$ to move between the north
+  pole ($|0\rangle$) and the south pole ($|1\rangle$). Adjust $\phi$ to rotate around the
+  equator. Watch how the measurement histogram changes as you vary $\theta$, and notice that
+  $\phi$ has no effect on the measurement probabilities - it only changes the phase.
 </p>
 
-<div class="simulation" data-component="simulation">
+<div class="simulation" data-component="simulation" data-bloch>
   <div class="sim-controls">
     <label>$\theta$: <input type="range" data-param="theta" min="0" max="3.14159" step="0.01" value="0"><output>0.00</output></label>
     <label>$\phi$: <input type="range" data-param="phi" min="0" max="6.28318" step="0.01" value="0"><output>0.00</output></label>
@@ -442,21 +636,40 @@ c = measure q;</pre>
 </div>
 
 <div class="callout callout-info">
-  <strong>Exercises for Exploration</strong>
+  <strong>Exercises for Exploration.</strong>
   <p>
     Try setting the sliders to these values and observe the results:
   </p>
   <ul>
-    <li>$\theta = 0$, $\phi = 0$: The north pole ($|0\rangle$). You should see 100% probability of measuring 0.</li>
-    <li>$\theta = 3.14$ ($\approx \pi$), $\phi = 0$: The south pole ($|1\rangle$). You should see 100% probability of measuring 1.</li>
-    <li>$\theta = 1.57$ ($\approx \pi/2$), $\phi = 0$: The equator. You should see a 50/50 split.</li>
-    <li>$\theta = 1.57$, $\phi = 3.14$: Still the equator, different phase. The histogram should still show 50/50 - phase is invisible to this measurement.</li>
+    <li>$\theta = 0$, $\phi = 0$: The north pole ($|0\rangle$). You should see 100% outcome 0.</li>
+    <li>$\theta \approx 3.14$ ($\pi$), $\phi = 0$: The south pole ($|1\rangle$). You should see 100% outcome 1.</li>
+    <li>$\theta \approx 1.57$ ($\pi/2$), $\phi = 0$: The equator, specifically the $|+\rangle$ state. You should see a 50/50 split.</li>
+    <li>$\theta \approx 1.57$, $\phi \approx 3.14$ ($\pi$): The $|-\rangle$ state, on the opposite side of the equator. Still 50/50 - phase is invisible to this measurement.</li>
+    <li>$\theta \approx 1.05$ ($\pi/3$), $\phi = 0$: This state has $P(0) = \cos^2(\pi/6) = 3/4$ and $P(1) = 1/4$. You should see roughly 75% outcome 0 and 25% outcome 1.</li>
   </ul>
 </div>
 
 <p>
-  The fact that $\phi$ does not change the measurement histogram is one of the most important subtleties of quantum mechanics. Phase is invisible when you measure in the computational basis ($|0\rangle$ vs. $|1\rangle$), but it is absolutely real - it determines how the qubit interferes with itself and with other qubits under subsequent operations. Phase is the hidden variable that makes quantum algorithms work.
+  The fact that $\phi$ does not change the measurement histogram is one of the most important
+  subtleties in quantum mechanics. Phase is invisible when you measure in the computational
+  basis ($|0\rangle$ vs. $|1\rangle$), but it is absolutely real. Phase determines how the qubit
+  responds to subsequent quantum gates and how it interferes with other qubits. Phase is the
+  hidden ingredient that makes quantum algorithms work, and we will see this vividly starting in
+  Chapter 5.
 </p>
+
+<div class="callout callout-warning">
+  <strong>Common Misconception.</strong>
+  <p>
+    "If phase doesn't affect measurement, then it doesn't matter." This is wrong. Phase does not
+    affect measurement <em>in the computational basis</em>, but it profoundly affects what
+    happens when you apply further gates before measuring. For example, the states $|+\rangle$
+    and $|-\rangle$ give identical 50/50 results when measured directly. But if you apply a
+    Hadamard gate first, $|+\rangle$ becomes $|0\rangle$ (always measured as 0) while $|-\rangle$
+    becomes $|1\rangle$ (always measured as 1). The phase made all the difference. We will
+    explore this further in the measurement section and in Chapter 5.
+  </p>
+</div>
 
 </section>
 
@@ -465,57 +678,122 @@ c = measure q;</pre>
 <h2>4.4 The Qubit, Mathematically</h2>
 
 <p>
-  We have built intuition through filters and spheres. Now it is time for the precise mathematical language. This section introduces the core formalism you will use throughout the rest of the textbook.
+  We have built intuition through polarizing filters and the Bloch sphere. Now it is time for
+  the precise mathematical language. If the geometry of Section 4.3 was the map, this section is
+  the coordinate system.
 </p>
 
 <h3>State Vectors</h3>
 
 <p>
-  A qubit is a quantum system with two basis states, which we label $|0\rangle$ and $|1\rangle$. The general state of a qubit is a <strong>state vector</strong>:
+  A qubit is a quantum system with two basis states, which we label $|0\rangle$ and $|1\rangle$.
+  The general state of a qubit is a <strong>state vector</strong>:
 </p>
 
 $$|\psi\rangle = \alpha\,|0\rangle + \beta\,|1\rangle$$
 
 <p>
-  where $\alpha$ and $\beta$ are <strong>complex numbers</strong> called <strong>amplitudes</strong>. If you have not encountered complex numbers before, here is the essential idea: a complex number has two parts, a real part and an imaginary part, written as $a + bi$ where $i = \sqrt{-1}$. Every complex number also has a <strong>magnitude</strong> (or absolute value), written $|a + bi| = \sqrt{a^2 + b^2}$.
+  where $\alpha$ and $\beta$ are <strong>complex numbers</strong> called <strong>amplitudes</strong>.
+  If you have not encountered complex numbers before (or need a refresher), recall from Chapter 2
+  that a complex number has two parts, a real part and an imaginary part, written as $a + bi$
+  where $i = \sqrt{-1}$. Every complex number also has a <strong>magnitude</strong> (or absolute
+  value), written $|a + bi| = \sqrt{a^2 + b^2}$.
 </p>
 
+<h3>The Normalization Condition</h3>
+
 <p>
-  The amplitudes $\alpha$ and $\beta$ must satisfy a single constraint called the <strong>normalization condition</strong>:
+  Not every pair of complex numbers $(\alpha, \beta)$ describes a valid qubit state. The amplitudes
+  must satisfy the <strong>normalization condition</strong>:
 </p>
 
 $$|\alpha|^2 + |\beta|^2 = 1$$
 
 <p>
-  This condition ensures that the total probability of all measurement outcomes sums to 1, as it must for any valid probability distribution.
+  This condition ensures that the total probability of all possible measurement outcomes sums
+  to 1, as it must for any valid probability distribution. Geometrically, it means the state
+  vector has unit length - it lives on the surface of a sphere, not inside it.
 </p>
+
+<p>
+  Some valid qubit states to verify:
+</p>
+
+<ul>
+  <li>$|0\rangle$: $\alpha = 1, \beta = 0$. Check: $|1|^2 + |0|^2 = 1$.</li>
+  <li>$|+\rangle = \frac{1}{\sqrt{2}}|0\rangle + \frac{1}{\sqrt{2}}|1\rangle$: Check: $\left(\frac{1}{\sqrt{2}}\right)^2 + \left(\frac{1}{\sqrt{2}}\right)^2 = \frac{1}{2} + \frac{1}{2} = 1$.</li>
+  <li>$\frac{\sqrt{3}}{2}|0\rangle + \frac{1}{2}|1\rangle$: Check: $\frac{3}{4} + \frac{1}{4} = 1$.</li>
+  <li>$\frac{1}{\sqrt{2}}|0\rangle + \frac{i}{\sqrt{2}}|1\rangle$: Check: $\left(\frac{1}{\sqrt{2}}\right)^2 + \left|\frac{i}{\sqrt{2}}\right|^2 = \frac{1}{2} + \frac{1}{2} = 1$. (Recall that $|i| = 1$.)</li>
+</ul>
 
 <h3>The Born Rule</h3>
 
 <p>
-  When you measure a qubit in the state $|\psi\rangle = \alpha\,|0\rangle + \beta\,|1\rangle$, the outcomes and their probabilities are:
+  When you measure a qubit in the state $|\psi\rangle = \alpha\,|0\rangle + \beta\,|1\rangle$,
+  the outcomes and their probabilities are given by the <strong>Born rule</strong>:
 </p>
 
 $$P(0) = |\alpha|^2, \qquad P(1) = |\beta|^2$$
 
 <p>
-  This is the <strong>Born rule</strong>, named after Max Born, who proposed it in 1926. It is one of the foundational postulates of quantum mechanics: the probability of a measurement outcome is the squared magnitude of the corresponding amplitude.
+  This rule, proposed by Max Born in 1926, is one of the foundational postulates of quantum
+  mechanics: the probability of a measurement outcome equals the squared magnitude of the
+  corresponding amplitude. It cannot be derived from anything more basic - it is where
+  probability enters quantum mechanics.
 </p>
 
 <p>
-  Let us see this in action with concrete examples.
+  Let us work through examples:
 </p>
 
 <p>
-  <strong>Example 1: The $|0\rangle$ state.</strong> Here $\alpha = 1$ and $\beta = 0$. The probabilities are $P(0) = |1|^2 = 1$ and $P(1) = |0|^2 = 0$. Measuring always gives 0. This is a definite classical state.
+  <strong>Example 1: The $|0\rangle$ state.</strong> Here $\alpha = 1$ and $\beta = 0$.
+  Probabilities: $P(0) = 1$, $P(1) = 0$. Measuring always gives 0. This is a definite classical
+  state - no superposition, no randomness.
 </p>
 
 <p>
-  <strong>Example 2: The $|+\rangle$ state.</strong> This is $|\psi\rangle = \frac{1}{\sqrt{2}}\,|0\rangle + \frac{1}{\sqrt{2}}\,|1\rangle$, where $\alpha = \beta = \frac{1}{\sqrt{2}}$. The probabilities are $P(0) = \left|\frac{1}{\sqrt{2}}\right|^2 = \frac{1}{2}$ and $P(1) = \frac{1}{2}$. This is the equal superposition we saw earlier with the Hadamard gate.
+  <strong>Example 2: The $|+\rangle$ state.</strong> Here $\alpha = \beta = 1/\sqrt{2}$.
+  Probabilities: $P(0) = 1/2$, $P(1) = 1/2$. This is the equal superposition we saw in our
+  first sandbox experiment.
 </p>
 
 <p>
-  <strong>Example 3: An unequal superposition.</strong> Consider $|\psi\rangle = \frac{\sqrt{3}}{2}\,|0\rangle + \frac{1}{2}\,|1\rangle$. Check: $\left(\frac{\sqrt{3}}{2}\right)^2 + \left(\frac{1}{2}\right)^2 = \frac{3}{4} + \frac{1}{4} = 1$. Good - it is normalized. The probabilities are $P(0) = \frac{3}{4} = 75\%$ and $P(1) = \frac{1}{4} = 25\%$. This qubit is "mostly $|0\rangle$" but has a 25% chance of being found in $|1\rangle$.
+  <strong>Example 3: An unequal superposition.</strong> Consider
+  $|\psi\rangle = \frac{\sqrt{3}}{2}|0\rangle + \frac{1}{2}|1\rangle$. Probabilities:
+  $P(0) = 3/4 = 75\%$, $P(1) = 1/4 = 25\%$. This qubit is biased toward $|0\rangle$ but
+  has a 25% chance of being found in $|1\rangle$. On the Bloch sphere, this state sits at
+  $\theta = \pi/3$ (60 degrees from the north pole).
+</p>
+
+<p>
+  <strong>Example 4: Complex amplitudes.</strong> Consider
+  $|\psi\rangle = \frac{1}{\sqrt{2}}|0\rangle + \frac{i}{\sqrt{2}}|1\rangle$. Probabilities:
+  $P(0) = |1/\sqrt{2}|^2 = 1/2$, $P(1) = |i/\sqrt{2}|^2 = 1/2$. The measurement statistics
+  are identical to $|+\rangle$, even though the amplitudes are different. The factor of $i$ is a
+  phase difference. On the Bloch sphere, this state sits on the equator at $\phi = \pi/2$
+  (the positive $y$-axis).
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="8">OPENQASM 3.0;
+qubit[1] q;
+bit[1] c;
+// Create the state sqrt(3)/2 |0> + 1/2 |1>
+// theta = pi/3 on the Bloch sphere
+ry(1.0472) q[0];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+  The circuit above uses a $R_y(\pi/3)$ rotation to prepare the state
+  $\cos(\pi/6)|0\rangle + \sin(\pi/6)|1\rangle = \frac{\sqrt{3}}{2}|0\rangle + \frac{1}{2}|1\rangle$.
+  Run it and verify that you see approximately 75% outcome 0 and 25% outcome 1.
 </p>
 
 <h3>Column Vector Notation</h3>
@@ -530,10 +808,12 @@ $$|0\rangle = \begin{pmatrix} 1 \\ 0 \end{pmatrix}, \qquad |1\rangle = \begin{pm
   Then a general qubit state becomes:
 </p>
 
-$$|\psi\rangle = \alpha\,|0\rangle + \beta\,|1\rangle = \begin{pmatrix} \alpha \\ \beta \end{pmatrix}$$
+$$|\psi\rangle = \alpha\,|0\rangle + \beta\,|1\rangle = \alpha\begin{pmatrix} 1 \\ 0 \end{pmatrix} + \beta\begin{pmatrix} 0 \\ 1 \end{pmatrix} = \begin{pmatrix} \alpha \\ \beta \end{pmatrix}$$
 
 <p>
-  This representation makes it natural to describe quantum gates as matrices that multiply these vectors - a topic we take up in Chapter 5. For example, the Hadamard gate we have been using is the matrix:
+  This representation makes it natural to describe quantum gates as matrices that multiply these
+  vectors - a topic we take up in full detail in Chapter 5. As a preview, the Hadamard gate we
+  have been using is the matrix:
 </p>
 
 $$H = \frac{1}{\sqrt{2}} \begin{pmatrix} 1 & 1 \\ 1 & -1 \end{pmatrix}$$
@@ -545,68 +825,133 @@ $$H = \frac{1}{\sqrt{2}} \begin{pmatrix} 1 & 1 \\ 1 & -1 \end{pmatrix}$$
 $$H|0\rangle = \frac{1}{\sqrt{2}} \begin{pmatrix} 1 & 1 \\ 1 & -1 \end{pmatrix} \begin{pmatrix} 1 \\ 0 \end{pmatrix} = \frac{1}{\sqrt{2}} \begin{pmatrix} 1 \\ 1 \end{pmatrix} = \frac{1}{\sqrt{2}}|0\rangle + \frac{1}{\sqrt{2}}|1\rangle = |+\rangle$$
 
 <p>
-  This confirms what we saw in the sandbox: applying the Hadamard gate to $|0\rangle$ produces an equal superposition.
+  This confirms what we saw in the sandbox: applying the Hadamard gate to $|0\rangle$ produces
+  the equal superposition state $|+\rangle$.
 </p>
 
 <h3>Global Phase vs. Relative Phase</h3>
 
 <p>
-  An important subtlety: two state vectors that differ only by a <strong>global phase</strong> (multiplying the entire vector by some $e^{i\gamma}$) represent the same physical state. For example, $|0\rangle$ and $-|0\rangle$ and $i|0\rangle$ are all physically identical - no measurement can distinguish them.
+  Two state vectors that differ only by a <strong>global phase</strong> represent the same
+  physical state. A global phase means multiplying the entire vector by some complex number
+  $e^{i\gamma}$ of magnitude 1:
+</p>
+
+$$|\psi\rangle \quad \text{and} \quad e^{i\gamma}|\psi\rangle \quad \text{describe the same physical state.}$$
+
+<p>
+  For example, $|0\rangle$, $-|0\rangle$, $i|0\rangle$, and $e^{i\pi/3}|0\rangle$ are all
+  physically identical. No measurement of any kind can distinguish them. This is because the Born
+  rule takes the squared magnitude $|e^{i\gamma}\alpha|^2 = |e^{i\gamma}|^2|\alpha|^2 = |\alpha|^2$,
+  and the global phase factor drops out.
 </p>
 
 <p>
-  However, a <strong>relative phase</strong> between the $|0\rangle$ and $|1\rangle$ components is physically meaningful. The states $\frac{1}{\sqrt{2}}(|0\rangle + |1\rangle)$ and $\frac{1}{\sqrt{2}}(|0\rangle - |1\rangle)$ have the same measurement probabilities in the computational basis (both give 50/50), but they are different physical states - they sit at opposite points on the Bloch sphere equator, and they behave differently under subsequent quantum gates. This is why $\phi$ mattered on the Bloch sphere even though it did not change the histogram.
+  However, a <strong>relative phase</strong> between the $|0\rangle$ and $|1\rangle$ components
+  is physically meaningful. The states:
 </p>
 
-<div class="callout callout-warning">
-  <strong>A Common Misconception</strong>
-  <p>
-    "A qubit in superposition is like a classical bit whose value we do not know." This is wrong. A classical coin under a cup is either heads or tails - we just cannot see which. A qubit in superposition is genuinely in both states simultaneously. The difference is experimentally testable: classical uncertainty cannot produce interference, but quantum superposition can. The three-filter polarization experiment proves this - inserting a diagonal filter between two crossed filters lets light through, which no amount of classical ignorance could explain.
-  </p>
-</div>
+$$|+\rangle = \frac{1}{\sqrt{2}}(|0\rangle + |1\rangle) \qquad \text{and} \qquad |-\rangle = \frac{1}{\sqrt{2}}(|0\rangle - |1\rangle)$$
+
+<p>
+  have the same measurement probabilities in the computational basis (both give 50/50), but they
+  are distinct physical states. They sit at opposite points on the Bloch sphere equator
+  ($\phi = 0$ and $\phi = \pi$, respectively), and they respond differently to quantum gates.
+  This is why global phase can be ignored but relative phase cannot.
+</p>
+
+<h3>Connecting to the Bloch Sphere</h3>
+
+<p>
+  Thanks to the global phase freedom, we can always choose to write a qubit state with $\alpha$
+  being a non-negative real number. With this convention, the most general single-qubit state
+  becomes:
+</p>
+
+$$|\psi\rangle = \cos\frac{\theta}{2}\,|0\rangle + e^{i\phi}\sin\frac{\theta}{2}\,|1\rangle$$
+
+<p>
+  where $0 \leq \theta \leq \pi$ and $0 \leq \phi < 2\pi$. Let us verify this satisfies
+  normalization:
+</p>
+
+$$\left|\cos\frac{\theta}{2}\right|^2 + \left|e^{i\phi}\sin\frac{\theta}{2}\right|^2 = \cos^2\frac{\theta}{2} + \sin^2\frac{\theta}{2} = 1$$
+
+<p>
+  The factor $|e^{i\phi}|^2 = 1$ drops out, confirming the state is properly normalized for all
+  values of $\theta$ and $\phi$. The Cartesian coordinates of the corresponding point on the
+  Bloch sphere are:
+</p>
+
+$$(x, y, z) = (\sin\theta\cos\phi,\; \sin\theta\sin\phi,\; \cos\theta)$$
+
+<p>
+  This is the standard spherical coordinate formula, confirming that $\theta$ and $\phi$ map
+  every qubit state to a unique point on the unit sphere (up to global phase).
+</p>
 
 </section>
 
 <!-- ================================================================== -->
 <section id="dirac-notation">
-<h2>4.5 Dirac Notation: The Language of Quantum Mechanics</h2>
+<h2>4.5 Dirac Notation: The Language of Quantum</h2>
 
 <p>
-  You have already been reading expressions like $|0\rangle$ and $|\psi\rangle$ without a formal introduction. It is time to learn the notation properly. This notation, invented by the physicist Paul Dirac, is used universally in quantum computing and quantum physics. It is not merely a convention - it is designed to make quantum calculations cleaner and more intuitive.
+  You have already been reading expressions like $|0\rangle$ and $|\psi\rangle$ for several
+  sections. It is time to learn the notation properly. Dirac notation, invented by the physicist
+  Paul Dirac in 1939, is used universally in quantum computing and quantum physics. It is not
+  merely a convention - it is engineered to make quantum calculations cleaner and less
+  error-prone.
 </p>
 
 <h3>Kets</h3>
 
 <p>
-  The symbol $|\cdot\rangle$ is called a <strong>ket</strong> (rhymes with "set"). A ket represents a quantum state - a column vector in our Hilbert space. The label inside the ket is just a name:
+  The symbol $|\cdot\rangle$ is called a <strong>ket</strong> (rhymes with "set"). A ket
+  represents a quantum state - a column vector in our vector space. The label inside the ket is
+  just a name for the state:
 </p>
 
 <ul>
-  <li>$|0\rangle$ - the basis state corresponding to outcome 0</li>
-  <li>$|1\rangle$ - the basis state corresponding to outcome 1</li>
-  <li>$|\psi\rangle$ - a general state (psi is a traditional name)</li>
+  <li>$|0\rangle = \begin{pmatrix} 1 \\ 0 \end{pmatrix}$ - the basis state corresponding to outcome 0</li>
+  <li>$|1\rangle = \begin{pmatrix} 0 \\ 1 \end{pmatrix}$ - the basis state corresponding to outcome 1</li>
+  <li>$|\psi\rangle$ - a general state (psi is a traditional label)</li>
   <li>$|+\rangle = \frac{1}{\sqrt{2}}(|0\rangle + |1\rangle)$ - the "plus" state</li>
   <li>$|-\rangle = \frac{1}{\sqrt{2}}(|0\rangle - |1\rangle)$ - the "minus" state</li>
 </ul>
 
 <p>
-  You can put any label inside a ket. Some authors write $|\uparrow\rangle$ and $|\downarrow\rangle$ for spin states, or $|H\rangle$ and $|V\rangle$ for horizontal and vertical polarization. The notation is flexible.
+  The pair $\{|0\rangle, |1\rangle\}$ is called the <strong>computational basis</strong> (or
+  standard basis, or $Z$-basis). The pair $\{|+\rangle, |-\rangle\}$ is the
+  <strong>Hadamard basis</strong> (or $X$-basis). Both are valid choices of basis for describing
+  a qubit, just as you can describe a direction in a room using north/south or using
+  left/right - the underlying reality is the same, but the coordinate labels differ.
 </p>
 
 <h3>Bras</h3>
 
 <p>
-  The <strong>bra</strong> $\langle\cdot|$ is the mirror image of the ket. Mathematically, it is the <strong>conjugate transpose</strong> (also called the Hermitian conjugate or adjoint) of the corresponding ket. If $|0\rangle = \begin{pmatrix} 1 \\ 0 \end{pmatrix}$, then $\langle 0| = \begin{pmatrix} 1 & 0 \end{pmatrix}$. If $|\psi\rangle = \begin{pmatrix} \alpha \\ \beta \end{pmatrix}$, then $\langle\psi| = \begin{pmatrix} \alpha^* & \beta^* \end{pmatrix}$, where $\alpha^*$ denotes the complex conjugate.
+  The <strong>bra</strong> $\langle\cdot|$ is the mirror image of the ket. Mathematically, it is
+  the <strong>conjugate transpose</strong> (also called Hermitian conjugate or adjoint) of the
+  corresponding ket. If $|0\rangle = \begin{pmatrix} 1 \\ 0 \end{pmatrix}$, then
+  $\langle 0| = \begin{pmatrix} 1 & 0 \end{pmatrix}$. If
+  $|\psi\rangle = \begin{pmatrix} \alpha \\ \beta \end{pmatrix}$, then
+  $\langle\psi| = \begin{pmatrix} \alpha^* & \beta^* \end{pmatrix}$, where $\alpha^*$ denotes
+  the complex conjugate (change the sign of the imaginary part).
 </p>
 
 <p>
-  The naming is a pun: a "bra" and a "ket" together form a "bracket." This is deliberate.
+  The naming is Dirac's pun: a "bra" and a "ket" together form a "bracket." This is deliberate
+  and rather charming.
 </p>
 
 <h3>Inner Products (Bra-Kets)</h3>
 
 <p>
-  When you combine a bra and a ket, you get the <strong>inner product</strong>, written $\langle\phi|\psi\rangle$. This is a single complex number that measures the "overlap" between two quantum states. Compute it by taking the conjugate transpose of $|\phi\rangle$ and multiplying it by $|\psi\rangle$:
+  When you combine a bra and a ket, you get the <strong>inner product</strong> (or bracket),
+  written $\langle\phi|\psi\rangle$. This is a single complex number that measures the "overlap"
+  between two quantum states. Compute it by multiplying the row vector (bra) by the column vector
+  (ket):
 </p>
 
 $$\langle\phi|\psi\rangle = \begin{pmatrix} \phi_0^* & \phi_1^* \end{pmatrix} \begin{pmatrix} \psi_0 \\ \psi_1 \end{pmatrix} = \phi_0^*\psi_0 + \phi_1^*\psi_1$$
@@ -616,38 +961,62 @@ $$\langle\phi|\psi\rangle = \begin{pmatrix} \phi_0^* & \phi_1^* \end{pmatrix} \b
 </p>
 
 <ul>
-  <li><strong>Orthogonality</strong>: $\langle 0|1\rangle = 0$. The basis states have zero overlap - they are completely distinguishable.</li>
-  <li><strong>Normalization</strong>: $\langle 0|0\rangle = 1$ and $\langle 1|1\rangle = 1$. Each basis state has unit overlap with itself.</li>
-  <li><strong>Born rule, restated</strong>: The probability of measuring a state $|\psi\rangle$ and obtaining outcome $|k\rangle$ is $P(k) = |\langle k|\psi\rangle|^2$.</li>
+  <li>
+    <strong>Orthogonality:</strong> $\langle 0|1\rangle = 0$ and $\langle 1|0\rangle = 0$.
+    The basis states have zero overlap - they are completely distinguishable by measurement.
+  </li>
+  <li>
+    <strong>Normalization:</strong> $\langle 0|0\rangle = 1$ and $\langle 1|1\rangle = 1$.
+    Each basis state has unit overlap with itself.
+  </li>
+  <li>
+    <strong>Born rule, restated:</strong> The probability of measuring a state $|\psi\rangle$
+    and obtaining outcome $|k\rangle$ is $P(k) = |\langle k|\psi\rangle|^2$.
+  </li>
 </ul>
 
 <p>
-  That last point is powerful. The Born rule, which we stated earlier as "square the amplitude," is equivalent to "take the inner product with the outcome state and square its magnitude." This is the same rule, just expressed in Dirac notation. Let us verify:
+  That last point is powerful. The Born rule, which we earlier stated as "square the amplitude,"
+  is equivalent to "take the inner product with the outcome state and square its magnitude."
+  Let us verify:
 </p>
 
 $$P(0) = |\langle 0|\psi\rangle|^2 = \left|\begin{pmatrix} 1 & 0 \end{pmatrix}\begin{pmatrix} \alpha \\ \beta \end{pmatrix}\right|^2 = |\alpha|^2$$
 
 <p>
-  Exactly as expected.
+  Exactly as expected. And for the $|+\rangle$ and $|-\rangle$ states:
+</p>
+
+$$\langle +|-\rangle = \frac{1}{2}\begin{pmatrix} 1 & 1 \end{pmatrix}\begin{pmatrix} 1 \\ -1 \end{pmatrix} = \frac{1}{2}(1 + (-1)) = 0$$
+
+<p>
+  So $|+\rangle$ and $|-\rangle$ are orthogonal - they form a basis, just like $|0\rangle$ and
+  $|1\rangle$. This confirms what the Bloch sphere showed us: they sit at opposite poles of the
+  $x$-axis.
 </p>
 
 <h3>Why Dirac Notation?</h3>
 
 <p>
-  You might wonder why we need special notation when column vectors work fine. The reasons become clear as systems grow:
+  You might wonder why we need special notation when column vectors work fine. The reasons become
+  clear as systems grow more complex:
 </p>
 
 <ul>
-  <li><strong>Compactness</strong>: Writing $|01\rangle$ is much cleaner than a 4-dimensional column vector.</li>
-  <li><strong>Abstraction</strong>: Dirac notation works regardless of the specific representation. You can reason about states without choosing a basis.</li>
-  <li><strong>Calculation</strong>: Expressions like $\langle\psi|H|\phi\rangle$ (applying a gate and taking an inner product) are easy to read and manipulate algebraically.</li>
-  <li><strong>Multi-qubit states</strong>: The tensor product notation $|0\rangle \otimes |1\rangle = |01\rangle$ (Chapter 6) scales naturally to any number of qubits.</li>
+  <li><strong>Compactness:</strong> Writing $|01\rangle$ is much cleaner than writing out a 4-dimensional column vector.</li>
+  <li><strong>Abstraction:</strong> Dirac notation works regardless of the specific representation. You can reason about states without committing to a particular basis.</li>
+  <li><strong>Calculation:</strong> Expressions like $\langle\psi|H|\phi\rangle$ (apply a gate and take an inner product) are easy to read and manipulate algebraically.</li>
+  <li><strong>Multi-qubit states:</strong> The tensor product notation $|0\rangle \otimes |1\rangle = |01\rangle$ (Chapter 6) scales naturally to any number of qubits.</li>
 </ul>
 
 <div class="callout callout-key">
-  <strong>Summary of Dirac Notation</strong>
+  <strong>Key Concept.</strong>
   <p>
-    $|a\rangle$ = ket = column vector = quantum state. $\langle a|$ = bra = row vector = conjugate transpose. $\langle a|b\rangle$ = inner product = overlap = complex number. $|\langle a|b\rangle|^2$ = probability of finding state $|b\rangle$ to be in state $|a\rangle$.
+    $|a\rangle$ = ket = column vector = quantum state.
+    $\langle a|$ = bra = row vector = conjugate transpose.
+    $\langle a|b\rangle$ = inner product = overlap = a complex number.
+    $|\langle a|b\rangle|^2$ = probability that state $|b\rangle$ is found in state $|a\rangle$
+    upon measurement.
   </p>
 </div>
 
@@ -658,13 +1027,18 @@ $$P(0) = |\langle 0|\psi\rangle|^2 = \left|\begin{pmatrix} 1 & 0 \end{pmatrix}\b
 <h2>4.6 Measurement: Collapsing Possibilities</h2>
 
 <p>
-  We have mentioned measurement several times, but now it is time to examine it with full mathematical precision. Measurement in quantum mechanics is not a passive act of observation - it is an active physical process that fundamentally changes the state of the system.
+  We have mentioned measurement several times, but now it is time to examine it with full
+  mathematical precision. Measurement in quantum mechanics is not a passive act of reading a
+  value - it is an active physical process that fundamentally and irreversibly changes the state
+  of the system.
 </p>
 
 <h3>The Measurement Postulate</h3>
 
 <p>
-  When you measure a qubit in the state $|\psi\rangle = \alpha\,|0\rangle + \beta\,|1\rangle$ in the <strong>computational basis</strong> (the $|0\rangle$, $|1\rangle$ basis):
+  When you measure a qubit in the state
+  $|\psi\rangle = \alpha\,|0\rangle + \beta\,|1\rangle$ in the <strong>computational
+  basis</strong>:
 </p>
 
 <ol>
@@ -673,21 +1047,47 @@ $$P(0) = |\langle 0|\psi\rangle|^2 = \left|\begin{pmatrix} 1 & 0 \end{pmatrix}\b
 </ol>
 
 <p>
-  The crucial point is the second part of each statement: <strong>after measurement, the qubit is in the state corresponding to the outcome</strong>. The original superposition is gone. This is sometimes called "wavefunction collapse" or "state reduction." It is irreversible - once you have measured, there is no gate you can apply to recover the original amplitudes $\alpha$ and $\beta$.
+  The crucial point is the second part of each statement: <strong>after measurement, the qubit is
+  in the state corresponding to the outcome</strong>. The original superposition is destroyed.
+  This is sometimes called "wavefunction collapse" or "state reduction." It is irreversible -
+  once you have measured, there is no gate you can apply to recover the original amplitudes
+  $\alpha$ and $\beta$.
+</p>
+
+<h3>Repeated Measurement</h3>
+
+<p>
+  If you measure a qubit and obtain outcome 0, the state has collapsed to $|0\rangle$.
+  Measuring again immediately will give 0 with certainty. The state $|0\rangle$ has
+  $\alpha = 1$ and $\beta = 0$, so $P(0) = 1$. This is logically consistent: once the
+  superposition has collapsed, the qubit behaves like a classical bit until you apply a gate
+  to create a new superposition.
 </p>
 
 <h3>Measurement Is Irreversible</h3>
 
 <p>
-  Recall from Chapter 3 that classical reversible computing preserves information. Quantum gates (which we will study in Chapter 5) are also reversible - every quantum gate has an inverse that undoes its effect. But measurement breaks this reversibility. It is the one operation in quantum mechanics that is fundamentally irreversible.
+  Recall from Chapter 3 that every quantum gate is reversible - it has an inverse that undoes
+  its effect. But measurement breaks this reversibility. It is the one operation in quantum
+  mechanics that is fundamentally irreversible. Mathematically, measurement is not a unitary
+  transformation (it is not even a linear map on state vectors), which is why it stands apart
+  from all quantum gates.
 </p>
 
 <p>
-  This has a practical consequence: in quantum computing, you want to delay measurement as long as possible. The longer your qubits remain in superposition, the more you can exploit interference to shape the outcome probabilities. Once you measure, the quantum advantage is gone for that qubit.
+  This has a practical consequence for algorithm design: you want to delay measurement as long
+  as possible. The longer your qubits remain in superposition, the more you can exploit
+  interference to shape the outcome probabilities. Once you measure, the quantum advantage is
+  gone for that qubit.
 </p>
 
+<h3>Demonstrating Irreversibility</h3>
+
 <p>
-  The following experiment demonstrates this irreversibility directly. We prepare a superposition, measure it, and then try to "undo" the Hadamard gate. If measurement had not collapsed the state, we would recover $|0\rangle$. But because measurement destroys the superposition, the second Hadamard operates on a definite state ($|0\rangle$ or $|1\rangle$, depending on the first measurement), and the final measurement gives a random result.
+  The next two sandboxes make the irreversibility concrete. In the first, we apply H, measure,
+  apply H again, and measure again. If measurement did not collapse the state, the two Hadamard
+  gates would cancel and we would always measure 0. But measurement destroys the superposition,
+  so the second H operates on a definite state, and the final measurement gives random results.
 </p>
 
 <div class="sandbox" data-component="sandbox" data-shots="1024">
@@ -706,7 +1106,7 @@ c = measure q;</textarea>
 </div>
 
 <p>
-  Compare this to the circuit without the intermediate measurement:
+  Compare with this circuit, where we skip the intermediate measurement:
 </p>
 
 <div class="sandbox" data-component="sandbox" data-shots="1024">
@@ -724,21 +1124,53 @@ c = measure q;</textarea>
 </div>
 
 <p>
-  In the second circuit (no intermediate measurement), the two Hadamard gates cancel each other out ($H \cdot H = I$, the identity), so you always measure 0. In the first circuit, the intermediate measurement collapses the superposition, breaking the cancellation. This is direct experimental proof that measurement changes the quantum state.
+  In the second circuit, the two Hadamard gates cancel each other: $HH = I$ (the identity).
+  The qubit returns to $|0\rangle$, so you always measure 0. In the first circuit, the
+  intermediate measurement collapses the superposition, preventing the cancellation. This is
+  direct proof that measurement changes the quantum state - it is not a passive observation.
 </p>
 
-<h3>Measurement Statistics</h3>
+<h3>The Measurement Problem: One Copy Is Not Enough</h3>
 
 <p>
-  Because each individual measurement outcome is random, quantum computing relies on <strong>statistics</strong>. You run the same circuit many times (these repetitions are called "shots") and look at the distribution of outcomes. With enough shots, the relative frequencies converge to the true probabilities predicted by the Born rule.
+  Suppose someone hands you a single qubit in an unknown state
+  $|\psi\rangle = \alpha\,|0\rangle + \beta\,|1\rangle$. Can you determine $\alpha$ and
+  $\beta$? A single measurement gives you one bit of information (either 0 or 1) and destroys
+  the state. You cannot go back and measure the same qubit again because it has already
+  collapsed. And the <strong>no-cloning theorem</strong> (which we will prove in Chapter 7) says
+  you cannot create exact copies of an unknown quantum state to build up statistics from many
+  measurements.
 </p>
 
 <p>
-  How many shots do you need? It depends on the precision you want. With $N$ shots, the statistical uncertainty in an estimated probability $p$ is approximately $\sqrt{p(1-p)/N}$. For 1024 shots and $p = 0.5$, this gives an uncertainty of about $\pm 1.6\%$ - good enough for most demonstrations, but real quantum experiments often use tens of thousands of shots.
+  A single unknown qubit state is therefore fundamentally unknowable from one copy. This is not
+  a limitation of our technology - it is a law of nature. And it is not a bug: the no-cloning
+  theorem is precisely what makes quantum cryptography secure. An eavesdropper cannot copy
+  quantum information without disturbing it, so any interception is detectable.
+</p>
+
+<h3>Measurement Statistics and Shots</h3>
+
+<p>
+  Because each individual measurement outcome is random, quantum computing relies on
+  <strong>statistics</strong>. You run the same circuit many times (called "shots") and examine
+  the distribution of outcomes. With enough shots, the relative frequencies converge to the true
+  probabilities predicted by the Born rule.
 </p>
 
 <p>
-  The following Predict-Observe-Explain exercise tests your understanding of measurement and state collapse.
+  How many shots do you need? With $N$ shots, the statistical uncertainty in an estimated
+  probability $p$ is approximately $\sqrt{p(1-p)/N}$. For 1024 shots and $p = 0.5$, this gives
+  an uncertainty of about $\pm 1.6\%$ - good enough for our demonstrations, but real quantum
+  experiments often use tens of thousands of shots for higher precision.
+</p>
+
+<h3>Predict-Observe-Explain: X Then H</h3>
+
+<p>
+  Let us test your understanding with one more interactive exercise. This time, the circuit
+  applies an X gate (which flips $|0\rangle$ to $|1\rangle$) followed by a Hadamard gate,
+  then measures.
 </p>
 
 <div class="poe" data-component="poe">
@@ -749,13 +1181,17 @@ c = measure q;</textarea>
   </div>
   <div class="poe-step poe-predict active">
     <h3>Predict</h3>
-    <p>Consider this circuit: we apply an X gate (which flips $|0\rangle$ to $|1\rangle$), then a Hadamard gate, then measure. What probability do you expect for each outcome?</p>
+    <p>
+      The qubit starts in $|0\rangle$. An X gate is applied (flipping it to $|1\rangle$), then
+      a Hadamard gate, then we measure 1024 times. What probability do you expect for each
+      outcome? Will the result be the same as, or different from, applying just H to $|0\rangle$?
+    </p>
     <textarea rows="3" placeholder="What fraction of shots will be 0? What fraction will be 1? Explain your reasoning..."></textarea>
     <button data-action="next">Submit Prediction</button>
   </div>
   <div class="poe-step poe-observe">
     <h3>Observe</h3>
-    <p>Run the circuit and examine the results. Does the histogram match your prediction?</p>
+    <p>Run the circuit and examine the histogram. How does it compare to the H-only circuit from Section 4.1?</p>
     <div class="sandbox" data-component="sandbox" data-shots="1024" data-autorun>
       <textarea class="code" rows="7">OPENQASM 3.0;
 qubit[1] q;
@@ -779,33 +1215,37 @@ c = measure q;</textarea>
       $$H|1\rangle = \frac{1}{\sqrt{2}} \begin{pmatrix} 1 & 1 \\ 1 & -1 \end{pmatrix} \begin{pmatrix} 0 \\ 1 \end{pmatrix} = \frac{1}{\sqrt{2}} \begin{pmatrix} 1 \\ -1 \end{pmatrix} = \frac{1}{\sqrt{2}}|0\rangle - \frac{1}{\sqrt{2}}|1\rangle = |-\rangle$$
     </p>
     <p>
-      This is the $|-\rangle$ state. The probabilities are $P(0) = |1/\sqrt{2}|^2 = 1/2$ and $P(1) = |-1/\sqrt{2}|^2 = 1/2$. The histogram shows a 50/50 split, just like the $|+\rangle$ state.
+      This is the $|-\rangle$ state. The probabilities are $P(0) = |1/\sqrt{2}|^2 = 1/2$ and
+      $P(1) = |-1/\sqrt{2}|^2 = 1/2$. The histogram shows a 50/50 split, apparently identical
+      to the $|+\rangle$ state from Section 4.1.
     </p>
     <p>
-      But wait - the amplitudes are different! In $|+\rangle$, both amplitudes are $+1/\sqrt{2}$. In $|-\rangle$, the amplitude of $|1\rangle$ is $-1/\sqrt{2}$. The Born rule takes the <em>squared magnitude</em>, so the minus sign vanishes in the measurement probabilities. This is the relative phase we discussed earlier: invisible to a single measurement in the computational basis, but very real and important for subsequent operations.
+      But the underlying states are different. In $|+\rangle$, both amplitudes are
+      $+1/\sqrt{2}$. In $|-\rangle$, the $|1\rangle$ amplitude is $-1/\sqrt{2}$. The Born rule
+      takes the <em>squared magnitude</em>, so the minus sign vanishes from the measurement
+      probabilities. This is the relative phase we discussed: invisible to a single measurement
+      in the computational basis, but physically real. To distinguish $|+\rangle$ from $|-\rangle$,
+      you would need to apply another gate (like H) before measuring, which converts the phase
+      difference into a probability difference. We will explore this in Chapter 5.
     </p>
     <button data-action="complete">Complete</button>
   </div>
 </div>
 
-<h3>No-Cloning and the Limits of Measurement</h3>
-
-<p>
-  One more profound consequence of the measurement postulate: you cannot determine an unknown quantum state from a single copy. If someone gives you a single qubit in an unknown state $|\psi\rangle = \alpha\,|0\rangle + \beta\,|1\rangle$, a single measurement gives you only one bit of information (either 0 or 1), and it destroys the state in the process. You cannot go back and measure again, because the state has changed.
-</p>
-
-<p>
-  Furthermore, the <strong>no-cloning theorem</strong> (which we will prove in Chapter 7) tells you that there is no way to create an exact copy of an unknown quantum state. This means you cannot make many copies and measure each one to build up statistics. A single unknown qubit state is fundamentally unknowable from one copy.
-</p>
-
-<p>
-  This is not a bug - it is a feature. The no-cloning theorem is what makes quantum cryptography possible: an eavesdropper cannot copy quantum information without disturbing it, so any interception is detectable.
-</p>
-
 <div class="callout callout-key">
-  <strong>Chapter Summary</strong>
+  <strong>Chapter Summary.</strong>
   <p>
-    A qubit is a two-level quantum system described by a state vector $|\psi\rangle = \alpha|0\rangle + \beta|1\rangle$ with $|\alpha|^2 + |\beta|^2 = 1$. The three pillars of quantum computing are <strong>superposition</strong> (qubits can be in combinations of $|0\rangle$ and $|1\rangle$), <strong>measurement</strong> (which collapses the state and yields outcome $k$ with probability $|\langle k|\psi\rangle|^2$), and <strong>interference</strong> (which allows quantum algorithms to amplify correct answers and suppress wrong ones). The Bloch sphere provides geometric intuition: $\theta$ controls measurement probabilities, $\phi$ controls phase. The Dirac bra-ket notation - $|a\rangle$, $\langle a|$, $\langle a|b\rangle$ - is the standard language for expressing all of this concisely.
+    A qubit is a two-level quantum system described by a state vector
+    $|\psi\rangle = \alpha|0\rangle + \beta|1\rangle$ with $|\alpha|^2 + |\beta|^2 = 1$.
+    The three pillars of quantum computing are <strong>superposition</strong> (qubits exist in
+    combinations of basis states), <strong>measurement</strong> (which collapses the state and
+    yields outcome $k$ with probability $|\langle k|\psi\rangle|^2$), and
+    <strong>interference</strong> (which allows algorithms to amplify correct answers and suppress
+    wrong ones). The Bloch sphere provides geometric intuition: $\theta$ controls measurement
+    probabilities, $\phi$ controls relative phase. Dirac notation - kets $|a\rangle$, bras
+    $\langle a|$, inner products $\langle a|b\rangle$ - is the standard language for expressing
+    all of this concisely. Measurement is the one irreversible operation in quantum mechanics,
+    and a single unknown quantum state cannot be determined from one copy.
   </p>
 </div>
 
@@ -816,12 +1256,34 @@ c = measure q;</textarea>
 <h2>Review</h2>
 
 <div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 4 Flashcards</div>
+  <div class="flashcard-deck-header">Chapter 4 Review</div>
 
-  <div class="flashcard" data-card-id="ch04-superposition">
-    <div class="card-front">What is superposition?</div>
+  <div class="flashcard" data-card-id="ch04-quantum-trinity">
+    <div class="card-front">What are the three essential ideas of quantum computing, and what role does each play?</div>
     <div class="card-back">
-      A qubit in superposition exists in a combination of $|0\rangle$ and $|1\rangle$ simultaneously, described by $|\psi\rangle = \alpha|0\rangle + \beta|1\rangle$. This is not classical uncertainty - the qubit is genuinely in both states at once until measured.
+      <strong>Superposition</strong> creates possibilities (a qubit can be in a combination of $|0\rangle$ and $|1\rangle$). <strong>Interference</strong> shapes them (amplitudes add constructively for correct answers and destructively for wrong ones). <strong>Measurement</strong> reveals the answer (collapsing the state to a definite outcome). All three are required; none alone is sufficient.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch04-superposition-vs-classical">
+    <div class="card-front">How does quantum superposition differ from classical uncertainty?</div>
+    <div class="card-back">
+      Classical uncertainty means the system is in a definite state that we simply do not know. Quantum superposition is a genuine physical property: the system is in a well-defined quantum state that has components along multiple basis states simultaneously. The difference is experimentally testable: quantum superposition produces interference effects that classical uncertainty cannot.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch04-three-filter">
+    <div class="card-front">In the three-polarizer experiment, why does inserting a 45-degree filter between two crossed filters let light through?</div>
+    <div class="card-back">
+      The 45-degree filter <em>measures</em> the photon, collapsing its state to 45-degree polarization. This new state has a nonzero component along the horizontal axis, so it has a 50% chance of passing the final horizontal filter. Each filter transmits $\cos^2(45°) = 1/2$ of the incident photons, giving $1/2 \times 1/2 = 1/4$ overall transmission. The key insight: quantum measurement changes the state, it does not merely reveal a pre-existing value.
       <div class="flashcard-controls">
         <button class="easy">Easy</button>
         <button class="hard">Hard</button>
@@ -830,9 +1292,9 @@ c = measure q;</textarea>
   </div>
 
   <div class="flashcard" data-card-id="ch04-born-rule">
-    <div class="card-front">What is the Born rule?</div>
+    <div class="card-front">State the Born rule for a single qubit.</div>
     <div class="card-back">
-      The probability of measuring outcome $k$ from state $|\psi\rangle$ is $P(k) = |\langle k|\psi\rangle|^2$. For a qubit $\alpha|0\rangle + \beta|1\rangle$, this gives $P(0) = |\alpha|^2$ and $P(1) = |\beta|^2$.
+      For a qubit in state $|\psi\rangle = \alpha|0\rangle + \beta|1\rangle$, the probability of measuring outcome 0 is $P(0) = |\alpha|^2$ and the probability of outcome 1 is $P(1) = |\beta|^2$. Equivalently, $P(k) = |\langle k|\psi\rangle|^2$. The normalization condition $|\alpha|^2 + |\beta|^2 = 1$ ensures these probabilities sum to 1.
       <div class="flashcard-controls">
         <button class="easy">Easy</button>
         <button class="hard">Hard</button>
@@ -840,10 +1302,10 @@ c = measure q;</textarea>
     </div>
   </div>
 
-  <div class="flashcard" data-card-id="ch04-normalization">
-    <div class="card-front">What is the normalization condition for a qubit?</div>
+  <div class="flashcard" data-card-id="ch04-bloch-sphere-angles">
+    <div class="card-front">On the Bloch sphere, what do $\theta$ and $\phi$ control?</div>
     <div class="card-back">
-      For $|\psi\rangle = \alpha|0\rangle + \beta|1\rangle$, the normalization condition is $|\alpha|^2 + |\beta|^2 = 1$. This ensures that the total probability of all measurement outcomes sums to 1.
+      $\theta$ (polar angle, $0$ to $\pi$) controls the measurement probabilities: $\theta = 0$ is $|0\rangle$, $\theta = \pi$ is $|1\rangle$, and $\theta = \pi/2$ gives a 50/50 superposition on the equator. $\phi$ (azimuthal angle, $0$ to $2\pi$) controls the relative phase between $|0\rangle$ and $|1\rangle$. Phase is invisible to computational-basis measurement but crucial for interference and subsequent gate operations.
       <div class="flashcard-controls">
         <button class="easy">Easy</button>
         <button class="hard">Hard</button>
@@ -851,10 +1313,10 @@ c = measure q;</textarea>
     </div>
   </div>
 
-  <div class="flashcard" data-card-id="ch04-measurement-collapse">
-    <div class="card-front">What happens to a qubit's state when it is measured?</div>
+  <div class="flashcard" data-card-id="ch04-bloch-sphere-formula">
+    <div class="card-front">Write the Bloch sphere parameterization of a qubit state.</div>
     <div class="card-back">
-      The superposition collapses: the qubit's state becomes the basis state corresponding to the observed outcome ($|0\rangle$ or $|1\rangle$). The original amplitudes are destroyed. This process is irreversible - no quantum gate can recover the pre-measurement state.
+      $|\psi\rangle = \cos\frac{\theta}{2}|0\rangle + e^{i\phi}\sin\frac{\theta}{2}|1\rangle$, where $0 \leq \theta \leq \pi$ and $0 \leq \phi < 2\pi$. The north pole ($\theta = 0$) is $|0\rangle$, the south pole ($\theta = \pi$) is $|1\rangle$, and the equator ($\theta = \pi/2$) gives equal superpositions with different phases.
       <div class="flashcard-controls">
         <button class="easy">Easy</button>
         <button class="hard">Hard</button>
@@ -862,32 +1324,10 @@ c = measure q;</textarea>
     </div>
   </div>
 
-  <div class="flashcard" data-card-id="ch04-bloch-sphere">
-    <div class="card-front">What do $\theta$ and $\phi$ represent on the Bloch sphere?</div>
-    <div class="card-back">
-      $\theta$ (polar angle) controls the measurement probabilities: $\theta = 0$ is $|0\rangle$ (north pole), $\theta = \pi$ is $|1\rangle$ (south pole), $\theta = \pi/2$ is an equal superposition (equator). $\phi$ (azimuthal angle) controls the relative phase between $|0\rangle$ and $|1\rangle$ - invisible to computational basis measurement but crucial for interference.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch04-interference">
-    <div class="card-front">Why is interference essential for quantum computing?</div>
-    <div class="card-back">
-      Interference allows quantum algorithms to manipulate amplitudes so that wrong answers cancel out (destructive interference) and correct answers reinforce (constructive interference). Without interference, superposition produces only random outcomes - no better than coin flips.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch04-bra-ket">
+  <div class="flashcard" data-card-id="ch04-bra-ket-notation">
     <div class="card-front">In Dirac notation, what are a bra, a ket, and an inner product?</div>
     <div class="card-back">
-      A ket $|a\rangle$ is a column vector representing a quantum state. A bra $\langle a|$ is its conjugate transpose (a row vector). The inner product $\langle a|b\rangle$ is a complex number measuring the overlap between states $|a\rangle$ and $|b\rangle$. Orthogonal states have $\langle a|b\rangle = 0$; a state's inner product with itself is $\langle a|a\rangle = 1$ if normalized.
+      A ket $|a\rangle$ is a column vector representing a quantum state. A bra $\langle a|$ is its conjugate transpose (a row vector). The inner product $\langle a|b\rangle$ is a complex number measuring the overlap between states. Orthogonal states satisfy $\langle a|b\rangle = 0$. A normalized state satisfies $\langle a|a\rangle = 1$. The Born rule in this notation: $P(k) = |\langle k|\psi\rangle|^2$.
       <div class="flashcard-controls">
         <button class="easy">Easy</button>
         <button class="hard">Hard</button>
@@ -898,7 +1338,7 @@ c = measure q;</textarea>
   <div class="flashcard" data-card-id="ch04-global-vs-relative-phase">
     <div class="card-front">What is the difference between global phase and relative phase?</div>
     <div class="card-back">
-      A global phase ($e^{i\gamma}$ multiplying the entire state vector) is physically unobservable - $|\psi\rangle$ and $e^{i\gamma}|\psi\rangle$ are the same state. A relative phase (different phases on different basis state amplitudes) is physically real: $|+\rangle = \frac{1}{\sqrt{2}}(|0\rangle + |1\rangle)$ and $|-\rangle = \frac{1}{\sqrt{2}}(|0\rangle - |1\rangle)$ give the same measurement statistics in the computational basis but behave differently under subsequent gates.
+      A global phase ($e^{i\gamma}$ multiplying the entire state vector) is physically unobservable: $|\psi\rangle$ and $e^{i\gamma}|\psi\rangle$ are the same physical state. A relative phase (different phases on different basis-state amplitudes) is physically real. For example, $|+\rangle$ and $|-\rangle$ give identical 50/50 measurement statistics, but a Hadamard gate maps $|+\rangle \to |0\rangle$ and $|-\rangle \to |1\rangle$, revealing the phase difference.
       <div class="flashcard-controls">
         <button class="easy">Easy</button>
         <button class="hard">Hard</button>
@@ -906,10 +1346,10 @@ c = measure q;</textarea>
     </div>
   </div>
 
-  <div class="flashcard" data-card-id="ch04-hadamard">
-    <div class="card-front">What does the Hadamard gate do, mathematically?</div>
+  <div class="flashcard" data-card-id="ch04-measurement-collapse">
+    <div class="card-front">What happens to a qubit's state when it is measured, and why is this significant?</div>
     <div class="card-back">
-      The Hadamard gate $H = \frac{1}{\sqrt{2}}\begin{pmatrix}1 & 1 \\ 1 & -1\end{pmatrix}$ maps $|0\rangle \to |+\rangle = \frac{1}{\sqrt{2}}(|0\rangle + |1\rangle)$ and $|1\rangle \to |-\rangle = \frac{1}{\sqrt{2}}(|0\rangle - |1\rangle)$. It creates superposition from definite states and is its own inverse: $HH = I$.
+      Measurement collapses the superposition: the qubit's state becomes the basis state corresponding to the observed outcome ($|0\rangle$ or $|1\rangle$). The original amplitudes are destroyed irreversibly. This is the <em>only</em> irreversible operation in quantum mechanics (all quantum gates are reversible). It means quantum algorithms should delay measurement as long as possible to preserve interference.
       <div class="flashcard-controls">
         <button class="easy">Easy</button>
         <button class="hard">Hard</button>
@@ -918,9 +1358,9 @@ c = measure q;</textarea>
   </div>
 
   <div class="flashcard" data-card-id="ch04-no-cloning">
-    <div class="card-front">What does the no-cloning theorem say, and why does it matter?</div>
+    <div class="card-front">Why can't you determine an unknown qubit state from a single copy?</div>
     <div class="card-back">
-      The no-cloning theorem states that there is no quantum operation that can create an exact copy of an arbitrary unknown quantum state. This means you cannot determine an unknown state from a single copy (you would need many copies to build up statistics, but you cannot make them). This limitation is what makes quantum cryptography secure: eavesdropping necessarily disturbs the quantum states being transmitted.
+      A single measurement yields only one bit (0 or 1) and destroys the state via collapse. You cannot measure again because the original superposition is gone. The no-cloning theorem forbids making exact copies of an unknown state, so you cannot create duplicates to build up statistics. This fundamental limitation is what makes quantum cryptography secure: eavesdropping necessarily disturbs quantum states.
       <div class="flashcard-controls">
         <button class="easy">Easy</button>
         <button class="hard">Hard</button>
@@ -930,6 +1370,7 @@ c = measure q;</textarea>
 
 </div>
 </section>
+
     </article>
 
     
@@ -954,5 +1395,315 @@ c = measure q;</textarea>
       }
     });
   </script>
+  
+  <script>
+  "use strict";
+  
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function isDark() { return window.matchMedia("(prefers-color-scheme: dark)").matches; }
+  function renderMath(el) {
+    if (typeof renderMathInElement === "function")
+      renderMathInElement(el, { delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}], throwOnError: false });
+  }
+
+  
+  var wasmReady = null;
+  function ensureWasm() {
+    if (!wasmReady) {
+      wasmReady = (async function() {
+        var go = new Go();
+        var result = await WebAssembly.instantiateStreaming(fetch("../main.wasm"), go.importObject);
+        go.run(result.instance);
+      })();
+    }
+    return wasmReady;
+  }
+
+  
+  var SRS_KEY = "goqu-srs";
+  function srsLoad() { try { return JSON.parse(localStorage.getItem(SRS_KEY) || "{}"); } catch(e) { return {}; } }
+  function srsSave(d) { localStorage.setItem(SRS_KEY, JSON.stringify(d)); }
+  function getCardState(id) { var d = srsLoad(); return d[id] || {interval:1, ease:2.5, due:0, reps:0}; }
+  function reviewCard(id, q) {
+    var d = srsLoad(), s = d[id] || {interval:1, ease:2.5, due:0, reps:0};
+    if (q >= 3) {
+      s.reps++;
+      if (s.reps === 1) s.interval = 1;
+      else if (s.reps === 2) s.interval = 6;
+      else s.interval = Math.round(s.interval * s.ease);
+      s.ease = Math.max(1.3, s.ease + 0.1 - (5-q)*(0.08 + (5-q)*0.02));
+    } else { s.reps = 0; s.interval = 1; }
+    s.due = Date.now() + s.interval * 86400000;
+    d[id] = s; srsSave(d);
+  }
+
+  
+  function initSandbox(el) {
+    var code = el.querySelector(".code"), output = el.querySelector(".output");
+    if (!code || !output) return;
+    var runBtn = el.querySelector('[data-action="run"]'), resetBtn = el.querySelector('[data-action="reset"]');
+    var shotsEl = el.querySelector("[data-shots]"), orig = code.value;
+    function shots() { return parseInt(shotsEl ? shotsEl.value : el.dataset.shots || "1024", 10); }
+    async function run() {
+      await ensureWasm();
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(code.value, shots(), isDark()));
+        if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+        output.innerHTML = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+    if (runBtn) runBtn.addEventListener("click", run);
+    if (resetBtn) resetBtn.addEventListener("click", function() { code.value = orig; });
+    if (el.hasAttribute("data-autorun")) run();
+  }
+
+  
+  function initSimulation(el) {
+    var tmplEl = el.querySelector(".sim-qasm"), output = el.querySelector(".sim-output");
+    var sliders = el.querySelectorAll('input[type="range"]');
+    var selects = el.querySelectorAll("select[data-param]");
+    if (!tmplEl || !output || (sliders.length === 0 && selects.length === 0)) return;
+    var tmpl = tmplEl.textContent, pending = false;
+    var useNoisy = el.hasAttribute("data-noisy");
+    var useComparison = el.hasAttribute("data-comparison");
+    var useExpectation = el.hasAttribute("data-expectation");
+    var useClifford = el.hasAttribute("data-clifford");
+    async function update() {
+      if (pending) return; pending = true;
+      await ensureWasm();
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var params = {};
+        sliders.forEach(function(s) { params[s.dataset.param] = parseFloat(s.value); var o = s.parentElement.querySelector("output"); if (o) o.textContent = parseFloat(s.value).toFixed(2); });
+        selects.forEach(function(s) { params[s.dataset.param] = s.value; });
+        var qasm = tmpl;
+        for (var k in params) qasm = qasm.replaceAll("{"+k+"}", params[k].toString());
+        var html = "";
+        if (useComparison && window.compareIdealNoisy) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.compareIdealNoisy(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="comparison-panels"><div class="comparison-panel"><h4>Ideal</h4>' + (r.idealHistogramSVG||"") + '</div><div class="comparison-panel"><h4>Noisy</h4>' + (r.noisyHistogramSVG||"") + '</div></div>';
+          if (r.stateCitySVG) html += r.stateCitySVG;
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useNoisy && window.runNoisyQASM) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.runNoisyQASM(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"") + (r.stateCitySVG||"");
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useClifford && window.runClifford) {
+          var r = JSON.parse(window.runClifford(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"");
+          if (r.stabilizers) { html += '<div class="stabilizer-table"><h4>Stabilizers</h4><table>'; r.stabilizers.forEach(function(s) { html += '<tr><td>' + formatStabilizer(s) + '</td></tr>'; }); html += '</table></div>'; }
+        } else if (useExpectation && window.computeExpectation) {
+          var pauliStr = params.pauliStr || el.dataset.pauli || "Z";
+          var r = JSON.parse(window.computeExpectation(qasm, pauliStr, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="sim-stats"><span>&lt;' + esc(pauliStr) + '&gt; = ' + r.expectation.toFixed(6) + '</span></div>';
+        } else {
+          var r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+          
+          if (el.hasAttribute("data-bloch") && window.getStateVector && window.renderBloch) {
+            try {
+              var sv = JSON.parse(window.getStateVector(qasm));
+              if (sv.amplitudes && sv.amplitudes.length === 2) {
+                var a = sv.amplitudes;
+                var blochSVG = window.renderBloch(a[0].re, a[0].im, a[1].re, a[1].im, isDark());
+                if (blochSVG) html += blochSVG;
+              }
+            } catch(e) {   }
+          }
+        }
+        output.innerHTML = html;
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+      pending = false;
+    }
+    sliders.forEach(function(s) { s.addEventListener("input", update); });
+    selects.forEach(function(s) { s.addEventListener("change", update); });
+    update();
+  }
+
+  
+  function formatStabilizer(s) {
+    if (!s) return "";
+    var sign = s[0], ops = s.slice(1), html = '<span class="stab-sign">' + esc(sign) + '</span>';
+    for (var i = 0; i < ops.length; i++) {
+      var c = ops[i], cls = "stab-" + c.toLowerCase();
+      html += '<span class="' + cls + '">' + c + '</span>';
+    }
+    return html;
+  }
+
+  
+  function initExercise(el) {
+    var code = el.querySelector(".code"), feedback = el.querySelector(".exercise-feedback");
+    var checkBtn = el.querySelector('[data-action="check"]');
+    var hintBtn = el.querySelector('[data-action="hint"]'), hintEl = el.querySelector(".exercise-hint");
+    if (!code || !feedback || !checkBtn) return;
+    var expected = {}, tol = 0.1;
+    var expEl = el.querySelector(".exercise-expected");
+    if (expEl) expEl.querySelectorAll("[data-state]").forEach(function(span) {
+      expected[span.dataset.state] = parseFloat(span.dataset.prob);
+      if (span.dataset.tolerance) tol = parseFloat(span.dataset.tolerance);
+    });
+    checkBtn.addEventListener("click", async function() {
+      await ensureWasm();
+      feedback.className = "exercise-feedback visible";
+      feedback.textContent = "Checking...";
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(code.value, 1024, isDark()));
+        if (r.error) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + r.error; return; }
+        if (Object.keys(expected).length === 0) { feedback.className = "exercise-feedback visible pass"; feedback.innerHTML = "Circuit ran successfully."; return; }
+        var prob = JSON.parse(window.getProbabilities(code.value, isDark()));
+        if (prob.error) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + prob.error; return; }
+        var actual = {};
+        for (var i = 0; i < prob.labels.length; i++) actual[prob.labels[i]] = prob.probabilities[i];
+        var ok = true, msgs = [];
+        for (var s in expected) {
+          var a = actual[s] || 0, p = expected[s];
+          if (Math.abs(a - p) > tol) { ok = false; msgs.push("|" + s + "\u27E9: expected " + (p*100|0) + "%, got " + (a*100|0) + "%"); }
+        }
+        if (ok) { feedback.className = "exercise-feedback visible pass"; feedback.innerHTML = "Correct! Your circuit produces the expected output."; }
+        else { feedback.className = "exercise-feedback visible fail"; feedback.innerHTML = "Not quite. " + msgs.join("; ") + "."; }
+        renderMath(feedback);
+      } catch(e) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + e.message; }
+    });
+    if (hintBtn && hintEl) hintBtn.addEventListener("click", function() { hintEl.style.display = hintEl.style.display === "none" ? "block" : "none"; });
+  }
+
+  
+  function initFlashcardDeck(el) {
+    el.querySelectorAll(".flashcard").forEach(function(card) {
+      var id = card.dataset.cardId;
+      if (!id) return;
+      var state = getCardState(id);
+      if (state.due > 0 && state.due > Date.now()) card.classList.add("reviewed");
+      card.addEventListener("click", function(e) {
+        if (e.target.closest("button")) return;
+        card.classList.toggle("flipped");
+        var back = card.querySelector(".card-back");
+        if (back) renderMath(back);
+      });
+      var easyBtn = card.querySelector(".easy"), hardBtn = card.querySelector(".hard");
+      if (easyBtn) easyBtn.addEventListener("click", function() { reviewCard(id, 4); card.classList.remove("flipped"); card.classList.add("reviewed"); });
+      if (hardBtn) hardBtn.addEventListener("click", function() { reviewCard(id, 2); card.classList.remove("flipped"); });
+    });
+  }
+
+  
+  function initPOE(el) {
+    var steps = el.querySelectorAll(".poe-step"), prog = el.querySelectorAll(".poe-progress-step");
+    if (steps.length === 0) return;
+    var cur = 0;
+    function show(idx) {
+      steps.forEach(function(s,i) { s.classList.toggle("active", i === idx); });
+      prog.forEach(function(s,i) { s.classList.remove("active","done"); if (i < idx) s.classList.add("done"); if (i === idx) s.classList.add("active"); });
+      cur = idx;
+      var active = steps[idx];
+      if (active) active.querySelectorAll('.sandbox:not([data-initialized])').forEach(function(sb) { sb.setAttribute("data-initialized","true"); initSandbox(sb); });
+    }
+    el.querySelectorAll('[data-action="next"]').forEach(function(btn) { btn.addEventListener("click", function() { if (cur < steps.length - 1) show(cur + 1); }); });
+    el.querySelectorAll('[data-action="complete"]').forEach(function(btn) { btn.addEventListener("click", function() { prog.forEach(function(s) { s.classList.remove("active"); s.classList.add("done"); }); }); });
+    show(0);
+  }
+
+  
+  function initStepThrough(el) {
+    var qasmEl = el.querySelector(".step-qasm");
+    var output = el.querySelector(".step-output");
+    var prevBtn = el.querySelector('[data-action="prev"]');
+    var nextBtn = el.querySelector('[data-action="next"]');
+    var stepInfo = el.querySelector(".step-info");
+    if (!qasmEl || !output) return;
+    var qasm = qasmEl.textContent;
+    var mode = el.dataset.mode || "clifford"; 
+    var steps = null, cur = -1;
+
+    async function load() {
+      await ensureWasm();
+      try {
+        if (mode === "clifford" && window.cliffordStepThrough) {
+          var r = JSON.parse(window.cliffordStepThrough(qasm));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+          
+          steps.unshift({gate: "init", qubits: [], stabilizers: r.steps.length > 0 ? null : []});
+        } else if (mode === "grover" && window.groverStepThrough) {
+          var nq = parseInt(el.dataset.qubits || "2", 10);
+          var targets = JSON.parse(el.dataset.targets || "[]");
+          var r = JSON.parse(window.groverStepThrough(nq, targets.join(",")));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+        }
+        if (steps && steps.length > 0) { cur = 0; renderStep(); }
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    function renderStep() {
+      if (!steps || cur < 0 || cur >= steps.length) return;
+      var s = steps[cur];
+      var html = "";
+      if (mode === "clifford") {
+        if (s.gate === "init") {
+          html = '<p class="step-label">Initial state |0...0&gt;</p>';
+          
+          if (steps.length > 1 && steps[1].stabilizers) {
+            var nq = steps[1].stabilizers[0].length - 1;
+            html += '<div class="stabilizer-table"><table>';
+            for (var i = 0; i < nq; i++) {
+              var row = "+";
+              for (var j = 0; j < nq; j++) row += (j === i) ? "Z" : "I";
+              html += '<tr><td>' + formatStabilizer(row) + '</td></tr>';
+            }
+            html += '</table></div>';
+          }
+        } else {
+          html = '<p class="step-label">After <strong>' + esc(s.gate) + '</strong> on qubit' + (s.qubits.length > 1 ? 's ' : ' ') + s.qubits.join(', ') + '</p>';
+          if (s.stabilizers) {
+            html += '<div class="stabilizer-table"><table>';
+            s.stabilizers.forEach(function(st) { html += '<tr><td>' + formatStabilizer(st) + '</td></tr>'; });
+            html += '</table></div>';
+          }
+        }
+      } else if (mode === "grover") {
+        html = '<p class="step-label">Iteration ' + s.iteration + '</p>';
+        if (s.probabilities) {
+          html += '<div class="amplitude-bars">';
+          for (var i = 0; i < s.probabilities.length; i++) {
+            var label = i.toString(2).padStart(Math.ceil(Math.log2(s.probabilities.length)), '0');
+            var pct = (s.probabilities[i] * 100).toFixed(1);
+            var isTarget = el.dataset.targets && JSON.parse(el.dataset.targets).indexOf(i) >= 0;
+            html += '<div class="amp-bar' + (isTarget ? ' target' : '') + '"><div class="amp-fill" style="height:' + pct + '%"></div><span class="amp-label">|' + label + '&gt;</span><span class="amp-value">' + pct + '%</span></div>';
+          }
+          html += '</div>';
+        }
+      }
+      output.innerHTML = html;
+      if (stepInfo) stepInfo.textContent = "Step " + cur + " / " + (steps.length - 1);
+      if (prevBtn) prevBtn.disabled = (cur === 0);
+      if (nextBtn) nextBtn.disabled = (cur >= steps.length - 1);
+    }
+
+    if (prevBtn) prevBtn.addEventListener("click", function() { if (cur > 0) { cur--; renderStep(); } });
+    if (nextBtn) nextBtn.addEventListener("click", function() { if (steps && cur < steps.length - 1) { cur++; renderStep(); } });
+    load();
+  }
+
+  
+  document.addEventListener("DOMContentLoaded", function() {
+    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough};
+    document.querySelectorAll("[data-component]").forEach(function(el) { var fn = reg[el.dataset.component]; if (fn) fn(el); });
+  });
+  </script>
+  
 </body>
 </html>

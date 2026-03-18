@@ -1,0 +1,1442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chapter 16: Classical Error Correction Refresher - Goqu Textbook</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/contrib/auto-render.min.js"></script>
+  
+  <link rel="preload" href="../main.wasm" as="fetch" type="application/wasm" crossorigin>
+  <script src="../wasm_exec.js"></script>
+  
+</head>
+<body>
+  <input type="checkbox" id="nav-toggle" hidden>
+  <label for="nav-toggle" class="nav-hamburger" aria-label="Toggle navigation">
+    <span></span><span></span><span></span>
+  </label>
+
+  <nav class="sidebar" aria-label="Table of contents">
+    <a href="../index.html" class="sidebar-logo">Goqu Textbook</a>
+    
+    <details>
+      <summary>Part 1: The World of Classical Computing</summary>
+      <ol start="1">
+        
+        <li value="1"><a href="01-computation.html">What Is Computation?</a></li>
+        
+        <li value="2"><a href="02-math-of-information.html">The Mathematics of Information</a></li>
+        
+        <li value="3"><a href="03-reversible-computing.html">Reversible Computing</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 2: Entering the Quantum World</summary>
+      <ol start="4">
+        
+        <li value="4"><a href="04-the-first-qubit.html">The First Qubit</a></li>
+        
+        <li value="5"><a href="05-quantum-gates.html">Quantum Gates</a></li>
+        
+        <li value="6"><a href="06-entanglement.html">Multiple Qubits and Entanglement</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 3: Quantum Protocols</summary>
+      <ol start="7">
+        
+        <li value="7"><a href="07-teleportation.html">Quantum Teleportation and Communication</a></li>
+        
+        <li value="8"><a href="08-cryptography.html">Quantum Cryptography</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 4: Quantum Algorithms - The First Wave</summary>
+      <ol start="9">
+        
+        <li value="9"><a href="09-oracles.html">Oracles and Quantum Parallelism</a></li>
+        
+        <li value="10"><a href="10-qft.html">The Quantum Fourier Transform</a></li>
+        
+        <li value="11"><a href="11-shor.html">Shor&#39;s Algorithm</a></li>
+        
+        <li value="12"><a href="12-grover.html">Grover&#39;s Algorithm</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 5: Real Quantum Hardware</summary>
+      <ol start="13">
+        
+        <li value="13"><a href="13-hardware.html">How to Build a Quantum Computer</a></li>
+        
+        <li value="14"><a href="14-noise.html">Noise, Decoherence, and the NISQ Era</a></li>
+        
+        <li value="15"><a href="15-programming.html">Programming Quantum Computers</a></li>
+        
+      </ol>
+    </details>
+    
+    <details open>
+      <summary>Part 6: Quantum Error Correction</summary>
+      <ol start="16">
+        
+        <li value="16"><a href="16-classical-ec.html" aria-current="page">Classical Error Correction Refresher</a></li>
+        
+        <li value="17"><a href="17-qec-fundamentals.html">Quantum Error Correction Fundamentals</a></li>
+        
+        <li value="18"><a href="18-stabilizers.html">The Stabilizer Formalism</a></li>
+        
+        <li value="19"><a href="19-surface-codes.html">Surface Codes and Topological Protection</a></li>
+        
+        <li value="20"><a href="20-fault-tolerance.html">Fault-Tolerant Quantum Computing</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 7: Variational and Near-Term Algorithms</summary>
+      <ol start="21">
+        
+        <li value="21"><a href="21-variational.html">The Variational Quantum Computing Paradigm</a></li>
+        
+        <li value="22"><a href="22-vqe.html">Variational Quantum Eigensolver (VQE)</a></li>
+        
+        <li value="23"><a href="23-qaoa.html">Quantum Approximate Optimization (QAOA)</a></li>
+        
+        <li value="24"><a href="24-qml.html">Quantum Machine Learning</a></li>
+        
+        <li value="25"><a href="25-error-mitigation.html">Quantum Error Mitigation</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 8: Quantum Information Theory</summary>
+      <ol start="26">
+        
+        <li value="26"><a href="26-states-measurements.html">Quantum States and Measurements, Revisited</a></li>
+        
+        <li value="27"><a href="27-channels.html">Quantum Channels and Operations</a></li>
+        
+        <li value="28"><a href="28-entropy.html">Quantum Entropy and Information</a></li>
+        
+        <li value="29"><a href="29-shannon.html">Quantum Shannon Theory</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 9: Quantum Complexity and Computation Theory</summary>
+      <ol start="30">
+        
+        <li value="30"><a href="30-complexity.html">Quantum Computational Complexity</a></li>
+        
+        <li value="31"><a href="31-hidden-subgroup.html">The Hidden Subgroup Problem and Beyond</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 10: Quantum Simulation</summary>
+      <ol start="32">
+        
+        <li value="32"><a href="32-simulation-why.html">Why Quantum Simulation Matters</a></li>
+        
+        <li value="33"><a href="33-digital-simulation.html">Digital Quantum Simulation</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 11: Quantum Networking, Cryptography, and Sensing</summary>
+      <ol start="34">
+        
+        <li value="34"><a href="34-quantum-internet.html">The Quantum Internet</a></li>
+        
+        <li value="35"><a href="35-advanced-crypto.html">Advanced Quantum Cryptography</a></li>
+        
+        <li value="36"><a href="36-sensing.html">Quantum Sensing and Metrology</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 12: Frontiers and the Future</summary>
+      <ol start="37">
+        
+        <li value="37"><a href="37-topological.html">Topological Quantum Computing</a></li>
+        
+        <li value="38"><a href="38-quantum-ai.html">Quantum Computing and Artificial Intelligence</a></li>
+        
+        <li value="39"><a href="39-open-problems.html">Open Problems in Quantum Computing</a></li>
+        
+        <li value="40"><a href="40-ecosystem.html">The Quantum Computing Ecosystem Today</a></li>
+        
+        <li value="41"><a href="41-career.html">Building Your Quantum Computing Career</a></li>
+        
+        <li value="42"><a href="42-what-next.html">What Comes Next</a></li>
+        
+      </ol>
+    </details>
+    
+  </nav>
+
+  <main>
+    
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="../index.html">Home</a> / <a href="../index.html#part-6">Part 6</a> / <span>Chapter 16</span>
+    </nav>
+    
+
+    <article>
+      <h1>Chapter 16: Classical Error Correction Refresher</h1>
+      <p>
+  Quantum computers are extraordinarily fragile. A single stray photon, a tiny temperature
+  fluctuation, or an unwanted magnetic field can corrupt a qubit's state. Before we can
+  understand how to protect quantum information - the subject of the next several chapters -
+  we need to understand how classical error correction works. The ideas are older, simpler,
+  and remarkably elegant. They also contain the seeds of every quantum error-correcting code
+  we will encounter.
+</p>
+
+<p>
+  This chapter is entirely classical. We start with the most obvious strategy - make copies -
+  and build up to linear codes and the Hamming codes that correct any single-bit error with
+  minimal overhead. We close with Shannon's noisy channel coding theorem, the absolute limit
+  of what error correction can achieve. Along the way, we develop the vocabulary of
+  <em>parity checks</em>, <em>syndromes</em>, and <em>generator matrices</em> that will
+  carry directly into the quantum setting.
+</p>
+
+<!-- ================================================================== -->
+<section id="redundancy-and-repetition-codes">
+<h2>16.1 Redundancy and Repetition Codes</h2>
+
+<p>
+  The simplest idea in error correction is also the most ancient: say it more than once. If
+  you shout "yes, yes, yes!" across a noisy field, your listener can take the majority vote
+  of what they hear and correctly decode your message even if one repetition is garbled. This
+  is the essence of a <em>repetition code</em>.
+</p>
+
+<h3>The 3-Bit Repetition Code</h3>
+
+<p>
+  Suppose we want to send a single bit - either 0 or 1 - through a noisy channel where each
+  bit has some probability $p$ of being flipped. Instead of sending the bare bit, we encode
+  it by tripling:
+</p>
+
+$$0 \longrightarrow 000, \qquad 1 \longrightarrow 111$$
+
+<p>
+  These two strings, $000$ and $111$, are our <strong>codewords</strong>. The receiver gets
+  three bits, some of which may have been flipped, and decodes by taking the
+  <strong>majority vote</strong>: whichever value appears at least twice is declared the
+  original bit.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    A <em>repetition code</em> encodes one logical bit into $n$ identical copies. The receiver
+    decodes by majority vote: the value held by more than half the bits wins. The 3-bit
+    repetition code can correct any single-bit error, since flipping one bit still leaves two
+    copies of the correct value.
+  </p>
+</div>
+
+<p>
+  If the channel flips each bit independently with probability $p$, the probability of
+  a decoding failure (two or more flips) is:
+</p>
+
+$$P_{\text{fail}} = 3p^2(1-p) + p^3 = 3p^2 - 2p^3$$
+
+<p>
+  This beats the uncoded error rate $p$ whenever $p < 1/2$. For $p = 0.01$, the failure
+  probability drops from $0.01$ to roughly $0.0003$ - an improvement by a factor of 33.
+</p>
+
+<h3>Hamming Distance</h3>
+
+<p>
+  Why does the repetition code work? The two codewords $000$ and $111$ differ in
+  <em>every</em> position. The number of positions in which two binary strings differ is
+  called their <strong>Hamming distance</strong>, named after Richard Hamming, who introduced
+  it in 1950.
+</p>
+
+$$d(000, 111) = 3$$
+
+<p>
+  The <em>minimum distance</em> of a code is the smallest Hamming distance between any pair
+  of distinct codewords. For the 3-bit repetition code, there are only two codewords and
+  their distance is 3, so $d_{\min} = 3$. The general rule is:
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    A code with minimum distance $d$ can:
+  </p>
+  <ul>
+    <li><strong>Detect</strong> up to $d - 1$ errors (any error pattern of weight less than $d$
+        moves a codeword to a non-codeword).</li>
+    <li><strong>Correct</strong> up to $\lfloor (d-1)/2 \rfloor$ errors (the received word is
+        still closer to the original codeword than to any other).</li>
+  </ul>
+</div>
+
+<p>
+  For the 3-bit repetition code with $d = 3$: it can detect up to 2 errors and correct up
+  to 1 error. This matches our majority-vote analysis perfectly.
+</p>
+
+<h3>The Cost of Repetition</h3>
+
+<p>
+  The 3-bit repetition code uses 3 physical bits for 1 logical bit - a <strong>rate</strong>
+  of $R = k/n = 1/3$. A 5-bit repetition code corrects up to 2 errors but has rate $1/5$.
+  In general, the rate is $1/n$, going to zero as we demand more protection. Can we protect
+  <em>multiple</em> data bits simultaneously at a reasonable rate? Yes - and this leads us
+  to linear codes.
+</p>
+
+<h3>Repetition Code in a Quantum Sandbox</h3>
+
+<p>
+  Although this chapter is classical, we can illustrate the repetition code concept using
+  CNOT gates on qubits. The circuit below encodes the state of <code>q[0]</code> into three
+  qubits by "copying" it to <code>q[1]</code> and <code>q[2]</code> via CNOT. An X gate on
+  <code>q[1]</code> simulates a single-bit-flip error. Then we decode by majority vote using
+  two CNOT gates and a Toffoli, extracting the corrected bit into <code>q[0]</code>. Run the
+  circuit and verify that the error is corrected.
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="14">OPENQASM 3.0;
+qubit[3] q;
+bit[3] c;
+// Encode: copy q[0]=1 to q[1] and q[2]
+x q[0];
+cx q[0], q[1];
+cx q[0], q[2];
+// Simulate single-bit error on q[1]
+x q[1];
+// Decode by majority: if q[1] and q[2] agree
+// and disagree with q[0], the Toffoli flips q[0]
+cx q[0], q[1];
+cx q[0], q[2];
+ccx q[1], q[2], q[0];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+  The output should read <code>111</code> with 100% probability, confirming that the error
+  on <code>q[1]</code> has been corrected and the original encoded state recovered. Try
+  removing the error line (<code>x q[1];</code>) to verify the no-error case also works.
+  You can also move the error to <code>q[0]</code> or <code>q[2]</code> - any single-bit
+  flip will be corrected.
+</p>
+
+<div class="callout callout-info">
+  <strong>Note.</strong>
+  <p>
+    In the quantum world, this repetition code only corrects <em>bit-flip</em> errors (X
+    errors). It cannot correct phase-flip errors (Z errors), which have no classical analog.
+    We will confront this limitation directly in Chapter 17 when we introduce quantum error
+    correction.
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="linear-codes">
+<h2>16.2 Linear Codes: Parity Checks and Hamming Codes</h2>
+
+<p>
+  Linear codes are far more sophisticated than repetition. They protect $k$ data bits using
+  $n$ total bits ($n > k$), adding only $r = n - k$ parity check bits. A single parity bit
+  can protect multiple data bits simultaneously.
+</p>
+
+<h3>The Parity Check Idea</h3>
+
+<p>
+  A <strong>parity check</strong> is a single bit that records whether a certain subset of
+  bits has an even or odd number of 1s. For example, given three data bits $d_1, d_2, d_3$,
+  we might define a parity bit:
+</p>
+
+$$p = d_1 \oplus d_2 \oplus d_3$$
+
+<p>
+  where $\oplus$ denotes addition modulo 2 (XOR). If $d_1 = 1, d_2 = 0, d_3 = 1$, then
+  $p = 1 \oplus 0 \oplus 1 = 0$. The four-bit string $d_1 d_2 d_3 p = 1010$ satisfies
+  the constraint $d_1 \oplus d_2 \oplus d_3 \oplus p = 0$. If any single bit is flipped,
+  this parity sum becomes 1, alerting us that an error occurred. One parity bit can
+  <em>detect</em> a single error but cannot <em>locate</em> it - it only tells us that
+  something went wrong, not where.
+</p>
+
+<h3>Arithmetic in GF(2)</h3>
+
+<p>
+  Classical coding theory takes place over $\text{GF}(2)$ (also written $\mathbb{F}_2$) -
+  the field with two elements, 0 and 1. Addition is XOR and multiplication is AND. The
+  crucial rule is $1 + 1 = 0$ (no carrying). Subtraction equals addition since $-1 = 1$.
+  All the matrix algebra from earlier chapters carries over - we just work mod 2.
+</p>
+
+<h3>The Generator Matrix</h3>
+
+<p>
+  A <strong>linear code</strong> is a code whose set of codewords forms a vector subspace of
+  $\text{GF}(2)^n$. In practice, this means we can describe the entire code using a
+  <strong>generator matrix</strong> $G$ of size $k \times n$. To encode a message
+  $\mathbf{m} = (m_1, \ldots, m_k)$, we compute:
+</p>
+
+$$\mathbf{c} = \mathbf{m} \cdot G$$
+
+<p>
+  where all arithmetic is in $\text{GF}(2)$. The result $\mathbf{c}$ is an $n$-bit codeword.
+  Because the encoding is a linear map, the sum of any two codewords is also a codeword -
+  this is the defining property of a linear code.
+</p>
+
+<p>
+  A generator matrix in <strong>systematic form</strong> looks like $G = [I_k \mid P]$, where
+  $I_k$ is the $k \times k$ identity matrix and $P$ is a $k \times r$ matrix that determines
+  the parity bits. In systematic form, the first $k$ bits of the codeword are the original
+  data bits, and the last $r$ bits are the parity checks.
+</p>
+
+<h3>The Parity Check Matrix</h3>
+
+<p>
+  Dual to $G$ is the <strong>parity check matrix</strong> $H$ of size $r \times n$
+  ($r = n - k$). A vector $\mathbf{c}$ is a valid codeword if and only if:
+</p>
+
+$$H \mathbf{c}^T = \mathbf{0}$$
+
+<p>
+  When the generator matrix is in systematic form $G = [I_k \mid P]$, the parity check
+  matrix is:
+</p>
+
+$$H = [P^T \mid I_r]$$
+
+<p>
+  The key identity $G H^T = \mathbf{0}$ guarantees every codeword satisfies all parity checks.
+  Each row of $H$ is a parity equation that every valid codeword must satisfy.
+</p>
+
+<h3>Syndrome Decoding</h3>
+
+<p>
+  Suppose we send a codeword $\mathbf{c}$ and receive $\mathbf{r} = \mathbf{c} + \mathbf{e}$,
+  where $\mathbf{e}$ is the error vector (a string with 1s in the corrupted positions). The
+  <strong>syndrome</strong> of the received word is:
+</p>
+
+$$\mathbf{s} = H \mathbf{r}^T = H(\mathbf{c} + \mathbf{e})^T = H\mathbf{c}^T + H\mathbf{e}^T = \mathbf{0} + H\mathbf{e}^T = H\mathbf{e}^T$$
+
+<p>
+  The syndrome depends <em>only on the error</em>, not on which codeword was sent. This is
+  the magic of linear codes. If $\mathbf{s} = \mathbf{0}$, no error is detected. If
+  $\mathbf{s} \neq \mathbf{0}$, the syndrome tells us exactly which error pattern occurred
+  (for correctable errors).
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    <strong>Syndrome decoding</strong> computes $\mathbf{s} = H\mathbf{e}^T$. For a
+    single-bit error at position $i$, the error vector $\mathbf{e}$ has a single 1 in
+    position $i$, so the syndrome is simply the $i$-th column of $H$. If all columns of $H$
+    are distinct and nonzero, every single-bit error produces a unique syndrome, and the
+    error can be corrected by flipping the bit whose column matches the syndrome.
+  </p>
+</div>
+
+<h3>The Hamming(7,4) Code</h3>
+
+<p>
+  Richard Hamming's insight (1950) was to design $H$ so that its columns are all the nonzero
+  binary strings of a given length. For the Hamming(7,4) code ($n=7$, $k=4$, $r=3$), the
+  $2^3 - 1 = 7$ nonzero binary strings of length 3 become the columns of $H$:
+</p>
+
+$$H = \begin{pmatrix} 1 & 1 & 0 & 1 & 1 & 0 & 0 \\ 1 & 0 & 1 & 1 & 0 & 1 & 0 \\ 0 & 1 & 1 & 1 & 0 & 0 & 1 \end{pmatrix}$$
+
+<p>
+  Reading off the systematic form, the last three columns form $I_3$, and the first four
+  columns form $P^T$. The corresponding generator matrix in systematic form is:
+</p>
+
+$$G = \begin{pmatrix} 1 & 0 & 0 & 0 & 1 & 1 & 0 \\ 0 & 1 & 0 & 0 & 1 & 0 & 1 \\ 0 & 0 & 1 & 0 & 0 & 1 & 1 \\ 0 & 0 & 0 & 1 & 1 & 1 & 1 \end{pmatrix}$$
+
+<p>
+  The first four columns of $G$ are the identity (systematic form), so encoding preserves
+  the four data bits and appends three parity bits. For example, encoding the message
+  $\mathbf{m} = (1, 0, 1, 1)$:
+</p>
+
+$$\mathbf{c} = (1,0,1,1) \begin{pmatrix} 1 & 0 & 0 & 0 & 1 & 1 & 0 \\ 0 & 1 & 0 & 0 & 1 & 0 & 1 \\ 0 & 0 & 1 & 0 & 0 & 1 & 1 \\ 0 & 0 & 0 & 1 & 1 & 1 & 1 \end{pmatrix} = (1, 0, 1, 1, 0, 1, 0)$$
+
+<p>
+  All arithmetic is mod 2. The parity bits are:
+  $p_1 = m_1 \oplus m_2 \oplus m_4 = 1 \oplus 0 \oplus 1 = 0$,
+  $p_2 = m_1 \oplus m_3 \oplus m_4 = 1 \oplus 1 \oplus 1 = 1$,
+  $p_3 = m_2 \oplus m_3 \oplus m_4 = 0 \oplus 1 \oplus 1 = 0$.
+  So $\mathbf{c} = (1, 0, 1, 1, 0, 1, 0)$.
+</p>
+
+<p>
+  Now suppose bit 3 is flipped during transmission, so we receive
+  $\mathbf{r} = (1, 0, \mathbf{0}, 1, 0, 1, 0)$. The syndrome is:
+</p>
+
+$$\mathbf{s} = H \mathbf{r}^T = \begin{pmatrix} 0 \\ 1 \\ 1 \end{pmatrix}$$
+
+<p>
+  This matches the third column of $H$, telling us bit 3 is corrupted. We flip it to
+  recover the original codeword.
+</p>
+
+<h3>Parameters of Hamming Codes</h3>
+
+<p>
+  The general Hamming code is parametrized by an integer $r \geq 2$:
+</p>
+
+<ul>
+  <li>Block length: $n = 2^r - 1$</li>
+  <li>Data bits: $k = 2^r - 1 - r$</li>
+  <li>Parity bits: $r$</li>
+  <li>Minimum distance: $d = 3$ (corrects 1 error, detects 2)</li>
+</ul>
+
+<table style="width: auto; margin: 0 auto;">
+  <thead>
+    <tr><th>$r$</th><th>$n$</th><th>$k$</th><th>Rate $k/n$</th><th>Name</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>2</td><td>3</td><td>1</td><td>0.333</td><td>Hamming(3,1) = repetition</td></tr>
+    <tr><td>3</td><td>7</td><td>4</td><td>0.571</td><td>Hamming(7,4)</td></tr>
+    <tr><td>4</td><td>15</td><td>11</td><td>0.733</td><td>Hamming(15,11)</td></tr>
+    <tr><td>5</td><td>31</td><td>26</td><td>0.839</td><td>Hamming(31,26)</td></tr>
+  </tbody>
+</table>
+
+<p>
+  As $r$ grows, the rate approaches 1 - the overhead of parity bits becomes negligible
+  relative to the data. This is a dramatic improvement over the repetition code. The
+  Hamming(7,4) code protects 4 data bits with only 3 parity bits, achieving a rate of
+  $4/7 \approx 0.571$ while still correcting any single-bit error.
+</p>
+
+<div class="callout callout-info">
+  <strong>Historical Note.</strong>
+  <p>
+    Hamming developed his codes after growing frustrated with errors on the Bell Labs Model V
+    relay computer. When errors occurred on weekends (when no operators were present), the
+    machine simply halted and waited. Hamming decided that machines should fix their own
+    errors, and the result was one of the foundational contributions to coding theory.
+  </p>
+</div>
+
+<h3>The Hamming Bound</h3>
+
+<p>
+  How efficient can a single-error-correcting code be? The <strong>Hamming bound</strong>
+  (also called the sphere-packing bound) gives a limit. A code with $n$-bit codewords that
+  corrects $t$ errors must satisfy:
+</p>
+
+$$2^k \cdot \sum_{i=0}^{t} \binom{n}{i} \leq 2^n$$
+
+<p>
+  For $t = 1$: $2^k \cdot (1 + n) \leq 2^n$, which gives $k \leq n - \log_2(1 + n)$.
+  When $n = 2^r - 1$, we get $k \leq 2^r - 1 - r$, which is exactly the number of data
+  bits in a Hamming code. In other words, Hamming codes are <strong>perfect codes</strong> -
+  they achieve the Hamming bound with equality. Every possible received word is within
+  Hamming distance 1 of exactly one codeword.
+</p>
+
+<h3>Interactive Parity Check Encoder/Decoder</h3>
+
+<p>
+  Use the widget below to explore the Hamming(7,4) code. Enter four data bits to see the
+  encoded 7-bit codeword. Then flip any single bit in the received word to watch syndrome
+  decoding identify and correct the error.
+</p>
+
+<div class="widget" id="hamming-widget">
+  <div class="widget-header">Hamming(7,4) Encoder / Syndrome Decoder</div>
+
+  <div style="margin-bottom: 1rem;">
+    <label style="display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.35rem;">Data bits (4 bits):</label>
+    <div id="hw-data-inputs" style="display: flex; gap: 0.35rem;">
+      <input type="text" maxlength="1" value="1" class="hw-data-bit" style="width: 2.2rem; text-align: center; font-family: var(--font-mono); font-size: 1rem; padding: 0.3rem; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-code-bg); color: var(--color-text);" aria-label="d1">
+      <input type="text" maxlength="1" value="0" class="hw-data-bit" style="width: 2.2rem; text-align: center; font-family: var(--font-mono); font-size: 1rem; padding: 0.3rem; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-code-bg); color: var(--color-text);" aria-label="d2">
+      <input type="text" maxlength="1" value="1" class="hw-data-bit" style="width: 2.2rem; text-align: center; font-family: var(--font-mono); font-size: 1rem; padding: 0.3rem; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-code-bg); color: var(--color-text);" aria-label="d3">
+      <input type="text" maxlength="1" value="1" class="hw-data-bit" style="width: 2.2rem; text-align: center; font-family: var(--font-mono); font-size: 1rem; padding: 0.3rem; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-code-bg); color: var(--color-text);" aria-label="d4">
+    </div>
+  </div>
+
+  <div style="margin-bottom: 1rem;">
+    <div style="font-size: 0.85rem; font-weight: 500; margin-bottom: 0.35rem;">Encoded codeword (7 bits):</div>
+    <div id="hw-codeword" style="font-family: var(--font-mono); font-size: 1.1rem; letter-spacing: 0.15em; padding: 0.3rem 0.5rem; background: var(--color-code-bg); border-radius: var(--radius); display: inline-block; border: 1px solid var(--color-border);"></div>
+  </div>
+
+  <div style="margin-bottom: 1rem;">
+    <label style="display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.35rem;">Received word (click a bit to flip it):</label>
+    <div id="hw-received" style="display: flex; gap: 0.35rem;"></div>
+  </div>
+
+  <div style="margin-bottom: 0.75rem;">
+    <div style="font-size: 0.85rem; font-weight: 500; margin-bottom: 0.35rem;">Syndrome:</div>
+    <div id="hw-syndrome" style="font-family: var(--font-mono); font-size: 1.1rem; padding: 0.3rem 0.5rem; background: var(--color-code-bg); border-radius: var(--radius); display: inline-block; border: 1px solid var(--color-border);"></div>
+  </div>
+
+  <div id="hw-result" style="font-size: 0.95rem; padding: 0.5rem; border-radius: var(--radius); margin-top: 0.25rem;" aria-live="polite"></div>
+</div>
+<script>
+(function() {
+  "use strict";
+
+  // Hamming(7,4) matrices over GF(2)
+  // Generator: G = [I4 | P] where P is 4x3
+  var P = [
+    [1, 1, 0],
+    [1, 0, 1],
+    [0, 1, 1],
+    [1, 1, 1]
+  ];
+  // Parity check: H = [P^T | I3], 3x7
+  var H = [
+    [1, 1, 0, 1, 1, 0, 0],
+    [1, 0, 1, 1, 0, 1, 0],
+    [0, 1, 1, 1, 0, 0, 1]
+  ];
+
+  var dataInputs = document.querySelectorAll(".hw-data-bit");
+  var codewordEl = document.getElementById("hw-codeword");
+  var receivedEl = document.getElementById("hw-received");
+  var syndromeEl = document.getElementById("hw-syndrome");
+  var resultEl   = document.getElementById("hw-result");
+
+  if (!codewordEl || !receivedEl) return;
+
+  var codeword = [];
+  var received = [];
+
+  function getDataBits() {
+    var bits = [];
+    for (var i = 0; i < dataInputs.length; i++) {
+      var v = parseInt(dataInputs[i].value, 10);
+      bits.push((v === 1) ? 1 : 0);
+    }
+    return bits;
+  }
+
+  function encode(data) {
+    var cw = data.slice();
+    for (var j = 0; j < 3; j++) {
+      var s = 0;
+      for (var i = 0; i < 4; i++) {
+        s ^= data[i] & P[i][j];
+      }
+      cw.push(s);
+    }
+    return cw;
+  }
+
+  function computeSyndrome(r) {
+    var s = [];
+    for (var i = 0; i < 3; i++) {
+      var v = 0;
+      for (var j = 0; j < 7; j++) {
+        v ^= H[i][j] & r[j];
+      }
+      s.push(v);
+    }
+    return s;
+  }
+
+  function syndromeToPosition(s) {
+    // Find which column of H matches the syndrome
+    var sv = s[0] * 4 + s[1] * 2 + s[2];
+    if (sv === 0) return -1;
+    for (var j = 0; j < 7; j++) {
+      var cv = H[0][j] * 4 + H[1][j] * 2 + H[2][j];
+      if (cv === sv) return j;
+    }
+    return -1;
+  }
+
+  function renderReceived() {
+    receivedEl.innerHTML = "";
+    for (var i = 0; i < received.length; i++) {
+      (function(idx) {
+        var btn = document.createElement("button");
+        btn.textContent = received[idx];
+        btn.style.cssText = "width: 2.2rem; height: 2.2rem; text-align: center; font-family: var(--font-mono); font-size: 1rem; border: 2px solid var(--color-border); border-radius: var(--radius); cursor: pointer; background: var(--color-code-bg); color: var(--color-text);";
+        if (received[idx] !== codeword[idx]) {
+          btn.style.background = "var(--color-danger, #e74c3c)";
+          btn.style.color = "#fff";
+          btn.style.borderColor = "var(--color-danger, #e74c3c)";
+        }
+        btn.addEventListener("click", function() {
+          received[idx] ^= 1;
+          update();
+        });
+        btn.setAttribute("aria-label", "Bit " + (idx + 1) + ": " + received[idx]);
+        receivedEl.appendChild(btn);
+      })(i);
+    }
+  }
+
+  function update() {
+    var data = getDataBits();
+    codeword = encode(data);
+    codewordEl.textContent = codeword.join(" ");
+
+    // Initialize received to codeword if lengths differ
+    if (received.length !== 7) {
+      received = codeword.slice();
+    }
+
+    renderReceived();
+
+    var s = computeSyndrome(received);
+    syndromeEl.textContent = "(" + s.join(", ") + ")";
+
+    var pos = syndromeToPosition(s);
+    if (s[0] === 0 && s[1] === 0 && s[2] === 0) {
+      resultEl.textContent = "No error detected. Received word is a valid codeword.";
+      resultEl.style.background = "var(--color-success-bg, #e8f5e9)";
+      resultEl.style.color = "var(--color-success, #2e7d32)";
+    } else if (pos >= 0) {
+      var corrected = received.slice();
+      corrected[pos] ^= 1;
+      resultEl.textContent = "Error detected at bit " + (pos + 1) + ". Corrected codeword: " + corrected.join("") + ". Decoded data: " + corrected.slice(0, 4).join("");
+      resultEl.style.background = "var(--color-warning-bg, #fff3e0)";
+      resultEl.style.color = "var(--color-warning, #e65100)";
+    } else {
+      resultEl.textContent = "Syndrome does not match any single-bit error (multi-bit error?).";
+      resultEl.style.background = "var(--color-danger-bg, #ffebee)";
+      resultEl.style.color = "var(--color-danger, #c62828)";
+    }
+  }
+
+  function resetReceived() {
+    received = codeword.slice();
+    update();
+  }
+
+  for (var i = 0; i < dataInputs.length; i++) {
+    dataInputs[i].addEventListener("input", function() {
+      var data = getDataBits();
+      codeword = encode(data);
+      received = codeword.slice();
+      update();
+    });
+  }
+
+  // Initial render
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", function() { setTimeout(update, 100); });
+  } else {
+    setTimeout(update, 100);
+  }
+})();
+</script>
+
+<h3>Beyond Single-Error Correction</h3>
+
+<p>
+  Hamming codes only correct single-bit errors. For applications requiring more protection,
+  the coding theory toolbox includes:
+</p>
+
+<ul>
+  <li><strong>Extended Hamming codes:</strong> Add an overall parity bit to get distance 4,
+      enabling single-error correction <em>and</em> double-error detection (SECDED). The
+      extended Hamming(8,4) code is used in ECC memory.</li>
+  <li><strong>BCH codes:</strong> A generalization of Hamming codes that can correct multiple
+      errors.</li>
+  <li><strong>Reed-Solomon codes:</strong> Work over larger fields; used in CDs, DVDs,
+      QR codes, and deep-space communication.</li>
+  <li><strong>LDPC and Turbo codes:</strong> Modern codes approaching Shannon's theoretical
+      limit, used in 5G cellular and Wi-Fi.</li>
+</ul>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="limits-of-classical-ec">
+<h2>16.3 The Limits of Classical EC</h2>
+
+<p>
+  Is there a fundamental limit to how well error correction can perform? The answer, given
+  by Claude Shannon in 1948, is one of the most profound results in information theory.
+</p>
+
+<h3>The Binary Symmetric Channel</h3>
+
+<p>
+  The simplest noise model is the <strong>binary symmetric channel (BSC)</strong>: each bit
+  is flipped independently with probability $p$ (the <em>crossover probability</em>):
+</p>
+
+$$0 \xrightarrow{1-p} 0 \qquad 0 \xrightarrow{p} 1$$
+$$1 \xrightarrow{1-p} 1 \qquad 1 \xrightarrow{p} 0$$
+
+<p>
+  When $p = 0$ the channel is perfect; when $p = 1/2$ the output is independent of the
+  input. For $0 < p < 1/2$, some information survives the noise and error correction helps.
+</p>
+
+<h3>Channel Capacity</h3>
+
+<p>
+  Shannon defined the <strong>capacity</strong> of a channel as the maximum rate at which
+  information can be transmitted with arbitrarily low error probability. For the binary
+  symmetric channel, the capacity is:
+</p>
+
+$$C = 1 - H(p)$$
+
+<p>
+  where $H(p)$ is the <strong>binary entropy function</strong>:
+</p>
+
+$$H(p) = -p \log_2 p - (1-p) \log_2(1-p)$$
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    <strong>Shannon's Noisy Channel Coding Theorem (1948):</strong> For any rate $R < C$
+    (where $C$ is the channel capacity), there exist codes that achieve arbitrarily low
+    error probability. Conversely, for any rate $R > C$, reliable communication is
+    impossible regardless of the code used.
+  </p>
+</div>
+
+<p>
+  Let us unpack this. The theorem has two parts:
+</p>
+
+<ol>
+  <li>
+    <strong>Achievability (positive part):</strong> If you want to send data at any rate below
+    capacity, you <em>can</em> do it reliably. There exist codes (possibly with very long
+    block lengths) that make the error probability as small as you wish.
+  </li>
+  <li>
+    <strong>Converse (negative part):</strong> If you try to send data at any rate above
+    capacity, you <em>cannot</em> avoid errors. No code, no matter how clever, can achieve
+    reliable communication above the capacity limit.
+  </li>
+</ol>
+
+<h3>Numerical Examples</h3>
+
+<p>
+  For a BSC with $p = 0.01$ (1% error rate):
+  $H(0.01) \approx 0.081$, so $C \approx 0.919$. Even with a 1% error rate, we can reliably
+  transmit at up to 91.9% of the raw channel rate. The Hamming(7,4) code at rate $4/7 \approx 0.571$
+  is reliable but far from optimal. Modern LDPC codes operate within a fraction of a percent
+  of Shannon's limit.
+</p>
+
+<table style="width: auto; margin: 0 auto;">
+  <thead>
+    <tr><th>$p$</th><th>$H(p)$</th><th>$C = 1 - H(p)$</th><th>Interpretation</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>0</td><td>0</td><td>1</td><td>No noise, full capacity</td></tr>
+    <tr><td>0.01</td><td>0.081</td><td>0.919</td><td>Mild noise</td></tr>
+    <tr><td>0.1</td><td>0.469</td><td>0.531</td><td>Moderate noise</td></tr>
+    <tr><td>0.25</td><td>0.811</td><td>0.189</td><td>Heavy noise</td></tr>
+    <tr><td>0.5</td><td>1.0</td><td>0</td><td>Complete randomness</td></tr>
+  </tbody>
+</table>
+
+<p>
+  At $p = 0.5$, every output bit is equally likely to be 0 or 1 regardless of the input, so
+  the channel carries zero useful information.
+</p>
+
+<h3>Shannon's Theorem Is Existential</h3>
+
+<p>
+  Shannon's theorem proves that good codes <em>exist</em>, but does not tell you how to
+  <em>find</em> them. His proof used random coding: pick a code at random and, with high
+  probability, it will be good. The quest for explicit, efficiently decodable codes near
+  Shannon's limit drove decades of research - from Hamming (1950) through turbo codes (1993)
+  and LDPC codes (1990s). Modern polar codes (Arikan, 2009) provably achieve capacity, and
+  LDPC codes in 5G standards operate within 0.1 dB of the Shannon limit.
+</p>
+
+<h3>Why This Matters for Quantum EC</h3>
+
+<p>
+  Shannon's framework carries over to the quantum setting, but with key complications:
+</p>
+
+<ul>
+  <li>
+    <strong>Richer error models.</strong> Classical bits only flip. Qubits suffer bit flips
+    (X), phase flips (Z), or both (Y), plus continuous rotations.
+  </li>
+  <li>
+    <strong>No-cloning forbids copying.</strong> The repetition code works by copying bits.
+    Quantum mechanics forbids copying unknown states. Quantum EC must protect information
+    without duplicating it - achievable through entanglement.
+  </li>
+  <li>
+    <strong>Syndrome decoding survives.</strong> Stabilizer codes - the quantum generalization
+    of linear codes - use parity measurements that extract syndrome information without
+    collapsing the quantum state.
+  </li>
+</ul>
+
+<div class="callout callout-warning">
+  <strong>Common Misconception.</strong>
+  <p>
+    The no-cloning theorem does not make quantum error correction impossible. Quantum EC does
+    not copy the <em>state</em> - it spreads <em>information</em> across multiple qubits
+    using entanglement. The logical qubit lives in the correlations among physical qubits,
+    not in any single one. In Chapter 17 we will see exactly how this works.
+  </p>
+</div>
+
+<h3>Classical-to-Quantum Dictionary</h3>
+
+<p>
+  The classical vocabulary we built in this chapter maps directly to quantum error correction:
+</p>
+
+<table style="width: 100%;">
+  <thead>
+    <tr><th style="width: 30%;">Classical Concept</th><th>Definition</th><th style="width: 30%;">Quantum Analog (Preview)</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Codeword</td>
+      <td>A valid encoded bit string satisfying all parity checks</td>
+      <td>Code state (lives in a code subspace)</td>
+    </tr>
+    <tr>
+      <td>Parity check matrix $H$</td>
+      <td>Matrix whose null space is the code; rows are parity constraints</td>
+      <td>Stabilizer generators</td>
+    </tr>
+    <tr>
+      <td>Syndrome $\mathbf{s} = H\mathbf{e}^T$</td>
+      <td>Vector revealing the error pattern</td>
+      <td>Stabilizer measurement outcomes</td>
+    </tr>
+    <tr>
+      <td>Minimum distance $d$</td>
+      <td>Smallest Hamming weight of a nonzero codeword</td>
+      <td>Minimum weight of undetectable error</td>
+    </tr>
+    <tr>
+      <td>Code rate $R = k/n$</td>
+      <td>Fraction of bits carrying data</td>
+      <td>Ratio of logical to physical qubits</td>
+    </tr>
+    <tr>
+      <td>Shannon capacity</td>
+      <td>Maximum reliable transmission rate</td>
+      <td>Quantum channel capacity</td>
+    </tr>
+  </tbody>
+</table>
+
+</section>
+
+<!-- ================================================================== -->
+
+<div class="flashcard-deck" data-component="flashcard-deck">
+  <div class="flashcard-deck-header">Chapter 16 Review</div>
+
+  <div class="flashcard" data-card-id="ch16-repetition-code">
+    <div class="card-front">What is a repetition code, and what is the rate of the 3-bit repetition code?</div>
+    <div class="card-back">
+      A repetition code encodes one logical bit by repeating it $n$ times. The receiver
+      decodes by majority vote. The 3-bit repetition code maps $0 \to 000$ and $1 \to 111$,
+      and its rate is $R = 1/3$. It can correct any single-bit error but uses bandwidth
+      very inefficiently.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch16-hamming-distance">
+    <div class="card-front">Define Hamming distance. How does a code's minimum distance relate to its error-correcting capability?</div>
+    <div class="card-back">
+      The Hamming distance between two binary strings is the number of positions in which they
+      differ. A code with minimum distance $d$ can detect up to $d - 1$ errors and correct up
+      to $\lfloor (d-1)/2 \rfloor$ errors. For example, the Hamming(7,4) code has $d = 3$ and
+      corrects 1 error.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch16-syndrome-decoding">
+    <div class="card-front">Explain syndrome decoding. Why does the syndrome depend only on the error, not on the codeword sent?</div>
+    <div class="card-back">
+      Syndrome decoding computes $\mathbf{s} = H\mathbf{r}^T$ where $H$ is the parity check
+      matrix and $\mathbf{r} = \mathbf{c} + \mathbf{e}$ is the received word. Since
+      $H\mathbf{c}^T = \mathbf{0}$ for any valid codeword, we get
+      $\mathbf{s} = H\mathbf{e}^T$ - the syndrome reveals only the error pattern. For a
+      single-bit error at position $i$, the syndrome equals column $i$ of $H$.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch16-hamming-74-params">
+    <div class="card-front">State the parameters of the Hamming(7,4) code: block length, data bits, parity bits, minimum distance, and rate.</div>
+    <div class="card-back">
+      The Hamming(7,4) code has block length $n = 7$, data bits $k = 4$, parity bits $r = 3$,
+      minimum distance $d = 3$, and rate $R = 4/7 \approx 0.571$. It corrects any single-bit
+      error and detects any double-bit error. It is a perfect code: it achieves the Hamming
+      (sphere-packing) bound with equality.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch16-generator-parity">
+    <div class="card-front">What is the relationship between a linear code's generator matrix $G$ and its parity check matrix $H$?</div>
+    <div class="card-back">
+      When $G = [I_k \mid P]$ is in systematic form, the parity check matrix is
+      $H = [P^T \mid I_r]$ where $r = n - k$. The key identity is $GH^T = \mathbf{0}$
+      (over $\text{GF}(2)$), guaranteeing that every codeword $\mathbf{c} = \mathbf{m}G$
+      satisfies $H\mathbf{c}^T = \mathbf{0}$. The rows of $H$ define the parity constraints
+      that all codewords must satisfy.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch16-perfect-code">
+    <div class="card-front">What is a perfect code, and why are Hamming codes perfect?</div>
+    <div class="card-back">
+      A perfect code achieves the Hamming bound with equality: the spheres of radius $t$
+      around each codeword exactly partition the entire space of $n$-bit strings, with no
+      overlap and no uncovered words. For Hamming codes, each sphere contains $1 + n$ words
+      (the codeword plus $n$ single-bit errors), and $2^k \cdot (1 + n) = 2^n$ exactly.
+      Every received word is within distance 1 of exactly one codeword.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch16-shannon-capacity">
+    <div class="card-front">State Shannon's noisy channel coding theorem for the binary symmetric channel. What is the capacity formula?</div>
+    <div class="card-back">
+      The capacity of the BSC with crossover probability $p$ is $C = 1 - H(p)$, where
+      $H(p) = -p\log_2 p - (1-p)\log_2(1-p)$ is the binary entropy function. Shannon's
+      theorem states: for any rate $R < C$, there exist codes achieving arbitrarily low error
+      probability; for $R > C$, reliable communication is impossible. The theorem is
+      existential - it guarantees good codes exist but does not construct them.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch16-no-cloning-obstacle">
+    <div class="card-front">Why does the no-cloning theorem seem to prevent quantum error correction, and how is this obstacle resolved?</div>
+    <div class="card-back">
+      Classical error correction relies on copying data (repetition). The no-cloning theorem
+      forbids copying unknown quantum states, seemingly making redundancy impossible. The
+      resolution is that quantum error correction does not copy the state - it encodes the
+      logical qubit's information into entanglement across multiple physical qubits. The
+      information lives in the correlations, not in any single qubit. Syndrome measurements
+      extract error information without disturbing the encoded state.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+    </article>
+
+    
+    <nav class="chapter-nav" aria-label="Chapter navigation">
+      <a href="15-programming.html" class="prev">&larr; Chapter 15: Programming Quantum Computers</a>
+      <span class="nav-spacer"></span>
+      <a href="17-qec-fundamentals.html" class="next">Chapter 17: Quantum Error Correction Fundamentals &rarr;</a>
+    </nav>
+    
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof renderMathInElement !== "undefined") {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "$", right: "$", display: false}
+          ],
+          throwOnError: false
+        });
+      }
+    });
+  </script>
+  
+  <script>
+  "use strict";
+  
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function isDark() { return window.matchMedia("(prefers-color-scheme: dark)").matches; }
+  function renderMath(el) {
+    if (typeof renderMathInElement === "function")
+      renderMathInElement(el, { delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}], throwOnError: false });
+  }
+
+  
+  var wasmReady = null;
+  function ensureWasm() {
+    if (!wasmReady) {
+      wasmReady = (async function() {
+        var go = new Go();
+        var result = await WebAssembly.instantiateStreaming(fetch("../main.wasm"), go.importObject);
+        go.run(result.instance);
+      })();
+    }
+    return wasmReady;
+  }
+
+  
+  var SRS_KEY = "goqu-srs";
+  function srsLoad() { try { return JSON.parse(localStorage.getItem(SRS_KEY) || "{}"); } catch(e) { return {}; } }
+  function srsSave(d) { localStorage.setItem(SRS_KEY, JSON.stringify(d)); }
+  function getCardState(id) { var d = srsLoad(); return d[id] || {interval:1, ease:2.5, due:0, reps:0}; }
+  function reviewCard(id, q) {
+    var d = srsLoad(), s = d[id] || {interval:1, ease:2.5, due:0, reps:0};
+    if (q >= 3) {
+      s.reps++;
+      if (s.reps === 1) s.interval = 1;
+      else if (s.reps === 2) s.interval = 6;
+      else s.interval = Math.round(s.interval * s.ease);
+      s.ease = Math.max(1.3, s.ease + 0.1 - (5-q)*(0.08 + (5-q)*0.02));
+    } else { s.reps = 0; s.interval = 1; }
+    s.due = Date.now() + s.interval * 86400000;
+    d[id] = s; srsSave(d);
+  }
+
+  
+  function initSandbox(el) {
+    var code = el.querySelector(".code"), output = el.querySelector(".output");
+    if (!code || !output) return;
+    var runBtn = el.querySelector('[data-action="run"]'), resetBtn = el.querySelector('[data-action="reset"]');
+    var shotsEl = el.querySelector("[data-shots]"), orig = code.value;
+    function shots() { return parseInt(shotsEl ? shotsEl.value : el.dataset.shots || "1024", 10); }
+    async function run() {
+      await ensureWasm();
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(code.value, shots(), isDark()));
+        if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+        output.innerHTML = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+    if (runBtn) runBtn.addEventListener("click", run);
+    if (resetBtn) resetBtn.addEventListener("click", function() { code.value = orig; });
+    if (el.hasAttribute("data-autorun")) run();
+  }
+
+  
+  function initSimulation(el) {
+    var tmplEl = el.querySelector(".sim-qasm"), output = el.querySelector(".sim-output");
+    var sliders = el.querySelectorAll('input[type="range"]');
+    var selects = el.querySelectorAll("select[data-param]");
+    if (!tmplEl || !output || (sliders.length === 0 && selects.length === 0)) return;
+    var tmpl = tmplEl.textContent, pending = false;
+    var useNoisy = el.hasAttribute("data-noisy");
+    var useComparison = el.hasAttribute("data-comparison");
+    var useExpectation = el.hasAttribute("data-expectation");
+    var useClifford = el.hasAttribute("data-clifford");
+    async function update() {
+      if (pending) return; pending = true;
+      await ensureWasm();
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var params = {};
+        sliders.forEach(function(s) { params[s.dataset.param] = parseFloat(s.value); var o = s.parentElement.querySelector("output"); if (o) o.textContent = parseFloat(s.value).toFixed(2); });
+        selects.forEach(function(s) { params[s.dataset.param] = s.value; });
+        var qasm = tmpl;
+        for (var k in params) qasm = qasm.replaceAll("{"+k+"}", params[k].toString());
+        var html = "";
+        if (useComparison && window.compareIdealNoisy) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.compareIdealNoisy(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="comparison-panels"><div class="comparison-panel"><h4>Ideal</h4>' + (r.idealHistogramSVG||"") + '</div><div class="comparison-panel"><h4>Noisy</h4>' + (r.noisyHistogramSVG||"") + '</div></div>';
+          if (r.stateCitySVG) html += r.stateCitySVG;
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useNoisy && window.runNoisyQASM) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.runNoisyQASM(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"") + (r.stateCitySVG||"");
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useClifford && window.runClifford) {
+          var r = JSON.parse(window.runClifford(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"");
+          if (r.stabilizers) { html += '<div class="stabilizer-table"><h4>Stabilizers</h4><table>'; r.stabilizers.forEach(function(s) { html += '<tr><td>' + formatStabilizer(s) + '</td></tr>'; }); html += '</table></div>'; }
+        } else if (useExpectation && window.computeExpectation) {
+          var pauliStr = params.pauliStr || el.dataset.pauli || "Z";
+          var r = JSON.parse(window.computeExpectation(qasm, pauliStr, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="sim-stats"><span>&lt;' + esc(pauliStr) + '&gt; = ' + r.expectation.toFixed(6) + '</span></div>';
+        } else {
+          var r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+          
+          if (el.hasAttribute("data-bloch") && window.getStateVector && window.renderBloch) {
+            try {
+              var sv = JSON.parse(window.getStateVector(qasm));
+              if (sv.amplitudes && sv.amplitudes.length === 2) {
+                var a = sv.amplitudes;
+                var blochSVG = window.renderBloch(a[0].re, a[0].im, a[1].re, a[1].im, isDark());
+                if (blochSVG) html += blochSVG;
+              }
+            } catch(e) {   }
+          }
+        }
+        output.innerHTML = html;
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+      pending = false;
+    }
+    sliders.forEach(function(s) { s.addEventListener("input", update); });
+    selects.forEach(function(s) { s.addEventListener("change", update); });
+    update();
+  }
+
+  
+  function formatStabilizer(s) {
+    if (!s) return "";
+    var sign = s[0], ops = s.slice(1), html = '<span class="stab-sign">' + esc(sign) + '</span>';
+    for (var i = 0; i < ops.length; i++) {
+      var c = ops[i], cls = "stab-" + c.toLowerCase();
+      html += '<span class="' + cls + '">' + c + '</span>';
+    }
+    return html;
+  }
+
+  
+  function initExercise(el) {
+    var code = el.querySelector(".code"), feedback = el.querySelector(".exercise-feedback");
+    var checkBtn = el.querySelector('[data-action="check"]');
+    var hintBtn = el.querySelector('[data-action="hint"]'), hintEl = el.querySelector(".exercise-hint");
+    if (!code || !feedback || !checkBtn) return;
+    var expected = {}, tol = 0.1;
+    var expEl = el.querySelector(".exercise-expected");
+    if (expEl) expEl.querySelectorAll("[data-state]").forEach(function(span) {
+      expected[span.dataset.state] = parseFloat(span.dataset.prob);
+      if (span.dataset.tolerance) tol = parseFloat(span.dataset.tolerance);
+    });
+    checkBtn.addEventListener("click", async function() {
+      await ensureWasm();
+      feedback.className = "exercise-feedback visible";
+      feedback.textContent = "Checking...";
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(code.value, 1024, isDark()));
+        if (r.error) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + r.error; return; }
+        if (Object.keys(expected).length === 0) { feedback.className = "exercise-feedback visible pass"; feedback.innerHTML = "Circuit ran successfully."; return; }
+        var prob = JSON.parse(window.getProbabilities(code.value, isDark()));
+        if (prob.error) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + prob.error; return; }
+        var actual = {};
+        for (var i = 0; i < prob.labels.length; i++) actual[prob.labels[i]] = prob.probabilities[i];
+        var ok = true, msgs = [];
+        for (var s in expected) {
+          var a = actual[s] || 0, p = expected[s];
+          if (Math.abs(a - p) > tol) { ok = false; msgs.push("|" + s + "\u27E9: expected " + (p*100|0) + "%, got " + (a*100|0) + "%"); }
+        }
+        if (ok) { feedback.className = "exercise-feedback visible pass"; feedback.innerHTML = "Correct! Your circuit produces the expected output."; }
+        else { feedback.className = "exercise-feedback visible fail"; feedback.innerHTML = "Not quite. " + msgs.join("; ") + "."; }
+        renderMath(feedback);
+      } catch(e) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + e.message; }
+    });
+    if (hintBtn && hintEl) hintBtn.addEventListener("click", function() { hintEl.style.display = hintEl.style.display === "none" ? "block" : "none"; });
+  }
+
+  
+  function initFlashcardDeck(el) {
+    el.querySelectorAll(".flashcard").forEach(function(card) {
+      var id = card.dataset.cardId;
+      if (!id) return;
+      var state = getCardState(id);
+      if (state.due > 0 && state.due > Date.now()) card.classList.add("reviewed");
+      card.addEventListener("click", function(e) {
+        if (e.target.closest("button")) return;
+        card.classList.toggle("flipped");
+        var back = card.querySelector(".card-back");
+        if (back) renderMath(back);
+      });
+      var easyBtn = card.querySelector(".easy"), hardBtn = card.querySelector(".hard");
+      if (easyBtn) easyBtn.addEventListener("click", function() { reviewCard(id, 4); card.classList.remove("flipped"); card.classList.add("reviewed"); });
+      if (hardBtn) hardBtn.addEventListener("click", function() { reviewCard(id, 2); card.classList.remove("flipped"); });
+    });
+  }
+
+  
+  function initPOE(el) {
+    var steps = el.querySelectorAll(".poe-step"), prog = el.querySelectorAll(".poe-progress-step");
+    if (steps.length === 0) return;
+    var cur = 0;
+    function show(idx) {
+      steps.forEach(function(s,i) { s.classList.toggle("active", i === idx); });
+      prog.forEach(function(s,i) { s.classList.remove("active","done"); if (i < idx) s.classList.add("done"); if (i === idx) s.classList.add("active"); });
+      cur = idx;
+      var active = steps[idx];
+      if (active) active.querySelectorAll('.sandbox:not([data-initialized])').forEach(function(sb) { sb.setAttribute("data-initialized","true"); initSandbox(sb); });
+    }
+    el.querySelectorAll('[data-action="next"]').forEach(function(btn) { btn.addEventListener("click", function() { if (cur < steps.length - 1) show(cur + 1); }); });
+    el.querySelectorAll('[data-action="complete"]').forEach(function(btn) { btn.addEventListener("click", function() { prog.forEach(function(s) { s.classList.remove("active"); s.classList.add("done"); }); }); });
+    show(0);
+  }
+
+  
+  function initStepThrough(el) {
+    var qasmEl = el.querySelector(".step-qasm");
+    var output = el.querySelector(".step-output");
+    var prevBtn = el.querySelector('[data-action="prev"]');
+    var nextBtn = el.querySelector('[data-action="next"]');
+    var stepInfo = el.querySelector(".step-info");
+    if (!qasmEl || !output) return;
+    var qasm = qasmEl.textContent;
+    var mode = el.dataset.mode || "clifford"; 
+    var steps = null, cur = -1;
+
+    async function load() {
+      await ensureWasm();
+      try {
+        if (mode === "clifford" && window.cliffordStepThrough) {
+          var r = JSON.parse(window.cliffordStepThrough(qasm));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+          
+          steps.unshift({gate: "init", qubits: [], stabilizers: r.steps.length > 0 ? null : []});
+        } else if (mode === "grover" && window.groverStepThrough) {
+          var nq = parseInt(el.dataset.qubits || "2", 10);
+          var targets = JSON.parse(el.dataset.targets || "[]");
+          var r = JSON.parse(window.groverStepThrough(nq, targets.join(",")));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+        }
+        if (steps && steps.length > 0) { cur = 0; renderStep(); }
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    function renderStep() {
+      if (!steps || cur < 0 || cur >= steps.length) return;
+      var s = steps[cur];
+      var html = "";
+      if (mode === "clifford") {
+        if (s.gate === "init") {
+          html = '<p class="step-label">Initial state |0...0&gt;</p>';
+          
+          if (steps.length > 1 && steps[1].stabilizers) {
+            var nq = steps[1].stabilizers[0].length - 1;
+            html += '<div class="stabilizer-table"><table>';
+            for (var i = 0; i < nq; i++) {
+              var row = "+";
+              for (var j = 0; j < nq; j++) row += (j === i) ? "Z" : "I";
+              html += '<tr><td>' + formatStabilizer(row) + '</td></tr>';
+            }
+            html += '</table></div>';
+          }
+        } else {
+          html = '<p class="step-label">After <strong>' + esc(s.gate) + '</strong> on qubit' + (s.qubits.length > 1 ? 's ' : ' ') + s.qubits.join(', ') + '</p>';
+          if (s.stabilizers) {
+            html += '<div class="stabilizer-table"><table>';
+            s.stabilizers.forEach(function(st) { html += '<tr><td>' + formatStabilizer(st) + '</td></tr>'; });
+            html += '</table></div>';
+          }
+        }
+      } else if (mode === "grover") {
+        html = '<p class="step-label">Iteration ' + s.iteration + '</p>';
+        if (s.probabilities) {
+          html += '<div class="amplitude-bars">';
+          for (var i = 0; i < s.probabilities.length; i++) {
+            var label = i.toString(2).padStart(Math.ceil(Math.log2(s.probabilities.length)), '0');
+            var pct = (s.probabilities[i] * 100).toFixed(1);
+            var isTarget = el.dataset.targets && JSON.parse(el.dataset.targets).indexOf(i) >= 0;
+            html += '<div class="amp-bar' + (isTarget ? ' target' : '') + '"><div class="amp-fill" style="height:' + pct + '%"></div><span class="amp-label">|' + label + '&gt;</span><span class="amp-value">' + pct + '%</span></div>';
+          }
+          html += '</div>';
+        }
+      }
+      output.innerHTML = html;
+      if (stepInfo) stepInfo.textContent = "Step " + cur + " / " + (steps.length - 1);
+      if (prevBtn) prevBtn.disabled = (cur === 0);
+      if (nextBtn) nextBtn.disabled = (cur >= steps.length - 1);
+    }
+
+    if (prevBtn) prevBtn.addEventListener("click", function() { if (cur > 0) { cur--; renderStep(); } });
+    if (nextBtn) nextBtn.addEventListener("click", function() { if (steps && cur < steps.length - 1) { cur++; renderStep(); } });
+    load();
+  }
+
+  
+  document.addEventListener("DOMContentLoaded", function() {
+    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough};
+    document.querySelectorAll("[data-component]").forEach(function(el) { var fn = reg[el.dataset.component]; if (fn) fn(el); });
+  });
+  </script>
+  
+</body>
+</html>

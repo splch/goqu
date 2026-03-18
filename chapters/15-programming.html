@@ -1,0 +1,1573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chapter 15: Programming Quantum Computers - Goqu Textbook</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/contrib/auto-render.min.js"></script>
+  
+  <link rel="preload" href="../main.wasm" as="fetch" type="application/wasm" crossorigin>
+  <script src="../wasm_exec.js"></script>
+  
+</head>
+<body>
+  <input type="checkbox" id="nav-toggle" hidden>
+  <label for="nav-toggle" class="nav-hamburger" aria-label="Toggle navigation">
+    <span></span><span></span><span></span>
+  </label>
+
+  <nav class="sidebar" aria-label="Table of contents">
+    <a href="../index.html" class="sidebar-logo">Goqu Textbook</a>
+    
+    <details>
+      <summary>Part 1: The World of Classical Computing</summary>
+      <ol start="1">
+        
+        <li value="1"><a href="01-computation.html">What Is Computation?</a></li>
+        
+        <li value="2"><a href="02-math-of-information.html">The Mathematics of Information</a></li>
+        
+        <li value="3"><a href="03-reversible-computing.html">Reversible Computing</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 2: Entering the Quantum World</summary>
+      <ol start="4">
+        
+        <li value="4"><a href="04-the-first-qubit.html">The First Qubit</a></li>
+        
+        <li value="5"><a href="05-quantum-gates.html">Quantum Gates</a></li>
+        
+        <li value="6"><a href="06-entanglement.html">Multiple Qubits and Entanglement</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 3: Quantum Protocols</summary>
+      <ol start="7">
+        
+        <li value="7"><a href="07-teleportation.html">Quantum Teleportation and Communication</a></li>
+        
+        <li value="8"><a href="08-cryptography.html">Quantum Cryptography</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 4: Quantum Algorithms - The First Wave</summary>
+      <ol start="9">
+        
+        <li value="9"><a href="09-oracles.html">Oracles and Quantum Parallelism</a></li>
+        
+        <li value="10"><a href="10-qft.html">The Quantum Fourier Transform</a></li>
+        
+        <li value="11"><a href="11-shor.html">Shor&#39;s Algorithm</a></li>
+        
+        <li value="12"><a href="12-grover.html">Grover&#39;s Algorithm</a></li>
+        
+      </ol>
+    </details>
+    
+    <details open>
+      <summary>Part 5: Real Quantum Hardware</summary>
+      <ol start="13">
+        
+        <li value="13"><a href="13-hardware.html">How to Build a Quantum Computer</a></li>
+        
+        <li value="14"><a href="14-noise.html">Noise, Decoherence, and the NISQ Era</a></li>
+        
+        <li value="15"><a href="15-programming.html" aria-current="page">Programming Quantum Computers</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 6: Quantum Error Correction</summary>
+      <ol start="16">
+        
+        <li value="16"><a href="16-classical-ec.html">Classical Error Correction Refresher</a></li>
+        
+        <li value="17"><a href="17-qec-fundamentals.html">Quantum Error Correction Fundamentals</a></li>
+        
+        <li value="18"><a href="18-stabilizers.html">The Stabilizer Formalism</a></li>
+        
+        <li value="19"><a href="19-surface-codes.html">Surface Codes and Topological Protection</a></li>
+        
+        <li value="20"><a href="20-fault-tolerance.html">Fault-Tolerant Quantum Computing</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 7: Variational and Near-Term Algorithms</summary>
+      <ol start="21">
+        
+        <li value="21"><a href="21-variational.html">The Variational Quantum Computing Paradigm</a></li>
+        
+        <li value="22"><a href="22-vqe.html">Variational Quantum Eigensolver (VQE)</a></li>
+        
+        <li value="23"><a href="23-qaoa.html">Quantum Approximate Optimization (QAOA)</a></li>
+        
+        <li value="24"><a href="24-qml.html">Quantum Machine Learning</a></li>
+        
+        <li value="25"><a href="25-error-mitigation.html">Quantum Error Mitigation</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 8: Quantum Information Theory</summary>
+      <ol start="26">
+        
+        <li value="26"><a href="26-states-measurements.html">Quantum States and Measurements, Revisited</a></li>
+        
+        <li value="27"><a href="27-channels.html">Quantum Channels and Operations</a></li>
+        
+        <li value="28"><a href="28-entropy.html">Quantum Entropy and Information</a></li>
+        
+        <li value="29"><a href="29-shannon.html">Quantum Shannon Theory</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 9: Quantum Complexity and Computation Theory</summary>
+      <ol start="30">
+        
+        <li value="30"><a href="30-complexity.html">Quantum Computational Complexity</a></li>
+        
+        <li value="31"><a href="31-hidden-subgroup.html">The Hidden Subgroup Problem and Beyond</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 10: Quantum Simulation</summary>
+      <ol start="32">
+        
+        <li value="32"><a href="32-simulation-why.html">Why Quantum Simulation Matters</a></li>
+        
+        <li value="33"><a href="33-digital-simulation.html">Digital Quantum Simulation</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 11: Quantum Networking, Cryptography, and Sensing</summary>
+      <ol start="34">
+        
+        <li value="34"><a href="34-quantum-internet.html">The Quantum Internet</a></li>
+        
+        <li value="35"><a href="35-advanced-crypto.html">Advanced Quantum Cryptography</a></li>
+        
+        <li value="36"><a href="36-sensing.html">Quantum Sensing and Metrology</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 12: Frontiers and the Future</summary>
+      <ol start="37">
+        
+        <li value="37"><a href="37-topological.html">Topological Quantum Computing</a></li>
+        
+        <li value="38"><a href="38-quantum-ai.html">Quantum Computing and Artificial Intelligence</a></li>
+        
+        <li value="39"><a href="39-open-problems.html">Open Problems in Quantum Computing</a></li>
+        
+        <li value="40"><a href="40-ecosystem.html">The Quantum Computing Ecosystem Today</a></li>
+        
+        <li value="41"><a href="41-career.html">Building Your Quantum Computing Career</a></li>
+        
+        <li value="42"><a href="42-what-next.html">What Comes Next</a></li>
+        
+      </ol>
+    </details>
+    
+  </nav>
+
+  <main>
+    
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="../index.html">Home</a> / <a href="../index.html#part-5">Part 5</a> / <span>Chapter 15</span>
+    </nav>
+    
+
+    <article>
+      <h1>Chapter 15: Programming Quantum Computers</h1>
+      <p>
+  Throughout this textbook, we have built up quantum computing from first principles - bits,
+  qubits, gates, circuits, and algorithms. But how do you actually <em>program</em> a quantum
+  computer? How does an abstract algorithm become instructions that run on real hardware? This
+  chapter bridges theory and practice. We will explore the quantum software stack, write
+  circuits in major frameworks, submit jobs to real processors in the cloud, and learn how
+  transpilation maps ideal circuits onto physical hardware constraints.
+</p>
+
+<!-- ================================================================== -->
+<section id="quantum-software-stack">
+<h2>15.1 The Quantum Software Stack</h2>
+
+<p>
+  Classical computers have a well-defined software stack: application code compiles to machine
+  instructions, which the CPU executes as electrical signals. Quantum computers have an
+  analogous stack with five layers:
+</p>
+
+<ol>
+  <li>
+    <strong>Algorithm layer.</strong> The high-level quantum algorithm (Shor's, Grover's,
+    VQE) expressed in mathematical terms.
+  </li>
+  <li>
+    <strong>Circuit layer.</strong> The algorithm translated into gates acting on qubits,
+    expressed in an intermediate representation like OpenQASM.
+  </li>
+  <li>
+    <strong>Transpilation layer.</strong> The abstract circuit adapted to hardware constraints:
+    gate decomposition, qubit routing, and optimization.
+  </li>
+  <li>
+    <strong>Pulse layer.</strong> Native gates translated into timed microwave pulses (for
+    superconducting qubits), laser pulses (for trapped ions), or other control signals.
+  </li>
+  <li>
+    <strong>Hardware layer.</strong> Physical execution and measurement. Results come back as
+    bitstrings from many repeated "shots."
+  </li>
+</ol>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    The quantum software stack transforms an abstract algorithm into physical control signals
+    through five layers: algorithm, circuit, transpilation, pulse scheduling, and hardware.
+    Understanding each layer helps you write better programs and diagnose unexpected results.
+  </p>
+</div>
+
+<h3>OpenQASM: The Assembly Language of Quantum Computing</h3>
+
+<p>
+  OpenQASM (Open Quantum Assembly Language) is the common intermediate representation across
+  much of the quantum ecosystem. All sandbox circuits in this textbook use OpenQASM 3.0 -
+  you have been writing quantum assembly language since Chapter 3. Here is a GHZ state
+  circuit demonstrating the structure of an OpenQASM program:
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="9">OPENQASM 3.0;
+qubit[3] q;
+bit[3] c;
+// Create GHZ state: |000> + |111>
+h q[0];
+cx q[0], q[1];
+cx q[0], q[2];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+  You should see roughly 50% <code>000</code> and 50% <code>111</code>. The Hadamard puts
+  <code>q[0]</code> into superposition, and the CNOTs propagate it to create
+  $\tfrac{1}{\sqrt{2}}(|000\rangle + |111\rangle)$.
+</p>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="intro-qiskit">
+<h2>15.2 Introduction to Qiskit</h2>
+
+<p>
+  Qiskit is IBM's open-source quantum SDK and the most widely adopted quantum framework.
+  Qiskit 2.0 (2025) rewrote core data structures in Rust for roughly 2x speedup in circuit
+  construction and 20% faster transpilation, and standardized on the primitives-based
+  execution model with <code>Sampler</code> and <code>Estimator</code>.
+</p>
+
+<h3>The Qiskit Workflow</h3>
+
+<p>
+  A typical workflow has four stages: <strong>Build</strong> a circuit, <strong>Transpile</strong>
+  it for a backend, <strong>Execute</strong> via primitives, and <strong>Analyze</strong> results.
+  In Python:
+</p>
+
+<pre><code>from qiskit import QuantumCircuit
+from qiskit.primitives import StatevectorSampler
+
+qc = QuantumCircuit(2, 2)
+qc.h(0)
+qc.cx(0, 1)
+qc.measure([0, 1], [0, 1])
+
+sampler = StatevectorSampler()
+result = sampler.run([qc], shots=1024).result()
+print(result[0].data.c.get_counts())  # {'00': ~512, '11': ~512}</code></pre>
+
+<p>
+  The equivalent OpenQASM circuit in our sandbox:
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="7">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+h q[0];
+cx q[0], q[1];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<h3>Gate Library and U3</h3>
+
+<p>
+  The most general single-qubit gate is U3, parameterized by three Euler angles:
+</p>
+
+$$U(\theta, \phi, \lambda) = \begin{pmatrix} \cos(\theta/2) & -e^{i\lambda}\sin(\theta/2) \\ e^{i\phi}\sin(\theta/2) & e^{i(\phi+\lambda)}\cos(\theta/2) \end{pmatrix}$$
+
+<p>
+  Every single-qubit gate is a special case: H is $U(\pi/2, 0, \pi)$, X is $U(\pi, 0, \pi)$.
+  The sandbox below shows U3 preparing a specific Bloch sphere state:
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="7">OPENQASM 3.0;
+qubit[1] q;
+bit[1] c;
+// U3 gate with Euler angles
+U(pi/3, pi/4, pi/6) q[0];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+  A comprehensive gate showcase using Clifford gates (H, S, X, Y, Z) and the non-Clifford T:
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="12">OPENQASM 3.0;
+qubit[3] q;
+bit[3] c;
+h q[0];       // Hadamard
+s q[0];       // S gate: pi/2 phase
+t q[0];       // T gate: pi/4 phase
+cx q[0], q[1]; // CNOT
+cz q[1], q[2]; // Controlled-Z
+tdg q[0];     // T-dagger
+sdg q[0];     // S-dagger
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<div class="callout callout-info">
+  <strong>Simulation Limits.</strong>
+  <p>
+    Simulating $n$ qubits requires storing $2^n$ complex amplitudes. At 16 bytes per amplitude,
+    30 qubits needs ~16 GB, 40 qubits ~16 TB. This exponential scaling is precisely why we
+    build quantum computers.
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="cirq-pennylane">
+<h2>15.3 Introduction to Cirq and PennyLane</h2>
+
+<h3>Cirq: Hardware-Aware Circuit Design</h3>
+
+<p>
+  Cirq, developed by Google Quantum AI, emphasizes <em>hardware-aware</em> circuit construction.
+  Qubits are defined with grid coordinates matching physical chip layout, circuits are organized
+  into parallel "moments," and Google's native gates (including the Sycamore gate) are
+  first-class citizens.
+</p>
+
+<pre><code>import cirq
+
+q0, q1 = cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)
+circuit = cirq.Circuit([
+    cirq.Moment([cirq.H(q0)]),
+    cirq.Moment([cirq.CNOT(q0, q1)]),
+    cirq.Moment([cirq.measure(q0, q1, key='result')])
+])
+result = cirq.Simulator().run(circuit, repetitions=1024)</code></pre>
+
+<p>
+  The Sycamore gate combines an iSWAP-like interaction with a controlled phase. Try it:
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="7">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+x q[0];
+sycamore q[0], q[1];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<h3>PennyLane: Differentiable Quantum Computing</h3>
+
+<p>
+  PennyLane (Xanadu) treats quantum circuits as <em>differentiable programs</em>. Circuits
+  are wrapped as QNodes that support automatic differentiation via the parameter-shift rule,
+  enabling gradient-based optimization of variational circuits. Version 0.44 (2026) added
+  integration with the Munich Quantum Toolkit for advanced compilation.
+</p>
+
+<pre><code>import pennylane as qml
+import numpy as np
+
+dev = qml.device("default.qubit", wires=2)
+
+@qml.qnode(dev)
+def circuit(params):
+    qml.RY(params[0], wires=0)
+    qml.CNOT(wires=[0, 1])
+    qml.RZ(params[1], wires=1)
+    return qml.expval(qml.PauliZ(0) @ qml.PauliZ(1))
+
+grad_fn = qml.grad(circuit)
+gradients = grad_fn(np.array([0.5, 0.3]))</code></pre>
+
+<p>
+  A variational ansatz in the sandbox with parametric rotations and entangling layers:
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="11">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+// Variational ansatz
+ry(pi/4) q[0];
+ry(pi/3) q[1];
+cx q[0], q[1];  // Entangling layer
+rz(pi/6) q[0];
+rx(pi/5) q[1];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<h3>Framework Comparison</h3>
+
+<table>
+  <thead>
+    <tr><th>Feature</th><th>Qiskit</th><th>Cirq</th><th>PennyLane</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Developer</td><td>IBM</td><td>Google</td><td>Xanadu</td></tr>
+    <tr><td>Focus</td><td>General-purpose</td><td>Hardware-aware</td><td>Differentiable QC</td></tr>
+    <tr><td>Native hardware</td><td>IBM Heron/Nighthawk</td><td>Google Sycamore/Willow</td><td>Multi-backend</td></tr>
+    <tr><td>Gradient support</td><td>Via qiskit-algorithms</td><td>Manual</td><td>Built-in</td></tr>
+    <tr><td>Version (2026)</td><td>2.2</td><td>1.4+</td><td>0.44</td></tr>
+  </tbody>
+</table>
+
+<div class="callout callout-info">
+  <strong>Interoperability.</strong>
+  <p>
+    The frameworks are increasingly interoperable. PennyLane executes on IBM and Google
+    hardware via plugins. Qiskit exports OpenQASM that Cirq can import. Amazon Braket wraps
+    hardware from multiple vendors. Choose the framework that fits your workflow.
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="real-hardware">
+<h2>15.4 Running on Real Hardware</h2>
+
+<p>
+  Running on real hardware is fundamentally different from simulation. Simulators give exact
+  probabilities; real processors give noisy samples. The typical IBM submission workflow:
+</p>
+
+<pre><code>from qiskit_ibm_runtime import QiskitRuntimeService, SamplerV2
+from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
+
+service = QiskitRuntimeService(channel="ibm_quantum")
+backend = service.least_busy(operational=True, simulator=False)
+pm = generate_preset_pass_manager(optimization_level=2, backend=backend)
+transpiled = pm.run(circuit)
+
+sampler = SamplerV2(mode=backend)
+job = sampler.run([transpiled], shots=4096)
+counts = job.result()[0].data.c.get_counts()</code></pre>
+
+<h3>Shot Noise</h3>
+
+<p>
+  Even a perfect quantum computer produces probabilistic results. For a state with probability
+  $p$ measured over $N$ shots, the relative uncertainty is $\Delta p / p \approx 1/\sqrt{Np}$.
+  Run the Bell state below multiple times - counts will fluctuate around 512 with standard
+  deviation ~16, even with no hardware noise.
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="7">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+h q[0];
+cx q[0], q[1];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<h3>Hardware Errors</h3>
+
+<p>
+  Real processors suffer from four main error types:
+</p>
+
+<ul>
+  <li>
+    <strong>Gate errors.</strong> Two-qubit gates have 0.1-1% error rates; single-qubit
+    gates are 10-100x more reliable. IBM Heron r2 achieves ~0.3% two-qubit error.
+  </li>
+  <li>
+    <strong>Measurement errors.</strong> A $|0\rangle$ might be read as 1 with 0.5-2%
+    probability.
+  </li>
+  <li>
+    <strong>Decoherence.</strong> Qubits lose quantum properties over time. $T_1$
+    (relaxation) and $T_2$ (dephasing) are typically 100-300 microseconds for
+    superconducting qubits.
+  </li>
+  <li>
+    <strong>Crosstalk.</strong> Operations on one qubit inadvertently affect neighbors.
+  </li>
+</ul>
+
+<div class="callout callout-warning">
+  <strong>Common Misconception.</strong>
+  <p>
+    Seeing unexpected outcomes does not mean your circuit is wrong. On real hardware, noise
+    always produces some incorrect outcomes. If you expect 50/50 between <code>00</code> and
+    <code>11</code> but get 47/46/4/3%, that is typical noise, not a bug.
+  </p>
+</div>
+
+<h3>Error Mitigation</h3>
+
+<p>
+  Before full error correction (Chapter 16), several mitigation techniques help:
+  <strong>measurement error mitigation</strong> (characterize and invert the confusion matrix),
+  <strong>zero-noise extrapolation</strong> (run at amplified noise levels, extrapolate to zero),
+  <strong>probabilistic error cancellation</strong> (represent ideal circuit as combination of
+  noisy circuits), and <strong>dynamical decoupling</strong> (insert pulse sequences during
+  idle periods to suppress low-frequency noise).
+</p>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="transpilation">
+<h2>15.5 Transpilation and Circuit Optimization</h2>
+
+<p>
+  Transpilation transforms an abstract circuit into one that runs on specific hardware. Three
+  challenges drive it: gate decomposition, qubit routing, and optimization.
+</p>
+
+<h3>Gate Decomposition</h3>
+
+<p>
+  Real processors implement only a small native gate set. IBM Heron uses {SX, RZ, CZ, ECR}.
+  Any other gate must be decomposed. The Hadamard decomposes as $H = RZ(\pi/2) \cdot SX \cdot RZ(\pi/2)$.
+  A Toffoli requires ~6 CNOTs plus single-qubit gates:
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="9">OPENQASM 3.0;
+qubit[3] q;
+bit[3] c;
+x q[0];
+x q[1];
+// Toffoli: decomposes to ~6 CNOTs on hardware
+ccx q[0], q[1], q[2];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<h3>Qubit Routing and SWAP Networks</h3>
+
+<p>
+  Most processors lack all-to-all connectivity. If your circuit needs a CNOT between
+  non-adjacent qubits, the transpiler inserts SWAP gates (each costing 3 CNOTs). The
+  SWAP decomposition:
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="10">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+x q[0];  // q[0]=1, q[1]=0
+// SWAP = 3 CNOTs
+cx q[0], q[1];
+cx q[1], q[0];
+cx q[0], q[1];
+// States are now swapped: q[0]=0, q[1]=1
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+  Verify with the native SWAP gate:
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="6">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+x q[0];
+swap q[0], q[1];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<h3>Optimization Levels</h3>
+
+<p>
+  Qiskit offers four optimization levels trading compilation time for circuit quality:
+</p>
+
+<table>
+  <thead>
+    <tr><th>Level</th><th>Strategy</th><th>Use Case</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>0</td><td>Minimal: map and decompose only</td><td>Debugging</td></tr>
+    <tr><td>1</td><td>Light: basic gate cancellation (default)</td><td>Prototyping</td></tr>
+    <tr><td>2</td><td>Medium: noise-aware layout, commutation</td><td>Production</td></tr>
+    <tr><td>3</td><td>Heavy: unitary resynthesis, multiple trials</td><td>Best quality</td></tr>
+  </tbody>
+</table>
+
+<h3>Optimization Patterns</h3>
+
+<p>
+  Gate cancellation ($XX = I$, $HH = I$), rotation merging ($R_z(\alpha)R_z(\beta) = R_z(\alpha+\beta)$),
+  and commutation analysis are core techniques. Verify gate cancellation:
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="10">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+// Self-inverse cancellation
+x q[0]; x q[0];  // X*X = I
+h q[1]; h q[1];  // H*H = I
+// Both qubits still |0>
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<h3>Multi-Qubit Gate Decomposition Costs</h3>
+
+<table>
+  <thead>
+    <tr><th>Gate</th><th>CNOTs</th><th>Notes</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>CNOT</td><td>1</td><td>Already two-qubit</td></tr>
+    <tr><td>CZ</td><td>1</td><td>CNOT + Hadamards</td></tr>
+    <tr><td>SWAP</td><td>3</td><td>Three CNOTs</td></tr>
+    <tr><td>iSWAP</td><td>2</td><td>Two CNOTs + single-qubit</td></tr>
+    <tr><td>Toffoli (CCX)</td><td>6</td><td>Standard decomposition</td></tr>
+    <tr><td>Fredkin (CSWAP)</td><td>8</td><td>Or 5 with Toffoli</td></tr>
+    <tr><td>General 2-qubit</td><td>$\leq 3$</td><td>KAK decomposition</td></tr>
+  </tbody>
+</table>
+
+<p>
+  The iSWAP gate, native to some Google processors, and the ECR gate, native to IBM:
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="7">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+x q[0];
+iswap q[0], q[1];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="7">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+x q[0];
+ecr q[0], q[1];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<h3>Advanced Gate Patterns</h3>
+
+<p>
+  Controlled-Hadamard (CH), controlled-SX (CSX), DCX (double-CNOT), and CCZ:
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="9">OPENQASM 3.0;
+qubit[3] q;
+bit[3] c;
+x q[0];
+ch q[0], q[1];   // Controlled-Hadamard
+csx q[0], q[2];  // Controlled-sqrt(X)
+dcx q[1], q[2];  // Double-CNOT
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="9">OPENQASM 3.0;
+qubit[3] q;
+bit[3] c;
+// CCZ: symmetric three-qubit phase gate
+x q[0]; x q[1]; x q[2];
+ccz q[0], q[1], q[2];
+h q[2];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+  Two-qubit Ising rotation gates (RXX, RYY, RZZ) and controlled rotations (CRX, CRY, CRZ, CP)
+  are essential for variational ansatze and phase estimation:
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="10">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+// Ising interaction gates
+h q[0]; h q[1];
+rxx(pi/4) q[0], q[1];
+ryy(pi/4) q[0], q[1];
+rzz(pi/4) q[0], q[1];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="10">OPENQASM 3.0;
+qubit[3] q;
+bit[3] c;
+x q[0];
+crx(pi/2) q[0], q[1];
+cry(pi/3) q[0], q[2];
+crz(pi/4) q[1], q[2];
+cp(pi/8) q[0], q[2];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<h3>Building a Quantum Fourier Transform</h3>
+
+<p>
+  The QFT, core of Shor's algorithm and phase estimation, uses Hadamard gates and controlled
+  phase rotations with decreasing angles. Each controlled-phase decomposes to 2 CNOTs on
+  hardware, making transpilation cost significant:
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="14">OPENQASM 3.0;
+qubit[3] q;
+bit[3] c;
+// 3-qubit QFT on input |101>
+x q[0]; x q[2];
+// QFT circuit
+h q[0];
+cp(pi/2) q[1], q[0];
+cp(pi/4) q[2], q[0];
+h q[1];
+cp(pi/2) q[2], q[1];
+h q[2];
+swap q[0], q[2];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="cloud-platforms">
+<h2>15.6 Quantum Cloud Platforms</h2>
+
+<p>
+  Quantum computers operate at millikelvin temperatures or under ultra-high vacuum - no one
+  has one on their desk. Quantum computing is delivered as a cloud service.
+</p>
+
+<h3>IBM Quantum</h3>
+
+<p>
+  IBM operates the largest public quantum fleet: 156-qubit Heron r2/r3, the newer 120-qubit
+  Nighthawk optimized for lower errors, and a roadmap including the 1,386-qubit Kookaburra
+  multi-chip processor. Native gates: {SX, RZ, CZ, ECR}. Qiskit 2.2 is the primary SDK.
+  Free tier provides simulator and small processor access.
+</p>
+
+<h3>Amazon Braket</h3>
+
+<p>
+  Braket provides multi-vendor access through AWS: superconducting (IQM Garnet/Emerald,
+  Rigetti), trapped ion (IonQ Aria/Forte, AQT IBEX), and neutral atom (QuEra) processors.
+  Includes on-demand simulators (SV1, DM1, TN1) and a free local simulator. In 2026, Braket
+  expanded Qiskit integration for cross-platform job submission.
+</p>
+
+<h3>Azure Quantum</h3>
+
+<p>
+  Microsoft's platform offers IonQ (25-qubit Aria, 36-qubit Forte) and Quantinuum (System
+  Model H2) trapped-ion processors. The 2026 QDK update added chemistry-aware algorithms.
+  Microsoft and Quantinuum are developing a 24-logical-qubit system.
+</p>
+
+<h3>Google Quantum AI</h3>
+
+<p>
+  Google's Willow processor demonstrated below-threshold error correction in 2024. Access
+  is primarily through research partnerships. Native gates include the Sycamore gate and
+  $\sqrt{\text{iSWAP}}$.
+</p>
+
+<h3>Platform Comparison</h3>
+
+<table>
+  <thead>
+    <tr><th>Feature</th><th>IBM Quantum</th><th>Amazon Braket</th><th>Azure Quantum</th><th>Google QAI</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>SDK</td><td>Qiskit</td><td>Braket SDK</td><td>QDK / Q#</td><td>Cirq</td></tr>
+    <tr><td>Hardware</td><td>IBM only (SC)</td><td>Multi-vendor</td><td>Multi-vendor</td><td>Google only (SC)</td></tr>
+    <tr><td>Max qubits</td><td>156</td><td>Varies</td><td>36 (Forte)</td><td>72 (Sycamore)</td></tr>
+    <tr><td>Connectivity</td><td>Heavy-hex</td><td>Varies</td><td>All-to-all (ions)</td><td>Grid</td></tr>
+    <tr><td>Free tier</td><td>Yes</td><td>Simulator only</td><td>Credits</td><td>Research</td></tr>
+  </tbody>
+</table>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    Different qubit technologies have different strengths. Superconducting qubits (IBM, Google)
+    offer fast gates (~tens of nanoseconds) but limited connectivity. Trapped ions (IonQ,
+    Quantinuum) provide all-to-all connectivity and higher fidelity but slower gates
+    (~microseconds). Neutral atoms (QuEra) can scale to hundreds of qubits with reconfigurable
+    connectivity. The best platform depends on your algorithm's requirements.
+  </p>
+</div>
+
+<h3>Complete Workflow: Grover's Algorithm</h3>
+
+<p>
+  Tracing an algorithm from idea to hardware-ready circuit. Grover's search for $|11\rangle$
+  among 4 items uses a CZ oracle and a diffusion operator:
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="14">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+// Grover's algorithm: search for |11>
+// Superposition
+h q[0]; h q[1];
+// Oracle: mark |11> with phase flip
+cz q[0], q[1];
+// Diffusion operator
+h q[0]; h q[1];
+x q[0]; x q[1];
+cz q[0], q[1];
+x q[0]; x q[1];
+h q[0]; h q[1];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+  One Grover iteration finds <code>11</code> with 100% probability for 4 items. On IBM Heron,
+  CZ is native, H decomposes to SX+RZ, and the full circuit needs ~2 two-qubit gates.
+</p>
+
+<p>
+  A more complex example: quantum teleportation, transferring a state using entanglement:
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="14">OPENQASM 3.0;
+qubit[3] q;
+bit[3] c;
+// Quantum teleportation
+// Prepare state to teleport
+rx(pi/3) q[0];
+// Create Bell pair
+h q[1];
+cx q[1], q[2];
+// Bell measurement
+cx q[0], q[1];
+h q[0];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="exercises">
+<h2>Exercises</h2>
+
+<p>
+  <strong>Exercise 15.1.</strong> Write a circuit that creates the 4-qubit GHZ state
+  $\tfrac{1}{\sqrt{2}}(|0000\rangle + |1111\rangle)$. How many CNOTs does it need?
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="8">OPENQASM 3.0;
+qubit[4] q;
+bit[4] c;
+// Exercise 15.1: 4-qubit GHZ state
+
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+  <strong>Exercise 15.2.</strong> Decompose SWAP using three CZ gates and Hadamard gates.
+  Verify it swaps $|10\rangle$ to $|01\rangle$.
+  (Hint: $\text{CX} = (I \otimes H) \cdot \text{CZ} \cdot (I \otimes H)$.)
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="8">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+x q[0]; // Start: q[0]=1, q[1]=0
+// Your CZ-based SWAP here
+
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+  <strong>Exercise 15.3.</strong> Implement a 2-qubit phase estimation circuit. Use an
+  eigenstate $|1\rangle$ on the target, a controlled-T gate, and inverse QFT on the
+  estimation register. What outcomes do you expect?
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="8">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+// Exercise 15.3: Phase estimation
+
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+  <strong>Exercise 15.4.</strong> Create the W state:
+  $\tfrac{1}{\sqrt{3}}(|001\rangle + |010\rangle + |100\rangle)$. Unlike GHZ, the W state
+  remains entangled if one qubit is lost. (Hint: use $R_y$ rotations and controlled gates.)
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="8">OPENQASM 3.0;
+qubit[3] q;
+bit[3] c;
+// Exercise 15.4: W state
+
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+  <strong>Exercise 15.5.</strong> Consider H on q[0], CNOT(q[0],q[1]), CZ(q[1],q[2]) on a
+  linear chain q[0]-q[1]-q[2]. How many SWAPs are needed? What about triangular connectivity?
+</p>
+
+<p>
+  <strong>Exercise 15.6.</strong> Decompose H into IBM's native gates (RZ and SX only). Verify:
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="8">OPENQASM 3.0;
+qubit[1] q;
+bit[1] c;
+// Exercise 15.6: H = RZ(pi/2) * SX * RZ(pi/2)
+rz(pi/2) q[0];
+sx q[0];
+rz(pi/2) q[0];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+  <strong>Exercise 15.7.</strong> For all-to-all connectivity among 5 qubits, estimate minimum
+  SWAPs needed on heavy-hex (max 3 neighbors) vs. grid (max 4 neighbors) topology.
+</p>
+
+<p>
+  <strong>Exercise 15.8.</strong> Run this circuit and explain the measurement statistics:
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="10">OPENQASM 3.0;
+qubit[3] q;
+bit[3] c;
+h q[0]; h q[1];
+ccx q[0], q[1], q[2];
+h q[0]; h q[1];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+
+<div class="flashcard-deck" data-component="flashcard-deck">
+  <div class="flashcard-deck-header">Chapter 15 Review</div>
+
+  <div class="flashcard" data-card-id="ch15-software-stack">
+    <div class="card-front">Name the five layers of the quantum software stack, from top to bottom.</div>
+    <div class="card-back">
+      (1) Algorithm layer - the high-level quantum algorithm. (2) Circuit layer - gates on qubits in OpenQASM or framework IR. (3) Transpilation layer - mapping to hardware gate set and connectivity. (4) Pulse layer - timed control signals for each native gate. (5) Hardware layer - physical execution and measurement. Each layer transforms the computation into a more concrete representation.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch15-transpilation">
+    <div class="card-front">What three main tasks does quantum circuit transpilation perform?</div>
+    <div class="card-back">
+      (1) Gate decomposition - expressing abstract gates using the hardware's native gate set. (2) Qubit routing - mapping logical qubits to physical qubits and inserting SWAP gates for connectivity constraints. (3) Circuit optimization - reducing gate count and depth through cancellation, rotation merging, and commutation analysis. All three are needed because real hardware has limited gate sets, restricted connectivity, and finite coherence times.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch15-shot-noise">
+    <div class="card-front">What is shot noise, and how does it scale with the number of shots $N$?</div>
+    <div class="card-back">
+      Shot noise is the statistical uncertainty from sampling a probability distribution. For a state with probability $p$, the relative uncertainty scales as $1/\sqrt{Np}$. Doubling shots reduces uncertainty by $\sqrt{2}$, not 2. Even a perfect quantum computer has shot noise because measurement is inherently probabilistic.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch15-qiskit-vs-cirq">
+    <div class="card-front">What is the key design difference between Qiskit and Cirq?</div>
+    <div class="card-back">
+      Qiskit abstracts hardware details: you build circuits with logical qubits and generic gates, and the transpiler handles hardware mapping. Cirq is hardware-aware: qubits are defined with physical grid coordinates, circuits are organized into parallel moments, and native gates are used from the start. Qiskit prioritizes portability; Cirq prioritizes hardware-specific optimization.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch15-pennylane-diff">
+    <div class="card-front">What makes PennyLane unique, and what is the parameter-shift rule?</div>
+    <div class="card-back">
+      PennyLane treats quantum circuits as differentiable programs, enabling automatic differentiation through quantum computations. The parameter-shift rule computes exact gradients by evaluating the circuit at two shifted parameter values: $\partial f/\partial \theta = [f(\theta + \pi/2) - f(\theta - \pi/2)] / 2$. This makes PennyLane ideal for variational algorithms and quantum machine learning.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch15-swap-cost">
+    <div class="card-front">How many CNOTs implement a SWAP, and why does this matter?</div>
+    <div class="card-back">
+      A SWAP decomposes into exactly 3 CNOTs. This matters because when the transpiler routes qubits on hardware with limited connectivity, each SWAP adds 3 two-qubit gates. Since two-qubit gate error rates are 10-100x higher than single-qubit gates, each SWAP significantly increases total circuit error. Minimizing SWAP insertions is critical for circuit quality.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch15-hardware-errors">
+    <div class="card-front">Name four types of errors on real quantum processors.</div>
+    <div class="card-back">
+      (1) Gate errors: incorrect unitary applied (~0.01-0.1% single-qubit, ~0.1-1% two-qubit). (2) Measurement errors: misclassifying qubit state during readout (~0.5-2%). (3) Decoherence: loss of quantum information over time, characterized by $T_1$ (relaxation) and $T_2$ (dephasing), typically 100-300 us. (4) Crosstalk: operations on one qubit inadvertently affecting neighbors.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch15-cloud-platforms">
+    <div class="card-front">Compare the four major quantum cloud platforms on hardware diversity.</div>
+    <div class="card-back">
+      IBM Quantum: IBM superconducting only, up to 156 qubits (Heron), largest free-access fleet. Amazon Braket: multi-vendor (IQM, Rigetti, IonQ, QuEra, AQT) spanning superconducting, trapped-ion, and neutral-atom technologies. Azure Quantum: IonQ and Quantinuum trapped-ion processors with high fidelity. Google QAI: Google superconducting only, primarily research access. Braket and Azure offer the most hardware diversity.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+    </article>
+
+    
+    <nav class="chapter-nav" aria-label="Chapter navigation">
+      <a href="14-noise.html" class="prev">&larr; Chapter 14: Noise, Decoherence, and the NISQ Era</a>
+      <span class="nav-spacer"></span>
+      <a href="16-classical-ec.html" class="next">Chapter 16: Classical Error Correction Refresher &rarr;</a>
+    </nav>
+    
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof renderMathInElement !== "undefined") {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "$", right: "$", display: false}
+          ],
+          throwOnError: false
+        });
+      }
+    });
+  </script>
+  
+  <script>
+  "use strict";
+  
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function isDark() { return window.matchMedia("(prefers-color-scheme: dark)").matches; }
+  function renderMath(el) {
+    if (typeof renderMathInElement === "function")
+      renderMathInElement(el, { delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}], throwOnError: false });
+  }
+
+  
+  var wasmReady = null;
+  function ensureWasm() {
+    if (!wasmReady) {
+      wasmReady = (async function() {
+        var go = new Go();
+        var result = await WebAssembly.instantiateStreaming(fetch("../main.wasm"), go.importObject);
+        go.run(result.instance);
+      })();
+    }
+    return wasmReady;
+  }
+
+  
+  var SRS_KEY = "goqu-srs";
+  function srsLoad() { try { return JSON.parse(localStorage.getItem(SRS_KEY) || "{}"); } catch(e) { return {}; } }
+  function srsSave(d) { localStorage.setItem(SRS_KEY, JSON.stringify(d)); }
+  function getCardState(id) { var d = srsLoad(); return d[id] || {interval:1, ease:2.5, due:0, reps:0}; }
+  function reviewCard(id, q) {
+    var d = srsLoad(), s = d[id] || {interval:1, ease:2.5, due:0, reps:0};
+    if (q >= 3) {
+      s.reps++;
+      if (s.reps === 1) s.interval = 1;
+      else if (s.reps === 2) s.interval = 6;
+      else s.interval = Math.round(s.interval * s.ease);
+      s.ease = Math.max(1.3, s.ease + 0.1 - (5-q)*(0.08 + (5-q)*0.02));
+    } else { s.reps = 0; s.interval = 1; }
+    s.due = Date.now() + s.interval * 86400000;
+    d[id] = s; srsSave(d);
+  }
+
+  
+  function initSandbox(el) {
+    var code = el.querySelector(".code"), output = el.querySelector(".output");
+    if (!code || !output) return;
+    var runBtn = el.querySelector('[data-action="run"]'), resetBtn = el.querySelector('[data-action="reset"]');
+    var shotsEl = el.querySelector("[data-shots]"), orig = code.value;
+    function shots() { return parseInt(shotsEl ? shotsEl.value : el.dataset.shots || "1024", 10); }
+    async function run() {
+      await ensureWasm();
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(code.value, shots(), isDark()));
+        if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+        output.innerHTML = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+    if (runBtn) runBtn.addEventListener("click", run);
+    if (resetBtn) resetBtn.addEventListener("click", function() { code.value = orig; });
+    if (el.hasAttribute("data-autorun")) run();
+  }
+
+  
+  function initSimulation(el) {
+    var tmplEl = el.querySelector(".sim-qasm"), output = el.querySelector(".sim-output");
+    var sliders = el.querySelectorAll('input[type="range"]');
+    var selects = el.querySelectorAll("select[data-param]");
+    if (!tmplEl || !output || (sliders.length === 0 && selects.length === 0)) return;
+    var tmpl = tmplEl.textContent, pending = false;
+    var useNoisy = el.hasAttribute("data-noisy");
+    var useComparison = el.hasAttribute("data-comparison");
+    var useExpectation = el.hasAttribute("data-expectation");
+    var useClifford = el.hasAttribute("data-clifford");
+    async function update() {
+      if (pending) return; pending = true;
+      await ensureWasm();
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var params = {};
+        sliders.forEach(function(s) { params[s.dataset.param] = parseFloat(s.value); var o = s.parentElement.querySelector("output"); if (o) o.textContent = parseFloat(s.value).toFixed(2); });
+        selects.forEach(function(s) { params[s.dataset.param] = s.value; });
+        var qasm = tmpl;
+        for (var k in params) qasm = qasm.replaceAll("{"+k+"}", params[k].toString());
+        var html = "";
+        if (useComparison && window.compareIdealNoisy) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.compareIdealNoisy(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="comparison-panels"><div class="comparison-panel"><h4>Ideal</h4>' + (r.idealHistogramSVG||"") + '</div><div class="comparison-panel"><h4>Noisy</h4>' + (r.noisyHistogramSVG||"") + '</div></div>';
+          if (r.stateCitySVG) html += r.stateCitySVG;
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useNoisy && window.runNoisyQASM) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.runNoisyQASM(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"") + (r.stateCitySVG||"");
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useClifford && window.runClifford) {
+          var r = JSON.parse(window.runClifford(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"");
+          if (r.stabilizers) { html += '<div class="stabilizer-table"><h4>Stabilizers</h4><table>'; r.stabilizers.forEach(function(s) { html += '<tr><td>' + formatStabilizer(s) + '</td></tr>'; }); html += '</table></div>'; }
+        } else if (useExpectation && window.computeExpectation) {
+          var pauliStr = params.pauliStr || el.dataset.pauli || "Z";
+          var r = JSON.parse(window.computeExpectation(qasm, pauliStr, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="sim-stats"><span>&lt;' + esc(pauliStr) + '&gt; = ' + r.expectation.toFixed(6) + '</span></div>';
+        } else {
+          var r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+          
+          if (el.hasAttribute("data-bloch") && window.getStateVector && window.renderBloch) {
+            try {
+              var sv = JSON.parse(window.getStateVector(qasm));
+              if (sv.amplitudes && sv.amplitudes.length === 2) {
+                var a = sv.amplitudes;
+                var blochSVG = window.renderBloch(a[0].re, a[0].im, a[1].re, a[1].im, isDark());
+                if (blochSVG) html += blochSVG;
+              }
+            } catch(e) {   }
+          }
+        }
+        output.innerHTML = html;
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+      pending = false;
+    }
+    sliders.forEach(function(s) { s.addEventListener("input", update); });
+    selects.forEach(function(s) { s.addEventListener("change", update); });
+    update();
+  }
+
+  
+  function formatStabilizer(s) {
+    if (!s) return "";
+    var sign = s[0], ops = s.slice(1), html = '<span class="stab-sign">' + esc(sign) + '</span>';
+    for (var i = 0; i < ops.length; i++) {
+      var c = ops[i], cls = "stab-" + c.toLowerCase();
+      html += '<span class="' + cls + '">' + c + '</span>';
+    }
+    return html;
+  }
+
+  
+  function initExercise(el) {
+    var code = el.querySelector(".code"), feedback = el.querySelector(".exercise-feedback");
+    var checkBtn = el.querySelector('[data-action="check"]');
+    var hintBtn = el.querySelector('[data-action="hint"]'), hintEl = el.querySelector(".exercise-hint");
+    if (!code || !feedback || !checkBtn) return;
+    var expected = {}, tol = 0.1;
+    var expEl = el.querySelector(".exercise-expected");
+    if (expEl) expEl.querySelectorAll("[data-state]").forEach(function(span) {
+      expected[span.dataset.state] = parseFloat(span.dataset.prob);
+      if (span.dataset.tolerance) tol = parseFloat(span.dataset.tolerance);
+    });
+    checkBtn.addEventListener("click", async function() {
+      await ensureWasm();
+      feedback.className = "exercise-feedback visible";
+      feedback.textContent = "Checking...";
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(code.value, 1024, isDark()));
+        if (r.error) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + r.error; return; }
+        if (Object.keys(expected).length === 0) { feedback.className = "exercise-feedback visible pass"; feedback.innerHTML = "Circuit ran successfully."; return; }
+        var prob = JSON.parse(window.getProbabilities(code.value, isDark()));
+        if (prob.error) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + prob.error; return; }
+        var actual = {};
+        for (var i = 0; i < prob.labels.length; i++) actual[prob.labels[i]] = prob.probabilities[i];
+        var ok = true, msgs = [];
+        for (var s in expected) {
+          var a = actual[s] || 0, p = expected[s];
+          if (Math.abs(a - p) > tol) { ok = false; msgs.push("|" + s + "\u27E9: expected " + (p*100|0) + "%, got " + (a*100|0) + "%"); }
+        }
+        if (ok) { feedback.className = "exercise-feedback visible pass"; feedback.innerHTML = "Correct! Your circuit produces the expected output."; }
+        else { feedback.className = "exercise-feedback visible fail"; feedback.innerHTML = "Not quite. " + msgs.join("; ") + "."; }
+        renderMath(feedback);
+      } catch(e) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + e.message; }
+    });
+    if (hintBtn && hintEl) hintBtn.addEventListener("click", function() { hintEl.style.display = hintEl.style.display === "none" ? "block" : "none"; });
+  }
+
+  
+  function initFlashcardDeck(el) {
+    el.querySelectorAll(".flashcard").forEach(function(card) {
+      var id = card.dataset.cardId;
+      if (!id) return;
+      var state = getCardState(id);
+      if (state.due > 0 && state.due > Date.now()) card.classList.add("reviewed");
+      card.addEventListener("click", function(e) {
+        if (e.target.closest("button")) return;
+        card.classList.toggle("flipped");
+        var back = card.querySelector(".card-back");
+        if (back) renderMath(back);
+      });
+      var easyBtn = card.querySelector(".easy"), hardBtn = card.querySelector(".hard");
+      if (easyBtn) easyBtn.addEventListener("click", function() { reviewCard(id, 4); card.classList.remove("flipped"); card.classList.add("reviewed"); });
+      if (hardBtn) hardBtn.addEventListener("click", function() { reviewCard(id, 2); card.classList.remove("flipped"); });
+    });
+  }
+
+  
+  function initPOE(el) {
+    var steps = el.querySelectorAll(".poe-step"), prog = el.querySelectorAll(".poe-progress-step");
+    if (steps.length === 0) return;
+    var cur = 0;
+    function show(idx) {
+      steps.forEach(function(s,i) { s.classList.toggle("active", i === idx); });
+      prog.forEach(function(s,i) { s.classList.remove("active","done"); if (i < idx) s.classList.add("done"); if (i === idx) s.classList.add("active"); });
+      cur = idx;
+      var active = steps[idx];
+      if (active) active.querySelectorAll('.sandbox:not([data-initialized])').forEach(function(sb) { sb.setAttribute("data-initialized","true"); initSandbox(sb); });
+    }
+    el.querySelectorAll('[data-action="next"]').forEach(function(btn) { btn.addEventListener("click", function() { if (cur < steps.length - 1) show(cur + 1); }); });
+    el.querySelectorAll('[data-action="complete"]').forEach(function(btn) { btn.addEventListener("click", function() { prog.forEach(function(s) { s.classList.remove("active"); s.classList.add("done"); }); }); });
+    show(0);
+  }
+
+  
+  function initStepThrough(el) {
+    var qasmEl = el.querySelector(".step-qasm");
+    var output = el.querySelector(".step-output");
+    var prevBtn = el.querySelector('[data-action="prev"]');
+    var nextBtn = el.querySelector('[data-action="next"]');
+    var stepInfo = el.querySelector(".step-info");
+    if (!qasmEl || !output) return;
+    var qasm = qasmEl.textContent;
+    var mode = el.dataset.mode || "clifford"; 
+    var steps = null, cur = -1;
+
+    async function load() {
+      await ensureWasm();
+      try {
+        if (mode === "clifford" && window.cliffordStepThrough) {
+          var r = JSON.parse(window.cliffordStepThrough(qasm));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+          
+          steps.unshift({gate: "init", qubits: [], stabilizers: r.steps.length > 0 ? null : []});
+        } else if (mode === "grover" && window.groverStepThrough) {
+          var nq = parseInt(el.dataset.qubits || "2", 10);
+          var targets = JSON.parse(el.dataset.targets || "[]");
+          var r = JSON.parse(window.groverStepThrough(nq, targets.join(",")));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+        }
+        if (steps && steps.length > 0) { cur = 0; renderStep(); }
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    function renderStep() {
+      if (!steps || cur < 0 || cur >= steps.length) return;
+      var s = steps[cur];
+      var html = "";
+      if (mode === "clifford") {
+        if (s.gate === "init") {
+          html = '<p class="step-label">Initial state |0...0&gt;</p>';
+          
+          if (steps.length > 1 && steps[1].stabilizers) {
+            var nq = steps[1].stabilizers[0].length - 1;
+            html += '<div class="stabilizer-table"><table>';
+            for (var i = 0; i < nq; i++) {
+              var row = "+";
+              for (var j = 0; j < nq; j++) row += (j === i) ? "Z" : "I";
+              html += '<tr><td>' + formatStabilizer(row) + '</td></tr>';
+            }
+            html += '</table></div>';
+          }
+        } else {
+          html = '<p class="step-label">After <strong>' + esc(s.gate) + '</strong> on qubit' + (s.qubits.length > 1 ? 's ' : ' ') + s.qubits.join(', ') + '</p>';
+          if (s.stabilizers) {
+            html += '<div class="stabilizer-table"><table>';
+            s.stabilizers.forEach(function(st) { html += '<tr><td>' + formatStabilizer(st) + '</td></tr>'; });
+            html += '</table></div>';
+          }
+        }
+      } else if (mode === "grover") {
+        html = '<p class="step-label">Iteration ' + s.iteration + '</p>';
+        if (s.probabilities) {
+          html += '<div class="amplitude-bars">';
+          for (var i = 0; i < s.probabilities.length; i++) {
+            var label = i.toString(2).padStart(Math.ceil(Math.log2(s.probabilities.length)), '0');
+            var pct = (s.probabilities[i] * 100).toFixed(1);
+            var isTarget = el.dataset.targets && JSON.parse(el.dataset.targets).indexOf(i) >= 0;
+            html += '<div class="amp-bar' + (isTarget ? ' target' : '') + '"><div class="amp-fill" style="height:' + pct + '%"></div><span class="amp-label">|' + label + '&gt;</span><span class="amp-value">' + pct + '%</span></div>';
+          }
+          html += '</div>';
+        }
+      }
+      output.innerHTML = html;
+      if (stepInfo) stepInfo.textContent = "Step " + cur + " / " + (steps.length - 1);
+      if (prevBtn) prevBtn.disabled = (cur === 0);
+      if (nextBtn) nextBtn.disabled = (cur >= steps.length - 1);
+    }
+
+    if (prevBtn) prevBtn.addEventListener("click", function() { if (cur > 0) { cur--; renderStep(); } });
+    if (nextBtn) nextBtn.addEventListener("click", function() { if (steps && cur < steps.length - 1) { cur++; renderStep(); } });
+    load();
+  }
+
+  
+  document.addEventListener("DOMContentLoaded", function() {
+    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough};
+    document.querySelectorAll("[data-component]").forEach(function(el) { var fn = reg[el.dataset.component]; if (fn) fn(el); });
+  });
+  </script>
+  
+</body>
+</html>

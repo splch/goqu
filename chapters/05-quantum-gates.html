@@ -9,8 +9,8 @@
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/contrib/auto-render.min.js"></script>
   
+  <link rel="preload" href="../main.wasm" as="fetch" type="application/wasm" crossorigin>
   <script src="../wasm_exec.js"></script>
-  <script type="module" src="../js/app.js"></script>
   
 </head>
 <body>
@@ -60,7 +60,7 @@
     </details>
     
     <details>
-      <summary>Part 4: Quantum Algorithms: The First Wave</summary>
+      <summary>Part 4: Quantum Algorithms - The First Wave</summary>
       <ol start="9">
         
         <li value="9"><a href="09-oracles.html">Oracles and Quantum Parallelism</a></li>
@@ -213,7 +213,8 @@
   This chapter is your reference guide to the most important single-qubit gates. We will
   meet each gate three ways: as a <strong>matrix</strong>, as an <strong>operation on
   basis states</strong>, and as a <strong>rotation on the Bloch sphere</strong>. By the
-  end, you will be able to read and write quantum circuits fluently.
+  end, you will be able to read and write quantum circuits fluently, and you will
+  understand why certain gate combinations unlock the full power of quantum computation.
 </p>
 
 <div class="callout callout-info">
@@ -223,15 +224,15 @@
   will help, but we will review everything you need.
 </div>
 
-<!-- ============================================================ -->
+<!-- ================================================================== -->
 <section id="pauli-gates">
 <h2>5.1 The Pauli Gates: X, Y, Z</h2>
 
 <p>
   The three <strong>Pauli gates</strong> are named after the physicist Wolfgang Pauli.
   Together with the identity matrix $I$, they form a basis for all 2x2 Hermitian matrices.
-  Each Pauli gate corresponds to a 180-degree rotation around one of the three axes of the
-  Bloch sphere.
+  Each Pauli gate corresponds to a $\pi$ radian (180-degree) rotation around one of the
+  three axes of the Bloch sphere.
 </p>
 
 <h3>The X Gate (Bit Flip)</h3>
@@ -252,8 +253,8 @@ $$X|1\rangle = \begin{pmatrix} 0 & 1 \\ 1 & 0 \end{pmatrix}\begin{pmatrix} 0 \\ 
 
 <p>
   On the Bloch sphere, $X$ is a rotation of $\pi$ radians (180 degrees) around the
-  <strong>x-axis</strong>. It flips the north pole to the south pole and vice versa, which
-  is why it is called the <em>bit flip</em> gate.
+  <strong>x-axis</strong>. It flips the north pole ($|0\rangle$) to the south pole
+  ($|1\rangle$) and vice versa, which is why it is called the <em>bit flip</em> gate.
 </p>
 
 <p>Try it yourself - apply the X gate to $|0\rangle$ and observe that you always measure $|1\rangle$:</p>
@@ -271,12 +272,6 @@ c = measure q;</textarea>
   <div class="output"></div>
 </div>
 
-<div class="callout callout-key">
-  <strong>Key insight.</strong>
-  The X gate is its own inverse: applying it twice returns the qubit to its original state.
-  Mathematically, $X^2 = I$. This is true of all three Pauli gates.
-</div>
-
 <h3>The Z Gate (Phase Flip)</h3>
 
 <p>
@@ -290,7 +285,7 @@ $$Z|0\rangle = |0\rangle \qquad Z|1\rangle = -|1\rangle$$
 <p>
   On the Bloch sphere, $Z$ is a rotation of $\pi$ radians around the <strong>z-axis</strong>.
   If the qubit is at the north or south pole, $Z$ has no observable effect - the global
-  phase $-1$ on $|1\rangle$ cannot be detected by measurement in the computational basis.
+  phase of $-1$ on $|1\rangle$ cannot be detected by measurement in the computational basis.
   But the phase flip becomes critical when the qubit is in a superposition. For instance:
 </p>
 
@@ -298,9 +293,10 @@ $$Z\left(\frac{|0\rangle + |1\rangle}{\sqrt{2}}\right) = \frac{|0\rangle - |1\ra
 
 <p>
   The state changed from $|+\rangle$ to $|-\rangle$ - the qubit has been rotated to the
-  opposite side of the Bloch sphere's equator. Run the sandbox below to see this. First an
-  H gate creates the superposition $|+\rangle$, then Z flips the phase. Apply another H
-  to convert the phase difference back into a measurable bit flip:
+  opposite side of the Bloch sphere's equator. Run the sandbox below to see this. The H gate
+  creates the superposition $|+\rangle$, then Z flips the phase. Try adding another
+  <code>h q[0];</code> line before the measurement to convert the phase difference back into
+  a measurable bit flip:
 </p>
 
 <div class="sandbox" data-component="sandbox" data-shots="1024">
@@ -330,8 +326,8 @@ $$Y|0\rangle = i|1\rangle \qquad Y|1\rangle = -i|0\rangle$$
 
 <p>
   On the Bloch sphere, $Y$ is a rotation of $\pi$ radians around the <strong>y-axis</strong>.
-  It simultaneously flips the bit and introduces a relative phase factor of $i$.
-  Verify it below:
+  Because the global phase $i$ is unobservable, measuring $Y|0\rangle = i|1\rangle$ still
+  yields $|1\rangle$ with certainty. Verify it below:
 </p>
 
 <div class="sandbox" data-component="sandbox" data-shots="1024">
@@ -378,16 +374,17 @@ c = measure q;</textarea>
   </tbody>
 </table>
 
-<div class="callout callout-info">
-  <strong>A useful identity.</strong>
-  The Pauli gates satisfy the relation $Y = iXZ$, and any two of them anti-commute:
-  $XZ = -ZX$, $XY = -YX$, $YZ = -ZY$. These algebraic relationships will become
-  important when we study quantum error correction in Part VI.
+<div class="callout callout-key">
+  <strong>All Pauli gates are their own inverses.</strong>
+  Applying any Pauli gate twice returns the qubit to its original state: $X^2 = Y^2 = Z^2 = I$.
+  The Pauli gates are also Hermitian ($X^\dagger = X$), meaning they are simultaneously valid
+  quantum gates and valid observables. They satisfy $Y = iXZ$ and anti-commute pairwise:
+  $XZ = -ZX$, $XY = -YX$, $YZ = -ZY$.
 </div>
 
 </section>
 
-<!-- ============================================================ -->
+<!-- ================================================================== -->
 <section id="hadamard-gate">
 <h2>5.2 The Hadamard Gate: Creating Superposition</h2>
 
@@ -400,8 +397,9 @@ c = measure q;</textarea>
 $$H = \frac{1}{\sqrt{2}}\begin{pmatrix} 1 & 1 \\ 1 & -1 \end{pmatrix}$$
 
 <p>
-  The Hadamard gate maps the computational basis states to the <strong>diagonal basis</strong>
-  states (also called the Hadamard basis or the $\pm$ basis):
+  A clean way to remember this: $H = \frac{1}{\sqrt{2}}(X + Z)$. The Hadamard sits
+  exactly halfway between a bit flip and a phase flip. It maps the computational basis
+  states to the <strong>diagonal basis</strong> (also called the $\pm$ basis):
 </p>
 
 $$H|0\rangle = \frac{|0\rangle + |1\rangle}{\sqrt{2}} = |+\rangle$$
@@ -416,7 +414,7 @@ $$H|1\rangle = \frac{|0\rangle - |1\rangle}{\sqrt{2}} = |-\rangle$$
 
 <p>
   Geometrically, $H$ is a rotation of $\pi$ radians around the axis that bisects the
-  x-axis and z-axis (the direction $\frac{\hat{x} + \hat{z}}{\sqrt{2}}$). This is why it
+  x-axis and z-axis - the direction $\frac{\hat{x} + \hat{z}}{\sqrt{2}}$. This is why it
   swaps the x-axis and z-axis of the Bloch sphere.
 </p>
 
@@ -424,7 +422,7 @@ $$H|1\rangle = \frac{|0\rangle - |1\rangle}{\sqrt{2}} = |-\rangle$$
   <strong>The Hadamard is its own inverse.</strong>
   Like the Pauli gates, $H^2 = I$. Applying the Hadamard gate twice returns the qubit to
   its original state. This self-inverse property is essential: it means superposition is
-  reversible. You can "undo" a Hadamard by applying another Hadamard.
+  reversible. You can always "undo" a Hadamard by applying another Hadamard.
 </div>
 
 <p>
@@ -483,13 +481,13 @@ $$HXH = Z \qquad HZH = X \qquad HYH = -Y$$
 
 <p>
   The Hadamard gate <em>conjugates</em> $X$ into $Z$ and vice versa. This means that a
-  bit flip error in the Hadamard basis looks like a phase flip error in the computational
+  bit flip in the Hadamard basis looks like a phase flip in the computational
   basis - a key idea in quantum error correction.
 </p>
 
 </section>
 
-<!-- ============================================================ -->
+<!-- ================================================================== -->
 <section id="phase-gates">
 <h2>5.3 Phase Gates: S, T, and Rz</h2>
 
@@ -575,7 +573,8 @@ c = measure q;</textarea>
 <h3>The Phase Gate Hierarchy</h3>
 
 <p>
-  The Z, S, and T gates form a natural hierarchy of phase rotations around the z-axis:
+  The Z, S, and T gates form a natural hierarchy of phase rotations around the z-axis.
+  Each gate in the sequence is the square root of the one above it:
 </p>
 
 <table class="state-table">
@@ -589,7 +588,20 @@ c = measure q;</textarea>
   </tbody>
 </table>
 
-<h3>Why Phase Matters</h3>
+<p>
+  The general phase gate $P(\phi)$ extends this pattern to any angle. It applies a phase of
+  $e^{i\phi}$ to $|1\rangle$:
+</p>
+
+$$P(\phi) = \begin{pmatrix} 1 & 0 \\ 0 & e^{i\phi} \end{pmatrix}$$
+
+<p>
+  With this notation, $Z = P(\pi)$, $S = P(\pi/2)$, and $T = P(\pi/4)$. The phase gate
+  $P(\phi)$ differs from the rotation gate $R_z(\phi)$ by a global phase factor, which
+  we will discuss in Section 5.4.
+</p>
+
+<h3>Why Phase Matters: The "Invisible" Phase Made Visible</h3>
 
 <div class="callout callout-warning">
   <strong>A common misconception.</strong>
@@ -601,24 +613,39 @@ c = measure q;</textarea>
 </div>
 
 <p>
-  Consider this concrete example. We prepare $|+\rangle = \frac{1}{\sqrt{2}}(|0\rangle + |1\rangle)$,
-  apply a Z gate to get $|-\rangle = \frac{1}{\sqrt{2}}(|0\rangle - |1\rangle)$, and then apply
-  a final H. The Hadamard converts $|-\rangle$ back to $|1\rangle$:
+  Consider this demonstration. We prepare $|+\rangle$, apply Z to get $|-\rangle$, then
+  apply H to decode:
 </p>
 
 $$H \cdot Z \cdot H |0\rangle = H \cdot Z |+\rangle = H|-\rangle = |1\rangle$$
 
 <p>
-  Without the Z gate, $H \cdot H|0\rangle = |0\rangle$. The phase flip caused the final
-  measurement outcome to change from 0 to 1 with certainty. The phase was invisible at the
-  intermediate step but became measurable after the final Hadamard "decoded" it into a
-  bit-flip. This pattern - encode into superposition, manipulate phases, decode back to
-  computational basis - is the template for nearly all quantum algorithms.
+  Without the Z gate, $HH|0\rangle = |0\rangle$. The phase flip changed the final outcome
+  from 0 to 1 with certainty. The phase was <em>invisible</em> at the intermediate step
+  (measuring after Z alone gives 50/50), but became fully measurable after the final
+  Hadamard "decoded" it. This pattern - encode into superposition, manipulate phases,
+  decode back - is the template for nearly all quantum algorithms:
 </p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="9">OPENQASM 3.0;
+qubit[1] q;
+bit[1] c;
+// H-Z-H: phase flip becomes bit flip
+h q[0];
+z q[0];
+h q[0];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
 
 </section>
 
-<!-- ============================================================ -->
+<!-- ================================================================== -->
 <section id="rotation-gates">
 <h2>5.4 Arbitrary Rotations: Rx, Ry, Rz</h2>
 
@@ -626,28 +653,28 @@ $$H \cdot Z \cdot H |0\rangle = H \cdot Z |+\rangle = H|-\rangle = |1\rangle$$
   The Pauli, Hadamard, S, and T gates perform rotations by fixed angles. But quantum
   computing often requires continuous rotations by arbitrary angles. The
   <strong>parameterized rotation gates</strong> $R_x(\theta)$, $R_y(\theta)$, and
-  $R_z(\theta)$ generalize the Pauli gates to rotations by any angle $\theta$.
+  $R_z(\theta)$ generalize the Pauli gates to rotations by any angle $\theta$ around
+  the corresponding Bloch sphere axis.
 </p>
+
+<p>
+  Each rotation gate is the matrix exponential of its corresponding Pauli matrix:
+</p>
+
+$$R_x(\theta) = e^{-i\theta X/2} \qquad R_y(\theta) = e^{-i\theta Y/2} \qquad R_z(\theta) = e^{-i\theta Z/2}$$
 
 <h3>$R_x(\theta)$: Rotation Around the X-Axis</h3>
 
-$$R_x(\theta) = e^{-i\theta X/2} = \begin{pmatrix} \cos\frac{\theta}{2} & -i\sin\frac{\theta}{2} \\ -i\sin\frac{\theta}{2} & \cos\frac{\theta}{2} \end{pmatrix}$$
+$$R_x(\theta) = \begin{pmatrix} \cos\frac{\theta}{2} & -i\sin\frac{\theta}{2} \\ -i\sin\frac{\theta}{2} & \cos\frac{\theta}{2} \end{pmatrix}$$
 
 <p>
-  When $\theta = \pi$, this gives $R_x(\pi) = -iX$ (the X gate up to a global phase).
-  On the Bloch sphere, $R_x(\theta)$ rotates the state vector by $\theta$ radians around
-  the x-axis.
+  At $\theta = \pi$, this gives $R_x(\pi) = -iX$. On the Bloch sphere, $R_x(\theta)$ rotates
+  by $\theta$ around the x-axis. Use the slider to explore:
 </p>
 
-<p>
-  Use the slider below to explore how the angle $\theta$ affects the qubit state. At
-  $\theta = 0$, the qubit stays in $|0\rangle$. At $\theta = \pi$ ($\approx 3.14$), it
-  flips to $|1\rangle$. At intermediate angles, you get partial superpositions:
-</p>
-
-<div class="simulation" data-component="simulation">
+<div class="simulation" data-component="simulation" data-bloch>
   <div class="sim-controls">
-    <label>angle: <input type="range" data-param="angle" min="0" max="6.28318" step="0.01" value="1.5708"><output>1.57</output></label>
+    <label>$\theta$: <input type="range" data-param="angle" min="0" max="6.283" step="0.01" value="1.57"><output>1.57</output></label>
   </div>
   <pre class="sim-qasm">OPENQASM 3.0;
 qubit[1] q;
@@ -659,18 +686,25 @@ c = measure q;</pre>
 
 <h3>$R_y(\theta)$: Rotation Around the Y-Axis</h3>
 
-$$R_y(\theta) = e^{-i\theta Y/2} = \begin{pmatrix} \cos\frac{\theta}{2} & -\sin\frac{\theta}{2} \\ \sin\frac{\theta}{2} & \cos\frac{\theta}{2} \end{pmatrix}$$
+$$R_y(\theta) = \begin{pmatrix} \cos\frac{\theta}{2} & -\sin\frac{\theta}{2} \\ \sin\frac{\theta}{2} & \cos\frac{\theta}{2} \end{pmatrix}$$
 
 <p>
-  The $R_y$ gate is special because its matrix entries are all real. This means it creates
-  superpositions without introducing complex phases - the resulting state always lies in the
-  xz-plane of the Bloch sphere. When $\theta = \pi$, we get $R_y(\pi) = -iY$ (the Y gate
-  up to global phase).
+  The $R_y$ gate is special because its matrix entries are all real, so it creates
+  superpositions without complex phases. The state always lies in the xz-plane of the
+  Bloch sphere. It is particularly useful for state preparation:
 </p>
 
-<div class="simulation" data-component="simulation">
+$$R_y(\theta)|0\rangle = \cos\frac{\theta}{2}|0\rangle + \sin\frac{\theta}{2}|1\rangle$$
+
+<p>
+  This gives a probability of $\cos^2(\theta/2)$ for measuring $|0\rangle$ and $\sin^2(\theta/2)$
+  for measuring $|1\rangle$. By choosing $\theta$ appropriately, you can prepare any desired
+  probability distribution between $|0\rangle$ and $|1\rangle$.
+</p>
+
+<div class="simulation" data-component="simulation" data-bloch>
   <div class="sim-controls">
-    <label>angle: <input type="range" data-param="angle" min="0" max="6.28318" step="0.01" value="1.5708"><output>1.57</output></label>
+    <label>$\theta$: <input type="range" data-param="angle" min="0" max="6.283" step="0.01" value="1.57"><output>1.57</output></label>
   </div>
   <pre class="sim-qasm">OPENQASM 3.0;
 qubit[1] q;
@@ -682,19 +716,18 @@ c = measure q;</pre>
 
 <h3>$R_z(\theta)$: Rotation Around the Z-Axis</h3>
 
-$$R_z(\theta) = e^{-i\theta Z/2} = \begin{pmatrix} e^{-i\theta/2} & 0 \\ 0 & e^{i\theta/2} \end{pmatrix}$$
+$$R_z(\theta) = \begin{pmatrix} e^{-i\theta/2} & 0 \\ 0 & e^{i\theta/2} \end{pmatrix}$$
 
 <p>
-  The $R_z$ gate is diagonal - it does not change the measurement probabilities, only the
-  relative phase between $|0\rangle$ and $|1\rangle$. When $\theta = \pi$, we recover the
-  Z gate (up to global phase): $R_z(\pi) = -iZ$. The S and T gates are also special cases:
+  The $R_z$ gate is diagonal - it does not change measurement probabilities, only the
+  relative phase. When $\theta = \pi$, we recover $R_z(\pi) = -iZ$. The S and T gates
+  are special cases: $S = e^{i\pi/4} R_z(\pi/2)$ and $T = e^{i\pi/8} R_z(\pi/4)$.
+  Below, we apply H before $R_z$ so the phase rotation is visible on the Bloch sphere:
 </p>
 
-$$S = e^{i\pi/4} R_z(\pi/2) \qquad T = e^{i\pi/8} R_z(\pi/4)$$
-
-<div class="simulation" data-component="simulation">
+<div class="simulation" data-component="simulation" data-bloch>
   <div class="sim-controls">
-    <label>angle: <input type="range" data-param="angle" min="0" max="6.28318" step="0.01" value="1.5708"><output>1.57</output></label>
+    <label>$\theta$: <input type="range" data-param="angle" min="0" max="6.283" step="0.01" value="1.57"><output>1.57</output></label>
   </div>
   <pre class="sim-qasm">OPENQASM 3.0;
 qubit[1] q;
@@ -703,14 +736,6 @@ h q[0];
 rz({angle}) q[0];
 c = measure q;</pre>
   <div class="sim-output"></div>
-</div>
-
-<div class="callout callout-info">
-  <strong>Note on the Rz sandbox.</strong>
-  We apply H before Rz so you can see the phase rotation's effect. Without the H gate,
-  $R_z$ applied to $|0\rangle$ only adds a global phase, which is unobservable. By first
-  creating a superposition, the relative phase introduced by $R_z$ becomes visible in the
-  measurement statistics when followed by further gates.
 </div>
 
 <h3>How Rotation Gates Generalize the Pauli Gates</h3>
@@ -723,23 +748,35 @@ c = measure q;</pre>
 $$R_x(\pi) = -iX \qquad R_y(\pi) = -iY \qquad R_z(\pi) = -iZ$$
 
 <p>
-  The global phase $-i$ is physically unobservable, so for all practical purposes
-  $R_x(\pi)$ "is" the X gate, and likewise for Y and Z. The rotation gates give us a
-  continuous family of operations, parameterized by a single angle, that interpolate
-  smoothly between the identity ($\theta = 0$) and the Pauli gate ($\theta = \pi$).
+  The global phase $-i$ is physically unobservable, so $R_x(\pi)$ "is" the X gate for
+  all practical purposes. The rotation gates give us a continuous family that interpolates
+  between the identity ($\theta = 0$) and the Pauli gate ($\theta = \pi$).
+</p>
+
+<h3>The Euler Decomposition</h3>
+
+<p>
+  A remarkable result: <em>any</em> single-qubit gate can be decomposed into three rotations:
+</p>
+
+$$U = e^{i\alpha} R_z(\beta) R_y(\gamma) R_z(\delta)$$
+
+<p>
+  for some angles $\alpha, \beta, \gamma, \delta$. This Euler decomposition means $R_y$
+  and $R_z$ are sufficient to reach any point on the Bloch sphere.
 </p>
 
 <div class="callout callout-key">
   <strong>Universality preview.</strong>
-  A deep result in quantum computing states that $R_y(\theta)$, $R_z(\phi)$, and the
-  two-qubit CNOT gate together form a <em>universal gate set</em> - they can approximate
-  any unitary transformation to arbitrary precision. We will explore this further in
-  Chapter 6.
+  The Euler decomposition shows that $R_y$ and $R_z$ together can implement any single-qubit gate.
+  In Chapter 6, we will see that adding any entangling two-qubit gate (like CNOT) makes the
+  gate set <em>universal</em> - capable of approximating any quantum computation to arbitrary
+  precision.
 </div>
 
 </section>
 
-<!-- ============================================================ -->
+<!-- ================================================================== -->
 <section id="gates-as-matrices">
 <h2>5.5 Gates as Matrices, Matrices as Gates</h2>
 
@@ -753,14 +790,7 @@ $$U^\dagger U = U U^\dagger = I$$
 
 <p>
   where $U^\dagger$ is the conjugate transpose of $U$ (transpose the matrix and take
-  the complex conjugate of every entry), and $I$ is the identity matrix. Let us verify
-  this for the Hadamard gate:
-</p>
-
-$$H^\dagger H = \frac{1}{\sqrt{2}}\begin{pmatrix} 1 & 1 \\ 1 & -1 \end{pmatrix} \cdot \frac{1}{\sqrt{2}}\begin{pmatrix} 1 & 1 \\ 1 & -1 \end{pmatrix} = \frac{1}{2}\begin{pmatrix} 2 & 0 \\ 0 & 2 \end{pmatrix} = I \quad \checkmark$$
-
-<p>
-  (Since $H$ is real and symmetric, $H^\dagger = H$, so $H$ is also Hermitian.)
+  the complex conjugate of every entry), and $I$ is the identity matrix.
 </p>
 
 <h3>Why Unitarity?</h3>
@@ -789,11 +819,9 @@ $$H^\dagger H = \frac{1}{\sqrt{2}}\begin{pmatrix} 1 & 1 \\ 1 & -1 \end{pmatrix} 
 
 <h3>Verifying Unitarity</h3>
 
-<p>Let us verify unitarity for the Y gate:</p>
+<p>Let us verify unitarity for the Hadamard gate. Since $H$ is real and symmetric, $H^\dagger = H$:</p>
 
-$$Y^\dagger = \begin{pmatrix} 0 & -i \\ i & 0 \end{pmatrix}^\dagger = \begin{pmatrix} 0 & -i \\ i & 0 \end{pmatrix} = Y$$
-
-$$Y^\dagger Y = \begin{pmatrix} 0 & -i \\ i & 0 \end{pmatrix}\begin{pmatrix} 0 & -i \\ i & 0 \end{pmatrix} = \begin{pmatrix} 1 & 0 \\ 0 & 1 \end{pmatrix} = I \quad \checkmark$$
+$$H^\dagger H = \frac{1}{\sqrt{2}}\begin{pmatrix} 1 & 1 \\ 1 & -1 \end{pmatrix} \cdot \frac{1}{\sqrt{2}}\begin{pmatrix} 1 & 1 \\ 1 & -1 \end{pmatrix} = \frac{1}{2}\begin{pmatrix} 2 & 0 \\ 0 & 2 \end{pmatrix} = I \quad \checkmark$$
 
 <p>And for the T gate:</p>
 
@@ -808,51 +836,103 @@ $$T^\dagger T = \begin{pmatrix} 1 & 0 \\ 0 & e^{-i\pi/4} \end{pmatrix}\begin{pma
   matrices preserve the delicate normalization of quantum states.
 </p>
 
+<h3>Comprehensive Gate Reference</h3>
+
+<p>
+  The following table collects every gate from this chapter. Keep it handy as a reference:
+</p>
+
+<table class="state-table">
+  <thead>
+    <tr><th>Gate</th><th>Matrix</th><th>Bloch Rotation</th><th>QASM</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>$I$</td>
+      <td>$\begin{pmatrix} 1 & 0 \\ 0 & 1 \end{pmatrix}$</td>
+      <td>None (identity)</td>
+      <td>-</td>
+    </tr>
+    <tr>
+      <td>$X$</td>
+      <td>$\begin{pmatrix} 0 & 1 \\ 1 & 0 \end{pmatrix}$</td>
+      <td>$\pi$ around x</td>
+      <td><code>x q[0];</code></td>
+    </tr>
+    <tr>
+      <td>$Y$</td>
+      <td>$\begin{pmatrix} 0 & -i \\ i & 0 \end{pmatrix}$</td>
+      <td>$\pi$ around y</td>
+      <td><code>y q[0];</code></td>
+    </tr>
+    <tr>
+      <td>$Z$</td>
+      <td>$\begin{pmatrix} 1 & 0 \\ 0 & -1 \end{pmatrix}$</td>
+      <td>$\pi$ around z</td>
+      <td><code>z q[0];</code></td>
+    </tr>
+    <tr>
+      <td>$H$</td>
+      <td>$\frac{1}{\sqrt{2}}\begin{pmatrix} 1 & 1 \\ 1 & -1 \end{pmatrix}$</td>
+      <td>$\pi$ around $\frac{\hat{x}+\hat{z}}{\sqrt{2}}$</td>
+      <td><code>h q[0];</code></td>
+    </tr>
+    <tr>
+      <td>$S$</td>
+      <td>$\begin{pmatrix} 1 & 0 \\ 0 & i \end{pmatrix}$</td>
+      <td>$\pi/2$ around z</td>
+      <td><code>s q[0];</code></td>
+    </tr>
+    <tr>
+      <td>$S^\dagger$</td>
+      <td>$\begin{pmatrix} 1 & 0 \\ 0 & -i \end{pmatrix}$</td>
+      <td>$-\pi/2$ around z</td>
+      <td><code>sdg q[0];</code></td>
+    </tr>
+    <tr>
+      <td>$T$</td>
+      <td>$\begin{pmatrix} 1 & 0 \\ 0 & e^{i\pi/4} \end{pmatrix}$</td>
+      <td>$\pi/4$ around z</td>
+      <td><code>t q[0];</code></td>
+    </tr>
+    <tr>
+      <td>$T^\dagger$</td>
+      <td>$\begin{pmatrix} 1 & 0 \\ 0 & e^{-i\pi/4} \end{pmatrix}$</td>
+      <td>$-\pi/4$ around z</td>
+      <td><code>tdg q[0];</code></td>
+    </tr>
+    <tr>
+      <td>$R_x(\theta)$</td>
+      <td>$\begin{pmatrix} \cos\frac{\theta}{2} & -i\sin\frac{\theta}{2} \\ -i\sin\frac{\theta}{2} & \cos\frac{\theta}{2} \end{pmatrix}$</td>
+      <td>$\theta$ around x</td>
+      <td><code>rx(theta) q[0];</code></td>
+    </tr>
+    <tr>
+      <td>$R_y(\theta)$</td>
+      <td>$\begin{pmatrix} \cos\frac{\theta}{2} & -\sin\frac{\theta}{2} \\ \sin\frac{\theta}{2} & \cos\frac{\theta}{2} \end{pmatrix}$</td>
+      <td>$\theta$ around y</td>
+      <td><code>ry(theta) q[0];</code></td>
+    </tr>
+    <tr>
+      <td>$R_z(\theta)$</td>
+      <td>$\begin{pmatrix} e^{-i\theta/2} & 0 \\ 0 & e^{i\theta/2} \end{pmatrix}$</td>
+      <td>$\theta$ around z</td>
+      <td><code>rz(theta) q[0];</code></td>
+    </tr>
+  </tbody>
+</table>
+
 <div class="callout callout-info">
   <strong>Determinant of a unitary matrix.</strong>
   For a unitary matrix $U$, the determinant satisfies $|\det(U)| = 1$. This means
   $\det(U) = e^{i\phi}$ for some angle $\phi$. Gates with $\det(U) = 1$ are called
-  <em>special unitary</em> and belong to the group $SU(2)$.
-</div>
-
-<h3>Exercise: Achieve a Target State</h3>
-
-<p>
-  Write a QASM program that prepares the state $|-\rangle = \frac{1}{\sqrt{2}}(|0\rangle - |1\rangle)$.
-  Hint: you will need two gates.
-</p>
-
-<div class="exercise" data-component="exercise">
-  <div class="exercise-header">Exercise 5.1: Prepare $|-\rangle$</div>
-  <div class="exercise-prompt">
-    <p>
-      Prepare the qubit in the state $|-\rangle = \frac{1}{\sqrt{2}}(|0\rangle - |1\rangle)$.
-      When measured, this state gives 50% $|0\rangle$ and 50% $|1\rangle$, just like $|+\rangle$.
-      But on the Bloch sphere, $|-\rangle$ points in the $-x$ direction. Use the X and H gates.
-    </p>
-  </div>
-  <textarea class="code" rows="6">OPENQASM 3.0;
-qubit[1] q;
-bit[1] c;
-
-c = measure q;</textarea>
-  <div class="exercise-expected">
-    <span data-state="0" data-prob="0.5" data-tolerance="0.1"></span>
-    <span data-state="1" data-prob="0.5" data-tolerance="0.1"></span>
-  </div>
-  <div class="exercise-hint" style="display:none">
-    <p>Think about what state $H$ maps $|1\rangle$ to. How do you get to $|1\rangle$ first?</p>
-  </div>
-  <div class="exercise-controls">
-    <button data-action="check">Check</button>
-    <button data-action="hint">Hint</button>
-  </div>
-  <div class="exercise-feedback"></div>
+  <em>special unitary</em> and belong to the group $SU(2)$. All the rotation gates
+  $R_x$, $R_y$, $R_z$ have determinant 1.
 </div>
 
 </section>
 
-<!-- ============================================================ -->
+<!-- ================================================================== -->
 <section id="composing-gates">
 <h2>5.6 Composing Gates: The Quantum Circuit Model</h2>
 
@@ -887,16 +967,14 @@ c = measure q;</textarea>
 $$|\psi_{\text{final}}\rangle = B \cdot A \cdot |\psi_{\text{initial}}\rangle$$
 
 <p>
-  This reverse ordering comes from the standard convention for matrix multiplication:
-  the matrix closest to the state vector acts first. For example, the circuit
-  $H \to Z \to H$ applied to $|0\rangle$ is computed as:
+  The matrix closest to the state vector acts first. For the circuit H then Z then H:
 </p>
 
 $$HZH|0\rangle$$
 
 <p>
-  where $H$ on the right acts first. We already showed that this equals $|1\rangle$.
-  Let us verify by multiplying the matrices:
+  The rightmost $H$ acts first. We showed in Section 5.3 that this equals $|1\rangle$.
+  Multiplying out the matrices:
 </p>
 
 $$HZH = \frac{1}{2}\begin{pmatrix} 1 & 1 \\ 1 & -1 \end{pmatrix}\begin{pmatrix} 1 & 0 \\ 0 & -1 \end{pmatrix}\begin{pmatrix} 1 & 1 \\ 1 & -1 \end{pmatrix} = \begin{pmatrix} 0 & 1 \\ 1 & 0 \end{pmatrix} = X$$
@@ -950,9 +1028,8 @@ $$HTH = \frac{1}{2}\begin{pmatrix} 1 & 1 \\ 1 & -1 \end{pmatrix}\begin{pmatrix} 
 <h3>Longer Circuits</h3>
 
 <p>
-  There is no limit to how many gates you can compose. The following circuit applies a
-  sequence of rotations, demonstrating how a complex transformation can be built from
-  simple pieces. Experiment by modifying the gates and observing how the output changes:
+  There is no limit to how many gates you can compose. Experiment with this longer circuit
+  and observe how each gate affects the output:
 </p>
 
 <div class="sandbox" data-component="sandbox" data-shots="1024">
@@ -977,22 +1054,22 @@ c = measure q;</textarea>
 
 <p>
   Two circuits are <strong>equivalent</strong> if they produce the same unitary matrix
-  (up to a global phase). Finding shorter or more efficient circuits that implement the
-  same transformation is a central problem in quantum compilation. For example, these
-  three circuits all implement the same operation (the X gate):
+  (up to global phase). For example, <code>x q[0];</code>, $HZH$, and $R_x(\pi)$ all
+  implement the X gate. A quantum compiler decomposes desired operations into the native
+  gate set of a specific processor - typically something like $\{R_z, \sqrt{X}, \text{CNOT}\}$.
 </p>
 
-<ul>
-  <li>A single X gate</li>
-  <li>$HZH$</li>
-  <li>$R_x(\pi)$ (up to global phase)</li>
-  <li>$R_y(\pi) \cdot R_z(\pi)$ (up to global phase)</li>
-</ul>
+<h3>The Universal Single-Qubit Gate</h3>
 
 <p>
-  A quantum compiler's job is to take a desired unitary operation and decompose it into
-  the native gates available on a specific quantum processor - typically a small set like
-  $\{R_z, \sqrt{X}, \text{CNOT}\}$.
+  QASM provides the general single-qubit gate <code>U(theta,phi,lambda)</code>:
+</p>
+
+$$U(\theta, \phi, \lambda) = \begin{pmatrix} \cos\frac{\theta}{2} & -e^{i\lambda}\sin\frac{\theta}{2} \\ e^{i\phi}\sin\frac{\theta}{2} & e^{i(\phi+\lambda)}\cos\frac{\theta}{2} \end{pmatrix}$$
+
+<p>
+  Every gate in this chapter is a special case: $X = U(\pi, 0, \pi)$,
+  $H = U(\pi/2, 0, \pi)$, $R_y(\theta) = U(\theta, 0, 0)$.
 </p>
 
 <div class="callout callout-info">
@@ -1003,13 +1080,47 @@ c = measure q;</textarea>
   build a universal quantum computer.
 </div>
 
-<h3>Exercise: Match the Circuit</h3>
+</section>
 
-<p>
-  Write a circuit that produces approximately 75% $|0\rangle$ and 25% $|1\rangle$. Hint:
-  use $R_y$ with an appropriate angle. Recall that $R_y(\theta)|0\rangle = \cos(\theta/2)|0\rangle + \sin(\theta/2)|1\rangle$,
-  so you need $\sin^2(\theta/2) \approx 0.25$, which gives $\theta \approx \pi/3$.
-</p>
+<!-- ================================================================== -->
+<section id="exercises">
+<h2>Exercises</h2>
+
+<h3>Exercise 5.1: Prepare the $|-\rangle$ State</h3>
+
+<div class="exercise" data-component="exercise">
+  <div class="exercise-header">Exercise 5.1: Prepare $|-\rangle$</div>
+  <div class="exercise-prompt">
+    <p>
+      Write a circuit that prepares the state $|-\rangle = \frac{1}{\sqrt{2}}(|0\rangle - |1\rangle)$.
+      When measured, this state gives 50% $|0\rangle$ and 50% $|1\rangle$.
+      Hint: you need two gates. Think about what $H$ does to $|1\rangle$.
+    </p>
+  </div>
+  <textarea class="code" rows="7">OPENQASM 3.0;
+qubit[1] q;
+bit[1] c;
+// Your code here
+
+c = measure q;</textarea>
+  <div class="exercise-expected">
+    <span data-state="0" data-prob="0.5" data-tolerance="0.1"></span>
+    <span data-state="1" data-prob="0.5" data-tolerance="0.1"></span>
+  </div>
+  <div class="exercise-hint" style="display:none">
+    <p>
+      Recall that $H|1\rangle = |-\rangle$. So you first need to flip $|0\rangle$ to $|1\rangle$
+      using the X gate, then apply H. The circuit is: <code>x q[0]; h q[0];</code>
+    </p>
+  </div>
+  <div class="exercise-controls">
+    <button data-action="check">Check</button>
+    <button data-action="hint">Hint</button>
+  </div>
+  <div class="exercise-feedback"></div>
+</div>
+
+<h3>Exercise 5.2: The 75/25 Split</h3>
 
 <div class="exercise" data-component="exercise">
   <div class="exercise-header">Exercise 5.2: 75/25 Split</div>
@@ -1019,17 +1130,18 @@ c = measure q;</textarea>
       $|1\rangle$ approximately 25% of the time. Use a single rotation gate.
     </p>
   </div>
-  <textarea class="code" rows="5">OPENQASM 3.0;
+  <textarea class="code" rows="6">OPENQASM 3.0;
 qubit[1] q;
 bit[1] c;
-
+// Your code here
 c = measure q;</textarea>
   <div class="exercise-expected">
     <span data-state="0" data-prob="0.75" data-tolerance="0.15"></span>
     <span data-state="1" data-prob="0.25" data-tolerance="0.15"></span>
   </div>
   <div class="exercise-hint" style="display:none">
-    <p>Use <code>ry(1.0472) q[0];</code> where $1.0472 \approx \pi/3$.</p>
+    <p>Use <code>ry(1.0472) q[0];</code> where $1.0472 \approx \pi/3$. Since $\sin^2(\pi/6) = 0.25$,
+    this gives exactly a 75/25 split.</p>
   </div>
   <div class="exercise-controls">
     <button data-action="check">Check</button>
@@ -1040,7 +1152,7 @@ c = measure q;</textarea>
 
 </section>
 
-<!-- ============================================================ -->
+<!-- ================================================================== -->
 <section id="chapter-summary">
 <h2>Chapter Summary</h2>
 
@@ -1050,12 +1162,13 @@ c = measure q;</textarea>
 </p>
 
 <ul>
-  <li>The <strong>Pauli gates</strong> (X, Y, Z) are 180-degree rotations around the three axes of the Bloch sphere. X flips bits, Z flips phases, and Y does both.</li>
-  <li>The <strong>Hadamard gate</strong> creates superposition by mapping $|0\rangle \to |+\rangle$ and $|1\rangle \to |-\rangle$. It is its own inverse and conjugates X into Z.</li>
-  <li>The <strong>phase gates</strong> (S, T) are fractional rotations around the z-axis. S rotates by $\pi/2$ and T by $\pi/4$.</li>
-  <li><strong>Rotation gates</strong> ($R_x$, $R_y$, $R_z$) generalize the Pauli gates to continuous rotations by arbitrary angles.</li>
-  <li>Every quantum gate is a <strong>unitary matrix</strong> satisfying $U^\dagger U = I$. Unitarity guarantees probability conservation and reversibility.</li>
+  <li>The <strong>Pauli gates</strong> ($X$, $Y$, $Z$) are 180-degree rotations around the three axes of the Bloch sphere. $X$ flips bits, $Z$ flips phases, and $Y$ does both. All three are self-inverse: $X^2 = Y^2 = Z^2 = I$.</li>
+  <li>The <strong>Hadamard gate</strong> creates superposition by mapping $|0\rangle \to |+\rangle$ and $|1\rangle \to |-\rangle$. It is its own inverse and conjugates $X$ into $Z$: $HXH = Z$.</li>
+  <li>The <strong>phase gates</strong> ($S$, $T$) are fractional rotations around the z-axis. $S$ rotates by $\pi/2$, $T$ by $\pi/4$, and they satisfy $T^2 = S$, $S^2 = Z$.</li>
+  <li><strong>Rotation gates</strong> ($R_x$, $R_y$, $R_z$) generalize the Pauli gates to continuous rotations by arbitrary angles. They are defined as $R_k(\theta) = e^{-i\theta\sigma_k/2}$.</li>
+  <li>Every quantum gate is a <strong>unitary matrix</strong> satisfying $U^\dagger U = I$. Unitarity guarantees probability conservation, reversibility, and norm preservation.</li>
   <li>Gates are <strong>composed</strong> by matrix multiplication (in reverse order of application). The quantum circuit model reads left to right, but the matrix product reads right to left.</li>
+  <li>Any single-qubit gate can be decomposed as $e^{i\alpha} R_z(\beta) R_y(\gamma) R_z(\delta)$ (Euler decomposition), meaning $R_y$ and $R_z$ are sufficient for arbitrary single-qubit operations.</li>
 </ul>
 
 <p>
@@ -1066,7 +1179,7 @@ c = measure q;</textarea>
 
 </section>
 
-<!-- ============================================================ -->
+<!-- ================================================================== -->
 <section id="flashcards">
 <h2>Review Flashcards</h2>
 
@@ -1074,7 +1187,7 @@ c = measure q;</textarea>
   <div class="flashcard-deck-header">Chapter 5 Review</div>
 
   <div class="flashcard" data-card-id="ch05-x-gate-matrix">
-    <div class="card-front">What is the matrix representation of the X (Pauli-X) gate?</div>
+    <div class="card-front">What is the matrix representation of the X gate, and what does it do?</div>
     <div class="card-back">
       $X = \begin{pmatrix} 0 & 1 \\ 1 & 0 \end{pmatrix}$. It swaps $|0\rangle$ and $|1\rangle$ (bit flip). On the Bloch sphere, it is a $\pi$ rotation around the x-axis.
       <div class="flashcard-controls">
@@ -1087,7 +1200,7 @@ c = measure q;</textarea>
   <div class="flashcard" data-card-id="ch05-z-gate-effect">
     <div class="card-front">What does the Z gate do to $|0\rangle$ and $|1\rangle$?</div>
     <div class="card-back">
-      $Z|0\rangle = |0\rangle$ and $Z|1\rangle = -|1\rangle$. It leaves $|0\rangle$ unchanged and flips the phase of $|1\rangle$ (phase flip). On the Bloch sphere, it is a $\pi$ rotation around the z-axis.
+      $Z|0\rangle = |0\rangle$ and $Z|1\rangle = -|1\rangle$. It leaves $|0\rangle$ unchanged and flips the phase of $|1\rangle$. On the Bloch sphere, it is a $\pi$ rotation around the z-axis.
       <div class="flashcard-controls">
         <button class="easy">Easy</button>
         <button class="hard">Hard</button>
@@ -1098,7 +1211,7 @@ c = measure q;</textarea>
   <div class="flashcard" data-card-id="ch05-hadamard-action">
     <div class="card-front">What does the Hadamard gate do to $|0\rangle$ and $|1\rangle$?</div>
     <div class="card-back">
-      $H|0\rangle = |+\rangle = \frac{1}{\sqrt{2}}(|0\rangle + |1\rangle)$ and $H|1\rangle = |-\rangle = \frac{1}{\sqrt{2}}(|0\rangle - |1\rangle)$. It converts between the computational basis and the Hadamard ($\pm$) basis.
+      $H|0\rangle = |+\rangle = \frac{1}{\sqrt{2}}(|0\rangle + |1\rangle)$ and $H|1\rangle = |-\rangle = \frac{1}{\sqrt{2}}(|0\rangle - |1\rangle)$. It converts between the computational basis and the Hadamard ($\pm$) basis. $H^2 = I$.
       <div class="flashcard-controls">
         <button class="easy">Easy</button>
         <button class="hard">Hard</button>
@@ -1106,21 +1219,10 @@ c = measure q;</textarea>
     </div>
   </div>
 
-  <div class="flashcard" data-card-id="ch05-hadamard-self-inverse">
-    <div class="card-front">What happens when you apply the Hadamard gate twice?</div>
-    <div class="card-back">
-      $H^2 = I$ (the identity). The Hadamard gate is its own inverse: applying it twice returns the qubit to its original state. This is true because $H = H^\dagger$.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch05-s-t-relationship">
+  <div class="flashcard" data-card-id="ch05-s-t-hierarchy">
     <div class="card-front">How are the Z, S, and T gates related?</div>
     <div class="card-back">
-      $T^2 = S$ and $S^2 = Z$ (equivalently, $T^4 = Z$). T applies a phase of $e^{i\pi/4}$, S applies $e^{i\pi/2} = i$, and Z applies $e^{i\pi} = -1$ to $|1\rangle$. They are successively larger rotations around the z-axis.
+      $T^2 = S$ and $S^2 = Z$ (so $T^4 = Z$). T applies a phase of $e^{i\pi/4}$, S applies $e^{i\pi/2} = i$, and Z applies $e^{i\pi} = -1$ to $|1\rangle$. They are successively larger rotations around the z-axis: $\pi/4$, $\pi/2$, $\pi$.
       <div class="flashcard-controls">
         <button class="easy">Easy</button>
         <button class="hard">Hard</button>
@@ -1131,7 +1233,18 @@ c = measure q;</textarea>
   <div class="flashcard" data-card-id="ch05-why-phase-matters">
     <div class="card-front">Why does phase matter if we can only measure 0 or 1?</div>
     <div class="card-back">
-      Relative phases affect <em>interference</em>. When amplitudes recombine (e.g., after a second Hadamard), phases determine whether amplitudes add constructively or destructively. This is the mechanism by which quantum algorithms extract answers. Example: $HZH = X$, where the phase flip becomes a measurable bit flip.
+      Relative phases affect <em>interference</em>. When amplitudes recombine (e.g., after a second Hadamard), phases determine whether amplitudes add constructively or destructively. Example: $HZH = X$, where a phase flip becomes a measurable bit flip.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch05-rotation-matrices">
+    <div class="card-front">Write the matrix for $R_y(\theta)$.</div>
+    <div class="card-back">
+      $R_y(\theta) = \begin{pmatrix} \cos\frac{\theta}{2} & -\sin\frac{\theta}{2} \\ \sin\frac{\theta}{2} & \cos\frac{\theta}{2} \end{pmatrix}$. All entries are real. On the Bloch sphere, it rotates by $\theta$ around the y-axis.
       <div class="flashcard-controls">
         <button class="easy">Easy</button>
         <button class="hard">Hard</button>
@@ -1142,18 +1255,7 @@ c = measure q;</textarea>
   <div class="flashcard" data-card-id="ch05-unitary-requirement">
     <div class="card-front">Why must every quantum gate be a unitary matrix?</div>
     <div class="card-back">
-      Unitarity ($U^\dagger U = I$) guarantees three physical requirements: (1) probability conservation - the output state has total probability 1, (2) reversibility - every gate has an inverse $U^{-1} = U^\dagger$, and (3) norm preservation - the Bloch vector stays on the sphere.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch05-rotation-pauli">
-    <div class="card-front">How do the rotation gates $R_x(\theta)$, $R_y(\theta)$, $R_z(\theta)$ generalize the Pauli gates?</div>
-    <div class="card-back">
-      At $\theta = \pi$, each rotation gate equals its corresponding Pauli gate up to a global phase of $-i$: $R_x(\pi) = -iX$, $R_y(\pi) = -iY$, $R_z(\pi) = -iZ$. The rotation gates interpolate continuously between the identity ($\theta = 0$) and the Pauli gate ($\theta = \pi$).
+      Unitarity ($U^\dagger U = I$) guarantees: (1) probability conservation - total probability stays 1, (2) reversibility - every gate has inverse $U^{-1} = U^\dagger$, (3) norm preservation - the Bloch vector stays on the sphere.
       <div class="flashcard-controls">
         <button class="easy">Easy</button>
         <button class="hard">Hard</button>
@@ -1162,9 +1264,9 @@ c = measure q;</textarea>
   </div>
 
   <div class="flashcard" data-card-id="ch05-hzh-identity">
-    <div class="card-front">What is $HZH$ equal to?</div>
+    <div class="card-front">What is $HZH$ equal to, and what is $HXH$?</div>
     <div class="card-back">
-      $HZH = X$ and $HXH = Z$. The Hadamard gate conjugates X into Z and vice versa. This means you can convert between bit-flip and phase-flip operations using Hadamard gates. This identity is used extensively in quantum error correction and algorithm design.
+      $HZH = X$ and $HXH = Z$. The Hadamard conjugates $X$ into $Z$ and vice versa. This means you can convert between bit-flip and phase-flip operations using Hadamard gates.
       <div class="flashcard-controls">
         <button class="easy">Easy</button>
         <button class="hard">Hard</button>
@@ -1173,9 +1275,20 @@ c = measure q;</textarea>
   </div>
 
   <div class="flashcard" data-card-id="ch05-circuit-matrix-order">
-    <div class="card-front">In a circuit that applies gate A then gate B, what is the combined matrix?</div>
+    <div class="card-front">In a circuit applying gate A then B then C, what is the combined matrix?</div>
     <div class="card-back">
-      The combined matrix is $BA$ (reverse order). The matrix closest to the state vector acts first: $|\psi_\text{final}\rangle = B \cdot A \cdot |\psi_\text{initial}\rangle$. Circuit diagrams read left-to-right, but the matrix product reads right-to-left.
+      The combined matrix is $CBA$ (reverse order). Circuit diagrams read left-to-right, but the matrix product reads right-to-left: $|\psi_\text{final}\rangle = C \cdot B \cdot A \cdot |\psi_\text{initial}\rangle$.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch05-euler-decomposition">
+    <div class="card-front">What is the Euler decomposition of a single-qubit gate?</div>
+    <div class="card-back">
+      Any single-qubit gate $U$ can be written as $U = e^{i\alpha} R_z(\beta) R_y(\gamma) R_z(\delta)$ for some angles $\alpha, \beta, \gamma, \delta$. This means $R_y$ and $R_z$ are sufficient to implement any single-qubit operation.
       <div class="flashcard-controls">
         <button class="easy">Easy</button>
         <button class="hard">Hard</button>
@@ -1185,6 +1298,7 @@ c = measure q;</textarea>
 
 </div>
 </section>
+
     </article>
 
     
@@ -1209,5 +1323,315 @@ c = measure q;</textarea>
       }
     });
   </script>
+  
+  <script>
+  "use strict";
+  
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function isDark() { return window.matchMedia("(prefers-color-scheme: dark)").matches; }
+  function renderMath(el) {
+    if (typeof renderMathInElement === "function")
+      renderMathInElement(el, { delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}], throwOnError: false });
+  }
+
+  
+  var wasmReady = null;
+  function ensureWasm() {
+    if (!wasmReady) {
+      wasmReady = (async function() {
+        var go = new Go();
+        var result = await WebAssembly.instantiateStreaming(fetch("../main.wasm"), go.importObject);
+        go.run(result.instance);
+      })();
+    }
+    return wasmReady;
+  }
+
+  
+  var SRS_KEY = "goqu-srs";
+  function srsLoad() { try { return JSON.parse(localStorage.getItem(SRS_KEY) || "{}"); } catch(e) { return {}; } }
+  function srsSave(d) { localStorage.setItem(SRS_KEY, JSON.stringify(d)); }
+  function getCardState(id) { var d = srsLoad(); return d[id] || {interval:1, ease:2.5, due:0, reps:0}; }
+  function reviewCard(id, q) {
+    var d = srsLoad(), s = d[id] || {interval:1, ease:2.5, due:0, reps:0};
+    if (q >= 3) {
+      s.reps++;
+      if (s.reps === 1) s.interval = 1;
+      else if (s.reps === 2) s.interval = 6;
+      else s.interval = Math.round(s.interval * s.ease);
+      s.ease = Math.max(1.3, s.ease + 0.1 - (5-q)*(0.08 + (5-q)*0.02));
+    } else { s.reps = 0; s.interval = 1; }
+    s.due = Date.now() + s.interval * 86400000;
+    d[id] = s; srsSave(d);
+  }
+
+  
+  function initSandbox(el) {
+    var code = el.querySelector(".code"), output = el.querySelector(".output");
+    if (!code || !output) return;
+    var runBtn = el.querySelector('[data-action="run"]'), resetBtn = el.querySelector('[data-action="reset"]');
+    var shotsEl = el.querySelector("[data-shots]"), orig = code.value;
+    function shots() { return parseInt(shotsEl ? shotsEl.value : el.dataset.shots || "1024", 10); }
+    async function run() {
+      await ensureWasm();
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(code.value, shots(), isDark()));
+        if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+        output.innerHTML = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+    if (runBtn) runBtn.addEventListener("click", run);
+    if (resetBtn) resetBtn.addEventListener("click", function() { code.value = orig; });
+    if (el.hasAttribute("data-autorun")) run();
+  }
+
+  
+  function initSimulation(el) {
+    var tmplEl = el.querySelector(".sim-qasm"), output = el.querySelector(".sim-output");
+    var sliders = el.querySelectorAll('input[type="range"]');
+    var selects = el.querySelectorAll("select[data-param]");
+    if (!tmplEl || !output || (sliders.length === 0 && selects.length === 0)) return;
+    var tmpl = tmplEl.textContent, pending = false;
+    var useNoisy = el.hasAttribute("data-noisy");
+    var useComparison = el.hasAttribute("data-comparison");
+    var useExpectation = el.hasAttribute("data-expectation");
+    var useClifford = el.hasAttribute("data-clifford");
+    async function update() {
+      if (pending) return; pending = true;
+      await ensureWasm();
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var params = {};
+        sliders.forEach(function(s) { params[s.dataset.param] = parseFloat(s.value); var o = s.parentElement.querySelector("output"); if (o) o.textContent = parseFloat(s.value).toFixed(2); });
+        selects.forEach(function(s) { params[s.dataset.param] = s.value; });
+        var qasm = tmpl;
+        for (var k in params) qasm = qasm.replaceAll("{"+k+"}", params[k].toString());
+        var html = "";
+        if (useComparison && window.compareIdealNoisy) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.compareIdealNoisy(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="comparison-panels"><div class="comparison-panel"><h4>Ideal</h4>' + (r.idealHistogramSVG||"") + '</div><div class="comparison-panel"><h4>Noisy</h4>' + (r.noisyHistogramSVG||"") + '</div></div>';
+          if (r.stateCitySVG) html += r.stateCitySVG;
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useNoisy && window.runNoisyQASM) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.runNoisyQASM(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"") + (r.stateCitySVG||"");
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useClifford && window.runClifford) {
+          var r = JSON.parse(window.runClifford(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"");
+          if (r.stabilizers) { html += '<div class="stabilizer-table"><h4>Stabilizers</h4><table>'; r.stabilizers.forEach(function(s) { html += '<tr><td>' + formatStabilizer(s) + '</td></tr>'; }); html += '</table></div>'; }
+        } else if (useExpectation && window.computeExpectation) {
+          var pauliStr = params.pauliStr || el.dataset.pauli || "Z";
+          var r = JSON.parse(window.computeExpectation(qasm, pauliStr, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="sim-stats"><span>&lt;' + esc(pauliStr) + '&gt; = ' + r.expectation.toFixed(6) + '</span></div>';
+        } else {
+          var r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+          
+          if (el.hasAttribute("data-bloch") && window.getStateVector && window.renderBloch) {
+            try {
+              var sv = JSON.parse(window.getStateVector(qasm));
+              if (sv.amplitudes && sv.amplitudes.length === 2) {
+                var a = sv.amplitudes;
+                var blochSVG = window.renderBloch(a[0].re, a[0].im, a[1].re, a[1].im, isDark());
+                if (blochSVG) html += blochSVG;
+              }
+            } catch(e) {   }
+          }
+        }
+        output.innerHTML = html;
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+      pending = false;
+    }
+    sliders.forEach(function(s) { s.addEventListener("input", update); });
+    selects.forEach(function(s) { s.addEventListener("change", update); });
+    update();
+  }
+
+  
+  function formatStabilizer(s) {
+    if (!s) return "";
+    var sign = s[0], ops = s.slice(1), html = '<span class="stab-sign">' + esc(sign) + '</span>';
+    for (var i = 0; i < ops.length; i++) {
+      var c = ops[i], cls = "stab-" + c.toLowerCase();
+      html += '<span class="' + cls + '">' + c + '</span>';
+    }
+    return html;
+  }
+
+  
+  function initExercise(el) {
+    var code = el.querySelector(".code"), feedback = el.querySelector(".exercise-feedback");
+    var checkBtn = el.querySelector('[data-action="check"]');
+    var hintBtn = el.querySelector('[data-action="hint"]'), hintEl = el.querySelector(".exercise-hint");
+    if (!code || !feedback || !checkBtn) return;
+    var expected = {}, tol = 0.1;
+    var expEl = el.querySelector(".exercise-expected");
+    if (expEl) expEl.querySelectorAll("[data-state]").forEach(function(span) {
+      expected[span.dataset.state] = parseFloat(span.dataset.prob);
+      if (span.dataset.tolerance) tol = parseFloat(span.dataset.tolerance);
+    });
+    checkBtn.addEventListener("click", async function() {
+      await ensureWasm();
+      feedback.className = "exercise-feedback visible";
+      feedback.textContent = "Checking...";
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(code.value, 1024, isDark()));
+        if (r.error) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + r.error; return; }
+        if (Object.keys(expected).length === 0) { feedback.className = "exercise-feedback visible pass"; feedback.innerHTML = "Circuit ran successfully."; return; }
+        var prob = JSON.parse(window.getProbabilities(code.value, isDark()));
+        if (prob.error) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + prob.error; return; }
+        var actual = {};
+        for (var i = 0; i < prob.labels.length; i++) actual[prob.labels[i]] = prob.probabilities[i];
+        var ok = true, msgs = [];
+        for (var s in expected) {
+          var a = actual[s] || 0, p = expected[s];
+          if (Math.abs(a - p) > tol) { ok = false; msgs.push("|" + s + "\u27E9: expected " + (p*100|0) + "%, got " + (a*100|0) + "%"); }
+        }
+        if (ok) { feedback.className = "exercise-feedback visible pass"; feedback.innerHTML = "Correct! Your circuit produces the expected output."; }
+        else { feedback.className = "exercise-feedback visible fail"; feedback.innerHTML = "Not quite. " + msgs.join("; ") + "."; }
+        renderMath(feedback);
+      } catch(e) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + e.message; }
+    });
+    if (hintBtn && hintEl) hintBtn.addEventListener("click", function() { hintEl.style.display = hintEl.style.display === "none" ? "block" : "none"; });
+  }
+
+  
+  function initFlashcardDeck(el) {
+    el.querySelectorAll(".flashcard").forEach(function(card) {
+      var id = card.dataset.cardId;
+      if (!id) return;
+      var state = getCardState(id);
+      if (state.due > 0 && state.due > Date.now()) card.classList.add("reviewed");
+      card.addEventListener("click", function(e) {
+        if (e.target.closest("button")) return;
+        card.classList.toggle("flipped");
+        var back = card.querySelector(".card-back");
+        if (back) renderMath(back);
+      });
+      var easyBtn = card.querySelector(".easy"), hardBtn = card.querySelector(".hard");
+      if (easyBtn) easyBtn.addEventListener("click", function() { reviewCard(id, 4); card.classList.remove("flipped"); card.classList.add("reviewed"); });
+      if (hardBtn) hardBtn.addEventListener("click", function() { reviewCard(id, 2); card.classList.remove("flipped"); });
+    });
+  }
+
+  
+  function initPOE(el) {
+    var steps = el.querySelectorAll(".poe-step"), prog = el.querySelectorAll(".poe-progress-step");
+    if (steps.length === 0) return;
+    var cur = 0;
+    function show(idx) {
+      steps.forEach(function(s,i) { s.classList.toggle("active", i === idx); });
+      prog.forEach(function(s,i) { s.classList.remove("active","done"); if (i < idx) s.classList.add("done"); if (i === idx) s.classList.add("active"); });
+      cur = idx;
+      var active = steps[idx];
+      if (active) active.querySelectorAll('.sandbox:not([data-initialized])').forEach(function(sb) { sb.setAttribute("data-initialized","true"); initSandbox(sb); });
+    }
+    el.querySelectorAll('[data-action="next"]').forEach(function(btn) { btn.addEventListener("click", function() { if (cur < steps.length - 1) show(cur + 1); }); });
+    el.querySelectorAll('[data-action="complete"]').forEach(function(btn) { btn.addEventListener("click", function() { prog.forEach(function(s) { s.classList.remove("active"); s.classList.add("done"); }); }); });
+    show(0);
+  }
+
+  
+  function initStepThrough(el) {
+    var qasmEl = el.querySelector(".step-qasm");
+    var output = el.querySelector(".step-output");
+    var prevBtn = el.querySelector('[data-action="prev"]');
+    var nextBtn = el.querySelector('[data-action="next"]');
+    var stepInfo = el.querySelector(".step-info");
+    if (!qasmEl || !output) return;
+    var qasm = qasmEl.textContent;
+    var mode = el.dataset.mode || "clifford"; 
+    var steps = null, cur = -1;
+
+    async function load() {
+      await ensureWasm();
+      try {
+        if (mode === "clifford" && window.cliffordStepThrough) {
+          var r = JSON.parse(window.cliffordStepThrough(qasm));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+          
+          steps.unshift({gate: "init", qubits: [], stabilizers: r.steps.length > 0 ? null : []});
+        } else if (mode === "grover" && window.groverStepThrough) {
+          var nq = parseInt(el.dataset.qubits || "2", 10);
+          var targets = JSON.parse(el.dataset.targets || "[]");
+          var r = JSON.parse(window.groverStepThrough(nq, targets.join(",")));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+        }
+        if (steps && steps.length > 0) { cur = 0; renderStep(); }
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    function renderStep() {
+      if (!steps || cur < 0 || cur >= steps.length) return;
+      var s = steps[cur];
+      var html = "";
+      if (mode === "clifford") {
+        if (s.gate === "init") {
+          html = '<p class="step-label">Initial state |0...0&gt;</p>';
+          
+          if (steps.length > 1 && steps[1].stabilizers) {
+            var nq = steps[1].stabilizers[0].length - 1;
+            html += '<div class="stabilizer-table"><table>';
+            for (var i = 0; i < nq; i++) {
+              var row = "+";
+              for (var j = 0; j < nq; j++) row += (j === i) ? "Z" : "I";
+              html += '<tr><td>' + formatStabilizer(row) + '</td></tr>';
+            }
+            html += '</table></div>';
+          }
+        } else {
+          html = '<p class="step-label">After <strong>' + esc(s.gate) + '</strong> on qubit' + (s.qubits.length > 1 ? 's ' : ' ') + s.qubits.join(', ') + '</p>';
+          if (s.stabilizers) {
+            html += '<div class="stabilizer-table"><table>';
+            s.stabilizers.forEach(function(st) { html += '<tr><td>' + formatStabilizer(st) + '</td></tr>'; });
+            html += '</table></div>';
+          }
+        }
+      } else if (mode === "grover") {
+        html = '<p class="step-label">Iteration ' + s.iteration + '</p>';
+        if (s.probabilities) {
+          html += '<div class="amplitude-bars">';
+          for (var i = 0; i < s.probabilities.length; i++) {
+            var label = i.toString(2).padStart(Math.ceil(Math.log2(s.probabilities.length)), '0');
+            var pct = (s.probabilities[i] * 100).toFixed(1);
+            var isTarget = el.dataset.targets && JSON.parse(el.dataset.targets).indexOf(i) >= 0;
+            html += '<div class="amp-bar' + (isTarget ? ' target' : '') + '"><div class="amp-fill" style="height:' + pct + '%"></div><span class="amp-label">|' + label + '&gt;</span><span class="amp-value">' + pct + '%</span></div>';
+          }
+          html += '</div>';
+        }
+      }
+      output.innerHTML = html;
+      if (stepInfo) stepInfo.textContent = "Step " + cur + " / " + (steps.length - 1);
+      if (prevBtn) prevBtn.disabled = (cur === 0);
+      if (nextBtn) nextBtn.disabled = (cur >= steps.length - 1);
+    }
+
+    if (prevBtn) prevBtn.addEventListener("click", function() { if (cur > 0) { cur--; renderStep(); } });
+    if (nextBtn) nextBtn.addEventListener("click", function() { if (steps && cur < steps.length - 1) { cur++; renderStep(); } });
+    load();
+  }
+
+  
+  document.addEventListener("DOMContentLoaded", function() {
+    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough};
+    document.querySelectorAll("[data-component]").forEach(function(el) { var fn = reg[el.dataset.component]; if (fn) fn(el); });
+  });
+  </script>
+  
 </body>
 </html>

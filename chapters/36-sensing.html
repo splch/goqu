@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chapter 36: Quantum Sensing and Metrology - Goqu Textbook</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/contrib/auto-render.min.js"></script>
+  
+  <link rel="preload" href="../main.wasm" as="fetch" type="application/wasm" crossorigin>
+  <script src="../wasm_exec.js"></script>
+  
+</head>
+<body>
+  <input type="checkbox" id="nav-toggle" hidden>
+  <label for="nav-toggle" class="nav-hamburger" aria-label="Toggle navigation">
+    <span></span><span></span><span></span>
+  </label>
+
+  <nav class="sidebar" aria-label="Table of contents">
+    <a href="../index.html" class="sidebar-logo">Goqu Textbook</a>
+    
+    <details>
+      <summary>Part 1: The World of Classical Computing</summary>
+      <ol start="1">
+        
+        <li value="1"><a href="01-computation.html">What Is Computation?</a></li>
+        
+        <li value="2"><a href="02-math-of-information.html">The Mathematics of Information</a></li>
+        
+        <li value="3"><a href="03-reversible-computing.html">Reversible Computing</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 2: Entering the Quantum World</summary>
+      <ol start="4">
+        
+        <li value="4"><a href="04-the-first-qubit.html">The First Qubit</a></li>
+        
+        <li value="5"><a href="05-quantum-gates.html">Quantum Gates</a></li>
+        
+        <li value="6"><a href="06-entanglement.html">Multiple Qubits and Entanglement</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 3: Quantum Protocols</summary>
+      <ol start="7">
+        
+        <li value="7"><a href="07-teleportation.html">Quantum Teleportation and Communication</a></li>
+        
+        <li value="8"><a href="08-cryptography.html">Quantum Cryptography</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 4: Quantum Algorithms - The First Wave</summary>
+      <ol start="9">
+        
+        <li value="9"><a href="09-oracles.html">Oracles and Quantum Parallelism</a></li>
+        
+        <li value="10"><a href="10-qft.html">The Quantum Fourier Transform</a></li>
+        
+        <li value="11"><a href="11-shor.html">Shor&#39;s Algorithm</a></li>
+        
+        <li value="12"><a href="12-grover.html">Grover&#39;s Algorithm</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 5: Real Quantum Hardware</summary>
+      <ol start="13">
+        
+        <li value="13"><a href="13-hardware.html">How to Build a Quantum Computer</a></li>
+        
+        <li value="14"><a href="14-noise.html">Noise, Decoherence, and the NISQ Era</a></li>
+        
+        <li value="15"><a href="15-programming.html">Programming Quantum Computers</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 6: Quantum Error Correction</summary>
+      <ol start="16">
+        
+        <li value="16"><a href="16-classical-ec.html">Classical Error Correction Refresher</a></li>
+        
+        <li value="17"><a href="17-qec-fundamentals.html">Quantum Error Correction Fundamentals</a></li>
+        
+        <li value="18"><a href="18-stabilizers.html">The Stabilizer Formalism</a></li>
+        
+        <li value="19"><a href="19-surface-codes.html">Surface Codes and Topological Protection</a></li>
+        
+        <li value="20"><a href="20-fault-tolerance.html">Fault-Tolerant Quantum Computing</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 7: Variational and Near-Term Algorithms</summary>
+      <ol start="21">
+        
+        <li value="21"><a href="21-variational.html">The Variational Quantum Computing Paradigm</a></li>
+        
+        <li value="22"><a href="22-vqe.html">Variational Quantum Eigensolver (VQE)</a></li>
+        
+        <li value="23"><a href="23-qaoa.html">Quantum Approximate Optimization (QAOA)</a></li>
+        
+        <li value="24"><a href="24-qml.html">Quantum Machine Learning</a></li>
+        
+        <li value="25"><a href="25-error-mitigation.html">Quantum Error Mitigation</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 8: Quantum Information Theory</summary>
+      <ol start="26">
+        
+        <li value="26"><a href="26-states-measurements.html">Quantum States and Measurements, Revisited</a></li>
+        
+        <li value="27"><a href="27-channels.html">Quantum Channels and Operations</a></li>
+        
+        <li value="28"><a href="28-entropy.html">Quantum Entropy and Information</a></li>
+        
+        <li value="29"><a href="29-shannon.html">Quantum Shannon Theory</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 9: Quantum Complexity and Computation Theory</summary>
+      <ol start="30">
+        
+        <li value="30"><a href="30-complexity.html">Quantum Computational Complexity</a></li>
+        
+        <li value="31"><a href="31-hidden-subgroup.html">The Hidden Subgroup Problem and Beyond</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 10: Quantum Simulation</summary>
+      <ol start="32">
+        
+        <li value="32"><a href="32-simulation-why.html">Why Quantum Simulation Matters</a></li>
+        
+        <li value="33"><a href="33-digital-simulation.html">Digital Quantum Simulation</a></li>
+        
+      </ol>
+    </details>
+    
+    <details open>
+      <summary>Part 11: Quantum Networking, Cryptography, and Sensing</summary>
+      <ol start="34">
+        
+        <li value="34"><a href="34-quantum-internet.html">The Quantum Internet</a></li>
+        
+        <li value="35"><a href="35-advanced-crypto.html">Advanced Quantum Cryptography</a></li>
+        
+        <li value="36"><a href="36-sensing.html" aria-current="page">Quantum Sensing and Metrology</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 12: Frontiers and the Future</summary>
+      <ol start="37">
+        
+        <li value="37"><a href="37-topological.html">Topological Quantum Computing</a></li>
+        
+        <li value="38"><a href="38-quantum-ai.html">Quantum Computing and Artificial Intelligence</a></li>
+        
+        <li value="39"><a href="39-open-problems.html">Open Problems in Quantum Computing</a></li>
+        
+        <li value="40"><a href="40-ecosystem.html">The Quantum Computing Ecosystem Today</a></li>
+        
+        <li value="41"><a href="41-career.html">Building Your Quantum Computing Career</a></li>
+        
+        <li value="42"><a href="42-what-next.html">What Comes Next</a></li>
+        
+      </ol>
+    </details>
+    
+  </nav>
+
+  <main>
+    
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="../index.html">Home</a> / <a href="../index.html#part-11">Part 11</a> / <span>Chapter 36</span>
+    </nav>
+    
+
+    <article>
+      <h1>Chapter 36: Quantum Sensing and Metrology</h1>
+      <p>
+  Quantum computing promises to solve certain problems exponentially faster than classical
+  computers - but quantum advantage is not limited to computation. Some of the most
+  near-term and impactful applications of quantum technology lie in <strong>sensing and
+  metrology</strong>: the science of making precise measurements. Quantum sensors exploit
+  superposition, entanglement, and quantum interference to measure physical quantities -
+  magnetic fields, gravitational acceleration, time, temperature, electric fields - with
+  precision that surpasses what any classical sensor can achieve.
+</p>
+
+<p>
+  This chapter explores the fundamental limits on measurement precision set by quantum
+  mechanics, the physical platforms that realize quantum sensors today, and the emerging
+  frontier of distributed quantum sensing that connects sensing to the quantum internet
+  (Chapter 34).
+</p>
+
+<div class="callout callout-info">
+  <strong>Prerequisites.</strong>
+  <p>
+    You should be comfortable with single-qubit rotations (Chapter 5), the Hadamard gate,
+    measurement statistics, and the concept of entanglement (Chapter 7). We will use
+    the Bloch sphere picture and basic probability throughout.
+  </p>
+</div>
+
+<!-- ================================================================== -->
+<section id="quantum-advantage-measurement">
+<h2>36.1 Quantum Advantage in Measurement (Heisenberg vs. Standard Quantum Limit)</h2>
+
+<p>
+  Every measurement has uncertainty. When measuring a physical parameter $\theta$ (a phase,
+  a magnetic field strength, a frequency), the precision is characterized by the
+  <strong>uncertainty</strong> $\Delta\theta$ - the standard deviation of the estimate
+  across repeated measurements. The central question of quantum metrology is: how small
+  can $\Delta\theta$ be, given a fixed amount of resources?
+</p>
+
+<h3>The Standard Quantum Limit (SQL)</h3>
+
+<p>
+  Suppose you have $N$ independent (unentangled) probe particles - photons in an
+  interferometer, atoms in a clock, spins in a magnetometer. Each particle independently
+  accumulates a phase shift $\theta$ and is measured. The estimate of $\theta$ is the
+  average of $N$ independent estimates, and by the central limit theorem, the uncertainty
+  scales as:
+</p>
+
+$$\Delta\theta_{\text{SQL}} = \frac{1}{\sqrt{N}}$$
+
+<p>
+  This is the <strong>standard quantum limit</strong> (SQL), also called the
+  <strong>shot-noise limit</strong>. It is the best precision achievable with classical
+  strategies or separable (unentangled) quantum states. To improve precision by a factor
+  of 10, you need 100 times more particles.
+</p>
+
+<h3>The Heisenberg Limit (HL)</h3>
+
+<p>
+  Quantum mechanics allows a fundamentally better scaling. If the $N$ probe particles are
+  prepared in an entangled state - specifically, a state that maximizes the quantum Fisher
+  information - the uncertainty can reach:
+</p>
+
+$$\Delta\theta_{\text{HL}} = \frac{1}{N}$$
+
+<p>
+  This is the <strong>Heisenberg limit</strong>, the ultimate precision bound allowed by
+  quantum mechanics. It represents a <em>quadratic improvement</em> over the SQL: to
+  improve precision by a factor of 10, you need only 10 times more particles (instead of
+  100). For large $N$, this advantage is enormous.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    Standard quantum limit: $\Delta\theta \sim 1/\sqrt{N}$ (independent probes).
+    Heisenberg limit: $\Delta\theta \sim 1/N$ (entangled probes). The quadratic
+    improvement from SQL to HL is the fundamental quantum advantage in sensing. Achieving
+    it requires entanglement and optimal measurement strategies.
+  </p>
+</div>
+
+<h3>The GHZ State and Heisenberg Scaling</h3>
+
+<p>
+  The canonical state that achieves Heisenberg scaling is the <strong>GHZ state</strong>
+  (Greenberger-Horne-Zeilinger):
+</p>
+
+$$|\text{GHZ}\rangle = \frac{1}{\sqrt{2}}(|00\cdots0\rangle + |11\cdots1\rangle)$$
+
+<p>
+  When each qubit in a GHZ state accumulates a phase $\theta$ (i.e., each qubit undergoes
+  a $R_z(\theta)$ rotation), the state evolves to:
+</p>
+
+$$\frac{1}{\sqrt{2}}(|00\cdots0\rangle + e^{iN\theta}|11\cdots1\rangle)$$
+
+<p>
+  The phase accumulated by the entangled state is $N\theta$ - $N$ times the single-particle
+  phase. This $N$-fold phase amplification is the mechanism behind Heisenberg-limited
+  sensing. In contrast, $N$ independent particles each accumulate phase $\theta$
+  independently, giving no collective amplification.
+</p>
+
+<p>
+  However, GHZ states are extremely fragile. The loss of a single particle destroys the
+  entanglement entirely. In practice, achieving Heisenberg scaling requires not only
+  creating entangled states but also protecting them from decoherence during the sensing
+  interval - a significant experimental challenge.
+</p>
+
+<h3>Intermediate Scaling with Squeezed States</h3>
+
+<p>
+  Between the SQL and the Heisenberg limit lies a continuum of achievable precision. Spin-squeezed
+  states, for example, redistribute quantum uncertainty from the measured quadrature to the
+  conjugate quadrature, achieving scaling better than $1/\sqrt{N}$ but typically not reaching
+  $1/N$. These states are more robust to particle loss than GHZ states and have been
+  realized experimentally in atomic ensembles. The LIGO gravitational wave detector uses
+  squeezed light to surpass the SQL in its most sensitive frequency bands.
+</p>
+
+<div class="callout callout-info">
+  <strong>LIGO and squeezed light.</strong>
+  <p>
+    Since 2019, the LIGO and Virgo gravitational wave detectors have injected squeezed
+    vacuum states to reduce photon shot noise, improving sensitivity by up to 3 dB
+    (a factor of $\sqrt{2}$ in amplitude) beyond the SQL. This makes LIGO one of the
+    most prominent real-world applications of quantum-enhanced sensing.
+  </p>
+</div>
+
+<h3>Ramsey Interferometry: The Quantum Sensing Workhorse</h3>
+
+<p>
+  Most quantum sensing protocols are built on <strong>Ramsey interferometry</strong>, a
+  technique developed by Norman Ramsey in 1949 (for which he received the Nobel Prize in
+  1989). The Ramsey sequence for a single qubit is elegantly simple:
+</p>
+
+<ol>
+  <li>
+    <strong>Prepare:</strong> Initialize the qubit in $|0\rangle$.
+  </li>
+  <li>
+    <strong>First $\pi/2$ pulse (Hadamard):</strong> Create the superposition
+    $|+\rangle = \frac{1}{\sqrt{2}}(|0\rangle + |1\rangle)$.
+  </li>
+  <li>
+    <strong>Free evolution:</strong> The qubit accumulates a phase $\phi$ due to the
+    quantity being measured (magnetic field, frequency detuning, etc.):
+    $\frac{1}{\sqrt{2}}(|0\rangle + e^{i\phi}|1\rangle)$.
+  </li>
+  <li>
+    <strong>Second $\pi/2$ pulse (Hadamard):</strong> Convert the phase into a population
+    difference.
+  </li>
+  <li>
+    <strong>Measure:</strong> The probability of measuring $|0\rangle$ is
+    $\cos^2(\phi/2)$.
+  </li>
+</ol>
+
+<p>
+  In quantum circuit language, the Ramsey sequence is: H, $R_z(\phi)$, H, measure.
+  The $R_z(\phi)$ rotation represents the free evolution phase accumulated from the
+  quantity being sensed.
+</p>
+
+<p>
+  The simulation below implements a Ramsey interferometer. The slider controls the phase
+  $\phi$, representing the quantity being measured. Observe how the measurement probability
+  oscillates sinusoidally with $\phi$ - the <strong>Ramsey fringe</strong>. The slope
+  of this fringe at $\phi = \pi/2$ determines the sensitivity of the sensor.
+</p>
+
+<div class="simulation" data-component="simulation">
+  <div class="sim-controls">
+    <label>Phase $\phi$: <input type="range" data-param="phase" min="0" max="6.283" step="0.01" value="0"><output>0.00</output></label>
+  </div>
+  <pre class="sim-qasm">OPENQASM 3.0;
+qubit[1] q;
+bit[1] c;
+h q[0];
+rz({phase}) q[0];
+h q[0];
+c = measure q;</pre>
+  <div class="sim-output"></div>
+</div>
+
+<p>
+  Try sweeping the phase from 0 to $2\pi$. At $\phi = 0$, the qubit returns to $|0\rangle$
+  with certainty. At $\phi = \pi$, it ends in $|1\rangle$ with certainty. At $\phi = \pi/2$,
+  the outcome is 50/50 - this is the point of maximum sensitivity, where a small change in
+  $\phi$ produces the largest change in measurement probability.
+</p>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="magnetometry-nv">
+<h2>36.2 Quantum Magnetometry and NV Centers</h2>
+
+<p>
+  One of the most successful applications of quantum sensing is <strong>magnetometry</strong> -
+  the precision measurement of magnetic fields. Quantum magnetometers can detect fields
+  as faint as a few femtotesla ($10^{-15}$ T), approaching the magnetic signals produced
+  by individual neurons firing in the brain.
+</p>
+
+<h3>Nitrogen-Vacancy Centers in Diamond</h3>
+
+<p>
+  The <strong>nitrogen-vacancy (NV) center</strong> is a point defect in a diamond crystal
+  lattice where a nitrogen atom replaces one carbon atom adjacent to a vacant lattice site.
+  The negatively charged NV center ($\text{NV}^-$) has an electron spin that serves as an
+  exquisitely sensitive magnetic field sensor, operating at room temperature - a remarkable
+  advantage over most quantum systems, which require cryogenic cooling.
+</p>
+
+<p>
+  The NV center's ground state is a spin-1 system with three levels: $m_s = 0$ and
+  $m_s = \pm 1$. In zero magnetic field, the $m_s = \pm 1$ states are degenerate, split
+  from $m_s = 0$ by approximately 2.87 GHz. An external magnetic field $B$ along the
+  NV axis lifts this degeneracy by $\Delta f = \gamma_e B$, where $\gamma_e \approx 28$
+  GHz/T is the electron gyromagnetic ratio. By measuring this frequency splitting
+  (via a Ramsey or spin-echo sequence), the magnetic field is determined.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    The NV center senses magnetic fields through the Zeeman effect: an external field
+    shifts the spin energy levels by an amount proportional to the field strength. The
+    sensor operates at room temperature, can be brought to nanometer proximity of a
+    sample, and achieves sensitivities below $10^{-12}$ T/$\sqrt{\text{Hz}}$.
+  </p>
+</div>
+
+<h3>Optically Detected Magnetic Resonance (ODMR)</h3>
+
+<p>
+  The NV center is read out optically: the $m_s = 0$ state fluoresces more brightly than
+  the $m_s = \pm 1$ states when illuminated with green (532 nm) laser light. This
+  spin-dependent fluorescence - called <strong>optically detected magnetic resonance
+  (ODMR)</strong> - allows the spin state to be read out with a simple photodetector,
+  without requiring cryogenics or vacuum.
+</p>
+
+<p>
+  The sensing protocol combines ODMR with Ramsey interferometry:
+</p>
+
+<ol>
+  <li>Initialize the spin to $m_s = 0$ using a green laser pulse (optical pumping).</li>
+  <li>Apply a microwave $\pi/2$ pulse to create a superposition of $m_s = 0$ and $m_s = +1$.</li>
+  <li>Allow free evolution for time $\tau$, during which the magnetic field induces a phase shift $\phi = \gamma_e B \tau$.</li>
+  <li>Apply a second $\pi/2$ pulse to convert phase to population.</li>
+  <li>Read out via fluorescence: brighter means closer to $m_s = 0$.</li>
+</ol>
+
+<h3>Applications of NV-Center Magnetometry</h3>
+
+<p>
+  NV-center magnetometry has found applications across a remarkably diverse range of fields:
+</p>
+
+<ul>
+  <li>
+    <strong>Magnetoencephalography (MEG):</strong> Diamond quantum magnetometers have
+    achieved sensitivity of 9.4 pT/$\sqrt{\text{Hz}}$ in the 5-100 Hz frequency range,
+    sufficient to detect magnetic fields from neural activity. Unlike SQUID-based MEG,
+    NV-center sensors operate at room temperature, potentially enabling wearable brain
+    imaging devices.
+  </li>
+  <li>
+    <strong>Nanoscale imaging:</strong> A single NV center at the tip of an atomic force
+    microscope can image magnetic fields with nanometer resolution, enabling visualization
+    of magnetic domains in materials, current flow in integrated circuits, and even the
+    magnetic signatures of individual molecules.
+  </li>
+  <li>
+    <strong>Navigation:</strong> The first deep-sea quantum vector magnetometer based on
+    NV centers has been validated for underwater navigation, functioning as a quantum
+    magnetic compass on a manned submersible.
+  </li>
+  <li>
+    <strong>Geology and archaeology:</strong> NV magnetometers can detect buried structures,
+    mineral deposits, and archaeological artifacts through their magnetic signatures.
+  </li>
+  <li>
+    <strong>Non-destructive testing:</strong> Magnetic flux leakage testing using NV sensors
+    can detect fractures in steel structures (bridges, pipelines, prestressed concrete)
+    with higher sensitivity and lower hysteresis than classical sensors.
+  </li>
+</ul>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="clocks-gravimeters">
+<h2>36.3 Quantum Clocks and Gravimeters</h2>
+
+<p>
+  Time is the most precisely measured physical quantity, and the most precise clocks ever
+  built are quantum devices. Quantum clocks and gravimeters share a common principle:
+  they use atomic transitions as frequency references and interferometric techniques to
+  convert tiny frequency shifts into measurable signals.
+</p>
+
+<h3>Atomic Clocks</h3>
+
+<p>
+  An atomic clock works by locking a local oscillator (a laser or microwave source) to an
+  atomic transition. The SI second is defined as 9,192,631,770 periods of the radiation
+  corresponding to the ground-state hyperfine transition of cesium-133. Modern optical
+  atomic clocks, using narrow transitions in strontium, ytterbium, or aluminum ions, have
+  pushed far beyond cesium's precision.
+</p>
+
+<p>
+  The core of an optical atomic clock is a Ramsey-like interrogation sequence:
+</p>
+
+<ol>
+  <li>
+    Prepare atoms in a definite internal state (typically via laser cooling and
+    optical pumping).
+  </li>
+  <li>
+    Probe the clock transition with a laser pulse, creating a superposition of the
+    ground and excited states.
+  </li>
+  <li>
+    Allow free evolution for an interrogation time $T$, during which the superposition
+    accumulates a phase $\phi = (\omega_{\text{laser}} - \omega_{\text{atom}}) T$
+    proportional to the detuning between the laser frequency and the atomic transition
+    frequency.
+  </li>
+  <li>
+    Apply a second probe pulse and measure, producing Ramsey fringes as a function of
+    detuning.
+  </li>
+  <li>
+    Use the fringe signal to correct the laser frequency, locking it to the atomic
+    transition.
+  </li>
+</ol>
+
+<p>
+  The best optical lattice clocks achieve fractional frequency uncertainties below
+  $10^{-18}$ - equivalent to neither gaining nor losing one second over the age of the
+  universe. At this level of precision, clocks become sensitive to general relativistic
+  effects: a height difference of just one centimeter changes the gravitational
+  redshift enough to be detected.
+</p>
+
+<div class="callout callout-info">
+  <strong>Clocks as gravity sensors.</strong>
+  <p>
+    Einstein's general relativity predicts that time runs slower in stronger gravitational
+    fields. A clock at sea level ticks slower than one on a mountaintop by about 1 part
+    in $10^{16}$ per meter of height. Optical clocks with $10^{-18}$ precision can detect
+    height differences of about one centimeter, enabling "relativistic geodesy" - mapping
+    Earth's gravitational field by comparing clocks at different locations.
+  </p>
+</div>
+
+<h3>Entanglement-Enhanced Clocks</h3>
+
+<p>
+  Standard atomic clocks using $N$ unentangled atoms achieve the SQL:
+  $\Delta\omega \propto 1/(\sqrt{N} \cdot T)$, where $T$ is the interrogation time.
+  Preparing the atoms in entangled states (spin-squeezed or GHZ states) can push toward
+  the Heisenberg limit: $\Delta\omega \propto 1/(N \cdot T)$. Experiments with
+  spin-squeezed ensembles of hundreds of atoms have demonstrated precision gains of
+  several dB beyond the SQL.
+</p>
+
+<h3>Atom Interferometry and Gravimeters</h3>
+
+<p>
+  <strong>Atom interferometers</strong> exploit the wave nature of atoms to measure
+  gravitational acceleration ($g$), rotations, and gravitational gradients with extreme
+  precision. The basic principle mirrors optical interferometry but uses matter waves
+  instead of light waves.
+</p>
+
+<p>
+  In a Mach-Zehnder atom interferometer:
+</p>
+
+<ol>
+  <li>
+    A laser pulse splits an atomic wave packet into two paths (beam splitter).
+  </li>
+  <li>
+    The two paths evolve in different gravitational potentials, accumulating a
+    differential phase.
+  </li>
+  <li>
+    A second laser pulse recombines the paths, and the interference pattern reveals
+    the gravitational phase shift.
+  </li>
+</ol>
+
+<p>
+  Quantum gravimeters based on cold-atom interferometry achieve absolute measurements of
+  gravitational acceleration with precision of parts per billion. Applications include
+  underground void detection, oil and mineral prospecting, monitoring volcanic activity,
+  and tests of fundamental physics (equivalence principle tests, gravitational wave
+  detection).
+</p>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="imaging-radar">
+<h2>36.4 Quantum Imaging and Radar</h2>
+
+<p>
+  Quantum mechanics offers advantages not only in measuring scalar quantities (fields,
+  frequencies) but also in <strong>imaging</strong> - the spatial reconstruction of physical
+  properties. Quantum imaging techniques exploit non-classical correlations in photon pairs
+  to surpass classical limits on resolution, sensitivity, and noise rejection.
+</p>
+
+<h3>Quantum Illumination</h3>
+
+<p>
+  <strong>Quantum illumination</strong> is a sensing protocol that uses entangled photon
+  pairs to detect the presence of a target in a noisy environment. The protocol works as
+  follows:
+</p>
+
+<ol>
+  <li>
+    A source generates entangled photon pairs. One photon (the "signal") is sent toward
+    the target region; the other (the "idler") is retained.
+  </li>
+  <li>
+    If a target is present, the signal photon is reflected and returns. If not, only
+    background noise photons arrive.
+  </li>
+  <li>
+    The returning photon (signal or noise) is compared with the retained idler using a
+    joint measurement that exploits their entanglement.
+  </li>
+</ol>
+
+<p>
+  The remarkable feature is that quantum illumination provides an advantage even when the
+  entanglement is completely destroyed by loss and noise - a situation where no Bell
+  inequality violation is possible. The surviving quantum correlations (quantified by
+  quantum discord rather than entanglement) still improve the signal-to-noise ratio by
+  up to 6 dB (a factor of 4 in detection probability) compared to the best classical
+  strategy using the same number of photons.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    Quantum illumination shows that entanglement can provide a practical advantage in
+    sensing even in high-loss, high-noise environments where the entanglement itself does
+    not survive. This challenges the intuition that quantum advantages require pristine
+    quantum states and makes quantum illumination relevant to real-world radar and lidar
+    applications.
+  </p>
+</div>
+
+<h3>Ghost Imaging</h3>
+
+<p>
+  <strong>Quantum ghost imaging</strong> (also called coincidence imaging) uses
+  position-momentum correlations in entangled photon pairs to image an object without
+  directly detecting the photons that interacted with it. The signal photon passes through
+  the object but is detected by a single-pixel (bucket) detector with no spatial
+  resolution. The idler photon, which never touches the object, is detected by a spatially
+  resolving camera. Correlating the detections reconstructs the image.
+</p>
+
+<p>
+  While classical thermal light can also produce ghost images, the quantum version using
+  entangled photons achieves better visibility and noise rejection. Ghost imaging has
+  potential applications in imaging through turbulent media, at wavelengths where cameras
+  are unavailable (e.g., terahertz), and in situations where minimizing the light dose on
+  the sample is critical (biological imaging).
+</p>
+
+<h3>Sub-Rayleigh Imaging</h3>
+
+<p>
+  Classical optics faces the <strong>Rayleigh diffraction limit</strong>: two point sources
+  separated by less than $\lambda/(2\text{NA})$ (where $\lambda$ is the wavelength and NA
+  is the numerical aperture) cannot be resolved. Quantum strategies can surpass this limit.
+  By using entangled photons or NOON states
+  ($|N,0\rangle + |0,N\rangle)/\sqrt{2}$, the effective wavelength is reduced by a factor
+  of $N$, enabling "super-resolution" lithography and microscopy.
+</p>
+
+<h3>Quantum Radar</h3>
+
+<p>
+  Quantum radar applies the principles of quantum illumination to the detection of objects
+  at range. While a full quantum radar system remains beyond current technology (generating,
+  transmitting, and detecting entangled microwave photons at radar frequencies is extremely
+  challenging), proof-of-principle demonstrations have been performed in the microwave
+  regime. The potential advantage - detecting stealthy targets in noisy environments with
+  fewer photons than classical radar - motivates continued research.
+</p>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="distributed-sensing">
+<h2>36.5 Distributed Quantum Sensing</h2>
+
+<p>
+  So far we have considered quantum sensors at a single location. <strong>Distributed
+  quantum sensing</strong> extends the quantum advantage to networks of sensors separated
+  by large distances, connected by the entanglement infrastructure of a quantum network
+  (Chapter 34). The key insight: entangling sensors across a network can improve the
+  precision of <em>global</em> parameters (averages, gradients) beyond what independent
+  sensors can achieve, even when each individual sensor is already at the SQL.
+</p>
+
+<h3>The Power of Networked Entanglement</h3>
+
+<p>
+  Consider $K$ sensors, each with $N$ atoms, measuring a global parameter $\bar{\theta}$
+  (the average of local parameters $\theta_1, \theta_2, \ldots, \theta_K$). Without
+  entanglement, each sensor achieves the SQL ($\Delta\theta_i \sim 1/\sqrt{N}$), and
+  averaging gives $\Delta\bar{\theta} \sim 1/\sqrt{KN}$.
+</p>
+
+<p>
+  With entanglement <em>across</em> the sensors - specifically, by preparing a GHZ-like
+  state distributed across all $KN$ particles - the precision of the global parameter
+  reaches:
+</p>
+
+$$\Delta\bar{\theta}_{\text{HL}} = \frac{1}{KN}$$
+
+<p>
+  This is a factor of $\sqrt{KN}$ better than the separable-sensor strategy. For a network
+  with $K = 100$ sensors of $N = 1000$ atoms each, the Heisenberg limit offers a
+  316-fold improvement over independent sensors at the SQL.
+</p>
+
+<h3>Applications of Distributed Quantum Sensing</h3>
+
+<ul>
+  <li>
+    <strong>Clock networks:</strong> Entangling optical clocks across a network enables
+    more precise timekeeping and synchronization than any single clock. A network of
+    entangled clocks effectively creates a single distributed clock with precision
+    scaling as $1/(KN)$ rather than $1/\sqrt{KN}$.
+  </li>
+  <li>
+    <strong>Gravitational field mapping:</strong> A network of entangled gravimeters
+    could map Earth's gravitational field with unprecedented spatial resolution, detecting
+    underground structures, monitoring water table levels, and improving navigation in
+    GPS-denied environments.
+  </li>
+  <li>
+    <strong>Dark matter searches:</strong> Networks of entangled atomic sensors could
+    detect correlated signals from dark matter interactions across large baselines,
+    distinguishing genuine dark matter signals from local noise.
+  </li>
+  <li>
+    <strong>Gravitational wave detection:</strong> Future space-based gravitational wave
+    detectors might use entanglement between separated satellites to achieve Heisenberg-limited
+    sensitivity.
+  </li>
+</ul>
+
+<div class="callout callout-warning">
+  <strong>Common Misconception.</strong>
+  <p>
+    Distributed quantum sensing does not allow the sensors to communicate faster than
+    light. The entangled state is prepared in advance (distributed via a quantum network),
+    and the measurement results are combined classically after the sensing interval. The
+    quantum advantage lies in the correlations encoded in the entangled state, not in any
+    superluminal signaling.
+  </p>
+</div>
+
+<h3>Challenges and Outlook</h3>
+
+<p>
+  Distributed quantum sensing requires distributing high-quality entanglement over the
+  sensor network and maintaining coherence during the sensing interval. This places
+  stringent demands on quantum network infrastructure (Chapter 34) and quantum memory
+  lifetimes. Current experiments have demonstrated entanglement-enhanced sensing in
+  small networks (2-3 nodes), but scaling to large networks remains an open challenge.
+  Progress in quantum repeaters, quantum error correction, and quantum network protocols
+  will directly enable larger and more powerful distributed quantum sensing networks.
+</p>
+
+<h3>Two-Sensor Ramsey Interferometer</h3>
+
+<p>
+  The sandbox below demonstrates the simplest distributed sensing scenario: two entangled
+  qubits (representing two sensors), each accumulating a phase $\phi$ from the quantity
+  being measured. Compare the output with the single-qubit Ramsey simulation in
+  Section 36.1. The entangled pair accumulates phase twice as fast ($2\phi$ rather than
+  $\phi$), demonstrating the phase amplification that underlies Heisenberg scaling.
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="15">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+
+// Create entangled |00> + |11> state (GHZ-2)
+h q[0];
+cx q[0], q[1];
+
+// Both sensors accumulate the same phase pi/2
+rz(1.5708) q[0];
+rz(1.5708) q[1];
+
+// Undo entanglement and measure
+cx q[0], q[1];
+h q[0];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+  With the phase set to $\pi/2 \approx 1.5708$ per qubit, the total accumulated phase is
+  $2 \times \pi/2 = \pi$. After the disentangling step, qubit 0 flips from $|0\rangle$ to
+  $|1\rangle$ with near certainty - just as a single-qubit Ramsey interferometer would at
+  phase $\pi$. The entangled sensor achieves the same phase sensitivity with half the
+  physical phase per qubit. Try changing the <code>rz</code> values and observe how the
+  two-sensor interferometer responds: at $\phi = \pi/4$ per qubit, the total phase is
+  $\pi/2$, giving a 50/50 outcome on qubit 0 (maximum sensitivity point).
+</p>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="flashcards">
+<h2>Review Flashcards</h2>
+
+<div class="flashcard-deck" data-component="flashcard-deck">
+  <div class="flashcard-deck-header">Chapter 36 Review</div>
+
+  <div class="flashcard" data-card-id="ch36-sql-formula">
+    <div class="card-front">What is the standard quantum limit (SQL) for phase estimation with $N$ independent probes?</div>
+    <div class="card-back">
+      $\Delta\theta_{\text{SQL}} = 1/\sqrt{N}$. This is the best precision achievable with
+      classical strategies or separable (unentangled) quantum states. It arises from the
+      central limit theorem applied to $N$ independent measurements, and is also called the
+      shot-noise limit.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch36-heisenberg-limit">
+    <div class="card-front">What is the Heisenberg limit, and what resource is needed to achieve it?</div>
+    <div class="card-back">
+      $\Delta\theta_{\text{HL}} = 1/N$, a quadratic improvement over the SQL. Achieving it
+      requires preparing the $N$ probe particles in an entangled state (such as a GHZ state)
+      that maximizes the quantum Fisher information. The entangled state accumulates phase
+      $N$ times faster than independent particles.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch36-ramsey-sequence">
+    <div class="card-front">Describe the Ramsey interferometry sequence and its quantum circuit equivalent.</div>
+    <div class="card-back">
+      Ramsey sequence: (1) prepare $|0\rangle$, (2) $\pi/2$ pulse (H gate), (3) free
+      evolution accumulating phase $\phi$ ($R_z(\phi)$), (4) second $\pi/2$ pulse (H gate),
+      (5) measure. The probability of $|0\rangle$ is $\cos^2(\phi/2)$. The circuit is:
+      H, $R_z(\phi)$, H, measure.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch36-nv-center-principle">
+    <div class="card-front">How does an NV center in diamond sense magnetic fields?</div>
+    <div class="card-back">
+      The NV center's ground state spin levels ($m_s = 0, \pm 1$) are split by an external
+      magnetic field via the Zeeman effect ($\Delta f = \gamma_e B$ with
+      $\gamma_e \approx 28$ GHz/T). A Ramsey sequence on the spin, read out via
+      spin-dependent fluorescence (ODMR), measures this splitting. NV centers operate at
+      room temperature and achieve sub-picotesla sensitivity.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch36-optical-clock-precision">
+    <div class="card-front">What precision do the best optical atomic clocks achieve, and what does this enable?</div>
+    <div class="card-back">
+      Fractional frequency uncertainties below $10^{-18}$ - equivalent to neither gaining
+      nor losing one second over the age of the universe. At this precision, clocks detect
+      the gravitational redshift from height differences of about 1 cm, enabling
+      "relativistic geodesy" - mapping gravity by comparing clocks at different locations.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch36-quantum-illumination">
+    <div class="card-front">What is remarkable about quantum illumination as a sensing protocol?</div>
+    <div class="card-back">
+      Quantum illumination uses entangled photon pairs for target detection and provides an
+      advantage (up to 6 dB in signal-to-noise) even when the entanglement is completely
+      destroyed by loss and noise. The surviving quantum correlations (quantum discord)
+      still improve detection, making it relevant to real-world high-noise environments
+      like radar.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch36-distributed-sensing-advantage">
+    <div class="card-front">What advantage does distributed quantum sensing provide over independent sensors?</div>
+    <div class="card-back">
+      With $K$ sensors of $N$ atoms each, independent sensors achieve
+      $\Delta\bar{\theta} \sim 1/\sqrt{KN}$ for a global parameter. Entangling across
+      the network reaches the Heisenberg limit $\Delta\bar{\theta} \sim 1/(KN)$, a
+      $\sqrt{KN}$-fold improvement. This requires distributing entanglement via a quantum
+      network but does not involve faster-than-light communication.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch36-ligo-squeezing">
+    <div class="card-front">How does LIGO use quantum mechanics to improve its sensitivity?</div>
+    <div class="card-back">
+      Since 2019, LIGO injects squeezed vacuum states of light to reduce photon shot noise
+      in its most sensitive frequency bands, improving amplitude sensitivity by up to 3 dB
+      (factor of $\sqrt{2}$) beyond the standard quantum limit. This is one of the most
+      prominent real-world applications of quantum-enhanced sensing.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+</section>
+
+    </article>
+
+    
+    <nav class="chapter-nav" aria-label="Chapter navigation">
+      <a href="35-advanced-crypto.html" class="prev">&larr; Chapter 35: Advanced Quantum Cryptography</a>
+      <span class="nav-spacer"></span>
+      <a href="37-topological.html" class="next">Chapter 37: Topological Quantum Computing &rarr;</a>
+    </nav>
+    
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof renderMathInElement !== "undefined") {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "$", right: "$", display: false}
+          ],
+          throwOnError: false
+        });
+      }
+    });
+  </script>
+  
+  <script>
+  "use strict";
+  
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function isDark() { return window.matchMedia("(prefers-color-scheme: dark)").matches; }
+  function renderMath(el) {
+    if (typeof renderMathInElement === "function")
+      renderMathInElement(el, { delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}], throwOnError: false });
+  }
+
+  
+  var wasmReady = null;
+  function ensureWasm() {
+    if (!wasmReady) {
+      wasmReady = (async function() {
+        var go = new Go();
+        var result = await WebAssembly.instantiateStreaming(fetch("../main.wasm"), go.importObject);
+        go.run(result.instance);
+      })();
+    }
+    return wasmReady;
+  }
+
+  
+  var SRS_KEY = "goqu-srs";
+  function srsLoad() { try { return JSON.parse(localStorage.getItem(SRS_KEY) || "{}"); } catch(e) { return {}; } }
+  function srsSave(d) { localStorage.setItem(SRS_KEY, JSON.stringify(d)); }
+  function getCardState(id) { var d = srsLoad(); return d[id] || {interval:1, ease:2.5, due:0, reps:0}; }
+  function reviewCard(id, q) {
+    var d = srsLoad(), s = d[id] || {interval:1, ease:2.5, due:0, reps:0};
+    if (q >= 3) {
+      s.reps++;
+      if (s.reps === 1) s.interval = 1;
+      else if (s.reps === 2) s.interval = 6;
+      else s.interval = Math.round(s.interval * s.ease);
+      s.ease = Math.max(1.3, s.ease + 0.1 - (5-q)*(0.08 + (5-q)*0.02));
+    } else { s.reps = 0; s.interval = 1; }
+    s.due = Date.now() + s.interval * 86400000;
+    d[id] = s; srsSave(d);
+  }
+
+  
+  function initSandbox(el) {
+    var code = el.querySelector(".code"), output = el.querySelector(".output");
+    if (!code || !output) return;
+    var runBtn = el.querySelector('[data-action="run"]'), resetBtn = el.querySelector('[data-action="reset"]');
+    var shotsEl = el.querySelector("[data-shots]"), orig = code.value;
+    function shots() { return parseInt(shotsEl ? shotsEl.value : el.dataset.shots || "1024", 10); }
+    async function run() {
+      await ensureWasm();
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(code.value, shots(), isDark()));
+        if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+        output.innerHTML = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+    if (runBtn) runBtn.addEventListener("click", run);
+    if (resetBtn) resetBtn.addEventListener("click", function() { code.value = orig; });
+    if (el.hasAttribute("data-autorun")) run();
+  }
+
+  
+  function initSimulation(el) {
+    var tmplEl = el.querySelector(".sim-qasm"), output = el.querySelector(".sim-output");
+    var sliders = el.querySelectorAll('input[type="range"]');
+    var selects = el.querySelectorAll("select[data-param]");
+    if (!tmplEl || !output || (sliders.length === 0 && selects.length === 0)) return;
+    var tmpl = tmplEl.textContent, pending = false;
+    var useNoisy = el.hasAttribute("data-noisy");
+    var useComparison = el.hasAttribute("data-comparison");
+    var useExpectation = el.hasAttribute("data-expectation");
+    var useClifford = el.hasAttribute("data-clifford");
+    async function update() {
+      if (pending) return; pending = true;
+      await ensureWasm();
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var params = {};
+        sliders.forEach(function(s) { params[s.dataset.param] = parseFloat(s.value); var o = s.parentElement.querySelector("output"); if (o) o.textContent = parseFloat(s.value).toFixed(2); });
+        selects.forEach(function(s) { params[s.dataset.param] = s.value; });
+        var qasm = tmpl;
+        for (var k in params) qasm = qasm.replaceAll("{"+k+"}", params[k].toString());
+        var html = "";
+        if (useComparison && window.compareIdealNoisy) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.compareIdealNoisy(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="comparison-panels"><div class="comparison-panel"><h4>Ideal</h4>' + (r.idealHistogramSVG||"") + '</div><div class="comparison-panel"><h4>Noisy</h4>' + (r.noisyHistogramSVG||"") + '</div></div>';
+          if (r.stateCitySVG) html += r.stateCitySVG;
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useNoisy && window.runNoisyQASM) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.runNoisyQASM(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"") + (r.stateCitySVG||"");
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useClifford && window.runClifford) {
+          var r = JSON.parse(window.runClifford(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"");
+          if (r.stabilizers) { html += '<div class="stabilizer-table"><h4>Stabilizers</h4><table>'; r.stabilizers.forEach(function(s) { html += '<tr><td>' + formatStabilizer(s) + '</td></tr>'; }); html += '</table></div>'; }
+        } else if (useExpectation && window.computeExpectation) {
+          var pauliStr = params.pauliStr || el.dataset.pauli || "Z";
+          var r = JSON.parse(window.computeExpectation(qasm, pauliStr, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="sim-stats"><span>&lt;' + esc(pauliStr) + '&gt; = ' + r.expectation.toFixed(6) + '</span></div>';
+        } else {
+          var r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+          
+          if (el.hasAttribute("data-bloch") && window.getStateVector && window.renderBloch) {
+            try {
+              var sv = JSON.parse(window.getStateVector(qasm));
+              if (sv.amplitudes && sv.amplitudes.length === 2) {
+                var a = sv.amplitudes;
+                var blochSVG = window.renderBloch(a[0].re, a[0].im, a[1].re, a[1].im, isDark());
+                if (blochSVG) html += blochSVG;
+              }
+            } catch(e) {   }
+          }
+        }
+        output.innerHTML = html;
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+      pending = false;
+    }
+    sliders.forEach(function(s) { s.addEventListener("input", update); });
+    selects.forEach(function(s) { s.addEventListener("change", update); });
+    update();
+  }
+
+  
+  function formatStabilizer(s) {
+    if (!s) return "";
+    var sign = s[0], ops = s.slice(1), html = '<span class="stab-sign">' + esc(sign) + '</span>';
+    for (var i = 0; i < ops.length; i++) {
+      var c = ops[i], cls = "stab-" + c.toLowerCase();
+      html += '<span class="' + cls + '">' + c + '</span>';
+    }
+    return html;
+  }
+
+  
+  function initExercise(el) {
+    var code = el.querySelector(".code"), feedback = el.querySelector(".exercise-feedback");
+    var checkBtn = el.querySelector('[data-action="check"]');
+    var hintBtn = el.querySelector('[data-action="hint"]'), hintEl = el.querySelector(".exercise-hint");
+    if (!code || !feedback || !checkBtn) return;
+    var expected = {}, tol = 0.1;
+    var expEl = el.querySelector(".exercise-expected");
+    if (expEl) expEl.querySelectorAll("[data-state]").forEach(function(span) {
+      expected[span.dataset.state] = parseFloat(span.dataset.prob);
+      if (span.dataset.tolerance) tol = parseFloat(span.dataset.tolerance);
+    });
+    checkBtn.addEventListener("click", async function() {
+      await ensureWasm();
+      feedback.className = "exercise-feedback visible";
+      feedback.textContent = "Checking...";
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(code.value, 1024, isDark()));
+        if (r.error) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + r.error; return; }
+        if (Object.keys(expected).length === 0) { feedback.className = "exercise-feedback visible pass"; feedback.innerHTML = "Circuit ran successfully."; return; }
+        var prob = JSON.parse(window.getProbabilities(code.value, isDark()));
+        if (prob.error) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + prob.error; return; }
+        var actual = {};
+        for (var i = 0; i < prob.labels.length; i++) actual[prob.labels[i]] = prob.probabilities[i];
+        var ok = true, msgs = [];
+        for (var s in expected) {
+          var a = actual[s] || 0, p = expected[s];
+          if (Math.abs(a - p) > tol) { ok = false; msgs.push("|" + s + "\u27E9: expected " + (p*100|0) + "%, got " + (a*100|0) + "%"); }
+        }
+        if (ok) { feedback.className = "exercise-feedback visible pass"; feedback.innerHTML = "Correct! Your circuit produces the expected output."; }
+        else { feedback.className = "exercise-feedback visible fail"; feedback.innerHTML = "Not quite. " + msgs.join("; ") + "."; }
+        renderMath(feedback);
+      } catch(e) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + e.message; }
+    });
+    if (hintBtn && hintEl) hintBtn.addEventListener("click", function() { hintEl.style.display = hintEl.style.display === "none" ? "block" : "none"; });
+  }
+
+  
+  function initFlashcardDeck(el) {
+    el.querySelectorAll(".flashcard").forEach(function(card) {
+      var id = card.dataset.cardId;
+      if (!id) return;
+      var state = getCardState(id);
+      if (state.due > 0 && state.due > Date.now()) card.classList.add("reviewed");
+      card.addEventListener("click", function(e) {
+        if (e.target.closest("button")) return;
+        card.classList.toggle("flipped");
+        var back = card.querySelector(".card-back");
+        if (back) renderMath(back);
+      });
+      var easyBtn = card.querySelector(".easy"), hardBtn = card.querySelector(".hard");
+      if (easyBtn) easyBtn.addEventListener("click", function() { reviewCard(id, 4); card.classList.remove("flipped"); card.classList.add("reviewed"); });
+      if (hardBtn) hardBtn.addEventListener("click", function() { reviewCard(id, 2); card.classList.remove("flipped"); });
+    });
+  }
+
+  
+  function initPOE(el) {
+    var steps = el.querySelectorAll(".poe-step"), prog = el.querySelectorAll(".poe-progress-step");
+    if (steps.length === 0) return;
+    var cur = 0;
+    function show(idx) {
+      steps.forEach(function(s,i) { s.classList.toggle("active", i === idx); });
+      prog.forEach(function(s,i) { s.classList.remove("active","done"); if (i < idx) s.classList.add("done"); if (i === idx) s.classList.add("active"); });
+      cur = idx;
+      var active = steps[idx];
+      if (active) active.querySelectorAll('.sandbox:not([data-initialized])').forEach(function(sb) { sb.setAttribute("data-initialized","true"); initSandbox(sb); });
+    }
+    el.querySelectorAll('[data-action="next"]').forEach(function(btn) { btn.addEventListener("click", function() { if (cur < steps.length - 1) show(cur + 1); }); });
+    el.querySelectorAll('[data-action="complete"]').forEach(function(btn) { btn.addEventListener("click", function() { prog.forEach(function(s) { s.classList.remove("active"); s.classList.add("done"); }); }); });
+    show(0);
+  }
+
+  
+  function initStepThrough(el) {
+    var qasmEl = el.querySelector(".step-qasm");
+    var output = el.querySelector(".step-output");
+    var prevBtn = el.querySelector('[data-action="prev"]');
+    var nextBtn = el.querySelector('[data-action="next"]');
+    var stepInfo = el.querySelector(".step-info");
+    if (!qasmEl || !output) return;
+    var qasm = qasmEl.textContent;
+    var mode = el.dataset.mode || "clifford"; 
+    var steps = null, cur = -1;
+
+    async function load() {
+      await ensureWasm();
+      try {
+        if (mode === "clifford" && window.cliffordStepThrough) {
+          var r = JSON.parse(window.cliffordStepThrough(qasm));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+          
+          steps.unshift({gate: "init", qubits: [], stabilizers: r.steps.length > 0 ? null : []});
+        } else if (mode === "grover" && window.groverStepThrough) {
+          var nq = parseInt(el.dataset.qubits || "2", 10);
+          var targets = JSON.parse(el.dataset.targets || "[]");
+          var r = JSON.parse(window.groverStepThrough(nq, targets.join(",")));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+        }
+        if (steps && steps.length > 0) { cur = 0; renderStep(); }
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    function renderStep() {
+      if (!steps || cur < 0 || cur >= steps.length) return;
+      var s = steps[cur];
+      var html = "";
+      if (mode === "clifford") {
+        if (s.gate === "init") {
+          html = '<p class="step-label">Initial state |0...0&gt;</p>';
+          
+          if (steps.length > 1 && steps[1].stabilizers) {
+            var nq = steps[1].stabilizers[0].length - 1;
+            html += '<div class="stabilizer-table"><table>';
+            for (var i = 0; i < nq; i++) {
+              var row = "+";
+              for (var j = 0; j < nq; j++) row += (j === i) ? "Z" : "I";
+              html += '<tr><td>' + formatStabilizer(row) + '</td></tr>';
+            }
+            html += '</table></div>';
+          }
+        } else {
+          html = '<p class="step-label">After <strong>' + esc(s.gate) + '</strong> on qubit' + (s.qubits.length > 1 ? 's ' : ' ') + s.qubits.join(', ') + '</p>';
+          if (s.stabilizers) {
+            html += '<div class="stabilizer-table"><table>';
+            s.stabilizers.forEach(function(st) { html += '<tr><td>' + formatStabilizer(st) + '</td></tr>'; });
+            html += '</table></div>';
+          }
+        }
+      } else if (mode === "grover") {
+        html = '<p class="step-label">Iteration ' + s.iteration + '</p>';
+        if (s.probabilities) {
+          html += '<div class="amplitude-bars">';
+          for (var i = 0; i < s.probabilities.length; i++) {
+            var label = i.toString(2).padStart(Math.ceil(Math.log2(s.probabilities.length)), '0');
+            var pct = (s.probabilities[i] * 100).toFixed(1);
+            var isTarget = el.dataset.targets && JSON.parse(el.dataset.targets).indexOf(i) >= 0;
+            html += '<div class="amp-bar' + (isTarget ? ' target' : '') + '"><div class="amp-fill" style="height:' + pct + '%"></div><span class="amp-label">|' + label + '&gt;</span><span class="amp-value">' + pct + '%</span></div>';
+          }
+          html += '</div>';
+        }
+      }
+      output.innerHTML = html;
+      if (stepInfo) stepInfo.textContent = "Step " + cur + " / " + (steps.length - 1);
+      if (prevBtn) prevBtn.disabled = (cur === 0);
+      if (nextBtn) nextBtn.disabled = (cur >= steps.length - 1);
+    }
+
+    if (prevBtn) prevBtn.addEventListener("click", function() { if (cur > 0) { cur--; renderStep(); } });
+    if (nextBtn) nextBtn.addEventListener("click", function() { if (steps && cur < steps.length - 1) { cur++; renderStep(); } });
+    load();
+  }
+
+  
+  document.addEventListener("DOMContentLoaded", function() {
+    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough};
+    document.querySelectorAll("[data-component]").forEach(function(el) { var fn = reg[el.dataset.component]; if (fn) fn(el); });
+  });
+  </script>
+  
+</body>
+</html>

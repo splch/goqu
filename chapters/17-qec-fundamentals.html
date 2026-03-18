@@ -1,0 +1,1806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chapter 17: Quantum Error Correction Fundamentals - Goqu Textbook</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/contrib/auto-render.min.js"></script>
+  
+  <link rel="preload" href="../main.wasm" as="fetch" type="application/wasm" crossorigin>
+  <script src="../wasm_exec.js"></script>
+  
+</head>
+<body>
+  <input type="checkbox" id="nav-toggle" hidden>
+  <label for="nav-toggle" class="nav-hamburger" aria-label="Toggle navigation">
+    <span></span><span></span><span></span>
+  </label>
+
+  <nav class="sidebar" aria-label="Table of contents">
+    <a href="../index.html" class="sidebar-logo">Goqu Textbook</a>
+    
+    <details>
+      <summary>Part 1: The World of Classical Computing</summary>
+      <ol start="1">
+        
+        <li value="1"><a href="01-computation.html">What Is Computation?</a></li>
+        
+        <li value="2"><a href="02-math-of-information.html">The Mathematics of Information</a></li>
+        
+        <li value="3"><a href="03-reversible-computing.html">Reversible Computing</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 2: Entering the Quantum World</summary>
+      <ol start="4">
+        
+        <li value="4"><a href="04-the-first-qubit.html">The First Qubit</a></li>
+        
+        <li value="5"><a href="05-quantum-gates.html">Quantum Gates</a></li>
+        
+        <li value="6"><a href="06-entanglement.html">Multiple Qubits and Entanglement</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 3: Quantum Protocols</summary>
+      <ol start="7">
+        
+        <li value="7"><a href="07-teleportation.html">Quantum Teleportation and Communication</a></li>
+        
+        <li value="8"><a href="08-cryptography.html">Quantum Cryptography</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 4: Quantum Algorithms - The First Wave</summary>
+      <ol start="9">
+        
+        <li value="9"><a href="09-oracles.html">Oracles and Quantum Parallelism</a></li>
+        
+        <li value="10"><a href="10-qft.html">The Quantum Fourier Transform</a></li>
+        
+        <li value="11"><a href="11-shor.html">Shor&#39;s Algorithm</a></li>
+        
+        <li value="12"><a href="12-grover.html">Grover&#39;s Algorithm</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 5: Real Quantum Hardware</summary>
+      <ol start="13">
+        
+        <li value="13"><a href="13-hardware.html">How to Build a Quantum Computer</a></li>
+        
+        <li value="14"><a href="14-noise.html">Noise, Decoherence, and the NISQ Era</a></li>
+        
+        <li value="15"><a href="15-programming.html">Programming Quantum Computers</a></li>
+        
+      </ol>
+    </details>
+    
+    <details open>
+      <summary>Part 6: Quantum Error Correction</summary>
+      <ol start="16">
+        
+        <li value="16"><a href="16-classical-ec.html">Classical Error Correction Refresher</a></li>
+        
+        <li value="17"><a href="17-qec-fundamentals.html" aria-current="page">Quantum Error Correction Fundamentals</a></li>
+        
+        <li value="18"><a href="18-stabilizers.html">The Stabilizer Formalism</a></li>
+        
+        <li value="19"><a href="19-surface-codes.html">Surface Codes and Topological Protection</a></li>
+        
+        <li value="20"><a href="20-fault-tolerance.html">Fault-Tolerant Quantum Computing</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 7: Variational and Near-Term Algorithms</summary>
+      <ol start="21">
+        
+        <li value="21"><a href="21-variational.html">The Variational Quantum Computing Paradigm</a></li>
+        
+        <li value="22"><a href="22-vqe.html">Variational Quantum Eigensolver (VQE)</a></li>
+        
+        <li value="23"><a href="23-qaoa.html">Quantum Approximate Optimization (QAOA)</a></li>
+        
+        <li value="24"><a href="24-qml.html">Quantum Machine Learning</a></li>
+        
+        <li value="25"><a href="25-error-mitigation.html">Quantum Error Mitigation</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 8: Quantum Information Theory</summary>
+      <ol start="26">
+        
+        <li value="26"><a href="26-states-measurements.html">Quantum States and Measurements, Revisited</a></li>
+        
+        <li value="27"><a href="27-channels.html">Quantum Channels and Operations</a></li>
+        
+        <li value="28"><a href="28-entropy.html">Quantum Entropy and Information</a></li>
+        
+        <li value="29"><a href="29-shannon.html">Quantum Shannon Theory</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 9: Quantum Complexity and Computation Theory</summary>
+      <ol start="30">
+        
+        <li value="30"><a href="30-complexity.html">Quantum Computational Complexity</a></li>
+        
+        <li value="31"><a href="31-hidden-subgroup.html">The Hidden Subgroup Problem and Beyond</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 10: Quantum Simulation</summary>
+      <ol start="32">
+        
+        <li value="32"><a href="32-simulation-why.html">Why Quantum Simulation Matters</a></li>
+        
+        <li value="33"><a href="33-digital-simulation.html">Digital Quantum Simulation</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 11: Quantum Networking, Cryptography, and Sensing</summary>
+      <ol start="34">
+        
+        <li value="34"><a href="34-quantum-internet.html">The Quantum Internet</a></li>
+        
+        <li value="35"><a href="35-advanced-crypto.html">Advanced Quantum Cryptography</a></li>
+        
+        <li value="36"><a href="36-sensing.html">Quantum Sensing and Metrology</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 12: Frontiers and the Future</summary>
+      <ol start="37">
+        
+        <li value="37"><a href="37-topological.html">Topological Quantum Computing</a></li>
+        
+        <li value="38"><a href="38-quantum-ai.html">Quantum Computing and Artificial Intelligence</a></li>
+        
+        <li value="39"><a href="39-open-problems.html">Open Problems in Quantum Computing</a></li>
+        
+        <li value="40"><a href="40-ecosystem.html">The Quantum Computing Ecosystem Today</a></li>
+        
+        <li value="41"><a href="41-career.html">Building Your Quantum Computing Career</a></li>
+        
+        <li value="42"><a href="42-what-next.html">What Comes Next</a></li>
+        
+      </ol>
+    </details>
+    
+  </nav>
+
+  <main>
+    
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="../index.html">Home</a> / <a href="../index.html#part-6">Part 6</a> / <span>Chapter 17</span>
+    </nav>
+    
+
+    <article>
+      <h1>Chapter 17: Quantum Error Correction Fundamentals</h1>
+      <p>
+  In Chapters 1 through 16, we built the theory of classical error correction from the ground up:
+  parity checks, Hamming codes, linear codes, and the elegant algebraic structures that protect
+  classical information from noise. Now we face a far more formidable challenge. Quantum
+  information is fragile in ways that classical information is not, and the tools we developed
+  for classical bits cannot be naively transplanted to qubits. This chapter introduces the
+  fundamental ideas of quantum error correction - why it is harder than its classical
+  counterpart, how the first quantum codes were discovered, and the mathematical conditions
+  that any quantum error-correcting code must satisfy.
+</p>
+
+<p>
+  The story begins with three seemingly fatal obstacles to protecting quantum information.
+  It continues with Peter Shor's breakthrough insight that these obstacles can all be
+  circumvented, and ends with a general mathematical framework - the Knill-Laflamme conditions
+  and CSS codes - that opens the door to the rich theory of stabilizer codes in Chapter 18.
+</p>
+
+<!-- ================================================================== -->
+
+<section id="why-qec-is-harder">
+
+<h2>17.1 Why Quantum Error Correction Is Harder</h2>
+
+<p>
+  Classical error correction rests on a simple strategy: make copies of your data, and use
+  majority voting to fix errors. If you store a bit three times as $0 \to 000$, a single
+  bit flip produces $010$ or $001$ or $100$, and you can recover the original by taking the
+  majority. Why can we not do the same with qubits?
+</p>
+
+<h3>Obstacle 1: The No-Cloning Theorem</h3>
+
+<p>
+  The most fundamental barrier is that quantum mechanics forbids copying an unknown quantum
+  state. The <strong>no-cloning theorem</strong>, proved independently by Wootters and Zurek
+  and by Dieks in 1982, states that there is no unitary operation $U$ such that
+</p>
+
+$$U \lvert \psi \rangle \lvert 0 \rangle = \lvert \psi \rangle \lvert \psi \rangle$$
+
+<p>
+  for all states $\lvert \psi \rangle$. The proof is elegant. Suppose such a $U$ existed.
+  Then for two states $\lvert \psi \rangle$ and $\lvert \phi \rangle$:
+</p>
+
+$$U \lvert \psi \rangle \lvert 0 \rangle = \lvert \psi \rangle \lvert \psi \rangle, \quad U \lvert \phi \rangle \lvert 0 \rangle = \lvert \phi \rangle \lvert \phi \rangle$$
+
+<p>
+  Taking the inner product of both sides:
+</p>
+
+$$\langle \phi \lvert \psi \rangle = (\langle \phi \lvert \psi \rangle)^2$$
+
+<p>
+  This equation has only two solutions: $\langle \phi \lvert \psi \rangle = 0$ (the states
+  are orthogonal) or $\langle \phi \lvert \psi \rangle = 1$ (the states are identical). A
+  universal cloner cannot exist because it would need to work for states with arbitrary
+  overlaps.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    <strong>No-Cloning Theorem:</strong> There is no physical process that can duplicate an
+    arbitrary unknown quantum state. This immediately rules out the classical strategy of
+    "copy and vote" for quantum error correction. Quantum codes must protect information
+    without copying it.
+  </p>
+</div>
+
+<h3>Obstacle 2: Errors Are Continuous</h3>
+
+<p>
+  A classical bit is either 0 or 1, and a classical error is a discrete flip from one to
+  the other. A qubit, by contrast, lives in a continuous space. An error might rotate the
+  state by a tiny angle, or apply a complex phase shift, or any of a continuous infinity of
+  possible perturbations. The general single-qubit error channel takes a state $\lvert \psi \rangle$
+  and transforms it into a mixture described by Kraus operators $\{E_k\}$:
+</p>
+
+$$\rho \to \sum_k E_k \rho E_k^\dagger$$
+
+<p>
+  Each $E_k$ is an arbitrary $2 \times 2$ matrix (subject to the completeness relation
+  $\sum_k E_k^\dagger E_k = I$). This is a continuous family of possible errors. How can a
+  discrete code correct a continuous set of errors?
+</p>
+
+<p>
+  The key insight - which we will see demonstrated concretely in the codes below - is that
+  the act of syndrome measurement <em>discretizes</em> the error. Any single-qubit operator
+  can be expanded in the basis $\{I, X, Y, Z\}$ (the Pauli matrices plus the identity). When
+  we measure the error syndrome, we project the continuous error onto one of these discrete
+  Pauli errors. If the code can correct each discrete Pauli error, it can correct any
+  continuous single-qubit error. This is sometimes called the <strong>discretization of
+  errors</strong>.
+</p>
+
+<div class="callout callout-info">
+  <strong>Analogy.</strong>
+  <p>
+    Think of a continuous error like a ball rolling in any direction on a tilted surface.
+    Syndrome measurement is like a grid of gutters cut into the surface - no matter which
+    direction the ball rolls, it falls into one of finitely many discrete channels. The code
+    only needs to handle each channel, not every possible rolling direction.
+  </p>
+</div>
+
+<h3>Obstacle 3: Measurement Destroys Quantum Information</h3>
+
+<p>
+  In classical error correction, you can look at every bit to determine which ones have been
+  flipped, without disturbing the data. In quantum mechanics, measuring a qubit collapses its
+  superposition. If our logical qubit is encoded as $\alpha \lvert 0_L \rangle + \beta \lvert 1_L \rangle$,
+  directly measuring the physical qubits would destroy the superposition and with it the
+  encoded information.
+</p>
+
+<p>
+  The solution is <strong>indirect measurement</strong> via ancilla qubits. We entangle
+  fresh ancilla qubits with the code qubits in a way that extracts information about
+  <em>which error occurred</em> (the syndrome) without revealing <em>what state was
+  encoded</em>. This is the quantum analog of computing a parity check: you learn whether
+  an error happened and where, but not the value of the encoded data.
+</p>
+
+<div class="callout callout-warning">
+  <strong>Common Misconception.</strong>
+  <p>
+    It is sometimes claimed that quantum error correction is impossible because "you cannot
+    measure quantum states without destroying them." This conflates two different measurements.
+    Measuring the <em>data</em> directly would indeed destroy it. But syndrome measurement
+    uses ancilla qubits to extract only error information - parity checks that commute with
+    the logical operators - leaving the encoded quantum state intact.
+  </p>
+</div>
+
+<p>
+  Despite these three obstacles, quantum error correction is possible. The first codes were
+  discovered by Peter Shor in 1995 and Andrew Steane in 1996. We begin with the simplest
+  example: the 3-qubit bit-flip code.
+</p>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="three-qubit-bit-flip-code">
+
+<h2>17.2 The 3-Qubit Bit-Flip Code</h2>
+
+<p>
+  The 3-qubit bit-flip code is the simplest quantum error-correcting code. It protects
+  against a single bit-flip error ($X$ error) on any one of three qubits. It cannot protect
+  against phase errors or general errors - we will address those limitations shortly - but
+  it beautifully illustrates the core principles of quantum error correction.
+</p>
+
+<h3>Encoding</h3>
+
+<p>
+  The encoding maps a single logical qubit into three physical qubits:
+</p>
+
+$$\lvert 0 \rangle \to \lvert 0_L \rangle = \lvert 000 \rangle$$
+$$\lvert 1 \rangle \to \lvert 1_L \rangle = \lvert 111 \rangle$$
+
+<p>
+  By linearity, an arbitrary state $\alpha \lvert 0 \rangle + \beta \lvert 1 \rangle$ is
+  encoded as:
+</p>
+
+$$\alpha \lvert 0 \rangle + \beta \lvert 1 \rangle \to \alpha \lvert 000 \rangle + \beta \lvert 111 \rangle$$
+
+<p>
+  Notice that this is <em>not</em> cloning. The state $\alpha \lvert 000 \rangle + \beta \lvert 111 \rangle$
+  is an entangled three-qubit state, not three independent copies of $\alpha \lvert 0 \rangle + \beta \lvert 1 \rangle$.
+  If you were to measure any single qubit, you would get correlated results, but you would not
+  find three copies of the original state. The no-cloning theorem is respected.
+</p>
+
+<p>
+  The encoding circuit uses two CNOT gates with the data qubit as the control:
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="10">OPENQASM 3.0;
+qubit[3] q;
+bit[3] c;
+// Prepare input state |1> (try changing to |0> or |+>)
+x q[0];
+// Encoding: spread q[0] into 3-qubit code
+cx q[0], q[1];
+cx q[0], q[2];
+// Measure to verify encoding
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+  With the input $\lvert 1 \rangle$, you should see the output <code>111</code> with 100%
+  probability, confirming the encoding $\lvert 1 \rangle \to \lvert 111 \rangle$. Remove the
+  <code>x q[0]</code> gate to verify that $\lvert 0 \rangle \to \lvert 000 \rangle$.
+</p>
+
+<h3>Syndrome Measurement</h3>
+
+<p>
+  Suppose a bit-flip error ($X$ gate) occurs on one of the three qubits. The four possible
+  cases after encoding $\alpha \lvert 000 \rangle + \beta \lvert 111 \rangle$ are:
+</p>
+
+<table>
+  <thead>
+    <tr><th>Error</th><th>Resulting State</th><th>Syndrome</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>None ($I$)</td><td>$\alpha \lvert 000 \rangle + \beta \lvert 111 \rangle$</td><td>00</td></tr>
+    <tr><td>$X_1$ (flip qubit 1)</td><td>$\alpha \lvert 100 \rangle + \beta \lvert 011 \rangle$</td><td>10</td></tr>
+    <tr><td>$X_2$ (flip qubit 2)</td><td>$\alpha \lvert 010 \rangle + \beta \lvert 101 \rangle$</td><td>11</td></tr>
+    <tr><td>$X_3$ (flip qubit 3)</td><td>$\alpha \lvert 001 \rangle + \beta \lvert 110 \rangle$</td><td>01</td></tr>
+  </tbody>
+</table>
+
+<p>
+  The syndrome consists of two parity checks, computed using ancilla qubits:
+</p>
+
+<ul>
+  <li><strong>Syndrome bit $s_1$:</strong> parity of qubits 1 and 2 (are they the same or different?)</li>
+  <li><strong>Syndrome bit $s_2$:</strong> parity of qubits 2 and 3 (are they the same or different?)</li>
+</ul>
+
+<p>
+  Critically, these parity checks tell us whether neighboring qubits <em>agree</em>, not what
+  values they hold. This is exactly the indirect measurement we need - we learn where the error
+  is without learning what the encoded state is. The syndrome measurement circuit uses two
+  ancilla qubits and four CNOT gates:
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="22">OPENQASM 3.0;
+qubit[5] q;
+bit[2] syndrome;
+// q[0]-q[2]: code qubits; q[3]-q[4]: ancilla
+// Encode |1> into bit-flip code
+x q[0];
+cx q[0], q[1];
+cx q[0], q[2];
+// Introduce a bit-flip error on qubit 1
+x q[1];
+// Syndrome extraction
+// s1 = parity of q[0],q[1]
+cx q[0], q[3];
+cx q[1], q[3];
+// s2 = parity of q[1],q[2]
+cx q[1], q[4];
+cx q[2], q[4];
+// Measure syndrome ancillas only
+syndrome[0] = measure q[3];
+syndrome[1] = measure q[4];</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+  With a bit-flip on qubit 1 (<code>q[1]</code>), you should see syndrome <code>11</code>,
+  indicating that both parity checks detect a disagreement involving qubit 1. Try moving the
+  error to <code>q[0]</code> (syndrome <code>10</code>) or <code>q[2]</code> (syndrome
+  <code>01</code>), or remove the error entirely (syndrome <code>00</code>).
+</p>
+
+<h3>Correction</h3>
+
+<p>
+  Once the syndrome identifies the error location, correction is straightforward: apply an
+  $X$ gate to the identified qubit. The syndrome-to-correction mapping is:
+</p>
+
+<ul>
+  <li><code>00</code>: no error, do nothing</li>
+  <li><code>10</code>: error on qubit 0, apply $X_0$</li>
+  <li><code>11</code>: error on qubit 1, apply $X_1$</li>
+  <li><code>01</code>: error on qubit 2, apply $X_2$</li>
+</ul>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    The 3-qubit bit-flip code encodes one logical qubit into three physical qubits using the
+    mapping $\lvert 0_L \rangle = \lvert 000 \rangle$, $\lvert 1_L \rangle = \lvert 111 \rangle$.
+    It corrects any single $X$ error by measuring two-qubit parities (syndromes) without
+    disturbing the encoded state. This is a $[\![3,1,1]\!]$ code - it uses 3 physical qubits
+    to encode 1 logical qubit, but its distance is only 1 against general errors (it cannot
+    correct phase flips).
+  </p>
+</div>
+
+<!-- POE for 3-qubit bit-flip code -->
+<div class="poe" data-component="poe">
+  <div class="poe-progress">
+    <div class="poe-progress-step">Predict</div>
+    <div class="poe-progress-step">Observe</div>
+    <div class="poe-progress-step">Explain</div>
+  </div>
+
+  <div class="poe-step active">
+    <h3>Predict</h3>
+    <p>
+      Consider the 3-qubit bit-flip code encoding the state
+      $\lvert + \rangle = \frac{1}{\sqrt{2}}(\lvert 0 \rangle + \lvert 1 \rangle)$.
+      The encoded state is $\frac{1}{\sqrt{2}}(\lvert 000 \rangle + \lvert 111 \rangle)$.
+      Now suppose a <em>phase-flip</em> error ($Z$ gate) is applied to qubit 0. What syndrome
+      will the two parity-check ancillas produce?
+    </p>
+    <textarea rows="3" placeholder="Write your prediction here..."></textarea>
+    <button data-action="next">Next: Observe</button>
+  </div>
+
+  <div class="poe-step">
+    <h3>Observe</h3>
+    <p>Run the circuit below to see what happens.</p>
+    <div class="sandbox" data-component="sandbox" data-shots="1024">
+      <textarea class="code" rows="18">OPENQASM 3.0;
+qubit[5] q;
+bit[2] syndrome;
+// Encode |+> into bit-flip code
+h q[0];
+cx q[0], q[1];
+cx q[0], q[2];
+// Apply Z error on qubit 0
+z q[0];
+// Syndrome extraction
+cx q[0], q[3];
+cx q[1], q[3];
+cx q[1], q[4];
+cx q[2], q[4];
+syndrome[0] = measure q[3];
+syndrome[1] = measure q[4];</textarea>
+      <div class="sandbox-controls">
+        <button data-action="run">Run</button>
+        <button data-action="reset">Reset</button>
+      </div>
+      <div class="output"></div>
+    </div>
+    <button data-action="next">Next: Explain</button>
+  </div>
+
+  <div class="poe-step">
+    <h3>Explain</h3>
+    <p>
+      The syndrome is <code>00</code> - no error detected! The $Z$ gate applies a phase
+      flip: $Z \lvert 0 \rangle = \lvert 0 \rangle$, $Z \lvert 1 \rangle = -\lvert 1 \rangle$.
+      The encoded state becomes
+      $\frac{1}{\sqrt{2}}(\lvert 000 \rangle - \lvert 111 \rangle)$, which is still a valid
+      codeword in terms of bit-parity checks. The parities of neighboring qubits are
+      unchanged because $Z$ does not flip any bits - it only changes the relative phase.
+      This demonstrates the fundamental limitation of the bit-flip code: it is completely
+      blind to phase errors. Correcting phase errors requires a different approach, which
+      we develop next.
+    </p>
+    <button data-action="complete">Done</button>
+  </div>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="three-qubit-phase-flip-code">
+
+<h2>17.3 The 3-Qubit Phase-Flip Code</h2>
+
+<p>
+  The 3-qubit phase-flip code protects against a single phase-flip error ($Z$ error) on any
+  one qubit. Its construction reveals an elegant duality with the bit-flip code, mediated
+  by the Hadamard gate.
+</p>
+
+<h3>From Bit Flips to Phase Flips via Hadamard</h3>
+
+<p>
+  Recall the Hadamard gate's action on the computational basis:
+</p>
+
+$$H \lvert 0 \rangle = \lvert + \rangle = \frac{1}{\sqrt{2}}(\lvert 0 \rangle + \lvert 1 \rangle), \quad H \lvert 1 \rangle = \lvert - \rangle = \frac{1}{\sqrt{2}}(\lvert 0 \rangle - \lvert 1 \rangle)$$
+
+<p>
+  A key identity connects $X$ and $Z$ through the Hadamard:
+</p>
+
+$$HZH = X, \quad HXH = Z$$
+
+<p>
+  This means that a phase flip in the computational basis ($Z$) becomes a bit flip in the
+  Hadamard basis ($X$), and vice versa. This duality is the foundation of the phase-flip
+  code: take the bit-flip code, but work in the Hadamard basis.
+</p>
+
+<h3>Encoding</h3>
+
+<p>
+  The phase-flip code encodes a logical qubit as:
+</p>
+
+$$\lvert 0_L \rangle = \lvert + + + \rangle = \frac{1}{2\sqrt{2}}(\lvert 0 \rangle + \lvert 1 \rangle)^{\otimes 3}$$
+$$\lvert 1_L \rangle = \lvert - - - \rangle = \frac{1}{2\sqrt{2}}(\lvert 0 \rangle - \lvert 1 \rangle)^{\otimes 3}$$
+
+<p>
+  The encoding circuit first performs the bit-flip encoding (two CNOTs), then applies
+  Hadamard gates to all three qubits to rotate into the $\lvert \pm \rangle$ basis:
+</p>
+
+<ol>
+  <li>Start with $\alpha \lvert 0 \rangle + \beta \lvert 1 \rangle$ on qubit 0, $\lvert 0 \rangle$ on qubits 1 and 2.</li>
+  <li>Apply CNOT(0,1) and CNOT(0,2) to get $\alpha \lvert 000 \rangle + \beta \lvert 111 \rangle$.</li>
+  <li>Apply $H$ to all three qubits to get $\alpha \lvert +++ \rangle + \beta \lvert --- \rangle$.</li>
+</ol>
+
+<h3>Syndrome Measurement</h3>
+
+<p>
+  A $Z$ error on qubit $k$ flips $\lvert + \rangle \to \lvert - \rangle$ (or vice versa) on
+  that qubit. To detect this, we measure parity in the Hadamard basis. The syndrome circuit
+  applies Hadamard gates, then performs the same parity checks as the bit-flip code, then
+  applies Hadamard again:
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="26">OPENQASM 3.0;
+qubit[5] q;
+bit[2] syndrome;
+// Encode |0> into phase-flip code
+// Step 1: bit-flip encoding
+cx q[0], q[1];
+cx q[0], q[2];
+// Step 2: rotate to Hadamard basis
+h q[0];
+h q[1];
+h q[2];
+// Apply phase-flip error on qubit 1
+z q[1];
+// Syndrome: rotate back, check parities, rotate again
+h q[0];
+h q[1];
+h q[2];
+cx q[0], q[3];
+cx q[1], q[3];
+cx q[1], q[4];
+cx q[2], q[4];
+h q[0];
+h q[1];
+h q[2];
+syndrome[0] = measure q[3];
+syndrome[1] = measure q[4];</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+  With a $Z$ error on qubit 1, you should see syndrome <code>11</code>, just as we saw for
+  an $X$ error on qubit 1 in the bit-flip code. The Hadamard transformation converts the
+  phase-flip detection problem into a bit-flip detection problem. Try moving the $Z$ error
+  to other qubits or removing it entirely to see the syndromes change.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    <strong>Bit-flip/phase-flip duality:</strong> The 3-qubit phase-flip code is the
+    Hadamard-conjugate of the 3-qubit bit-flip code. The identity $HZH = X$ means that
+    detecting phase errors in the computational basis is equivalent to detecting bit errors
+    in the Hadamard basis. This duality - where $X$ and $Z$ errors are interchanged by a
+    basis rotation - is a recurring theme throughout quantum error correction.
+  </p>
+</div>
+
+<h3>Limitations of Both Codes</h3>
+
+<p>
+  The bit-flip code corrects $X$ errors but is blind to $Z$ errors. The phase-flip code
+  corrects $Z$ errors but is blind to $X$ errors. Since the Pauli group generates all
+  single-qubit errors (any error can be decomposed into $I$, $X$, $Y = iXZ$, and $Z$
+  components), a useful code must handle <em>both</em> types simultaneously. This is exactly
+  what Shor's 9-qubit code achieves.
+</p>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="shor-nine-qubit-code">
+
+<h2>17.4 The 9-Qubit Shor Code</h2>
+
+<p>
+  In 1995, Peter Shor discovered the first quantum error-correcting code capable of
+  protecting against arbitrary single-qubit errors. His insight was to <em>concatenate</em>
+  the phase-flip code and the bit-flip code: first encode against phase flips, then encode
+  each of those qubits against bit flips.
+</p>
+
+<h3>Encoding</h3>
+
+<p>
+  The Shor code uses 9 physical qubits to encode 1 logical qubit. The encoding proceeds
+  in two stages:
+</p>
+
+<p>
+  <strong>Stage 1 (Phase-flip encoding):</strong> Encode the logical qubit using the
+  3-qubit phase-flip code:
+</p>
+
+$$\lvert 0 \rangle \to \lvert + + + \rangle, \quad \lvert 1 \rangle \to \lvert - - - \rangle$$
+
+<p>
+  <strong>Stage 2 (Bit-flip encoding of each block):</strong> Replace each
+  $\lvert + \rangle$ and $\lvert - \rangle$ with its 3-qubit bit-flip encoding:
+</p>
+
+$$\lvert + \rangle \to \frac{1}{\sqrt{2}}(\lvert 000 \rangle + \lvert 111 \rangle), \quad \lvert - \rangle \to \frac{1}{\sqrt{2}}(\lvert 000 \rangle - \lvert 111 \rangle)$$
+
+<p>
+  The full codewords are:
+</p>
+
+$$\lvert 0_L \rangle = \frac{1}{2\sqrt{2}} \big(\lvert 000 \rangle + \lvert 111 \rangle\big) \big(\lvert 000 \rangle + \lvert 111 \rangle\big) \big(\lvert 000 \rangle + \lvert 111 \rangle\big)$$
+
+$$\lvert 1_L \rangle = \frac{1}{2\sqrt{2}} \big(\lvert 000 \rangle - \lvert 111 \rangle\big) \big(\lvert 000 \rangle - \lvert 111 \rangle\big) \big(\lvert 000 \rangle - \lvert 111 \rangle\big)$$
+
+<p>
+  The 9 qubits are organized into three blocks of three. Within each block, the bit-flip
+  code protects against $X$ errors. Across blocks, the phase-flip code protects against
+  $Z$ errors. Together, they correct any single-qubit error, including $Y = iXZ$ errors.
+</p>
+
+<h3>Encoding Circuit</h3>
+
+<p>
+  The encoding circuit applies CNOT gates for the phase-flip code, then Hadamard gates,
+  then CNOT gates for each bit-flip block:
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="28">OPENQASM 3.0;
+qubit[9] q;
+bit[9] c;
+// Logical |1>
+x q[0];
+// Stage 1: Phase-flip encoding
+cx q[0], q[3];
+cx q[0], q[6];
+// Hadamard on block leaders
+h q[0];
+h q[3];
+h q[6];
+// Stage 2: Bit-flip encoding within each block
+// Block 1: q[0], q[1], q[2]
+cx q[0], q[1];
+cx q[0], q[2];
+// Block 2: q[3], q[4], q[5]
+cx q[3], q[4];
+cx q[3], q[5];
+// Block 3: q[6], q[7], q[8]
+cx q[6], q[7];
+cx q[6], q[8];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+  Because the encoded state involves superpositions, you will see a distribution over
+  multiple measurement outcomes. For the encoded $\lvert 1_L \rangle$, you should see
+  eight outcomes corresponding to the expansion of
+  $(\lvert 000 \rangle - \lvert 111 \rangle)^{\otimes 3}$, each with roughly equal
+  probability. The key structure is that within each block of three, all qubits agree
+  (all 0 or all 1).
+</p>
+
+<h3>Error Correction in the Shor Code</h3>
+
+<p>
+  The Shor code corrects errors in two stages, mirroring its encoding structure:
+</p>
+
+<p>
+  <strong>Bit-flip correction:</strong> Within each block of three qubits, measure the
+  parity of adjacent pairs (exactly as in the 3-qubit bit-flip code). This produces two
+  syndrome bits per block, six syndrome bits total. Use these to identify and correct any
+  single bit-flip within each block.
+</p>
+
+<p>
+  <strong>Phase-flip correction:</strong> After correcting bit flips, measure the relative
+  phase between blocks. This is done by comparing blocks in the Hadamard basis, producing
+  two more syndrome bits that identify which block (if any) suffered a phase flip.
+</p>
+
+<p>
+  Since any single-qubit error can be decomposed as $E = \alpha I + \beta X + \gamma Y + \delta Z$,
+  and the syndrome measurement projects onto one of these Pauli components, the Shor code
+  corrects arbitrary single-qubit errors. This was the first demonstration that quantum error
+  correction is possible in principle.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    <strong>Shor's 9-qubit code $[\![9,1,3]\!]$:</strong> Encodes 1 logical qubit into 9
+    physical qubits with code distance 3, meaning it can correct any single-qubit error
+    ($X$, $Z$, $Y$, or any linear combination). It is constructed by concatenating the
+    3-qubit phase-flip code (outer code) with the 3-qubit bit-flip code (inner code). The
+    syndrome measurement uses 8 ancilla qubits and projects continuous errors onto discrete
+    Pauli errors.
+  </p>
+</div>
+
+<div class="callout callout-info">
+  <strong>Historical Note.</strong>
+  <p>
+    Shor's 1995 paper "Scheme for reducing decoherence in quantum computer memory" was a
+    watershed moment. Before it, many physicists believed quantum error correction was
+    impossible, precisely because of the no-cloning theorem and the continuous nature of
+    quantum errors. Shor showed that both obstacles could be overcome by encoding information
+    in entangled states and using syndrome measurements that discretize errors. This paper,
+    combined with Shor's earlier factoring algorithm (1994), established quantum computing
+    as a serious field of study.
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="knill-laflamme-conditions">
+
+<h2>17.5 The Knill-Laflamme Conditions</h2>
+
+<p>
+  Having seen three specific quantum codes, we now ask the general question: what conditions
+  must a quantum code satisfy to correct a given set of errors? The answer, given by Emanuel
+  Knill and Raymond Laflamme in 1997, provides the mathematical foundation for all of
+  quantum error correction.
+</p>
+
+<h3>Setup</h3>
+
+<p>
+  A quantum error-correcting code $\mathcal{C}$ is a subspace of the full Hilbert space of
+  $n$ qubits, spanned by an orthonormal set of logical codewords $\{\lvert 0_L \rangle, \lvert 1_L \rangle, \ldots\}$.
+  The code has a projector $P = \sum_i \lvert i_L \rangle \langle i_L \rvert$ onto the code
+  space. Errors are described by a set of error operators $\{E_a\}$ (which might be Kraus
+  operators of a noise channel, or specific Pauli errors we want to correct).
+</p>
+
+<h3>The Conditions</h3>
+
+<p>
+  The code $\mathcal{C}$ can correct the error set $\{E_a\}$ if and only if:
+</p>
+
+$$\langle i_L \rvert E_a^\dagger E_b \lvert j_L \rangle = C_{ab} \, \delta_{ij}$$
+
+<p>
+  for all codewords $\lvert i_L \rangle$, $\lvert j_L \rangle$ and all error operators
+  $E_a$, $E_b$, where $C_{ab}$ is a Hermitian matrix (independent of $i$ and $j$) and
+  $\delta_{ij}$ is the Kronecker delta.
+</p>
+
+<p>
+  Equivalently, in terms of the code projector $P$:
+</p>
+
+$$P E_a^\dagger E_b P = C_{ab} \, P$$
+
+<h3>Interpretation</h3>
+
+<p>
+  The Knill-Laflamme conditions encode two requirements:
+</p>
+
+<p>
+  <strong>Requirement 1 (Non-deformation):</strong> The diagonal condition ($i = j$) states that
+  $\langle i_L \rvert E_a^\dagger E_b \lvert i_L \rangle = C_{ab}$ must be the same for all
+  codewords $\lvert i_L \rangle$. This means the errors affect all codewords in the same way -
+  no codeword is "more damaged" than another. If this failed, measuring the degree of damage
+  would reveal information about which codeword was encoded, destroying the superposition.
+</p>
+
+<p>
+  <strong>Requirement 2 (Orthogonality):</strong> The off-diagonal condition ($i \neq j$) states
+  that $\langle i_L \rvert E_a^\dagger E_b \lvert j_L \rangle = 0$. This means that different
+  corrupted codewords remain orthogonal after errors. If this failed, the error would
+  "mix" distinct codewords, making them indistinguishable and hence uncorrectable.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    <strong>Knill-Laflamme Conditions:</strong> A quantum code with projector $P$ can correct
+    errors $\{E_a\}$ if and only if $P E_a^\dagger E_b P = C_{ab} P$ for all pairs of errors.
+    The matrix $C_{ab}$ must be independent of which codeword is considered. These conditions
+    are both necessary and sufficient: any code satisfying them permits a recovery operation,
+    and any code violating them has uncorrectable errors.
+  </p>
+</div>
+
+<h3>Verifying the 3-Qubit Bit-Flip Code</h3>
+
+<p>
+  Let us verify that the 3-qubit bit-flip code satisfies the Knill-Laflamme conditions for
+  the error set $\{I, X_1, X_2, X_3\}$. The codewords are $\lvert 0_L \rangle = \lvert 000 \rangle$
+  and $\lvert 1_L \rangle = \lvert 111 \rangle$.
+</p>
+
+<p>
+  We need to check that $\langle i_L \rvert E_a^\dagger E_b \lvert j_L \rangle = C_{ab} \delta_{ij}$
+  for all pairs $(E_a, E_b)$ from $\{I, X_1, X_2, X_3\}$.
+</p>
+
+<p>
+  <strong>Diagonal ($i = j = 0$):</strong> Consider $\langle 000 \rvert E_a^\dagger E_b \lvert 000 \rangle$.
+  For $E_a = E_b = I$: $\langle 000 \lvert 000 \rangle = 1$. For $E_a = I, E_b = X_1$:
+  $\langle 000 \lvert 100 \rangle = 0$. For $E_a = X_1, E_b = X_1$:
+  $\langle 100 \lvert 100 \rangle = 1$. For $E_a = X_1, E_b = X_2$:
+  $\langle 100 \lvert 010 \rangle = 0$.
+</p>
+
+<p>
+  <strong>Diagonal ($i = j = 1$):</strong> The same pattern holds with $\lvert 111 \rangle$:
+  $\langle 111 \rvert E_a^\dagger E_b \lvert 111 \rangle$ gives the same values. For instance,
+  $X_1 \lvert 111 \rangle = \lvert 011 \rangle$, so
+  $\langle 111 \rvert X_1^\dagger X_1 \lvert 111 \rangle = \langle 011 \lvert 011 \rangle = 1$.
+  The matrix $C_{ab}$ is the identity matrix - it does not depend on the codeword.
+</p>
+
+<p>
+  <strong>Off-diagonal ($i \neq j$):</strong>
+  $\langle 000 \rvert E_a^\dagger E_b \lvert 111 \rangle = 0$ for all pairs, because
+  $E_b \lvert 111 \rangle$ always has at least two qubits in state $\lvert 1 \rangle$, while
+  $E_a \lvert 000 \rangle$ always has at least two qubits in state $\lvert 0 \rangle$, so
+  they are always orthogonal.
+</p>
+
+<p>
+  All conditions are satisfied, confirming that the bit-flip code can correct the set
+  $\{I, X_1, X_2, X_3\}$. Now consider the error set $\{I, Z_1\}$: we find
+  $\langle 000 \rvert Z_1^\dagger Z_1 \lvert 000 \rangle = 1$ but
+  $\langle 000 \rvert Z_1 \lvert 111 \rangle = \langle 000 \lvert -111 \rangle = 0$ and
+  $\langle 000 \rvert I^\dagger Z_1 \lvert 000 \rangle = \langle 000 \lvert 000 \rangle = 1$
+  while $\langle 111 \rvert I^\dagger Z_1 \lvert 111 \rangle = \langle 111 \lvert -111 \rangle = -1$.
+  The diagonal entries differ ($+1$ vs $-1$), violating the first requirement. The bit-flip
+  code cannot correct $Z$ errors, exactly as we observed experimentally in the POE activity.
+</p>
+
+<h3>The Power of Linearity</h3>
+
+<p>
+  A crucial consequence of the Knill-Laflamme conditions is that if a code can correct a set
+  of errors $\{E_a\}$, it can also correct any error in their linear span. Suppose an actual
+  error is $E = \sum_a \alpha_a E_a$. Then:
+</p>
+
+$$P E^\dagger E' P = \sum_{a,b} \alpha_a^* \alpha_b' \, P E_a^\dagger E_b P = \sum_{a,b} \alpha_a^* \alpha_b' \, C_{ab} P$$
+
+<p>
+  which still has the required form. This is precisely why correcting the discrete Pauli
+  errors $\{I, X, Y, Z\}$ suffices to correct <em>any</em> single-qubit error: any $2 \times 2$
+  matrix is a linear combination of these four operators.
+</p>
+
+<div class="callout callout-info">
+  <strong>Note.</strong>
+  <p>
+    The matrix $C_{ab}$ in the Knill-Laflamme conditions does not need to be the identity.
+    If $C_{ab}$ is non-diagonal but still Hermitian, the code is called <strong>degenerate</strong>.
+    Degenerate codes have the remarkable property that distinct physical errors can have the
+    same effect on the code space, and the code can correct them without distinguishing
+    between them. The Shor code is degenerate: for example, $X_1$ and $X_2$ within the
+    same block produce different physical errors but the same logical effect (neither
+    corrupts the logical information). Degeneracy is a uniquely quantum phenomenon with no
+    classical analog.
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="css-codes">
+
+<h2>17.6 CSS Codes</h2>
+
+<p>
+  The Calderbank-Shor-Steane (CSS) construction, discovered independently by Calderbank and
+  Shor and by Steane in 1996, provides a systematic method for building quantum
+  error-correcting codes from pairs of classical linear codes. This is a powerful bridge
+  between the classical coding theory of Chapters 1-16 and the quantum codes of this chapter
+  and beyond.
+</p>
+
+<h3>The Construction</h3>
+
+<p>
+  A CSS code is built from two classical linear codes $C_1$ and $C_2$ satisfying the
+  <strong>containment condition</strong>:
+</p>
+
+$$C_2^\perp \subseteq C_1$$
+
+<p>
+  where $C_2^\perp$ is the dual code of $C_2$ (the set of all codewords orthogonal to every
+  codeword in $C_2$ under the binary inner product). Equivalently, if $H_1$ and $H_2$ are
+  the parity-check matrices of $C_1$ and $C_2$, the condition requires $H_1 H_2^T = 0$
+  (over $\mathbb{F}_2$).
+</p>
+
+<p>
+  Given such a pair, the CSS code $\text{CSS}(C_1, C_2)$ encodes $k = k_1 + k_2 - n$
+  logical qubits into $n$ physical qubits, where $C_1$ is an $[n, k_1, d_1]$ code and
+  $C_2$ is an $[n, k_2, d_2]$ code. The code distance is $d = \min(d_1, d_2^\perp)$,
+  where $d_2^\perp$ is the distance of $C_2^\perp$.
+</p>
+
+<h3>How It Works</h3>
+
+<p>
+  The key idea is that $X$ errors and $Z$ errors are handled by different classical codes:
+</p>
+
+<ul>
+  <li>
+    <strong>$X$ error correction</strong> uses the classical code $C_1$. The parity-check
+    matrix $H_1$ detects bit-flip patterns in the same way it would detect classical bit
+    errors. The syndrome is $s_X = H_1 e_X^T$, where $e_X$ is the $X$-error pattern.
+  </li>
+  <li>
+    <strong>$Z$ error correction</strong> uses the classical code $C_2$. The parity-check
+    matrix $H_2$ detects phase-flip patterns. The syndrome is $s_Z = H_2 e_Z^T$, where
+    $e_Z$ is the $Z$-error pattern.
+  </li>
+</ul>
+
+<p>
+  The containment condition $C_2^\perp \subseteq C_1$ ensures that the $X$-stabilizers
+  (derived from $C_2^\perp$) commute with the $Z$-stabilizers (derived from $C_1^\perp$).
+  This commutativity is essential: in quantum mechanics, the stabilizer measurements must
+  be compatible (simultaneously measurable), which requires that they commute.
+</p>
+
+<h3>Codewords</h3>
+
+<p>
+  The logical codewords of $\text{CSS}(C_1, C_2)$ are constructed as equal superpositions
+  over cosets. For each coset $x + C_2^\perp$ of $C_2^\perp$ within $C_1$:
+</p>
+
+$$\lvert x + C_2^\perp \rangle = \frac{1}{\sqrt{\lvert C_2^\perp \rvert}} \sum_{y \in C_2^\perp} \lvert x + y \rangle$$
+
+<p>
+  where the addition is modulo 2. There are $\lvert C_1 \rvert / \lvert C_2^\perp \rvert = 2^{k_1 + k_2 - n}$
+  distinct cosets, giving us $k_1 + k_2 - n$ logical qubits.
+</p>
+
+<h3>Example: The Steane Code</h3>
+
+<p>
+  The most famous CSS code is the <strong>Steane $[\![7,1,3]\!]$ code</strong>, built from
+  the classical Hamming $[7,4,3]$ code. Take $C_1 = C_2 = C$, the $[7,4,3]$ Hamming code.
+  The dual code $C^\perp$ is the $[7,3,4]$ simplex code, and $C^\perp \subset C$ (every
+  codeword of the dual is also a Hamming codeword), so the containment condition is
+  satisfied.
+</p>
+
+<p>
+  The Steane code encodes $k = 4 + 4 - 7 = 1$ logical qubit into 7 physical qubits with
+  distance $d = 3$, meaning it can correct any single-qubit error ($X$, $Z$, or $Y$). It
+  is more efficient than Shor's 9-qubit code (7 qubits vs 9) and has the additional
+  advantage that transversal gates are easily implemented.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    <strong>CSS Construction:</strong> Given classical linear codes $C_1$ and $C_2$ with
+    $C_2^\perp \subseteq C_1$, the CSS code $\text{CSS}(C_1, C_2)$ encodes
+    $k_1 + k_2 - n$ logical qubits into $n$ physical qubits. $C_1$ corrects $X$ errors
+    and $C_2$ corrects $Z$ errors, independently. The containment condition ensures the
+    two correction procedures are compatible (the stabilizers commute). CSS codes form a
+    bridge from classical to quantum coding theory.
+  </p>
+</div>
+
+<h3>Why CSS Codes Matter</h3>
+
+<p>
+  The CSS construction has several important properties that make it a cornerstone of
+  quantum error correction:
+</p>
+
+<ul>
+  <li>
+    <strong>Classical recycling:</strong> Any pair of classical codes satisfying the
+    containment condition yields a quantum code. This allows us to leverage decades of
+    classical coding theory. Every self-orthogonal classical code (where $C^\perp \subseteq C$)
+    immediately gives a CSS code.
+  </li>
+  <li>
+    <strong>Independent $X/Z$ correction:</strong> Because $X$ and $Z$ errors are handled
+    by separate classical decoders, the decoding complexity is no worse than classical
+    decoding. This is a significant practical advantage.
+  </li>
+  <li>
+    <strong>Transversal gates:</strong> CSS codes naturally support transversal
+    implementations of certain logical gates (gates applied independently to each physical
+    qubit), which are inherently fault-tolerant. The Steane code supports transversal $H$,
+    CNOT, and $T$ gates (the last via magic state distillation).
+  </li>
+  <li>
+    <strong>Foundation for modern codes:</strong> Many important code families are CSS codes,
+    including surface codes, toric codes, color codes, and hypergraph product codes. The
+    CSS structure is the starting point for most practical quantum error correction schemes
+    being pursued in experimental quantum computing today.
+  </li>
+</ul>
+
+<div class="callout callout-info">
+  <strong>Connection to Stabilizer Formalism.</strong>
+  <p>
+    CSS codes are a special case of <strong>stabilizer codes</strong>, which we will develop
+    systematically in Chapter 18. In the stabilizer framework, a CSS code is one whose
+    stabilizer group can be decomposed into a set of pure-$X$ stabilizers and a set of
+    pure-$Z$ stabilizers (no mixed $XZ$ terms). This clean separation is what enables the
+    independent $X/Z$ decoding. The general stabilizer formalism drops this restriction,
+    allowing more general codes at the cost of more complex decoding.
+  </p>
+</div>
+
+<h3>Shor's Code as a CSS Code</h3>
+
+<p>
+  Shor's 9-qubit code is in fact a CSS code. It can be expressed as $\text{CSS}(C_1, C_2)$
+  where $C_1$ is the $[9,8,2]$ even-weight code (parity check: each block of 3 must have
+  even parity) and $C_2$ is the $[9,3,3]$ repetition code (each block is all-zeros or
+  all-ones). One can verify that $C_2^\perp \subseteq C_1$: the dual of the repetition code
+  consists of all weight-even words within each block, which are indeed contained in the
+  even-weight code.
+</p>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="exercises">
+
+<h2>Exercises</h2>
+
+<div class="exercise" data-component="exercise">
+  <div class="exercise-header">Exercise 17.1 - Bit-Flip Code: Detect Two Errors</div>
+  <div class="exercise-prompt">
+    <p>
+      The 3-qubit bit-flip code can <em>correct</em> one bit-flip error but can only
+      <em>detect</em> (not correct) two simultaneous bit-flip errors. Modify the circuit
+      below to introduce $X$ errors on <em>two</em> qubits and observe the syndrome. What
+      syndrome do you get? Can you determine which two qubits were flipped from the syndrome
+      alone?
+    </p>
+  </div>
+  <textarea class="code" rows="18">OPENQASM 3.0;
+qubit[5] q;
+bit[2] syndrome;
+// Encode |0> into bit-flip code
+cx q[0], q[1];
+cx q[0], q[2];
+// TODO: Add X errors on two qubits
+// (Try different pairs: q[0]&q[1], q[0]&q[2], q[1]&q[2])
+
+// Syndrome extraction
+cx q[0], q[3];
+cx q[1], q[3];
+cx q[1], q[4];
+cx q[2], q[4];
+syndrome[0] = measure q[3];
+syndrome[1] = measure q[4];</textarea>
+  <div class="exercise-controls">
+    <button data-action="check">Check</button>
+    <button data-action="hint">Hint</button>
+  </div>
+  <div class="exercise-expected">
+  </div>
+  <div class="exercise-hint" style="display:none;">
+    Try <code>x q[0]; x q[1];</code> before the syndrome extraction. The syndrome for two
+    errors on qubits 0 and 1 is the same as a single error on qubit 2. This is why the
+    code can detect but not correct two errors - the syndrome is ambiguous.
+  </div>
+  <div class="exercise-feedback"></div>
+</div>
+
+<div class="exercise" data-component="exercise">
+  <div class="exercise-header">Exercise 17.2 - Build the Phase-Flip Encoder</div>
+  <div class="exercise-prompt">
+    <p>
+      Write a circuit that encodes $\lvert 0 \rangle$ into the 3-qubit phase-flip code
+      ($\lvert 0_L \rangle = \lvert +++ \rangle$) and then measures all three qubits. You
+      should see all 8 possible 3-bit outcomes with roughly equal probability (each around
+      12.5%), because $\lvert +++ \rangle$ is an equal superposition of all computational
+      basis states.
+    </p>
+  </div>
+  <textarea class="code" rows="10">OPENQASM 3.0;
+qubit[3] q;
+bit[3] c;
+// TODO: Encode |0> into phase-flip code
+// Hint: Use cx and h gates
+
+c = measure q;</textarea>
+  <div class="exercise-controls">
+    <button data-action="check">Check</button>
+    <button data-action="hint">Hint</button>
+  </div>
+  <div class="exercise-expected">
+    <span data-state="000" data-prob="0.125" data-tolerance="0.05"></span>
+    <span data-state="001" data-prob="0.125" data-tolerance="0.05"></span>
+    <span data-state="010" data-prob="0.125" data-tolerance="0.05"></span>
+    <span data-state="011" data-prob="0.125" data-tolerance="0.05"></span>
+    <span data-state="100" data-prob="0.125" data-tolerance="0.05"></span>
+    <span data-state="101" data-prob="0.125" data-tolerance="0.05"></span>
+    <span data-state="110" data-prob="0.125" data-tolerance="0.05"></span>
+    <span data-state="111" data-prob="0.125" data-tolerance="0.05"></span>
+  </div>
+  <div class="exercise-hint" style="display:none;">
+    First apply the bit-flip encoding (two CNOT gates), then apply Hadamard to all three
+    qubits: <code>cx q[0], q[1]; cx q[0], q[2]; h q[0]; h q[1]; h q[2];</code>
+  </div>
+  <div class="exercise-feedback"></div>
+</div>
+
+<div class="exercise" data-component="exercise">
+  <div class="exercise-header">Exercise 17.3 - Verify Knill-Laflamme for Z Errors</div>
+  <div class="exercise-prompt">
+    <p>
+      The 3-qubit phase-flip code has codewords $\lvert 0_L \rangle = \lvert +++ \rangle$
+      and $\lvert 1_L \rangle = \lvert --- \rangle$. Consider the error set $\{I, Z_1\}$.
+      Compute $\langle 0_L \rvert Z_1 \lvert 0_L \rangle$ and
+      $\langle 1_L \rvert Z_1 \lvert 1_L \rangle$. Are they equal? Does this code satisfy
+      the Knill-Laflamme conditions for $Z$ errors? Build a circuit that encodes
+      $\lvert + \rangle$ in the phase-flip code, applies $Z_1$, extracts a syndrome, and
+      verify your answer.
+    </p>
+  </div>
+  <textarea class="code" rows="16">OPENQASM 3.0;
+qubit[5] q;
+bit[2] syndrome;
+// TODO: Encode a state into phase-flip code,
+// apply Z on qubit 0, extract syndrome
+// Hint: Use the phase-flip syndrome circuit from Section 17.3
+
+syndrome[0] = measure q[3];
+syndrome[1] = measure q[4];</textarea>
+  <div class="exercise-controls">
+    <button data-action="check">Check</button>
+    <button data-action="hint">Hint</button>
+  </div>
+  <div class="exercise-expected">
+  </div>
+  <div class="exercise-hint" style="display:none;">
+    $Z_1 \lvert + \rangle = \lvert - \rangle$ and $Z_1 \lvert - \rangle = \lvert + \rangle$,
+    so $\langle +++ \rvert Z_1 \lvert +++ \rangle = \langle -++ \lvert +++ \rangle = 0$ and
+    similarly $\langle --- \rvert Z_1 \lvert --- \rangle = 0$. Both diagonal entries equal 0,
+    so the non-deformation condition is satisfied. The off-diagonal terms also vanish. The
+    phase-flip code does satisfy the Knill-Laflamme conditions for $\{I, Z_1, Z_2, Z_3\}$.
+  </div>
+  <div class="exercise-feedback"></div>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="review">
+<h2>Chapter 17 Review</h2>
+
+<div class="flashcard-deck" data-component="flashcard-deck">
+  <div class="flashcard-deck-header">Chapter 17 Review</div>
+
+  <div class="flashcard" data-card-id="ch17-no-cloning">
+    <div class="card-front">What is the no-cloning theorem, and why does it matter for quantum error correction?</div>
+    <div class="card-back">
+      The no-cloning theorem states that no physical process can duplicate an arbitrary unknown
+      quantum state. It prevents the classical "copy and vote" strategy for error correction.
+      Quantum codes must instead encode information in entangled states that spread the
+      information across multiple qubits without copying it.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch17-error-discretization">
+    <div class="card-front">How can a quantum code correct continuous errors with a discrete syndrome?</div>
+    <div class="card-back">
+      Any single-qubit error can be decomposed as a linear combination of Pauli operators
+      $\{I, X, Y, Z\}$. Syndrome measurement projects the continuous error onto one of these
+      discrete Pauli components. If the code corrects each Pauli error, linearity of the
+      Knill-Laflamme conditions guarantees it corrects any linear combination - hence any
+      continuous error.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch17-syndrome-measurement">
+    <div class="card-front">How does quantum syndrome measurement extract error information without destroying the encoded state?</div>
+    <div class="card-back">
+      Ancilla qubits are entangled with the code qubits via CNOT gates that compute parity
+      checks. Measuring the ancillas reveals which parity conditions are violated (the error
+      syndrome) without measuring the code qubits directly. The parity checks are designed
+      to commute with the logical operators, so the measurement extracts only error
+      information and leaves the encoded superposition intact.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch17-bit-flip-code">
+    <div class="card-front">Describe the 3-qubit bit-flip code: encoding, syndrome, and limitation.</div>
+    <div class="card-back">
+      Encoding: $\lvert 0 \rangle \to \lvert 000 \rangle$, $\lvert 1 \rangle \to \lvert 111 \rangle$
+      using two CNOT gates. Syndrome: two ancilla qubits measure parities of qubit pairs
+      (1,2) and (2,3), giving a 2-bit syndrome that identifies which qubit flipped. Limitation:
+      it only corrects $X$ (bit-flip) errors and is completely blind to $Z$ (phase-flip) errors.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch17-phase-flip-duality">
+    <div class="card-front">What is the relationship between the bit-flip and phase-flip codes?</div>
+    <div class="card-back">
+      The phase-flip code is the Hadamard conjugate of the bit-flip code. Since $HZH = X$
+      and $HXH = Z$, applying Hadamard to all qubits converts $Z$ errors into $X$ errors
+      and vice versa. The phase-flip code encodes
+      $\lvert 0_L \rangle = \lvert +++ \rangle$,
+      $\lvert 1_L \rangle = \lvert --- \rangle$ and corrects single $Z$ errors but not $X$ errors.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch17-shor-code">
+    <div class="card-front">How does Shor's 9-qubit code combine the bit-flip and phase-flip codes?</div>
+    <div class="card-back">
+      The Shor code concatenates the phase-flip code (outer) with the bit-flip code (inner).
+      First encode 1 qubit into 3 using the phase-flip code, then encode each of those 3
+      qubits into 3 using the bit-flip code, giving 9 physical qubits. The inner code
+      corrects $X$ errors within each block; the outer code corrects $Z$ errors across
+      blocks. Together they correct any single-qubit error. It is a $[\![9,1,3]\!]$ code.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch17-knill-laflamme">
+    <div class="card-front">State the Knill-Laflamme conditions and explain what each part means.</div>
+    <div class="card-back">
+      A code with projector $P$ corrects errors $\{E_a\}$ iff
+      $P E_a^\dagger E_b P = C_{ab} P$ for all $a, b$, where $C_{ab}$ is a Hermitian matrix
+      independent of the codeword. The diagonal condition ($i = j$) ensures all codewords are
+      equally affected by errors (non-deformation). The off-diagonal condition ($i \neq j$)
+      ensures corrupted codewords remain distinguishable (orthogonality). Together they are
+      necessary and sufficient.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch17-css-construction">
+    <div class="card-front">What is the CSS construction, and what condition must the two classical codes satisfy?</div>
+    <div class="card-back">
+      The CSS construction builds a quantum code from two classical linear codes $C_1$ and
+      $C_2$ satisfying $C_2^\perp \subseteq C_1$ (the dual of $C_2$ is contained in $C_1$).
+      $C_1$ corrects $X$ errors and $C_2$ corrects $Z$ errors, independently. The
+      containment condition ensures the stabilizers commute. The code encodes
+      $k_1 + k_2 - n$ logical qubits into $n$ physical qubits with distance
+      $\min(d_1, d_2^\perp)$.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch17-steane-code">
+    <div class="card-front">What is the Steane code, and why is it significant?</div>
+    <div class="card-back">
+      The Steane code is a $[\![7,1,3]\!]$ CSS code built from the classical $[7,4,3]$
+      Hamming code (using $C_1 = C_2 = C$, the Hamming code). It encodes 1 logical qubit
+      into 7 physical qubits and corrects any single-qubit error. It is more efficient than
+      Shor's 9-qubit code and supports transversal implementations of several important
+      logical gates, making it a key building block for fault-tolerant quantum computation.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch17-degenerate-codes">
+    <div class="card-front">What is a degenerate quantum code?</div>
+    <div class="card-back">
+      A degenerate code is one where the matrix $C_{ab}$ in the Knill-Laflamme conditions
+      is non-diagonal - distinct physical errors have the same effect on the code space. The
+      code can correct these errors without distinguishing between them. Degeneracy is
+      uniquely quantum (classical codes are always non-degenerate). The Shor 9-qubit code
+      is degenerate: for example, $X$ errors on different qubits within the same block
+      produce different physical states but the same logical effect.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<p>
+  This chapter established the fundamental concepts of quantum error correction: the
+  obstacles that make it harder than classical error correction, the first codes that
+  overcame those obstacles, and the mathematical framework that governs all quantum codes.
+  In Chapter 18, we will develop the <strong>stabilizer formalism</strong> - an algebraic
+  framework based on the Pauli group that provides a unified, efficient description of the
+  most important quantum error-correcting codes. The stabilizer perspective will transform
+  the specific constructions of this chapter into a general theory with deep connections
+  to group theory, classical coding theory, and fault-tolerant quantum computation.
+</p>
+
+</section>
+
+    </article>
+
+    
+    <nav class="chapter-nav" aria-label="Chapter navigation">
+      <a href="16-classical-ec.html" class="prev">&larr; Chapter 16: Classical Error Correction Refresher</a>
+      <span class="nav-spacer"></span>
+      <a href="18-stabilizers.html" class="next">Chapter 18: The Stabilizer Formalism &rarr;</a>
+    </nav>
+    
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof renderMathInElement !== "undefined") {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "$", right: "$", display: false}
+          ],
+          throwOnError: false
+        });
+      }
+    });
+  </script>
+  
+  <script>
+  "use strict";
+  
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function isDark() { return window.matchMedia("(prefers-color-scheme: dark)").matches; }
+  function renderMath(el) {
+    if (typeof renderMathInElement === "function")
+      renderMathInElement(el, { delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}], throwOnError: false });
+  }
+
+  
+  var wasmReady = null;
+  function ensureWasm() {
+    if (!wasmReady) {
+      wasmReady = (async function() {
+        var go = new Go();
+        var result = await WebAssembly.instantiateStreaming(fetch("../main.wasm"), go.importObject);
+        go.run(result.instance);
+      })();
+    }
+    return wasmReady;
+  }
+
+  
+  var SRS_KEY = "goqu-srs";
+  function srsLoad() { try { return JSON.parse(localStorage.getItem(SRS_KEY) || "{}"); } catch(e) { return {}; } }
+  function srsSave(d) { localStorage.setItem(SRS_KEY, JSON.stringify(d)); }
+  function getCardState(id) { var d = srsLoad(); return d[id] || {interval:1, ease:2.5, due:0, reps:0}; }
+  function reviewCard(id, q) {
+    var d = srsLoad(), s = d[id] || {interval:1, ease:2.5, due:0, reps:0};
+    if (q >= 3) {
+      s.reps++;
+      if (s.reps === 1) s.interval = 1;
+      else if (s.reps === 2) s.interval = 6;
+      else s.interval = Math.round(s.interval * s.ease);
+      s.ease = Math.max(1.3, s.ease + 0.1 - (5-q)*(0.08 + (5-q)*0.02));
+    } else { s.reps = 0; s.interval = 1; }
+    s.due = Date.now() + s.interval * 86400000;
+    d[id] = s; srsSave(d);
+  }
+
+  
+  function initSandbox(el) {
+    var code = el.querySelector(".code"), output = el.querySelector(".output");
+    if (!code || !output) return;
+    var runBtn = el.querySelector('[data-action="run"]'), resetBtn = el.querySelector('[data-action="reset"]');
+    var shotsEl = el.querySelector("[data-shots]"), orig = code.value;
+    function shots() { return parseInt(shotsEl ? shotsEl.value : el.dataset.shots || "1024", 10); }
+    async function run() {
+      await ensureWasm();
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(code.value, shots(), isDark()));
+        if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+        output.innerHTML = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+    if (runBtn) runBtn.addEventListener("click", run);
+    if (resetBtn) resetBtn.addEventListener("click", function() { code.value = orig; });
+    if (el.hasAttribute("data-autorun")) run();
+  }
+
+  
+  function initSimulation(el) {
+    var tmplEl = el.querySelector(".sim-qasm"), output = el.querySelector(".sim-output");
+    var sliders = el.querySelectorAll('input[type="range"]');
+    var selects = el.querySelectorAll("select[data-param]");
+    if (!tmplEl || !output || (sliders.length === 0 && selects.length === 0)) return;
+    var tmpl = tmplEl.textContent, pending = false;
+    var useNoisy = el.hasAttribute("data-noisy");
+    var useComparison = el.hasAttribute("data-comparison");
+    var useExpectation = el.hasAttribute("data-expectation");
+    var useClifford = el.hasAttribute("data-clifford");
+    async function update() {
+      if (pending) return; pending = true;
+      await ensureWasm();
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var params = {};
+        sliders.forEach(function(s) { params[s.dataset.param] = parseFloat(s.value); var o = s.parentElement.querySelector("output"); if (o) o.textContent = parseFloat(s.value).toFixed(2); });
+        selects.forEach(function(s) { params[s.dataset.param] = s.value; });
+        var qasm = tmpl;
+        for (var k in params) qasm = qasm.replaceAll("{"+k+"}", params[k].toString());
+        var html = "";
+        if (useComparison && window.compareIdealNoisy) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.compareIdealNoisy(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="comparison-panels"><div class="comparison-panel"><h4>Ideal</h4>' + (r.idealHistogramSVG||"") + '</div><div class="comparison-panel"><h4>Noisy</h4>' + (r.noisyHistogramSVG||"") + '</div></div>';
+          if (r.stateCitySVG) html += r.stateCitySVG;
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useNoisy && window.runNoisyQASM) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.runNoisyQASM(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"") + (r.stateCitySVG||"");
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useClifford && window.runClifford) {
+          var r = JSON.parse(window.runClifford(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"");
+          if (r.stabilizers) { html += '<div class="stabilizer-table"><h4>Stabilizers</h4><table>'; r.stabilizers.forEach(function(s) { html += '<tr><td>' + formatStabilizer(s) + '</td></tr>'; }); html += '</table></div>'; }
+        } else if (useExpectation && window.computeExpectation) {
+          var pauliStr = params.pauliStr || el.dataset.pauli || "Z";
+          var r = JSON.parse(window.computeExpectation(qasm, pauliStr, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="sim-stats"><span>&lt;' + esc(pauliStr) + '&gt; = ' + r.expectation.toFixed(6) + '</span></div>';
+        } else {
+          var r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+          
+          if (el.hasAttribute("data-bloch") && window.getStateVector && window.renderBloch) {
+            try {
+              var sv = JSON.parse(window.getStateVector(qasm));
+              if (sv.amplitudes && sv.amplitudes.length === 2) {
+                var a = sv.amplitudes;
+                var blochSVG = window.renderBloch(a[0].re, a[0].im, a[1].re, a[1].im, isDark());
+                if (blochSVG) html += blochSVG;
+              }
+            } catch(e) {   }
+          }
+        }
+        output.innerHTML = html;
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+      pending = false;
+    }
+    sliders.forEach(function(s) { s.addEventListener("input", update); });
+    selects.forEach(function(s) { s.addEventListener("change", update); });
+    update();
+  }
+
+  
+  function formatStabilizer(s) {
+    if (!s) return "";
+    var sign = s[0], ops = s.slice(1), html = '<span class="stab-sign">' + esc(sign) + '</span>';
+    for (var i = 0; i < ops.length; i++) {
+      var c = ops[i], cls = "stab-" + c.toLowerCase();
+      html += '<span class="' + cls + '">' + c + '</span>';
+    }
+    return html;
+  }
+
+  
+  function initExercise(el) {
+    var code = el.querySelector(".code"), feedback = el.querySelector(".exercise-feedback");
+    var checkBtn = el.querySelector('[data-action="check"]');
+    var hintBtn = el.querySelector('[data-action="hint"]'), hintEl = el.querySelector(".exercise-hint");
+    if (!code || !feedback || !checkBtn) return;
+    var expected = {}, tol = 0.1;
+    var expEl = el.querySelector(".exercise-expected");
+    if (expEl) expEl.querySelectorAll("[data-state]").forEach(function(span) {
+      expected[span.dataset.state] = parseFloat(span.dataset.prob);
+      if (span.dataset.tolerance) tol = parseFloat(span.dataset.tolerance);
+    });
+    checkBtn.addEventListener("click", async function() {
+      await ensureWasm();
+      feedback.className = "exercise-feedback visible";
+      feedback.textContent = "Checking...";
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(code.value, 1024, isDark()));
+        if (r.error) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + r.error; return; }
+        if (Object.keys(expected).length === 0) { feedback.className = "exercise-feedback visible pass"; feedback.innerHTML = "Circuit ran successfully."; return; }
+        var prob = JSON.parse(window.getProbabilities(code.value, isDark()));
+        if (prob.error) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + prob.error; return; }
+        var actual = {};
+        for (var i = 0; i < prob.labels.length; i++) actual[prob.labels[i]] = prob.probabilities[i];
+        var ok = true, msgs = [];
+        for (var s in expected) {
+          var a = actual[s] || 0, p = expected[s];
+          if (Math.abs(a - p) > tol) { ok = false; msgs.push("|" + s + "\u27E9: expected " + (p*100|0) + "%, got " + (a*100|0) + "%"); }
+        }
+        if (ok) { feedback.className = "exercise-feedback visible pass"; feedback.innerHTML = "Correct! Your circuit produces the expected output."; }
+        else { feedback.className = "exercise-feedback visible fail"; feedback.innerHTML = "Not quite. " + msgs.join("; ") + "."; }
+        renderMath(feedback);
+      } catch(e) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + e.message; }
+    });
+    if (hintBtn && hintEl) hintBtn.addEventListener("click", function() { hintEl.style.display = hintEl.style.display === "none" ? "block" : "none"; });
+  }
+
+  
+  function initFlashcardDeck(el) {
+    el.querySelectorAll(".flashcard").forEach(function(card) {
+      var id = card.dataset.cardId;
+      if (!id) return;
+      var state = getCardState(id);
+      if (state.due > 0 && state.due > Date.now()) card.classList.add("reviewed");
+      card.addEventListener("click", function(e) {
+        if (e.target.closest("button")) return;
+        card.classList.toggle("flipped");
+        var back = card.querySelector(".card-back");
+        if (back) renderMath(back);
+      });
+      var easyBtn = card.querySelector(".easy"), hardBtn = card.querySelector(".hard");
+      if (easyBtn) easyBtn.addEventListener("click", function() { reviewCard(id, 4); card.classList.remove("flipped"); card.classList.add("reviewed"); });
+      if (hardBtn) hardBtn.addEventListener("click", function() { reviewCard(id, 2); card.classList.remove("flipped"); });
+    });
+  }
+
+  
+  function initPOE(el) {
+    var steps = el.querySelectorAll(".poe-step"), prog = el.querySelectorAll(".poe-progress-step");
+    if (steps.length === 0) return;
+    var cur = 0;
+    function show(idx) {
+      steps.forEach(function(s,i) { s.classList.toggle("active", i === idx); });
+      prog.forEach(function(s,i) { s.classList.remove("active","done"); if (i < idx) s.classList.add("done"); if (i === idx) s.classList.add("active"); });
+      cur = idx;
+      var active = steps[idx];
+      if (active) active.querySelectorAll('.sandbox:not([data-initialized])').forEach(function(sb) { sb.setAttribute("data-initialized","true"); initSandbox(sb); });
+    }
+    el.querySelectorAll('[data-action="next"]').forEach(function(btn) { btn.addEventListener("click", function() { if (cur < steps.length - 1) show(cur + 1); }); });
+    el.querySelectorAll('[data-action="complete"]').forEach(function(btn) { btn.addEventListener("click", function() { prog.forEach(function(s) { s.classList.remove("active"); s.classList.add("done"); }); }); });
+    show(0);
+  }
+
+  
+  function initStepThrough(el) {
+    var qasmEl = el.querySelector(".step-qasm");
+    var output = el.querySelector(".step-output");
+    var prevBtn = el.querySelector('[data-action="prev"]');
+    var nextBtn = el.querySelector('[data-action="next"]');
+    var stepInfo = el.querySelector(".step-info");
+    if (!qasmEl || !output) return;
+    var qasm = qasmEl.textContent;
+    var mode = el.dataset.mode || "clifford"; 
+    var steps = null, cur = -1;
+
+    async function load() {
+      await ensureWasm();
+      try {
+        if (mode === "clifford" && window.cliffordStepThrough) {
+          var r = JSON.parse(window.cliffordStepThrough(qasm));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+          
+          steps.unshift({gate: "init", qubits: [], stabilizers: r.steps.length > 0 ? null : []});
+        } else if (mode === "grover" && window.groverStepThrough) {
+          var nq = parseInt(el.dataset.qubits || "2", 10);
+          var targets = JSON.parse(el.dataset.targets || "[]");
+          var r = JSON.parse(window.groverStepThrough(nq, targets.join(",")));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+        }
+        if (steps && steps.length > 0) { cur = 0; renderStep(); }
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    function renderStep() {
+      if (!steps || cur < 0 || cur >= steps.length) return;
+      var s = steps[cur];
+      var html = "";
+      if (mode === "clifford") {
+        if (s.gate === "init") {
+          html = '<p class="step-label">Initial state |0...0&gt;</p>';
+          
+          if (steps.length > 1 && steps[1].stabilizers) {
+            var nq = steps[1].stabilizers[0].length - 1;
+            html += '<div class="stabilizer-table"><table>';
+            for (var i = 0; i < nq; i++) {
+              var row = "+";
+              for (var j = 0; j < nq; j++) row += (j === i) ? "Z" : "I";
+              html += '<tr><td>' + formatStabilizer(row) + '</td></tr>';
+            }
+            html += '</table></div>';
+          }
+        } else {
+          html = '<p class="step-label">After <strong>' + esc(s.gate) + '</strong> on qubit' + (s.qubits.length > 1 ? 's ' : ' ') + s.qubits.join(', ') + '</p>';
+          if (s.stabilizers) {
+            html += '<div class="stabilizer-table"><table>';
+            s.stabilizers.forEach(function(st) { html += '<tr><td>' + formatStabilizer(st) + '</td></tr>'; });
+            html += '</table></div>';
+          }
+        }
+      } else if (mode === "grover") {
+        html = '<p class="step-label">Iteration ' + s.iteration + '</p>';
+        if (s.probabilities) {
+          html += '<div class="amplitude-bars">';
+          for (var i = 0; i < s.probabilities.length; i++) {
+            var label = i.toString(2).padStart(Math.ceil(Math.log2(s.probabilities.length)), '0');
+            var pct = (s.probabilities[i] * 100).toFixed(1);
+            var isTarget = el.dataset.targets && JSON.parse(el.dataset.targets).indexOf(i) >= 0;
+            html += '<div class="amp-bar' + (isTarget ? ' target' : '') + '"><div class="amp-fill" style="height:' + pct + '%"></div><span class="amp-label">|' + label + '&gt;</span><span class="amp-value">' + pct + '%</span></div>';
+          }
+          html += '</div>';
+        }
+      }
+      output.innerHTML = html;
+      if (stepInfo) stepInfo.textContent = "Step " + cur + " / " + (steps.length - 1);
+      if (prevBtn) prevBtn.disabled = (cur === 0);
+      if (nextBtn) nextBtn.disabled = (cur >= steps.length - 1);
+    }
+
+    if (prevBtn) prevBtn.addEventListener("click", function() { if (cur > 0) { cur--; renderStep(); } });
+    if (nextBtn) nextBtn.addEventListener("click", function() { if (steps && cur < steps.length - 1) { cur++; renderStep(); } });
+    load();
+  }
+
+  
+  document.addEventListener("DOMContentLoaded", function() {
+    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough};
+    document.querySelectorAll("[data-component]").forEach(function(el) { var fn = reg[el.dataset.component]; if (fn) fn(el); });
+  });
+  </script>
+  
+</body>
+</html>

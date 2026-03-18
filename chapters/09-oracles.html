@@ -1,0 +1,1584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chapter 9: Oracles and Quantum Parallelism - Goqu Textbook</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/contrib/auto-render.min.js"></script>
+  
+  <link rel="preload" href="../main.wasm" as="fetch" type="application/wasm" crossorigin>
+  <script src="../wasm_exec.js"></script>
+  
+</head>
+<body>
+  <input type="checkbox" id="nav-toggle" hidden>
+  <label for="nav-toggle" class="nav-hamburger" aria-label="Toggle navigation">
+    <span></span><span></span><span></span>
+  </label>
+
+  <nav class="sidebar" aria-label="Table of contents">
+    <a href="../index.html" class="sidebar-logo">Goqu Textbook</a>
+    
+    <details>
+      <summary>Part 1: The World of Classical Computing</summary>
+      <ol start="1">
+        
+        <li value="1"><a href="01-computation.html">What Is Computation?</a></li>
+        
+        <li value="2"><a href="02-math-of-information.html">The Mathematics of Information</a></li>
+        
+        <li value="3"><a href="03-reversible-computing.html">Reversible Computing</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 2: Entering the Quantum World</summary>
+      <ol start="4">
+        
+        <li value="4"><a href="04-the-first-qubit.html">The First Qubit</a></li>
+        
+        <li value="5"><a href="05-quantum-gates.html">Quantum Gates</a></li>
+        
+        <li value="6"><a href="06-entanglement.html">Multiple Qubits and Entanglement</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 3: Quantum Protocols</summary>
+      <ol start="7">
+        
+        <li value="7"><a href="07-teleportation.html">Quantum Teleportation and Communication</a></li>
+        
+        <li value="8"><a href="08-cryptography.html">Quantum Cryptography</a></li>
+        
+      </ol>
+    </details>
+    
+    <details open>
+      <summary>Part 4: Quantum Algorithms - The First Wave</summary>
+      <ol start="9">
+        
+        <li value="9"><a href="09-oracles.html" aria-current="page">Oracles and Quantum Parallelism</a></li>
+        
+        <li value="10"><a href="10-qft.html">The Quantum Fourier Transform</a></li>
+        
+        <li value="11"><a href="11-shor.html">Shor&#39;s Algorithm</a></li>
+        
+        <li value="12"><a href="12-grover.html">Grover&#39;s Algorithm</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 5: Real Quantum Hardware</summary>
+      <ol start="13">
+        
+        <li value="13"><a href="13-hardware.html">How to Build a Quantum Computer</a></li>
+        
+        <li value="14"><a href="14-noise.html">Noise, Decoherence, and the NISQ Era</a></li>
+        
+        <li value="15"><a href="15-programming.html">Programming Quantum Computers</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 6: Quantum Error Correction</summary>
+      <ol start="16">
+        
+        <li value="16"><a href="16-classical-ec.html">Classical Error Correction Refresher</a></li>
+        
+        <li value="17"><a href="17-qec-fundamentals.html">Quantum Error Correction Fundamentals</a></li>
+        
+        <li value="18"><a href="18-stabilizers.html">The Stabilizer Formalism</a></li>
+        
+        <li value="19"><a href="19-surface-codes.html">Surface Codes and Topological Protection</a></li>
+        
+        <li value="20"><a href="20-fault-tolerance.html">Fault-Tolerant Quantum Computing</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 7: Variational and Near-Term Algorithms</summary>
+      <ol start="21">
+        
+        <li value="21"><a href="21-variational.html">The Variational Quantum Computing Paradigm</a></li>
+        
+        <li value="22"><a href="22-vqe.html">Variational Quantum Eigensolver (VQE)</a></li>
+        
+        <li value="23"><a href="23-qaoa.html">Quantum Approximate Optimization (QAOA)</a></li>
+        
+        <li value="24"><a href="24-qml.html">Quantum Machine Learning</a></li>
+        
+        <li value="25"><a href="25-error-mitigation.html">Quantum Error Mitigation</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 8: Quantum Information Theory</summary>
+      <ol start="26">
+        
+        <li value="26"><a href="26-states-measurements.html">Quantum States and Measurements, Revisited</a></li>
+        
+        <li value="27"><a href="27-channels.html">Quantum Channels and Operations</a></li>
+        
+        <li value="28"><a href="28-entropy.html">Quantum Entropy and Information</a></li>
+        
+        <li value="29"><a href="29-shannon.html">Quantum Shannon Theory</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 9: Quantum Complexity and Computation Theory</summary>
+      <ol start="30">
+        
+        <li value="30"><a href="30-complexity.html">Quantum Computational Complexity</a></li>
+        
+        <li value="31"><a href="31-hidden-subgroup.html">The Hidden Subgroup Problem and Beyond</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 10: Quantum Simulation</summary>
+      <ol start="32">
+        
+        <li value="32"><a href="32-simulation-why.html">Why Quantum Simulation Matters</a></li>
+        
+        <li value="33"><a href="33-digital-simulation.html">Digital Quantum Simulation</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 11: Quantum Networking, Cryptography, and Sensing</summary>
+      <ol start="34">
+        
+        <li value="34"><a href="34-quantum-internet.html">The Quantum Internet</a></li>
+        
+        <li value="35"><a href="35-advanced-crypto.html">Advanced Quantum Cryptography</a></li>
+        
+        <li value="36"><a href="36-sensing.html">Quantum Sensing and Metrology</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 12: Frontiers and the Future</summary>
+      <ol start="37">
+        
+        <li value="37"><a href="37-topological.html">Topological Quantum Computing</a></li>
+        
+        <li value="38"><a href="38-quantum-ai.html">Quantum Computing and Artificial Intelligence</a></li>
+        
+        <li value="39"><a href="39-open-problems.html">Open Problems in Quantum Computing</a></li>
+        
+        <li value="40"><a href="40-ecosystem.html">The Quantum Computing Ecosystem Today</a></li>
+        
+        <li value="41"><a href="41-career.html">Building Your Quantum Computing Career</a></li>
+        
+        <li value="42"><a href="42-what-next.html">What Comes Next</a></li>
+        
+      </ol>
+    </details>
+    
+  </nav>
+
+  <main>
+    
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="../index.html">Home</a> / <a href="../index.html#part-4">Part 4</a> / <span>Chapter 9</span>
+    </nav>
+    
+
+    <article>
+      <h1>Chapter 9: Oracles and Quantum Parallelism</h1>
+      <p>In the previous chapters, you learned to build quantum circuits from individual gates, create
+entanglement, and harness superposition. But a natural question remains: what can quantum
+computers actually <em>do</em> that classical computers cannot? This chapter answers that
+question with the first family of quantum algorithms - each one demonstrating a provable
+advantage over any classical approach.</p>
+
+<p>The key idea unifying these algorithms is the <strong>oracle model</strong>: we treat a
+function as a black box and ask how many times we must query it to learn some property.
+In this model, quantum computers can extract global information about a function with
+exponentially fewer queries than any classical machine. These results are not just
+theoretical curiosities - they reveal the fundamental mechanisms (superposition, interference,
+and entanglement) that power all quantum speedups, including Shor's factoring algorithm
+(Chapter 11) and Grover's search algorithm (Chapter 12).</p>
+
+<!-- ================================================================== -->
+
+<section id="oracle-model">
+<h2>9.1 The Oracle Model: Black-Box Functions</h2>
+
+<p>Imagine you are given a function $f$ that takes bit strings as input and produces bit
+strings as output. You know nothing about the internal workings of $f$ - you can only
+<em>call</em> it on inputs of your choice and observe the outputs. This is the
+<strong>oracle model</strong> of computation.</p>
+
+<h3>Query complexity</h3>
+
+<p>In the oracle model, we measure the cost of an algorithm by the number of times it
+queries the oracle - not by the total number of computational steps. This measure is called
+<strong>query complexity</strong> (or oracle complexity). The central question is always:
+what is the minimum number of queries needed to determine some property of $f$?</p>
+
+<p>Classical and quantum computers obey different rules about how they can call the oracle.
+A classical algorithm must query $f$ on one specific input at a time. A quantum algorithm,
+thanks to superposition, can effectively query $f$ on many inputs simultaneously - though
+extracting useful information from this "quantum parallelism" requires careful use of
+interference.</p>
+
+<h3>The standard oracle (bit oracle)</h3>
+
+<p>Quantum mechanics requires all operations (except measurement) to be <em>reversible</em>,
+as you learned in Chapter 3. A classical function $f(x)$ that maps inputs to outputs is
+generally not reversible. To make it reversible, we use an auxiliary register and define the
+oracle unitary $U_f$ as:</p>
+
+$$U_f |x\rangle |y\rangle = |x\rangle |y \oplus f(x)\rangle$$
+
+<p>Here $\oplus$ denotes addition modulo 2 (XOR). The input register $|x\rangle$ passes through
+unchanged, while the output register $|y\rangle$ is XORed with $f(x)$. This operation is its
+own inverse: applying $U_f$ twice restores the original state, since $y \oplus f(x) \oplus f(x) = y$.</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>A quantum oracle $U_f$ is a unitary gate that computes a classical function reversibly.
+  The input is preserved in the first register; the answer is XORed into the second register.</p>
+</div>
+
+<h3>The phase oracle (phase kickback)</h3>
+
+<p>A remarkably useful trick emerges when we set the auxiliary qubit to $|-\rangle = \frac{1}{\sqrt{2}}(|0\rangle - |1\rangle)$.
+Applying $U_f$ to $|x\rangle|-\rangle$ gives:</p>
+
+$$U_f |x\rangle |-\rangle = (-1)^{f(x)} |x\rangle |-\rangle$$
+
+<p>The function value $f(x)$ has been "kicked back" into the phase of the input register.
+The auxiliary qubit is unchanged. This is called the <strong>phase oracle</strong>, and it is
+the form used by nearly every oracle-based quantum algorithm. Instead of writing the answer
+in a separate register, the answer appears as a phase factor $(-1)^{f(x)}$ on the input state.</p>
+
+<p>To see why this works, consider what happens when the auxiliary qubit is $|-\rangle$:</p>
+
+$$U_f |x\rangle |-\rangle = |x\rangle |0 \oplus f(x)\rangle \cdot \frac{1}{\sqrt{2}} - |x\rangle |1 \oplus f(x)\rangle \cdot \frac{1}{\sqrt{2}}$$
+
+<p>When $f(x) = 0$, this gives $|x\rangle \cdot \frac{1}{\sqrt{2}}(|0\rangle - |1\rangle) = |x\rangle |-\rangle$.
+When $f(x) = 1$, this gives $|x\rangle \cdot \frac{1}{\sqrt{2}}(|1\rangle - |0\rangle) = -|x\rangle |-\rangle$.
+In both cases: $(-1)^{f(x)} |x\rangle |-\rangle$.</p>
+
+<div class="callout callout-info">
+  <strong>Phase kickback.</strong>
+  <p>This technique - preparing the target in $|-\rangle$ so that the oracle's effect appears
+  as a phase on the input register - is called <strong>phase kickback</strong>. It is one of
+  the most important tricks in quantum computing. You will see it repeatedly in this chapter
+  and beyond.</p>
+</div>
+
+<h3>Implementing oracles as QASM circuits</h3>
+
+<p>In practice, an oracle is a specific quantum circuit built from standard gates. In QASM,
+we define oracles using the <code>gate</code> keyword, which creates a named sub-circuit.
+For example, here is an oracle that computes $f(x) = x$ (the identity function on one bit):</p>
+
+<pre><code>gate oracle_identity input, ancilla {
+  cx input, ancilla;
+}</code></pre>
+
+<p>And here is an oracle that computes $f(x) = 1$ (the constant-one function):</p>
+
+<pre><code>gate oracle_const1 input, ancilla {
+  x ancilla;
+}</code></pre>
+
+<p>The <code>gate</code> keyword defines a reusable sub-circuit. The parameter names after the
+gate name are formal qubit parameters - they get bound to actual qubits when the gate is called.
+Throughout this chapter, we will define each oracle as a named gate, making the circuits modular
+and clear.</p>
+
+<h3>The four possible 1-bit oracles</h3>
+
+<p>To build intuition, let us enumerate every oracle for a function $f : \{0,1\} \to \{0,1\}$.
+There are exactly four such functions, and each has a simple circuit implementation:</p>
+
+<table>
+  <thead><tr><th>Function</th><th>$f(0)$</th><th>$f(1)$</th><th>Oracle circuit</th></tr></thead>
+  <tbody>
+    <tr><td>$f(x) = 0$</td><td>0</td><td>0</td><td>Do nothing (empty gate body)</td></tr>
+    <tr><td>$f(x) = 1$</td><td>1</td><td>1</td><td><code>x ancilla;</code></td></tr>
+    <tr><td>$f(x) = x$</td><td>0</td><td>1</td><td><code>cx input, ancilla;</code></td></tr>
+    <tr><td>$f(x) = \overline{x}$</td><td>1</td><td>0</td><td><code>x input; cx input, ancilla; x input;</code></td></tr>
+  </tbody>
+</table>
+
+<p>The last oracle, $f(x) = \overline{x}$ (NOT of the input), uses a sandwich pattern: flip
+the input with X, apply the CNOT, then flip the input back. This is equivalent to a
+negative-controlled NOT, which applies X to the ancilla when the input is $|0\rangle$. In
+QASM, you could also write this using the <code>negctrl</code> modifier:
+<code>negctrl @ x input, ancilla;</code>. We will use explicit gate definitions throughout
+this chapter for maximum clarity.</p>
+
+<div class="callout callout-warning">
+  <strong>Common Misconception.</strong>
+  <p>An oracle is not magic - it is a concrete quantum circuit. When we say "query the oracle,"
+  we mean "apply the specific sequence of gates that implements $f$." The black-box model is a
+  way of analyzing algorithms: we count oracle calls to understand the <em>inherent</em>
+  difficulty of a problem, independent of how $f$ happens to be implemented.</p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="deutsch">
+<h2>9.2 Deutsch's Algorithm: The Simplest Quantum Advantage</h2>
+
+<p>We begin with the simplest possible problem that demonstrates a quantum advantage. This
+algorithm, discovered by David Deutsch in 1985, is historically the first quantum algorithm
+to outperform all classical competitors.</p>
+
+<h3>The problem</h3>
+
+<p>Consider a function $f : \{0, 1\} \to \{0, 1\}$ that takes a single bit as input and
+produces a single bit as output. There are exactly four such functions:</p>
+
+<table>
+  <thead><tr><th>Function</th><th>$f(0)$</th><th>$f(1)$</th><th>Type</th></tr></thead>
+  <tbody>
+    <tr><td>$f_1$</td><td>0</td><td>0</td><td>Constant</td></tr>
+    <tr><td>$f_2$</td><td>1</td><td>1</td><td>Constant</td></tr>
+    <tr><td>$f_3$</td><td>0</td><td>1</td><td>Balanced</td></tr>
+    <tr><td>$f_4$</td><td>1</td><td>0</td><td>Balanced</td></tr>
+  </tbody>
+</table>
+
+<p>A function is <strong>constant</strong> if it gives the same output for every input, and
+<strong>balanced</strong> if it gives 0 for half the inputs and 1 for the other half (for a
+one-bit function, that means $f(0) \neq f(1)$). The task: determine whether $f$ is constant
+or balanced.</p>
+
+<h3>Classical solution</h3>
+
+<p>Classically, you must evaluate $f$ on both inputs: first query $f(0)$, then query $f(1)$,
+and compare. That requires <strong>2 queries</strong>. There is no shortcut - with only one
+query, you learn $f(0)$ or $f(1)$ but cannot compare them.</p>
+
+<h3>Quantum solution: 1 query</h3>
+
+<p>Deutsch's algorithm determines whether $f$ is constant or balanced using a single query.
+The circuit is:</p>
+
+<ol>
+  <li>Prepare two qubits: the input qubit in $|0\rangle$ and the ancilla in $|1\rangle$.</li>
+  <li>Apply $H$ to both qubits. The input becomes $|+\rangle = \frac{1}{\sqrt{2}}(|0\rangle + |1\rangle)$ and the ancilla becomes $|-\rangle = \frac{1}{\sqrt{2}}(|0\rangle - |1\rangle)$.</li>
+  <li>Apply the oracle $U_f$.</li>
+  <li>Apply $H$ to the input qubit.</li>
+  <li>Measure the input qubit.</li>
+</ol>
+
+<h3>Step-by-step derivation</h3>
+
+<p><strong>After step 2</strong> (Hadamards on both qubits):</p>
+
+$$|+\rangle|-\rangle = \frac{1}{2}(|0\rangle + |1\rangle)(|0\rangle - |1\rangle)$$
+
+<p><strong>After step 3</strong> (oracle application). Using phase kickback, $U_f|x\rangle|-\rangle = (-1)^{f(x)}|x\rangle|-\rangle$:</p>
+
+$$\frac{1}{\sqrt{2}}\big((-1)^{f(0)}|0\rangle + (-1)^{f(1)}|1\rangle\big) \otimes |-\rangle$$
+
+<p>Factor out $(-1)^{f(0)}$ from the input register:</p>
+
+$$(-1)^{f(0)} \cdot \frac{1}{\sqrt{2}}\big(|0\rangle + (-1)^{f(0) \oplus f(1)}|1\rangle\big) \otimes |-\rangle$$
+
+<p>Now there are two cases:</p>
+
+<ul>
+  <li>If $f$ is <strong>constant</strong>, then $f(0) \oplus f(1) = 0$, so the input qubit is in state $|+\rangle$.</li>
+  <li>If $f$ is <strong>balanced</strong>, then $f(0) \oplus f(1) = 1$, so the input qubit is in state $|-\rangle$.</li>
+</ul>
+
+<p><strong>After step 4</strong> (Hadamard on input qubit): Since $H|+\rangle = |0\rangle$ and $H|-\rangle = |1\rangle$:</p>
+
+<ul>
+  <li>Constant: input qubit is $|0\rangle$.</li>
+  <li>Balanced: input qubit is $|1\rangle$.</li>
+</ul>
+
+<p><strong>Step 5</strong> (measurement): Measuring the input qubit gives 0 for constant and 1 for
+balanced - with certainty, in a single query.</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>Deutsch's algorithm uses superposition to query $f$ on both inputs simultaneously, and
+  interference (via the final Hadamard) to extract the global property $f(0) \oplus f(1)$
+  from a single oracle call. The answer is encoded in the relative phase between $|0\rangle$
+  and $|1\rangle$, which the Hadamard converts into a measurable basis state.</p>
+</div>
+
+<h3>Try it: constant oracle</h3>
+
+<p>Here is Deutsch's algorithm with the constant oracle $f(x) = 0$. This oracle does nothing
+to the ancilla (the identity), so the input qubit should measure as $|0\rangle$ every time,
+indicating "constant."</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="11">OPENQASM 3.0;
+qubit[2] q;
+bit[1] c;
+gate oracle_const q0, q1 {
+}
+x q[1];
+h q[0];
+h q[1];
+oracle_const q[0], q[1];
+h q[0];
+c[0] = measure q[0];</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>You should see outcome 0 with 100% probability. The algorithm correctly identifies the
+oracle as constant.</p>
+
+<p>What about the other constant function, $f(x) = 1$? Try modifying the oracle above to
+include <code>x q1;</code> inside the gate body. The X gate flips the ancilla unconditionally,
+implementing $f(x) = 1$. You should still see outcome 0 - because both constant functions
+produce the same result (constant), the algorithm does not distinguish between $f(x) = 0$
+and $f(x) = 1$. It only detects whether $f$ is constant or balanced.</p>
+
+<h3>Try it: balanced oracle</h3>
+
+<p>Now try Deutsch's algorithm with the balanced oracle $f(x) = x$. This oracle is just a
+CNOT gate. The input qubit should measure as $|1\rangle$ every time, indicating "balanced."</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="12">OPENQASM 3.0;
+qubit[2] q;
+bit[1] c;
+gate oracle_bal q0, q1 {
+  cx q0, q1;
+}
+x q[1];
+h q[0];
+h q[1];
+oracle_bal q[0], q[1];
+h q[0];
+c[0] = measure q[0];</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>You should see outcome 1 with 100% probability. One query was enough to determine that
+this function is balanced.</p>
+
+<div class="callout callout-warning">
+  <strong>Common Misconception.</strong>
+  <p>Quantum parallelism does not mean the quantum computer "evaluates $f$ on all inputs and
+  reads all the answers." The superposition collapses to a single outcome upon measurement.
+  The power comes from <em>interference</em>: the Hadamard gate at the end causes the
+  amplitudes for different inputs to constructively or destructively interfere, concentrating
+  probability on the answer that encodes the global property we care about.</p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="deutsch-jozsa">
+<h2>9.3 Deutsch-Jozsa: Scaling Up</h2>
+
+<p>Deutsch's algorithm handles a one-bit input, which is a toy problem. In 1992, David
+Deutsch and Richard Jozsa generalized it to $n$-bit inputs, producing the first demonstration
+of an <em>exponential</em> quantum speedup in the oracle model.</p>
+
+<h3>The problem</h3>
+
+<p>Given a function $f : \{0, 1\}^n \to \{0, 1\}$, promised to be either:</p>
+<ul>
+  <li><strong>Constant</strong>: $f(x) = 0$ for all $x$, or $f(x) = 1$ for all $x$.</li>
+  <li><strong>Balanced</strong>: $f(x) = 0$ for exactly half the inputs, and $f(x) = 1$ for the other half.</li>
+</ul>
+<p>Determine which type $f$ is.</p>
+
+<h3>Classical query complexity</h3>
+
+<p>A deterministic classical algorithm needs up to $2^{n-1} + 1$ queries in the worst case.
+To see why: after querying $2^{n-1}$ inputs and finding them all returning the same value,
+$f$ could still be balanced (the other half could return the opposite value). One more query
+is needed to break the tie. This is exponential in $n$.</p>
+
+<div class="callout callout-info">
+  <strong>Note.</strong>
+  <p>A <em>probabilistic</em> classical algorithm can solve this much more efficiently: just
+  query $f$ on a few random inputs. If you see two different output values, $f$ is balanced.
+  After $k$ queries that all return the same value, the probability that $f$ is balanced is
+  at most $2^{1-k}$. But the Deutsch-Jozsa problem asks for <em>certainty</em>, and for
+  deterministic algorithms the exponential lower bound stands.</p>
+</div>
+
+<h3>The quantum circuit</h3>
+
+<p>The Deutsch-Jozsa algorithm uses exactly the same structure as Deutsch's algorithm, scaled
+to $n$ input qubits:</p>
+
+<ol>
+  <li>Prepare $n$ input qubits in $|0\rangle^{\otimes n}$ and one ancilla in $|1\rangle$.</li>
+  <li>Apply $H$ to all $n+1$ qubits.</li>
+  <li>Apply the oracle $U_f$.</li>
+  <li>Apply $H$ to the $n$ input qubits.</li>
+  <li>Measure the $n$ input qubits.</li>
+</ol>
+
+<h3>Why it works</h3>
+
+<p>After the Hadamards in step 2, the input register is in the uniform superposition:</p>
+
+$$\frac{1}{\sqrt{2^n}} \sum_{x=0}^{2^n - 1} |x\rangle$$
+
+<p>After the oracle (using phase kickback), this becomes:</p>
+
+$$\frac{1}{\sqrt{2^n}} \sum_{x=0}^{2^n - 1} (-1)^{f(x)} |x\rangle$$
+
+<p>After applying $H^{\otimes n}$ to the input register, the amplitude of the all-zeros state
+$|0\rangle^{\otimes n}$ is:</p>
+
+$$\frac{1}{2^n} \sum_{x=0}^{2^n - 1} (-1)^{f(x)}$$
+
+<p>If $f$ is constant, all $2^n$ terms $(-1)^{f(x)}$ are equal (all $+1$ or all $-1$), and
+the magnitude of this sum is $|\pm 2^n / 2^n| = 1$.
+The probability of measuring $|00\ldots0\rangle$ is $1$.</p>
+
+<p>If $f$ is balanced, exactly $2^{n-1}$ terms are $+1$ and $2^{n-1}$ are $-1$. The sum
+cancels to 0, so the probability of measuring $|00\ldots0\rangle$ is $0$. In fact, the
+amplitudes for all other basis states are guaranteed to be nonzero (by normalization), so
+measurement will always yield a string other than all zeros.</p>
+
+<p>The decision rule is therefore simple: if the measurement result is $|00\ldots0\rangle$,
+output "constant"; otherwise, output "balanced." This is deterministic and requires just
+one oracle query.</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>The Deutsch-Jozsa algorithm is the first example of an exponential quantum speedup (in the
+  deterministic oracle model). Classical: $2^{n-1} + 1$ queries. Quantum: exactly 1 query.
+  The mechanism is the same as Deutsch's algorithm: phase kickback encodes $f(x)$ into phases,
+  and Hadamard interference extracts a global property of $f$.</p>
+</div>
+
+<h3>Try it: 2-bit balanced oracle</h3>
+
+<p>Here is the Deutsch-Jozsa algorithm for $n = 2$ with a balanced oracle that computes
+$f(x_0, x_1) = x_0 \oplus x_1$. This function outputs 0 on inputs 00 and 11, and outputs 1
+on inputs 01 and 10 - perfectly balanced. Since $f$ is balanced, the measurement should
+never produce the all-zeros outcome $|00\rangle$.</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="15">OPENQASM 3.0;
+qubit[3] q;
+bit[2] c;
+gate balanced_oracle q0, q1, anc {
+  cx q0, anc;
+  cx q1, anc;
+}
+x q[2];
+h q[0];
+h q[1];
+h q[2];
+balanced_oracle q[0], q[1], q[2];
+h q[0];
+h q[1];
+c[0] = measure q[0];
+c[1] = measure q[1];</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>You should see the outcome $|11\rangle$ with 100% probability - never $|00\rangle$.
+The algorithm correctly identifies the function as balanced.</p>
+
+<h3>Exercise: build a Deutsch-Jozsa circuit</h3>
+
+<p>Below is a Deutsch-Jozsa circuit template for $n = 2$. The oracle is already defined for you:
+it computes $f(x_0, x_1) = x_0$ (balanced - outputs 0 on half the inputs and 1 on the other half).
+Complete the circuit by adding the Hadamard gates and measurement. If your circuit is correct,
+the measurement result will never be $|00\rangle$.</p>
+
+<div class="exercise" data-component="exercise">
+  <div class="exercise-header">Exercise 9.1: Complete a Deutsch-Jozsa Circuit</div>
+  <div class="exercise-prompt">
+    <p>Fill in the missing gates to complete the Deutsch-Jozsa algorithm. The oracle
+    <code>dj_oracle</code> computes $f(x_0, x_1) = x_0$. You need to: (1) prepare the
+    ancilla in $|1\rangle$, (2) apply Hadamards before the oracle, (3) apply Hadamards
+    to the input qubits after the oracle, and (4) measure the input qubits. The expected
+    outcome is $|10\rangle$ with 100% probability.</p>
+  </div>
+  <textarea class="code" rows="14">OPENQASM 3.0;
+qubit[3] q;
+bit[2] c;
+gate dj_oracle q0, q1, anc {
+  cx q0, anc;
+}
+// Prepare ancilla and apply Hadamards
+
+// Apply the oracle
+dj_oracle q[0], q[1], q[2];
+// Apply Hadamards to input qubits and measure
+</textarea>
+  <div class="exercise-expected">
+    <span data-state="10" data-prob="1.0" data-tolerance="0.05"></span>
+  </div>
+  <div class="exercise-hint" style="display:none">
+    <p>Before the oracle: <code>x q[2]; h q[0]; h q[1]; h q[2];</code>. After the oracle:
+    <code>h q[0]; h q[1];</code>. Then measure both input qubits into the classical bits.</p>
+  </div>
+  <div class="exercise-controls">
+    <button data-action="check">Check</button>
+    <button data-action="hint">Hint</button>
+  </div>
+  <div class="exercise-feedback"></div>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="bernstein-vazirani">
+<h2>9.4 Bernstein-Vazirani: Finding Hidden Strings</h2>
+
+<p>The Deutsch-Jozsa algorithm answers a yes/no question about $f$. The Bernstein-Vazirani
+algorithm (1997) goes further: it <em>extracts specific information</em> from the oracle in
+a single query.</p>
+
+<h3>The problem</h3>
+
+<p>You are given an oracle that computes $f(x) = s \cdot x \pmod{2}$, where $s$ is a secret
+$n$-bit string and $s \cdot x = s_0 x_0 \oplus s_1 x_1 \oplus \cdots \oplus s_{n-1} x_{n-1}$
+is the bitwise inner product modulo 2. Your task: find $s$.</p>
+
+<h3>Classical query complexity</h3>
+
+<p>Classically, each query reveals one bit of $s$. To find all $n$ bits, you need $n$ queries
+(you can query $f$ on each standard basis vector $e_i = 00\ldots010\ldots0$ with a 1 in
+position $i$, and $f(e_i) = s_i$). This is optimal - you cannot do better than $n$ queries
+classically.</p>
+
+<h3>Quantum: 1 query</h3>
+
+<p>The Bernstein-Vazirani circuit is <em>identical</em> to the Deutsch-Jozsa circuit. The
+only difference is the oracle and what we measure:</p>
+
+<ol>
+  <li>Prepare $|0\rangle^{\otimes n}|1\rangle$.</li>
+  <li>Apply $H$ to all $n+1$ qubits.</li>
+  <li>Apply the oracle $U_f$.</li>
+  <li>Apply $H^{\otimes n}$ to the input qubits.</li>
+  <li>Measure the input qubits. The result is $s$.</li>
+</ol>
+
+<h3>Why it works</h3>
+
+<p>After the oracle with phase kickback, the input register is in the state:</p>
+
+$$\frac{1}{\sqrt{2^n}} \sum_{x} (-1)^{s \cdot x} |x\rangle$$
+
+<p>Applying $H^{\otimes n}$ transforms this into $|s\rangle$. This follows from the identity:</p>
+
+$$H^{\otimes n} \left( \frac{1}{\sqrt{2^n}} \sum_{x} (-1)^{s \cdot x} |x\rangle \right) = |s\rangle$$
+
+<p>which holds because the $n$-qubit Hadamard acts as $H^{\otimes n}|y\rangle = \frac{1}{\sqrt{2^n}} \sum_x (-1)^{x \cdot y}|x\rangle$, and the Hadamard is its own inverse ($H^2 = I$). The state after the oracle is exactly $H^{\otimes n}|s\rangle$, so applying $H^{\otimes n}$ again yields $|s\rangle$.</p>
+
+<p>More explicitly, the amplitude of basis state $|z\rangle$ after the final Hadamard layer is:</p>
+
+$$\langle z | H^{\otimes n} \left( \frac{1}{\sqrt{2^n}} \sum_{x} (-1)^{s \cdot x} |x\rangle \right) = \frac{1}{2^n} \sum_x (-1)^{s \cdot x + z \cdot x} = \frac{1}{2^n} \sum_x (-1)^{(s \oplus z) \cdot x}$$
+
+<p>When $z = s$, every term in the sum equals $(-1)^0 = 1$, giving amplitude $2^n / 2^n = 1$.
+When $z \neq s$, the exponent $(s \oplus z) \cdot x$ takes values 0 and 1 equally often
+over all $x$, and the sum cancels to 0. So the only state with nonzero amplitude is $|s\rangle$.</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>The Bernstein-Vazirani algorithm finds an $n$-bit secret string with 1 query instead
+  of $n$. The circuit is identical to Deutsch-Jozsa - what changes is the problem and oracle.
+  This highlights that the Hadamard-oracle-Hadamard pattern is a general-purpose technique
+  for extracting information from phase oracles.</p>
+</div>
+
+<h3>Building the oracle</h3>
+
+<p>The oracle for $f(x) = s \cdot x \pmod{2}$ is straightforward: for each bit $s_i = 1$,
+apply a CNOT from input qubit $i$ to the ancilla. For example, if $s = 101$, the oracle is:</p>
+
+<pre><code>gate bv_oracle q0, q1, q2, anc {
+  cx q0, anc;
+  cx q2, anc;
+}</code></pre>
+
+<p>Each CNOT contributes $x_i$ to the XOR sum in the ancilla, which (via phase kickback)
+becomes $(-1)^{s \cdot x}$ in the phase.</p>
+
+<h3>Try it: 3-bit secret string $s = 101$</h3>
+
+<p>Run the Bernstein-Vazirani algorithm to find the secret string $s = 101$. You should
+see the measurement outcome $|101\rangle$ with 100% probability.</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="16">OPENQASM 3.0;
+qubit[4] q;
+bit[3] c;
+gate bv_oracle q0, q1, q2, anc {
+  cx q0, anc;
+  cx q2, anc;
+}
+x q[3];
+h q[0];
+h q[1];
+h q[2];
+h q[3];
+bv_oracle q[0], q[1], q[2], q[3];
+h q[0];
+h q[1];
+h q[2];
+c[0] = measure q[0];
+c[1] = measure q[1];
+c[2] = measure q[2];</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>The measurement yields $|101\rangle$ with certainty - the secret string revealed in a single
+query. A classical algorithm would need 3 separate queries.</p>
+
+<div class="callout callout-info">
+  <strong>Note.</strong>
+  <p>Try modifying the oracle to encode a different secret string. For $s = 110$, change
+  the oracle to apply CNOT from <code>q0</code> and <code>q1</code> to the ancilla. For
+  $s = 111$, apply CNOT from all three input qubits. The measurement will always reveal the
+  secret string directly.</p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="simon">
+<h2>9.5 Simon's Algorithm: Exponential Separation</h2>
+
+<p>The algorithms so far have demonstrated quantum advantages in the oracle model, but some
+of those advantages vanish when probabilistic classical algorithms are allowed (as with
+Deutsch-Jozsa). Simon's algorithm, published by Daniel Simon in 1994, achieves something
+stronger: an exponential speedup over <em>all</em> classical algorithms, including
+probabilistic ones. It is also historically significant as the direct inspiration for Shor's
+factoring algorithm.</p>
+
+<h3>The problem</h3>
+
+<p>Given a function $f : \{0,1\}^n \to \{0,1\}^n$ with the promise that there exists a
+secret string $s \in \{0,1\}^n$ such that for all $x, y$:</p>
+
+$$f(x) = f(y) \iff x \oplus y \in \{0^n, s\}$$
+
+<p>In other words, $f(x) = f(x \oplus s)$ for all $x$, and $f$ is otherwise one-to-one.
+If $s = 0^n$, then $f$ is a one-to-one function. If $s \neq 0^n$, then $f$ is exactly
+two-to-one, with each pair of colliding inputs differing by $s$. The task: find $s$.</p>
+
+<h3>Classical query complexity</h3>
+
+<p>Any classical algorithm - deterministic or probabilistic - requires $\Omega(2^{n/2})$
+queries. The intuition comes from the birthday paradox: to find a collision $f(x) = f(y)$
+with $x \neq y$ (which reveals $s = x \oplus y$), you need to evaluate $f$ on roughly
+$\sqrt{2^n} = 2^{n/2}$ inputs before a collision becomes likely.</p>
+
+<h3>Quantum: O(n) queries</h3>
+
+<p>Simon's algorithm finds $s$ using only $O(n)$ oracle queries. The algorithm has a
+quantum subroutine that is repeated $O(n)$ times, followed by classical post-processing.</p>
+
+<h3>The quantum subroutine</h3>
+
+<p>Each iteration of the quantum subroutine works as follows:</p>
+
+<ol>
+  <li>Prepare two $n$-qubit registers, both initialized to $|0\rangle^{\otimes n}$.</li>
+  <li>Apply $H^{\otimes n}$ to the first register.</li>
+  <li>Apply the oracle: $|x\rangle|0\rangle \to |x\rangle|f(x)\rangle$.</li>
+  <li>Apply $H^{\otimes n}$ to the first register.</li>
+  <li>Measure the first register. The result is a string $y$ satisfying $y \cdot s = 0 \pmod{2}$.</li>
+</ol>
+
+<h3>Why it works</h3>
+
+<p>After step 2, the state is:</p>
+
+$$\frac{1}{\sqrt{2^n}} \sum_{x} |x\rangle |0\rangle^{\otimes n}$$
+
+<p>After step 3 (oracle application):</p>
+
+$$\frac{1}{\sqrt{2^n}} \sum_{x} |x\rangle |f(x)\rangle$$
+
+<p>Because $f(x) = f(x \oplus s)$, the terms with the same $f$-value pair up. If we consider
+the state conditioned on the second register having some value $f(x_0)$, the first register
+is in the state $\frac{1}{\sqrt{2}}(|x_0\rangle + |x_0 \oplus s\rangle)$. (When $s = 0^n$,
+the state is simply $|x_0\rangle$ with no pairing.)</p>
+
+<p>After step 4, applying $H^{\otimes n}$ to the first register, the amplitude for measuring
+outcome $y$ in the first register involves the sum:</p>
+
+$$\frac{1}{\sqrt{2}} \left( (-1)^{y \cdot x_0} + (-1)^{y \cdot (x_0 \oplus s)} \right) = \frac{(-1)^{y \cdot x_0}}{\sqrt{2}} \left( 1 + (-1)^{y \cdot s} \right)$$
+
+<p>This is nonzero only when $(-1)^{y \cdot s} = 1$, i.e., when $y \cdot s = 0 \pmod{2}$.
+So every measurement outcome $y$ satisfies the constraint $y \cdot s \equiv 0 \pmod{2}$.</p>
+
+<h3>Classical post-processing</h3>
+
+<p>After repeating the quantum subroutine $O(n)$ times, we collect $n - 1$ linearly
+independent equations of the form $y_i \cdot s = 0 \pmod{2}$. This is a system of linear
+equations over $\mathbb{F}_2$ (the field with two elements), which can be solved efficiently
+by Gaussian elimination to find $s$.</p>
+
+<p>For a concrete example with $n = 3$ and $s = 110$: suppose the quantum subroutine
+produces the outcomes $y_1 = 001$ and $y_2 = 110$. These give us the constraints:</p>
+
+<ul>
+  <li>$y_1 \cdot s = 0 \cdot s_0 + 0 \cdot s_1 + 1 \cdot s_2 = s_2 = 0 \pmod{2}$</li>
+  <li>$y_2 \cdot s = 1 \cdot s_0 + 1 \cdot s_1 + 0 \cdot s_2 = s_0 \oplus s_1 = 0 \pmod{2}$</li>
+</ul>
+
+<p>From the first equation, $s_2 = 0$. From the second, $s_0 = s_1$. Combined with
+the knowledge that $s \neq 000$ (since $f$ is two-to-one, not one-to-one), we get
+$s = 110$. Two quantum queries plus classical linear algebra recovered the secret period.</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>Simon's algorithm achieves an exponential quantum speedup: $O(n)$ quantum queries
+  versus $\Omega(2^{n/2})$ classical queries. Unlike Deutsch-Jozsa, this separation holds
+  even against probabilistic classical algorithms. Each quantum query produces a linear
+  constraint on the secret string $s$, and $O(n)$ constraints suffice to determine $s$
+  uniquely via Gaussian elimination.</p>
+</div>
+
+<h3>Connection to Shor's algorithm</h3>
+
+<p>Simon's algorithm was the direct inspiration for Shor's factoring algorithm (Chapter 11).
+Both algorithms share the same high-level structure:</p>
+
+<ol>
+  <li>Use quantum superposition to evaluate a function on all inputs simultaneously.</li>
+  <li>The function has a hidden periodic structure (for Simon: $f(x) = f(x \oplus s)$; for Shor: $f(x) = a^x \bmod N$ is periodic).</li>
+  <li>Apply a quantum transform to the input register to extract information about the period.</li>
+  <li>Use classical post-processing to determine the period from the quantum measurement results.</li>
+</ol>
+
+<p>The key difference is that Simon's problem has an abelian group structure over $\mathbb{Z}_2^n$ (XOR), while Shor's problem has a cyclic group structure over $\mathbb{Z}_r$. This led Shor to replace the Hadamard transform (the Fourier transform over $\mathbb{Z}_2^n$) with the Quantum Fourier Transform (the Fourier transform over $\mathbb{Z}_N$), which you will study in Chapter 10. Both are instances of the <strong>hidden subgroup problem</strong>, a unifying framework discussed further in Chapter 31.</p>
+
+<div class="callout callout-info">
+  <strong>Historical note.</strong>
+  <p>Daniel Simon published his algorithm in 1994, one year before Shor's famous result.
+  Shor has acknowledged that Simon's work was a key inspiration. The progression from
+  Deutsch (1985) to Deutsch-Jozsa (1992) to Simon (1994) to Shor (1994) shows how each
+  algorithm built on its predecessors, and how the concepts in this chapter lead directly
+  to the most practically important quantum algorithm ever discovered.</p>
+</div>
+
+<h3>Constructing a Simon oracle</h3>
+
+<p>Building an oracle for Simon's problem is more involved than for previous algorithms because
+$f$ maps $n$ bits to $n$ bits and must satisfy $f(x) = f(x \oplus s)$ for a given secret $s$.
+A standard construction works in two steps:</p>
+
+<ol>
+  <li>Copy the input register to the output register (using CNOT gates): this computes $f(x) = x$.</li>
+  <li>Pick any bit position $i$ where $s_i = 1$. Conditioned on $x_i = 1$, XOR $s$ into the output register.</li>
+</ol>
+
+<p>This gives $f(x) = x$ when $x_i = 0$, and $f(x) = x \oplus s$ when $x_i = 1$. Since
+$x$ and $x \oplus s$ always differ in bit $i$ (because $s_i = 1$), the two cases partition
+all inputs into pairs with $f(x) = f(x \oplus s)$, exactly as Simon's promise requires.</p>
+
+<p>For $s = 11$ with $n = 2$, we can build a compact oracle. We need $f(00) = f(11)$ and
+$f(01) = f(10)$. A valid function is $f(x_0 x_1) = (0, x_0 \oplus x_1)$:</p>
+
+<table class="state-table">
+  <thead><tr><th>$x$</th><th>$f(x)$</th><th>Collision partner</th></tr></thead>
+  <tbody>
+    <tr><td>00</td><td>00</td><td>$f(00) = f(11) = 00$</td></tr>
+    <tr><td>01</td><td>01</td><td>$f(01) = f(10) = 01$</td></tr>
+    <tr><td>10</td><td>01</td><td>$f(10) = f(01) = 01$</td></tr>
+    <tr><td>11</td><td>00</td><td>$f(11) = f(00) = 00$</td></tr>
+  </tbody>
+</table>
+
+<p>Indeed, $f(00) = f(11) = 00$ and $f(01) = f(10) = 01$, with $00 \oplus 11 = 01 \oplus 10 = 11 = s$.
+The oracle circuit computes $\text{out}_1 = x_0 \oplus x_1$ using two CNOT gates and leaves
+$\text{out}_0 = 0$.</p>
+
+<p>Let us run Simon's algorithm for $n = 2$ with this oracle. Each run of the quantum
+subroutine produces a string $y$ with $y \cdot s = 0 \pmod{2}$. For $s = 11$, the constraint
+$y_0 \oplus y_1 = 0$ means we should see only $|00\rangle$ and $|11\rangle$ in the first
+register.</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="16">OPENQASM 3.0;
+qubit[4] q;
+bit[2] c;
+gate simon_oracle q0, q1, out0, out1 {
+  cx q0, out1;
+  cx q1, out1;
+}
+h q[0];
+h q[1];
+simon_oracle q[0], q[1], q[2], q[3];
+h q[0];
+h q[1];
+c[0] = measure q[0];
+c[1] = measure q[1];</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>The oracle applies two CNOTs to compute $\text{out}_1 = x_0 \oplus x_1$, which implements
+the function from the truth table. Note that Simon's algorithm does not use phase kickback
+like the previous algorithms - it uses the standard oracle that writes $f(x)$ into the
+output register. The entanglement between input and output registers, combined with the
+Hadamard transform, produces the linear constraints on $s$.</p>
+
+<p>You should see approximately 50% $|00\rangle$ and 50% $|11\rangle$ in the measurement.
+The outcome $|11\rangle$ tells us $y = 11$, which satisfies $y \cdot s = 1 \oplus 1 = 0$ for
+$s = 11$. The outcome $|00\rangle$ is the trivial solution $0 \cdot s = 0$ and provides
+no information. After collecting the nontrivial constraint $y = 11$ (meaning $s_0 \oplus s_1 = 0$,
+so $s_0 = s_1$), we know $s \in \{00, 11\}$. Since the function is two-to-one (not one-to-one),
+$s \neq 00$, giving us $s = 11$.</p>
+
+<p>In general, for $n$-bit Simon's problem, we would repeat the quantum subroutine until we
+collect $n - 1$ linearly independent constraint vectors, then solve the resulting linear
+system. For $n = 2$, a single nontrivial measurement suffices.</p>
+
+<h3>Summary of oracle algorithms</h3>
+
+<p>The following table summarizes the four algorithms covered in this chapter:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Algorithm</th>
+      <th>Problem</th>
+      <th>Classical queries</th>
+      <th>Quantum queries</th>
+      <th>Speedup type</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Deutsch</td>
+      <td>Is $f:\{0,1\}\to\{0,1\}$ constant or balanced?</td>
+      <td>2</td>
+      <td>1</td>
+      <td>Constant factor</td>
+    </tr>
+    <tr>
+      <td>Deutsch-Jozsa</td>
+      <td>Is $f:\{0,1\}^n\to\{0,1\}$ constant or balanced?</td>
+      <td>$2^{n-1}+1$</td>
+      <td>1</td>
+      <td>Exponential (deterministic)</td>
+    </tr>
+    <tr>
+      <td>Bernstein-Vazirani</td>
+      <td>Find $s$ where $f(x) = s \cdot x \pmod{2}$</td>
+      <td>$n$</td>
+      <td>1</td>
+      <td>Linear-to-constant</td>
+    </tr>
+    <tr>
+      <td>Simon</td>
+      <td>Find $s$ where $f(x) = f(x \oplus s)$</td>
+      <td>$\Omega(2^{n/2})$</td>
+      <td>$O(n)$</td>
+      <td>Exponential (even probabilistic)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>All four algorithms share the same core structure: prepare a superposition, apply the oracle
+(with phase kickback), apply Hadamard transforms, and measure. The pattern
+$H^{\otimes n} \to U_f \to H^{\otimes n} \to \text{Measure}$ is the prototype for all oracle-based
+quantum algorithms.</p>
+
+<h3>Looking ahead</h3>
+
+<p>The algorithms in this chapter reveal the fundamental toolkit of quantum speedups: superposition
+allows querying a function on many inputs at once, phase kickback encodes function values into
+quantum phases, and the Hadamard transform (or more generally, a Fourier transform) converts
+phase information into measurable amplitudes through interference.</p>
+
+<p>In Chapter 10, you will study the Quantum Fourier Transform (QFT), which generalizes the
+Hadamard transform from the group $\mathbb{Z}_2^n$ to arbitrary cyclic groups $\mathbb{Z}_N$.
+This generalization is exactly what Shor needed to move from Simon's XOR-periodic functions
+to the modular arithmetic at the heart of integer factoring. Chapter 11 will then show how
+Shor's algorithm combines the QFT with modular exponentiation to break RSA encryption - a
+direct descendant of the oracle algorithms you have just mastered.</p>
+
+<p>Grover's search algorithm (Chapter 12) takes a different approach: rather than exploiting
+hidden structure in $f$, it amplifies the amplitude of a single marked item through repeated
+applications of the oracle and a "diffusion" operator. Where the algorithms in this chapter
+achieve superpolynomial speedups for structured problems, Grover achieves a quadratic speedup
+for the unstructured search problem - provably the best possible for any quantum algorithm.</p>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="dj-explorer">
+
+<h3>Interactive: Deutsch-Jozsa Explorer</h3>
+<p>
+  Use Goqu's built-in Deutsch-Jozsa implementation to explore how the algorithm scales.
+  No matter how many qubits you use, the algorithm determines whether the oracle is
+  constant or balanced with just <strong>one query</strong>.
+</p>
+<div class="widget" id="dj-widget">
+  <div class="widget-header">Deutsch-Jozsa Algorithm</div>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label>Qubits: <select id="dj-qubits"><option>2</option><option>3</option><option selected>4</option><option>5</option></select></label>
+    <label>Oracle: <select id="dj-oracle"><option value="constant">Constant</option><option value="balanced" selected>Balanced</option></select></label>
+    <button onclick="runDJ()">Run</button>
+  </div>
+  <div class="widget-output" id="dj-output"></div>
+</div>
+<script>
+async function runDJ() {
+  await ensureWasm();
+  var nq = document.getElementById('dj-qubits').value;
+  var oracle = document.getElementById('dj-oracle').value;
+  var out = document.getElementById('dj-output');
+  out.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+  await new Promise(r => setTimeout(r, 0));
+  try {
+    var r = JSON.parse(window.runOracleAlgorithm("deutsch_jozsa", nq, oracle, 1024, isDark()));
+    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+    out.innerHTML = (r.circuitSVG||'') + (r.histogramSVG||'');
+    if (r.result) out.innerHTML += '<p><strong>Result:</strong> ' + esc(r.result) + '</p>';
+    if (r.qasmCode) out.innerHTML += '<details><summary>Generated QASM</summary><pre>' + esc(r.qasmCode) + '</pre></details>';
+  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+}
+</script>
+
+<h3>Interactive: Bernstein-Vazirani Explorer</h3>
+<p>
+  Bernstein-Vazirani's algorithm recovers a secret bitstring $s$ hidden inside an oracle
+  $f(x) = s \cdot x \pmod{2}$ using just <strong>one query</strong>. Enter a secret
+  number below (interpreted as a binary string) and watch the algorithm recover it.
+</p>
+<div class="widget" id="bv-widget">
+  <div class="widget-header">Bernstein-Vazirani Algorithm</div>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label>Qubits: <select id="bv-qubits"><option>2</option><option>3</option><option selected>4</option><option>5</option></select></label>
+    <label>Secret (decimal): <input type="number" id="bv-secret" value="5" min="0" max="31" style="width:4rem"></label>
+    <button onclick="runBV()">Run</button>
+  </div>
+  <div class="widget-output" id="bv-output"></div>
+</div>
+<script>
+async function runBV() {
+  await ensureWasm();
+  var nq = document.getElementById('bv-qubits').value;
+  var secret = document.getElementById('bv-secret').value;
+  var out = document.getElementById('bv-output');
+  out.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+  await new Promise(r => setTimeout(r, 0));
+  try {
+    var r = JSON.parse(window.runOracleAlgorithm("bernstein_vazirani", nq, secret, 1024, isDark()));
+    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+    out.innerHTML = (r.circuitSVG||'') + (r.histogramSVG||'');
+    if (r.result) out.innerHTML += '<p><strong>Result:</strong> ' + esc(r.result) + '</p>';
+    if (r.qasmCode) out.innerHTML += '<details><summary>Generated QASM</summary><pre>' + esc(r.qasmCode) + '</pre></details>';
+  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+}
+</script>
+
+<h3>Interactive: Simon's Algorithm Explorer</h3>
+<p>
+  Simon's algorithm finds a hidden period $s$ such that $f(x) = f(x \oplus s)$ for a
+  two-to-one function. It requires multiple queries but exponentially fewer than any
+  classical algorithm. Select a secret period below.
+</p>
+<div class="widget" id="simon-widget">
+  <div class="widget-header">Simon's Algorithm</div>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label>Qubits: <select id="simon-qubits"><option>2</option><option selected>3</option></select></label>
+    <label>Secret period (decimal): <input type="number" id="simon-secret" value="3" min="1" max="7" style="width:4rem"></label>
+    <button onclick="runSimon()">Run</button>
+  </div>
+  <div class="widget-output" id="simon-output"></div>
+</div>
+<script>
+async function runSimon() {
+  await ensureWasm();
+  var nq = document.getElementById('simon-qubits').value;
+  var secret = document.getElementById('simon-secret').value;
+  var out = document.getElementById('simon-output');
+  out.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+  await new Promise(r => setTimeout(r, 0));
+  try {
+    var r = JSON.parse(window.runOracleAlgorithm("simon", nq, secret, 1024, isDark()));
+    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+    out.innerHTML = (r.circuitSVG||'') + (r.histogramSVG||'');
+    if (r.result) out.innerHTML += '<p><strong>Result:</strong> ' + esc(r.result) + '</p>';
+    if (r.qasmCode) out.innerHTML += '<details><summary>Generated QASM</summary><pre>' + esc(r.qasmCode) + '</pre></details>';
+  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+}
+</script>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="review">
+<h2>Chapter 9 Review</h2>
+
+<div class="flashcard-deck" data-component="flashcard-deck">
+  <div class="flashcard-deck-header">Chapter 9 Review</div>
+
+  <div class="flashcard" data-card-id="ch09-oracle-model">
+    <div class="card-front">What is a quantum oracle, and what is query complexity?</div>
+    <div class="card-back">A quantum oracle $U_f$ is a unitary gate that computes a classical function reversibly: $U_f|x\rangle|y\rangle = |x\rangle|y \oplus f(x)\rangle$. Query complexity measures the minimum number of oracle calls needed to determine some property of $f$. It ignores the cost of other operations and focuses solely on how many times the black box must be accessed.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch09-phase-kickback">
+    <div class="card-front">What is phase kickback and how does it convert a standard oracle into a phase oracle?</div>
+    <div class="card-back">When the ancilla qubit is prepared in $|-\rangle = \frac{1}{\sqrt{2}}(|0\rangle - |1\rangle)$, applying the standard oracle $U_f$ produces $(-1)^{f(x)}|x\rangle|-\rangle$. The function value is "kicked back" as a phase on the input register. The ancilla is unchanged. This converts a bit oracle into a phase oracle without any additional gates.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch09-deutsch">
+    <div class="card-front">What problem does Deutsch's algorithm solve, and what is its quantum advantage?</div>
+    <div class="card-back">Deutsch's algorithm determines whether a function $f:\{0,1\}\to\{0,1\}$ is constant or balanced. Classically, 2 queries are needed. Quantum mechanically, 1 query suffices. The circuit applies Hadamards, the oracle with phase kickback, and a final Hadamard. The measurement outcome (0 = constant, 1 = balanced) encodes the answer with certainty.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch09-deutsch-jozsa">
+    <div class="card-front">How does the Deutsch-Jozsa algorithm achieve an exponential speedup?</div>
+    <div class="card-back">For $f:\{0,1\}^n\to\{0,1\}$ promised constant or balanced, a deterministic classical algorithm needs $2^{n-1}+1$ queries. The quantum algorithm uses 1 query: Hadamards create a superposition over all inputs, the phase oracle tags each amplitude with $(-1)^{f(x)}$, and a final Hadamard produces constructive interference at $|0\rangle^{\otimes n}$ (constant) or destructive interference (balanced).
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch09-bernstein-vazirani">
+    <div class="card-front">What does the Bernstein-Vazirani algorithm find, and how many queries does it use?</div>
+    <div class="card-back">It finds a secret $n$-bit string $s$ hidden inside the oracle $f(x) = s \cdot x \pmod{2}$. Classically, $n$ queries are needed (one per bit). Quantum mechanically, 1 query suffices. The circuit is identical to Deutsch-Jozsa. The $n$-qubit Hadamard after the phase oracle maps $\frac{1}{\sqrt{2^n}}\sum_x (-1)^{s \cdot x}|x\rangle$ directly to $|s\rangle$.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch09-simon-problem">
+    <div class="card-front">What is Simon's problem and why is it significant?</div>
+    <div class="card-back">Given $f:\{0,1\}^n\to\{0,1\}^n$ with $f(x)=f(y) \iff x\oplus y \in \{0^n, s\}$, find $s$. It provides an exponential speedup ($O(n)$ quantum vs. $\Omega(2^{n/2})$ classical) that holds even against probabilistic classical algorithms, unlike Deutsch-Jozsa. It was the direct inspiration for Shor's factoring algorithm.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch09-simon-mechanism">
+    <div class="card-front">How does Simon's algorithm extract the secret string $s$?</div>
+    <div class="card-back">Each run of the quantum subroutine produces a random string $y$ satisfying $y \cdot s = 0 \pmod{2}$. After $O(n)$ repetitions, we collect $n-1$ linearly independent equations, which are solved via Gaussian elimination over $\mathbb{F}_2$ to uniquely determine $s$. The quantum part provides linear constraints; the classical part solves the linear system.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch09-simon-shor-connection">
+    <div class="card-front">How is Simon's algorithm connected to Shor's algorithm?</div>
+    <div class="card-back">Both find hidden periodic structure in a function. Simon's problem has periodicity under XOR ($\mathbb{Z}_2^n$), using Hadamard as the Fourier transform. Shor's problem has periodicity under addition ($\mathbb{Z}_r$), using the Quantum Fourier Transform. Both are instances of the hidden subgroup problem. Simon's algorithm (1994) directly inspired Shor's factoring algorithm (1994).
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+</section>
+
+    </article>
+
+    
+    <nav class="chapter-nav" aria-label="Chapter navigation">
+      <a href="08-cryptography.html" class="prev">&larr; Chapter 8: Quantum Cryptography</a>
+      <span class="nav-spacer"></span>
+      <a href="10-qft.html" class="next">Chapter 10: The Quantum Fourier Transform &rarr;</a>
+    </nav>
+    
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof renderMathInElement !== "undefined") {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "$", right: "$", display: false}
+          ],
+          throwOnError: false
+        });
+      }
+    });
+  </script>
+  
+  <script>
+  "use strict";
+  
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function isDark() { return window.matchMedia("(prefers-color-scheme: dark)").matches; }
+  function renderMath(el) {
+    if (typeof renderMathInElement === "function")
+      renderMathInElement(el, { delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}], throwOnError: false });
+  }
+
+  
+  var wasmReady = null;
+  function ensureWasm() {
+    if (!wasmReady) {
+      wasmReady = (async function() {
+        var go = new Go();
+        var result = await WebAssembly.instantiateStreaming(fetch("../main.wasm"), go.importObject);
+        go.run(result.instance);
+      })();
+    }
+    return wasmReady;
+  }
+
+  
+  var SRS_KEY = "goqu-srs";
+  function srsLoad() { try { return JSON.parse(localStorage.getItem(SRS_KEY) || "{}"); } catch(e) { return {}; } }
+  function srsSave(d) { localStorage.setItem(SRS_KEY, JSON.stringify(d)); }
+  function getCardState(id) { var d = srsLoad(); return d[id] || {interval:1, ease:2.5, due:0, reps:0}; }
+  function reviewCard(id, q) {
+    var d = srsLoad(), s = d[id] || {interval:1, ease:2.5, due:0, reps:0};
+    if (q >= 3) {
+      s.reps++;
+      if (s.reps === 1) s.interval = 1;
+      else if (s.reps === 2) s.interval = 6;
+      else s.interval = Math.round(s.interval * s.ease);
+      s.ease = Math.max(1.3, s.ease + 0.1 - (5-q)*(0.08 + (5-q)*0.02));
+    } else { s.reps = 0; s.interval = 1; }
+    s.due = Date.now() + s.interval * 86400000;
+    d[id] = s; srsSave(d);
+  }
+
+  
+  function initSandbox(el) {
+    var code = el.querySelector(".code"), output = el.querySelector(".output");
+    if (!code || !output) return;
+    var runBtn = el.querySelector('[data-action="run"]'), resetBtn = el.querySelector('[data-action="reset"]');
+    var shotsEl = el.querySelector("[data-shots]"), orig = code.value;
+    function shots() { return parseInt(shotsEl ? shotsEl.value : el.dataset.shots || "1024", 10); }
+    async function run() {
+      await ensureWasm();
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(code.value, shots(), isDark()));
+        if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+        output.innerHTML = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+    if (runBtn) runBtn.addEventListener("click", run);
+    if (resetBtn) resetBtn.addEventListener("click", function() { code.value = orig; });
+    if (el.hasAttribute("data-autorun")) run();
+  }
+
+  
+  function initSimulation(el) {
+    var tmplEl = el.querySelector(".sim-qasm"), output = el.querySelector(".sim-output");
+    var sliders = el.querySelectorAll('input[type="range"]');
+    var selects = el.querySelectorAll("select[data-param]");
+    if (!tmplEl || !output || (sliders.length === 0 && selects.length === 0)) return;
+    var tmpl = tmplEl.textContent, pending = false;
+    var useNoisy = el.hasAttribute("data-noisy");
+    var useComparison = el.hasAttribute("data-comparison");
+    var useExpectation = el.hasAttribute("data-expectation");
+    var useClifford = el.hasAttribute("data-clifford");
+    async function update() {
+      if (pending) return; pending = true;
+      await ensureWasm();
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var params = {};
+        sliders.forEach(function(s) { params[s.dataset.param] = parseFloat(s.value); var o = s.parentElement.querySelector("output"); if (o) o.textContent = parseFloat(s.value).toFixed(2); });
+        selects.forEach(function(s) { params[s.dataset.param] = s.value; });
+        var qasm = tmpl;
+        for (var k in params) qasm = qasm.replaceAll("{"+k+"}", params[k].toString());
+        var html = "";
+        if (useComparison && window.compareIdealNoisy) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.compareIdealNoisy(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="comparison-panels"><div class="comparison-panel"><h4>Ideal</h4>' + (r.idealHistogramSVG||"") + '</div><div class="comparison-panel"><h4>Noisy</h4>' + (r.noisyHistogramSVG||"") + '</div></div>';
+          if (r.stateCitySVG) html += r.stateCitySVG;
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useNoisy && window.runNoisyQASM) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.runNoisyQASM(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"") + (r.stateCitySVG||"");
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useClifford && window.runClifford) {
+          var r = JSON.parse(window.runClifford(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"");
+          if (r.stabilizers) { html += '<div class="stabilizer-table"><h4>Stabilizers</h4><table>'; r.stabilizers.forEach(function(s) { html += '<tr><td>' + formatStabilizer(s) + '</td></tr>'; }); html += '</table></div>'; }
+        } else if (useExpectation && window.computeExpectation) {
+          var pauliStr = params.pauliStr || el.dataset.pauli || "Z";
+          var r = JSON.parse(window.computeExpectation(qasm, pauliStr, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="sim-stats"><span>&lt;' + esc(pauliStr) + '&gt; = ' + r.expectation.toFixed(6) + '</span></div>';
+        } else {
+          var r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+          
+          if (el.hasAttribute("data-bloch") && window.getStateVector && window.renderBloch) {
+            try {
+              var sv = JSON.parse(window.getStateVector(qasm));
+              if (sv.amplitudes && sv.amplitudes.length === 2) {
+                var a = sv.amplitudes;
+                var blochSVG = window.renderBloch(a[0].re, a[0].im, a[1].re, a[1].im, isDark());
+                if (blochSVG) html += blochSVG;
+              }
+            } catch(e) {   }
+          }
+        }
+        output.innerHTML = html;
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+      pending = false;
+    }
+    sliders.forEach(function(s) { s.addEventListener("input", update); });
+    selects.forEach(function(s) { s.addEventListener("change", update); });
+    update();
+  }
+
+  
+  function formatStabilizer(s) {
+    if (!s) return "";
+    var sign = s[0], ops = s.slice(1), html = '<span class="stab-sign">' + esc(sign) + '</span>';
+    for (var i = 0; i < ops.length; i++) {
+      var c = ops[i], cls = "stab-" + c.toLowerCase();
+      html += '<span class="' + cls + '">' + c + '</span>';
+    }
+    return html;
+  }
+
+  
+  function initExercise(el) {
+    var code = el.querySelector(".code"), feedback = el.querySelector(".exercise-feedback");
+    var checkBtn = el.querySelector('[data-action="check"]');
+    var hintBtn = el.querySelector('[data-action="hint"]'), hintEl = el.querySelector(".exercise-hint");
+    if (!code || !feedback || !checkBtn) return;
+    var expected = {}, tol = 0.1;
+    var expEl = el.querySelector(".exercise-expected");
+    if (expEl) expEl.querySelectorAll("[data-state]").forEach(function(span) {
+      expected[span.dataset.state] = parseFloat(span.dataset.prob);
+      if (span.dataset.tolerance) tol = parseFloat(span.dataset.tolerance);
+    });
+    checkBtn.addEventListener("click", async function() {
+      await ensureWasm();
+      feedback.className = "exercise-feedback visible";
+      feedback.textContent = "Checking...";
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(code.value, 1024, isDark()));
+        if (r.error) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + r.error; return; }
+        if (Object.keys(expected).length === 0) { feedback.className = "exercise-feedback visible pass"; feedback.innerHTML = "Circuit ran successfully."; return; }
+        var prob = JSON.parse(window.getProbabilities(code.value, isDark()));
+        if (prob.error) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + prob.error; return; }
+        var actual = {};
+        for (var i = 0; i < prob.labels.length; i++) actual[prob.labels[i]] = prob.probabilities[i];
+        var ok = true, msgs = [];
+        for (var s in expected) {
+          var a = actual[s] || 0, p = expected[s];
+          if (Math.abs(a - p) > tol) { ok = false; msgs.push("|" + s + "\u27E9: expected " + (p*100|0) + "%, got " + (a*100|0) + "%"); }
+        }
+        if (ok) { feedback.className = "exercise-feedback visible pass"; feedback.innerHTML = "Correct! Your circuit produces the expected output."; }
+        else { feedback.className = "exercise-feedback visible fail"; feedback.innerHTML = "Not quite. " + msgs.join("; ") + "."; }
+        renderMath(feedback);
+      } catch(e) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + e.message; }
+    });
+    if (hintBtn && hintEl) hintBtn.addEventListener("click", function() { hintEl.style.display = hintEl.style.display === "none" ? "block" : "none"; });
+  }
+
+  
+  function initFlashcardDeck(el) {
+    el.querySelectorAll(".flashcard").forEach(function(card) {
+      var id = card.dataset.cardId;
+      if (!id) return;
+      var state = getCardState(id);
+      if (state.due > 0 && state.due > Date.now()) card.classList.add("reviewed");
+      card.addEventListener("click", function(e) {
+        if (e.target.closest("button")) return;
+        card.classList.toggle("flipped");
+        var back = card.querySelector(".card-back");
+        if (back) renderMath(back);
+      });
+      var easyBtn = card.querySelector(".easy"), hardBtn = card.querySelector(".hard");
+      if (easyBtn) easyBtn.addEventListener("click", function() { reviewCard(id, 4); card.classList.remove("flipped"); card.classList.add("reviewed"); });
+      if (hardBtn) hardBtn.addEventListener("click", function() { reviewCard(id, 2); card.classList.remove("flipped"); });
+    });
+  }
+
+  
+  function initPOE(el) {
+    var steps = el.querySelectorAll(".poe-step"), prog = el.querySelectorAll(".poe-progress-step");
+    if (steps.length === 0) return;
+    var cur = 0;
+    function show(idx) {
+      steps.forEach(function(s,i) { s.classList.toggle("active", i === idx); });
+      prog.forEach(function(s,i) { s.classList.remove("active","done"); if (i < idx) s.classList.add("done"); if (i === idx) s.classList.add("active"); });
+      cur = idx;
+      var active = steps[idx];
+      if (active) active.querySelectorAll('.sandbox:not([data-initialized])').forEach(function(sb) { sb.setAttribute("data-initialized","true"); initSandbox(sb); });
+    }
+    el.querySelectorAll('[data-action="next"]').forEach(function(btn) { btn.addEventListener("click", function() { if (cur < steps.length - 1) show(cur + 1); }); });
+    el.querySelectorAll('[data-action="complete"]').forEach(function(btn) { btn.addEventListener("click", function() { prog.forEach(function(s) { s.classList.remove("active"); s.classList.add("done"); }); }); });
+    show(0);
+  }
+
+  
+  function initStepThrough(el) {
+    var qasmEl = el.querySelector(".step-qasm");
+    var output = el.querySelector(".step-output");
+    var prevBtn = el.querySelector('[data-action="prev"]');
+    var nextBtn = el.querySelector('[data-action="next"]');
+    var stepInfo = el.querySelector(".step-info");
+    if (!qasmEl || !output) return;
+    var qasm = qasmEl.textContent;
+    var mode = el.dataset.mode || "clifford"; 
+    var steps = null, cur = -1;
+
+    async function load() {
+      await ensureWasm();
+      try {
+        if (mode === "clifford" && window.cliffordStepThrough) {
+          var r = JSON.parse(window.cliffordStepThrough(qasm));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+          
+          steps.unshift({gate: "init", qubits: [], stabilizers: r.steps.length > 0 ? null : []});
+        } else if (mode === "grover" && window.groverStepThrough) {
+          var nq = parseInt(el.dataset.qubits || "2", 10);
+          var targets = JSON.parse(el.dataset.targets || "[]");
+          var r = JSON.parse(window.groverStepThrough(nq, targets.join(",")));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+        }
+        if (steps && steps.length > 0) { cur = 0; renderStep(); }
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    function renderStep() {
+      if (!steps || cur < 0 || cur >= steps.length) return;
+      var s = steps[cur];
+      var html = "";
+      if (mode === "clifford") {
+        if (s.gate === "init") {
+          html = '<p class="step-label">Initial state |0...0&gt;</p>';
+          
+          if (steps.length > 1 && steps[1].stabilizers) {
+            var nq = steps[1].stabilizers[0].length - 1;
+            html += '<div class="stabilizer-table"><table>';
+            for (var i = 0; i < nq; i++) {
+              var row = "+";
+              for (var j = 0; j < nq; j++) row += (j === i) ? "Z" : "I";
+              html += '<tr><td>' + formatStabilizer(row) + '</td></tr>';
+            }
+            html += '</table></div>';
+          }
+        } else {
+          html = '<p class="step-label">After <strong>' + esc(s.gate) + '</strong> on qubit' + (s.qubits.length > 1 ? 's ' : ' ') + s.qubits.join(', ') + '</p>';
+          if (s.stabilizers) {
+            html += '<div class="stabilizer-table"><table>';
+            s.stabilizers.forEach(function(st) { html += '<tr><td>' + formatStabilizer(st) + '</td></tr>'; });
+            html += '</table></div>';
+          }
+        }
+      } else if (mode === "grover") {
+        html = '<p class="step-label">Iteration ' + s.iteration + '</p>';
+        if (s.probabilities) {
+          html += '<div class="amplitude-bars">';
+          for (var i = 0; i < s.probabilities.length; i++) {
+            var label = i.toString(2).padStart(Math.ceil(Math.log2(s.probabilities.length)), '0');
+            var pct = (s.probabilities[i] * 100).toFixed(1);
+            var isTarget = el.dataset.targets && JSON.parse(el.dataset.targets).indexOf(i) >= 0;
+            html += '<div class="amp-bar' + (isTarget ? ' target' : '') + '"><div class="amp-fill" style="height:' + pct + '%"></div><span class="amp-label">|' + label + '&gt;</span><span class="amp-value">' + pct + '%</span></div>';
+          }
+          html += '</div>';
+        }
+      }
+      output.innerHTML = html;
+      if (stepInfo) stepInfo.textContent = "Step " + cur + " / " + (steps.length - 1);
+      if (prevBtn) prevBtn.disabled = (cur === 0);
+      if (nextBtn) nextBtn.disabled = (cur >= steps.length - 1);
+    }
+
+    if (prevBtn) prevBtn.addEventListener("click", function() { if (cur > 0) { cur--; renderStep(); } });
+    if (nextBtn) nextBtn.addEventListener("click", function() { if (steps && cur < steps.length - 1) { cur++; renderStep(); } });
+    load();
+  }
+
+  
+  document.addEventListener("DOMContentLoaded", function() {
+    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough};
+    document.querySelectorAll("[data-component]").forEach(function(el) { var fn = reg[el.dataset.component]; if (fn) fn(el); });
+  });
+  </script>
+  
+</body>
+</html>

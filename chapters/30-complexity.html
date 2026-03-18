@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chapter 30: Quantum Computational Complexity - Goqu Textbook</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/contrib/auto-render.min.js"></script>
+  
+  <link rel="preload" href="../main.wasm" as="fetch" type="application/wasm" crossorigin>
+  <script src="../wasm_exec.js"></script>
+  
+</head>
+<body>
+  <input type="checkbox" id="nav-toggle" hidden>
+  <label for="nav-toggle" class="nav-hamburger" aria-label="Toggle navigation">
+    <span></span><span></span><span></span>
+  </label>
+
+  <nav class="sidebar" aria-label="Table of contents">
+    <a href="../index.html" class="sidebar-logo">Goqu Textbook</a>
+    
+    <details>
+      <summary>Part 1: The World of Classical Computing</summary>
+      <ol start="1">
+        
+        <li value="1"><a href="01-computation.html">What Is Computation?</a></li>
+        
+        <li value="2"><a href="02-math-of-information.html">The Mathematics of Information</a></li>
+        
+        <li value="3"><a href="03-reversible-computing.html">Reversible Computing</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 2: Entering the Quantum World</summary>
+      <ol start="4">
+        
+        <li value="4"><a href="04-the-first-qubit.html">The First Qubit</a></li>
+        
+        <li value="5"><a href="05-quantum-gates.html">Quantum Gates</a></li>
+        
+        <li value="6"><a href="06-entanglement.html">Multiple Qubits and Entanglement</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 3: Quantum Protocols</summary>
+      <ol start="7">
+        
+        <li value="7"><a href="07-teleportation.html">Quantum Teleportation and Communication</a></li>
+        
+        <li value="8"><a href="08-cryptography.html">Quantum Cryptography</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 4: Quantum Algorithms - The First Wave</summary>
+      <ol start="9">
+        
+        <li value="9"><a href="09-oracles.html">Oracles and Quantum Parallelism</a></li>
+        
+        <li value="10"><a href="10-qft.html">The Quantum Fourier Transform</a></li>
+        
+        <li value="11"><a href="11-shor.html">Shor&#39;s Algorithm</a></li>
+        
+        <li value="12"><a href="12-grover.html">Grover&#39;s Algorithm</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 5: Real Quantum Hardware</summary>
+      <ol start="13">
+        
+        <li value="13"><a href="13-hardware.html">How to Build a Quantum Computer</a></li>
+        
+        <li value="14"><a href="14-noise.html">Noise, Decoherence, and the NISQ Era</a></li>
+        
+        <li value="15"><a href="15-programming.html">Programming Quantum Computers</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 6: Quantum Error Correction</summary>
+      <ol start="16">
+        
+        <li value="16"><a href="16-classical-ec.html">Classical Error Correction Refresher</a></li>
+        
+        <li value="17"><a href="17-qec-fundamentals.html">Quantum Error Correction Fundamentals</a></li>
+        
+        <li value="18"><a href="18-stabilizers.html">The Stabilizer Formalism</a></li>
+        
+        <li value="19"><a href="19-surface-codes.html">Surface Codes and Topological Protection</a></li>
+        
+        <li value="20"><a href="20-fault-tolerance.html">Fault-Tolerant Quantum Computing</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 7: Variational and Near-Term Algorithms</summary>
+      <ol start="21">
+        
+        <li value="21"><a href="21-variational.html">The Variational Quantum Computing Paradigm</a></li>
+        
+        <li value="22"><a href="22-vqe.html">Variational Quantum Eigensolver (VQE)</a></li>
+        
+        <li value="23"><a href="23-qaoa.html">Quantum Approximate Optimization (QAOA)</a></li>
+        
+        <li value="24"><a href="24-qml.html">Quantum Machine Learning</a></li>
+        
+        <li value="25"><a href="25-error-mitigation.html">Quantum Error Mitigation</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 8: Quantum Information Theory</summary>
+      <ol start="26">
+        
+        <li value="26"><a href="26-states-measurements.html">Quantum States and Measurements, Revisited</a></li>
+        
+        <li value="27"><a href="27-channels.html">Quantum Channels and Operations</a></li>
+        
+        <li value="28"><a href="28-entropy.html">Quantum Entropy and Information</a></li>
+        
+        <li value="29"><a href="29-shannon.html">Quantum Shannon Theory</a></li>
+        
+      </ol>
+    </details>
+    
+    <details open>
+      <summary>Part 9: Quantum Complexity and Computation Theory</summary>
+      <ol start="30">
+        
+        <li value="30"><a href="30-complexity.html" aria-current="page">Quantum Computational Complexity</a></li>
+        
+        <li value="31"><a href="31-hidden-subgroup.html">The Hidden Subgroup Problem and Beyond</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 10: Quantum Simulation</summary>
+      <ol start="32">
+        
+        <li value="32"><a href="32-simulation-why.html">Why Quantum Simulation Matters</a></li>
+        
+        <li value="33"><a href="33-digital-simulation.html">Digital Quantum Simulation</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 11: Quantum Networking, Cryptography, and Sensing</summary>
+      <ol start="34">
+        
+        <li value="34"><a href="34-quantum-internet.html">The Quantum Internet</a></li>
+        
+        <li value="35"><a href="35-advanced-crypto.html">Advanced Quantum Cryptography</a></li>
+        
+        <li value="36"><a href="36-sensing.html">Quantum Sensing and Metrology</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 12: Frontiers and the Future</summary>
+      <ol start="37">
+        
+        <li value="37"><a href="37-topological.html">Topological Quantum Computing</a></li>
+        
+        <li value="38"><a href="38-quantum-ai.html">Quantum Computing and Artificial Intelligence</a></li>
+        
+        <li value="39"><a href="39-open-problems.html">Open Problems in Quantum Computing</a></li>
+        
+        <li value="40"><a href="40-ecosystem.html">The Quantum Computing Ecosystem Today</a></li>
+        
+        <li value="41"><a href="41-career.html">Building Your Quantum Computing Career</a></li>
+        
+        <li value="42"><a href="42-what-next.html">What Comes Next</a></li>
+        
+      </ol>
+    </details>
+    
+  </nav>
+
+  <main>
+    
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="../index.html">Home</a> / <a href="../index.html#part-9">Part 9</a> / <span>Chapter 30</span>
+    </nav>
+    
+
+    <article>
+      <h1>Chapter 30: Quantum Computational Complexity</h1>
+      <p>
+  We have seen that quantum computers can factor integers, search unsorted databases, and simulate
+  quantum systems. But how powerful are they, really? Can a quantum computer solve <em>any</em>
+  problem faster than a classical one? Are there problems that remain hard even for quantum
+  computers? These questions belong to <strong>quantum computational complexity theory</strong> -
+  the study of what quantum computers can and cannot efficiently compute. In this chapter, we map
+  the landscape of quantum complexity classes, examine the evidence for quantum advantage, and
+  confront the limits of quantum computing head-on.
+</p>
+
+<!-- ================================================================== -->
+<section id="bqp">
+<h2>30.1 BQP: What Quantum Computers Can Efficiently Solve</h2>
+
+<p>
+  In classical complexity theory, the class <strong>P</strong> contains problems solvable in
+  polynomial time by a deterministic Turing machine, and <strong>BPP</strong> (Bounded-error
+  Probabilistic Polynomial time) contains problems solvable in polynomial time by a probabilistic
+  Turing machine with error probability at most 1/3. The quantum analog is <strong>BQP</strong>:
+  Bounded-error Quantum Polynomial time.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    <strong>BQP</strong> is the class of decision problems solvable by a polynomial-time quantum
+    Turing machine (equivalently, a polynomial-size uniform quantum circuit family) with error
+    probability at most 1/3. That is, for every YES instance the quantum computer accepts with
+    probability at least 2/3, and for every NO instance it rejects with probability at least 2/3.
+  </p>
+</div>
+
+<p>
+  The error bound of 1/3 is conventional - by repeating the computation $O(\log(1/\delta))$ times
+  and taking a majority vote, the error can be reduced to any $\delta > 0$ with only polynomial
+  overhead. This is called <em>probability amplification</em>, and it works for both BPP and BQP.
+</p>
+
+<h3>Where BQP Sits</h3>
+
+<p>
+  The known inclusions among complexity classes give us the following chain:
+</p>
+
+$$\mathsf{P} \subseteq \mathsf{BPP} \subseteq \mathsf{BQP} \subseteq \mathsf{PP} \subseteq \mathsf{PSPACE}$$
+
+<p>
+  Let us unpack each inclusion:
+</p>
+
+<ul>
+  <li>
+    <strong>$\mathsf{P} \subseteq \mathsf{BPP}$:</strong> A deterministic computation is a special
+    case of a probabilistic one (just never flip any coins).
+  </li>
+  <li>
+    <strong>$\mathsf{BPP} \subseteq \mathsf{BQP}$:</strong> A quantum computer can simulate any
+    classical probabilistic computation. Classical coin flips can be implemented by applying
+    Hadamard gates and measuring. Classical logic gates (AND, OR, NOT) can be implemented reversibly
+    using Toffoli gates, as we saw in Chapter 3. So any BPP algorithm runs on a quantum computer
+    with at most polynomial overhead.
+  </li>
+  <li>
+    <strong>$\mathsf{BQP} \subseteq \mathsf{PP}$:</strong> The class PP (Probabilistic Polynomial
+    time, with unbounded error) can simulate quantum computations. Intuitively, PP can compute the
+    sum of exponentially many signed amplitudes, which is exactly what quantum computation requires.
+    This was shown by Adleman, DeMarrais, and Huang in 1997.
+  </li>
+  <li>
+    <strong>$\mathsf{PP} \subseteq \mathsf{PSPACE}$:</strong> PP problems can be solved with
+    polynomial space, since we can enumerate and count all computation paths using reusable space.
+  </li>
+</ul>
+
+<p>
+  Every one of these inclusions is believed to be strict, but proving any single separation remains
+  one of the great open problems of theoretical computer science.
+</p>
+
+<h3>What Problems Are in BQP?</h3>
+
+<p>
+  The most celebrated problems known to be in BQP but believed to be outside BPP include:
+</p>
+
+<ul>
+  <li>
+    <strong>Integer factoring</strong> and <strong>discrete logarithm</strong> (Shor's algorithm,
+    Chapter 11): These problems are in BQP with polynomial-time quantum algorithms, but no
+    polynomial-time classical algorithm is known.
+  </li>
+  <li>
+    <strong>Simulating quantum systems</strong> (Chapters 32-33): Given a Hamiltonian $H$ and time
+    $t$, approximating $e^{-iHt}|\psi\rangle$ is in BQP for sparse or local Hamiltonians.
+    Classical simulation requires exponential time in the worst case.
+  </li>
+  <li>
+    <strong>Pell's equation</strong>: Finding the fundamental solution to $x^2 - Dy^2 = 1$ is
+    in BQP (Hallgren, 2002), exploiting the abelian hidden subgroup structure of real quadratic
+    number fields.
+  </li>
+  <li>
+    <strong>Approximating the Jones polynomial</strong> at certain roots of unity (Freedman,
+    Kitaev, Wang, 2002): This problem is BQP-complete, meaning it is among the hardest problems
+    in BQP.
+  </li>
+</ul>
+
+<div class="callout callout-info">
+  <strong>Historical Note.</strong>
+  <p>
+    The complexity class BQP was defined by Bernstein and Vazirani in 1993, who also proved the
+    first quantum complexity-theoretic results. Their work, along with Simon's 1994 oracle
+    separation between BPP and BQP, set the stage for Shor's algorithm the following year.
+  </p>
+</div>
+
+<h3>The Oracle World</h3>
+
+<p>
+  Much of what we know about BQP comes from <em>oracle</em> (or <em>black-box</em>) results.
+  Simon proved in 1994 that there exists an oracle relative to which BQP is not contained in BPP -
+  the first formal evidence that quantum computers are more powerful than classical ones. Bernstein
+  and Vazirani similarly showed an oracle separation. These results do not prove $\mathsf{BPP}
+  \neq \mathsf{BQP}$ in the real world (oracle results do not transfer automatically), but they
+  provide strong structural evidence.
+</p>
+
+<p>
+  In 2018, Raz and Tal proved a landmark result: there exists an oracle relative to which
+  $\mathsf{BQP} \not\subseteq \mathsf{PH}$, where PH is the polynomial hierarchy. This means
+  that, in a relativized world, quantum computers can solve problems that lie outside the entire
+  polynomial hierarchy - a vast tower of complexity classes built on top of NP. This is perhaps
+  the strongest structural evidence we have that quantum computational power is fundamentally
+  different from classical computational power.
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="12">OPENQASM 3.0;
+// Deutsch-Jozsa: BQP can solve this in 1 query;
+// classically requires exponential queries in the worst case.
+// Oracle: balanced function f(x) = x_0 XOR x_1
+qubit[3] q;
+bit[2] c;
+x q[2];
+h q[0]; h q[1]; h q[2];
+// Oracle: CNOT from each input to output
+cx q[0], q[2];
+cx q[1], q[2];
+h q[0]; h q[1];
+c[0] = measure q[0];
+c[1] = measure q[1];</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+  The sandbox above implements the Deutsch-Jozsa algorithm for a balanced function on 2 bits.
+  A single quantum query determines that the function is balanced (you should see the output
+  <code>11</code> with 100% probability), whereas a classical deterministic algorithm would need
+  to query a majority of inputs. This is a simple example of an oracle problem in BQP that is
+  not in P relative to the oracle.
+</p>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="qma">
+<h2>30.2 QMA and Quantum Verification</h2>
+
+<p>
+  The class NP captures problems where a correct answer can be <em>verified</em> efficiently,
+  even if finding the answer is hard. A prover provides a classical "witness" (a certificate or
+  proof), and a polynomial-time verifier checks it. The quantum analog is <strong>QMA</strong>:
+  Quantum Merlin-Arthur.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    <strong>QMA</strong> (Quantum Merlin-Arthur) is the class of decision problems where a YES
+    answer can be verified by a polynomial-time quantum verifier (Arthur) given a polynomial-size
+    quantum state as a witness (from Merlin). For YES instances, there exists a quantum witness
+    that makes the verifier accept with probability at least 2/3. For NO instances, no quantum
+    witness makes the verifier accept with probability more than 1/3.
+  </p>
+</div>
+
+<p>
+  The key difference from NP is that the witness is a <em>quantum state</em> - it can be an
+  arbitrary superposition over exponentially many basis states - and the verifier is a quantum
+  computer. This makes QMA potentially more powerful than NP: the quantum witness might encode
+  information that no classical string of polynomial length can capture.
+</p>
+
+<p>
+  The known relationships are:
+</p>
+
+$$\mathsf{NP} \subseteq \mathsf{QMA} \subseteq \mathsf{QMA(2)} \subseteq \cdots \subseteq \mathsf{PSPACE}$$
+
+<p>
+  where QMA(2) allows two unentangled quantum witnesses. Whether $\mathsf{NP} = \mathsf{QMA}$
+  is a major open question. If they are equal, it would mean that quantum witnesses are no more
+  powerful than classical ones for verification - a surprising conclusion that most researchers
+  consider unlikely.
+</p>
+
+<h3>The Local Hamiltonian Problem: Quantum NP-Completeness</h3>
+
+<p>
+  Every complexity class needs a "complete" problem - a problem that is as hard as any problem in
+  the class. For NP, the canonical complete problem is SAT (the Cook-Levin theorem). For QMA,
+  the canonical complete problem is the <strong>Local Hamiltonian problem</strong>, proved by
+  Alexei Kitaev in 1999 in what is often called the "quantum Cook-Levin theorem."
+</p>
+
+<p>
+  The problem is defined as follows. Given a Hamiltonian $H = \sum_{j=1}^{m} H_j$ acting on $n$
+  qubits, where each $H_j$ acts non-trivially on at most $k$ qubits (making it "$k$-local"),
+  and two thresholds $a < b$ with $b - a \geq 1/\text{poly}(n)$:
+</p>
+
+<ul>
+  <li>
+    <strong>YES:</strong> The ground state energy of $H$ (its smallest eigenvalue) is at most $a$.
+  </li>
+  <li>
+    <strong>NO:</strong> The ground state energy of $H$ is at least $b$.
+  </li>
+</ul>
+
+<p>
+  Kitaev showed that the $k$-Local Hamiltonian problem is QMA-complete for $k = 5$. Subsequent
+  work reduced this: Kempe, Kitaev, and Regev (2004) proved QMA-completeness for $k = 2$. This
+  is the tightest possible result, since the 1-local case is trivially in P.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    <strong>Kitaev's Quantum Cook-Levin Theorem:</strong> The $k$-Local Hamiltonian problem is
+    QMA-complete for $k \geq 2$. It plays the same role in quantum complexity theory that SAT
+    plays in classical complexity theory. Just as SAT captures the essence of classical
+    verification, the Local Hamiltonian problem captures the essence of quantum verification.
+  </p>
+</div>
+
+<p>
+  The analogy between SAT and the Local Hamiltonian problem is deep. A $k$-SAT clause checks
+  $k$ bits and is "satisfied" or not. A $k$-local Hamiltonian term acts on $k$ qubits and
+  contributes an "energy penalty." Minimizing the total number of violated clauses (MAX-SAT)
+  corresponds to minimizing the total energy (finding the ground state). The quantum witness
+  for the Local Hamiltonian problem is the ground state itself - a quantum state that a quantum
+  verifier can use to estimate the energy.
+</p>
+
+<h3>Physical Significance</h3>
+
+<p>
+  The QMA-completeness of the Local Hamiltonian problem has profound implications for physics.
+  It means that determining the ground state energy of a quantum many-body system is, in the
+  worst case, intractable even for quantum computers (assuming $\mathsf{QMA} \neq \mathsf{BQP}$).
+  This is not merely a theoretical curiosity - finding ground states of quantum systems is one
+  of the central challenges of condensed matter physics and quantum chemistry. The QMA-completeness
+  result tells us that no general-purpose efficient algorithm (classical or quantum) can solve
+  all instances of this problem.
+</p>
+
+<div class="callout callout-warning">
+  <strong>Common Misconception.</strong>
+  <p>
+    QMA-completeness of the Local Hamiltonian problem does not mean that <em>all</em> instances
+    are hard. Many physically relevant Hamiltonians have special structure (symmetries, gap
+    conditions, geometric locality) that makes their ground states tractable. The hardness is a
+    worst-case statement about the general problem.
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="qip-pspace">
+<h2>30.3 QIP = PSPACE</h2>
+
+<p>
+  Beyond single-round verification (QMA), we can consider <em>interactive proof systems</em>
+  where a verifier and a prover exchange multiple rounds of messages. Classically, the class
+  <strong>IP</strong> (Interactive Proofs) was shown to equal PSPACE in a celebrated result by
+  Shamir (1992), building on the work of Lund, Fortnow, Karloff, and Nisan. This was a surprise:
+  interactive proofs are exactly as powerful as polynomial-space computation.
+</p>
+
+<p>
+  The quantum analog is <strong>QIP</strong>: Quantum Interactive Proofs, where the verifier is a
+  polynomial-time quantum computer, the prover is computationally unbounded, and they exchange
+  quantum messages over multiple rounds.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    <strong>QIP = PSPACE</strong> (Jain, Ji, Upadhyay, and Watrous, 2011): The class of problems
+    having quantum interactive proof systems with polynomially many rounds equals PSPACE. Since
+    IP = PSPACE (Shamir, 1992), this means quantum interactive proofs are exactly as powerful as
+    classical interactive proofs.
+  </p>
+</div>
+
+<p>
+  This result, proved by Rahul Jain, Zhengfeng Ji, Sarvagya Upadhyay, and John Watrous, resolved
+  a major open question in quantum complexity theory. The proof proceeded in two steps:
+</p>
+
+<ol>
+  <li>
+    <strong>PSPACE $\subseteq$ QIP:</strong> This follows immediately from IP = PSPACE, since a
+    classical interactive proof is a special case of a quantum one.
+  </li>
+  <li>
+    <strong>QIP $\subseteq$ PSPACE:</strong> This is the hard direction. The authors showed that
+    the optimal strategy for the quantum verifier can be computed in polynomial space by applying
+    a parallelized version of the <em>matrix multiplicative weights update method</em> to a class
+    of semidefinite programs that captures the power of quantum interactive proofs.
+  </li>
+</ol>
+
+<h3>The Significance</h3>
+
+<p>
+  The result QIP = PSPACE has a remarkable interpretation: quantum messages do not increase the
+  power of interactive proof systems. Even though the prover and verifier exchange quantum states
+  (which can carry superpositions and entanglement), the class of problems that can be verified
+  this way is the same as with classical interaction. Quantum information helps with efficiency
+  (QIP achieves PSPACE power with only 3 rounds of interaction, whereas classical IP may require
+  polynomially many rounds), but not with raw computational power.
+</p>
+
+<p>
+  An important intermediate result is that <strong>QIP = QIP(3)</strong>: any quantum interactive
+  proof system can be parallelized to use just 3 rounds of interaction (one message from verifier
+  to prover, one back, then a final message). This was shown by Kitaev and Watrous (2000). In
+  contrast, for classical IP, it is believed that more rounds genuinely add power (unless the
+  polynomial hierarchy collapses).
+</p>
+
+<h3>The Bigger Picture</h3>
+
+<p>
+  Here is the full hierarchy of quantum complexity classes, from weakest to strongest:
+</p>
+
+$$\mathsf{BQP} \subseteq \mathsf{QMA} \subseteq \mathsf{QMA(2)} \subseteq \mathsf{QCMA} \subseteq \mathsf{QIP(2)} \subseteq \mathsf{QIP} = \mathsf{PSPACE}$$
+
+<p>
+  Wait - actually, let us be more precise about what is known and what is conjectured. The
+  established containments are:
+</p>
+
+$$\mathsf{BQP} \subseteq \mathsf{QMA} \subseteq \mathsf{QIP} = \mathsf{QIP(3)} = \mathsf{PSPACE}$$
+
+<p>
+  Whether QMA is strictly contained in QIP (equivalently, whether QMA $\neq$ PSPACE) is unknown.
+  If QMA = PSPACE, the entire hierarchy would collapse. Most researchers believe the containments
+  are strict, giving a rich structure of increasingly powerful quantum proof systems.
+</p>
+
+<div class="callout callout-info">
+  <strong>Historical Note.</strong>
+  <p>
+    The QIP = PSPACE proof appeared on arXiv in July 2009 and was published in the Journal of the
+    ACM in 2011. It won the Best Paper Award at the 2010 ACM Symposium on Theory of Computing
+    (STOC). The matrix multiplicative weights technique used in the proof has since found
+    applications in other areas of quantum information theory, including quantum state tomography
+    and quantum channel capacity bounds.
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="quantum-supremacy">
+<h2>30.4 Quantum Supremacy and Advantage</h2>
+
+<p>
+  Complexity theory gives us the theoretical framework, but a natural experimental question
+  arises: can we <em>demonstrate</em> that a quantum computer solves some problem faster than any
+  classical computer? This is the question of <strong>quantum computational supremacy</strong>
+  (sometimes called "quantum advantage" to avoid political connotations of the word "supremacy").
+</p>
+
+<h3>What Quantum Supremacy Means</h3>
+
+<p>
+  Quantum supremacy, a term coined by John Preskill in 2012, refers to the demonstration that a
+  quantum device can perform a computational task that no classical computer can perform in a
+  reasonable amount of time. The task does not need to be useful - it just needs to be
+  well-defined, verifiable, and classically intractable.
+</p>
+
+<p>
+  The leading candidate task has been <strong>Random Circuit Sampling (RCS)</strong>: run a random
+  quantum circuit on $n$ qubits with depth $d$, measure all qubits, and collect samples from
+  the output distribution. For sufficiently large $n$ and $d$, the output distribution becomes
+  so complex that no known classical algorithm can sample from it efficiently. The theoretical
+  basis for this hardness relies on complexity-theoretic conjectures related to the
+  non-collapse of the polynomial hierarchy.
+</p>
+
+<h3>Google Sycamore (2019)</h3>
+
+<p>
+  In October 2019, Google's quantum AI team published a landmark paper in <em>Nature</em>
+  claiming the first demonstration of quantum supremacy. Their Sycamore processor, with 53
+  operational superconducting qubits (out of 54; one was defective), performed a random circuit
+  sampling task in approximately 200 seconds. Google estimated that the same task would take the
+  world's fastest supercomputer approximately 10,000 years.
+</p>
+
+<p>
+  The claim was immediately contested. IBM argued that by using disk storage and clever
+  algorithmic techniques, a classical supercomputer could complete the task in roughly 2.5 days -
+  still far slower than 200 seconds, but not 10,000 years. Subsequent classical algorithms have
+  further narrowed the gap. In 2022, a team in China demonstrated that tensor network methods
+  on classical GPUs could match Sycamore's performance for the specific circuit parameters
+  Google used.
+</p>
+
+<h3>Google Willow (2024)</h3>
+
+<p>
+  In December 2024, Google announced their Willow quantum chip with 105 superconducting qubits.
+  Willow achieved two major milestones. First, it demonstrated <em>below-threshold</em> quantum
+  error correction: as the size of the error-correcting code increased (from $3 \times 3$ to
+  $5 \times 5$ to $7 \times 7$ grids of physical qubits), the logical error rate decreased
+  exponentially - cutting roughly in half with each increase in code distance. This is the
+  behavior required for scalable quantum computing and had never been demonstrated before.
+</p>
+
+<p>
+  Second, Willow performed a random circuit sampling benchmark in under 5 minutes that Google
+  estimated would take the fastest classical supercomputers approximately $10^{25}$ years - a
+  gap so vast that even aggressive improvements in classical algorithms seem unlikely to close it.
+  The improved qubit coherence times (approaching 100 microseconds, a 5x improvement over
+  Sycamore) and lower error rates make the classical simulation challenge dramatically harder.
+</p>
+
+<h3>Other Quantum Advantage Experiments</h3>
+
+<p>
+  Google's experiments are not the only claims of quantum advantage. Notable others include:
+</p>
+
+<ul>
+  <li>
+    <strong>Boson sampling</strong> (Jiuzhang, USTC China, 2020-2023): Photonic quantum
+    computers sampling from distributions of interfering photons. The Jiuzhang experiments used
+    up to 113 detected photons and claimed computational advantages over classical simulation,
+    though the theoretical hardness assumptions differ from those of RCS.
+  </li>
+  <li>
+    <strong>Random circuit sampling on other platforms</strong>: IBM, Quantinuum, and others
+    have performed RCS experiments, though not always claiming supremacy.
+  </li>
+</ul>
+
+<h3>The Current Status</h3>
+
+<p>
+  The quantum supremacy landscape is a moving target. Classical simulation algorithms continue to
+  improve, and some initial claims have been challenged or narrowed. However, a clear trend has
+  emerged: as quantum hardware improves (more qubits, lower error rates, longer coherence times),
+  the classical simulation cost grows super-exponentially. Willow's $10^{25}$-year estimate
+  suggests that we have moved well beyond the regime where incremental classical improvements can
+  close the gap.
+</p>
+
+<div class="callout callout-warning">
+  <strong>Common Misconception.</strong>
+  <p>
+    Quantum supremacy does <em>not</em> mean quantum computers are "better" than classical
+    computers at everything, or even at anything useful (yet). The tasks demonstrated so far
+    (random circuit sampling, boson sampling) have no known practical applications. Supremacy is
+    a proof of concept: it demonstrates that quantum computational power is real and that the
+    theoretical predictions of quantum mechanics hold at scale. The path from supremacy to
+    practical advantage for real-world problems is still being charted.
+  </p>
+</div>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    Quantum supremacy experiments demonstrate that quantum computers can perform specific
+    computational tasks that are intractable for classical computers. The Google Sycamore (2019)
+    and Willow (2024) experiments on random circuit sampling, and the USTC Jiuzhang experiments on
+    boson sampling, provide the strongest evidence to date. The key challenge is moving from
+    supremacy on artificial benchmarks to advantage on practically useful problems.
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="limits-of-quantum">
+<h2>30.5 Limits of Quantum Computing</h2>
+
+<p>
+  Quantum computers are not magic. They obey the laws of physics - specifically, quantum
+  mechanics - and those laws impose real constraints. Understanding what quantum computers
+  <em>cannot</em> do is just as important as understanding what they can do.
+</p>
+
+<h3>BQP vs NP: Quantum Computers Cannot Solve All Hard Problems</h3>
+
+<p>
+  Perhaps the most important thing to understand about quantum computing is this: there is
+  strong evidence that quantum computers cannot efficiently solve NP-complete problems.
+</p>
+
+<p>
+  The relationship between BQP and NP is subtle. Neither is known to contain the other:
+</p>
+
+<ul>
+  <li>
+    <strong>Is NP $\subseteq$ BQP?</strong> Almost certainly not. If quantum computers could
+    solve NP-complete problems in polynomial time, it would mean
+    $\mathsf{NP} \subseteq \mathsf{BQP} \subseteq \mathsf{PP}$. But PP is known to contain the
+    entire polynomial hierarchy PH (Toda's theorem), and $\mathsf{NP} \subseteq \mathsf{BQP}$
+    combined with other known results would likely collapse PH. No evidence supports such a
+    collapse.
+  </li>
+  <li>
+    <strong>Is BQP $\subseteq$ NP?</strong> Also believed to be false. The Raz-Tal oracle
+    separation shows that BQP contains problems outside the polynomial hierarchy (relative to an
+    oracle), and NP is only the first level of PH.
+  </li>
+</ul>
+
+<p>
+  The most likely picture is that BQP and NP are <em>incomparable</em>: each contains problems
+  not in the other. BQP contains problems like factoring (believed to be outside P but inside
+  NP $\cap$ co-NP, so not NP-complete). NP contains problems like 3-SAT that are almost certainly
+  not in BQP.
+</p>
+
+$$\text{BQP} \not\subseteq \mathsf{NP} \quad \text{and} \quad \mathsf{NP} \not\subseteq \text{BQP} \quad \text{(conjectured)}$$
+
+<h3>Grover's Lower Bound</h3>
+
+<p>
+  The strongest concrete evidence for quantum limitations comes from Grover's search problem.
+  Recall from Chapter 12 that Grover's algorithm searches an unsorted database of $N$ items in
+  $O(\sqrt{N})$ queries. Bennett, Bernstein, Brassard, and Vazirani (1997) proved that this is
+  <em>optimal</em>: any quantum algorithm for unstructured search requires $\Omega(\sqrt{N})$
+  queries. This is a provable lower bound, not a conjecture.
+</p>
+
+<p>
+  The square-root speedup is significant but not exponential. For NP-complete problems like
+  3-SAT on $n$ variables, the brute-force search space has $N = 2^n$ elements. Grover's algorithm
+  reduces this to $O(2^{n/2})$ - still exponential in $n$. A classical computer checking all
+  $2^n$ possibilities would take time $2^n$; a quantum computer using Grover's algorithm would
+  take time $2^{n/2}$. Both are exponential; the quantum computer merely halves the exponent.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    <strong>The BBBV Theorem:</strong> Any quantum algorithm for unstructured search on $N$
+    elements requires $\Omega(\sqrt{N})$ queries. This means quantum computers offer at most a
+    quadratic speedup for brute-force search. NP-complete problems, whose hardness comes from
+    the need to search exponentially large spaces, remain exponentially hard even for quantum
+    computers (albeit with a smaller exponent).
+  </p>
+</div>
+
+<h3>The No-Cloning Theorem and Its Consequences</h3>
+
+<p>
+  The no-cloning theorem (Chapter 16) states that an arbitrary unknown quantum state cannot be
+  perfectly copied. This fundamental constraint limits quantum algorithms in several ways:
+</p>
+
+<ul>
+  <li>
+    You cannot "branch" on a quantum computation the way classical algorithms fork processes.
+  </li>
+  <li>
+    Intermediate results in a quantum computation cannot be saved and reused without disturbing
+    the quantum state.
+  </li>
+  <li>
+    Error correction requires substantial overhead (many physical qubits per logical qubit)
+    precisely because errors cannot be detected by simply copying and comparing quantum states.
+  </li>
+</ul>
+
+<h3>The Measurement Problem</h3>
+
+<p>
+  A quantum computer can maintain exponentially many amplitudes in superposition during a
+  computation, but measurement collapses the state to a single classical outcome. You get only
+  $n$ classical bits from an $n$-qubit measurement. The art of quantum algorithm design lies
+  in arranging interference so that the desired answer has high probability when measured.
+  This is a severe constraint: you cannot simply "read out" all $2^n$ amplitudes.
+</p>
+
+<h3>When Does Quantum Help?</h3>
+
+<p>
+  Quantum computers provide genuine speedups when the problem has <em>structure</em> that quantum
+  algorithms can exploit:
+</p>
+
+<ul>
+  <li>
+    <strong>Algebraic structure:</strong> The periodicity in Shor's algorithm, the group structure
+    in the hidden subgroup problem (Chapter 31).
+  </li>
+  <li>
+    <strong>Quantum structure:</strong> Simulating quantum systems is naturally suited to quantum
+    computers because the simulator and the simulated system "speak the same language" (Chapters
+    32-33).
+  </li>
+  <li>
+    <strong>Interference structure:</strong> Problems where constructive and destructive
+    interference can amplify correct answers and suppress incorrect ones.
+  </li>
+</ul>
+
+<p>
+  When a problem lacks exploitable structure - when it is truly "unstructured" in the
+  computational sense - quantum computers offer at most a polynomial (typically quadratic)
+  speedup, not an exponential one.
+</p>
+
+<div class="callout callout-info">
+  <strong>Historical Note.</strong>
+  <p>
+    Scott Aaronson has eloquently summarized the limits of quantum computing: "Quantum computers
+    would not solve hard search problems instantaneously by simply trying all the possible
+    solutions at once." The real power of quantum computing lies not in brute-force parallelism
+    but in the subtle manipulation of probability amplitudes through interference. Problems
+    must have the right mathematical structure for quantum algorithms to achieve exponential
+    speedups.
+  </p>
+</div>
+
+<h3>Summary: The Complexity Landscape</h3>
+
+<p>
+  The following diagram summarizes the believed relationships (none of these separations are
+  proven, but all are widely conjectured):
+</p>
+
+$$\mathsf{P} \subsetneq \mathsf{BPP} \subsetneq \mathsf{BQP}$$
+$$\mathsf{BQP} \not\subseteq \mathsf{NP}, \quad \mathsf{NP} \not\subseteq \mathsf{BQP}$$
+$$\mathsf{NP} \subseteq \mathsf{QMA} \subseteq \mathsf{QIP} = \mathsf{PSPACE}$$
+
+<p>
+  Quantum computers are more powerful than classical computers (BQP properly contains BPP), but
+  they are not all-powerful (BQP does not contain NP). They occupy a specific, well-defined niche
+  in the complexity landscape - one that happens to include some problems of extraordinary
+  practical importance (factoring, quantum simulation) while excluding others (NP-complete
+  optimization, most combinatorial search problems).
+</p>
+
+</section>
+
+<!-- ================================================================== -->
+
+<div class="flashcard-deck" data-component="flashcard-deck">
+  <div class="flashcard-deck-header">Chapter 30 Review</div>
+
+  <div class="flashcard" data-card-id="ch30-bqp-definition">
+    <div class="card-front">What is BQP, and how does it relate to P, BPP, and PSPACE?</div>
+    <div class="card-back">
+      BQP (Bounded-error Quantum Polynomial time) is the class of decision problems solvable by a
+      polynomial-time quantum computer with error probability at most 1/3. The known containments are
+      $\mathsf{P} \subseteq \mathsf{BPP} \subseteq \mathsf{BQP} \subseteq \mathsf{PP} \subseteq
+      \mathsf{PSPACE}$. All inclusions are believed to be strict but none are proven.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch30-raz-tal">
+    <div class="card-front">What did Raz and Tal prove in 2018 about BQP and the polynomial hierarchy?</div>
+    <div class="card-back">
+      Raz and Tal proved that there exists an oracle relative to which $\mathsf{BQP} \not\subseteq
+      \mathsf{PH}$. This means that in a relativized world, quantum computers can solve problems
+      outside the entire polynomial hierarchy - the strongest structural evidence that quantum
+      computational power is fundamentally different from classical computational power.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch30-qma-local-hamiltonian">
+    <div class="card-front">What is the Local Hamiltonian problem, and why is it significant for QMA?</div>
+    <div class="card-back">
+      The $k$-Local Hamiltonian problem asks whether the ground state energy of a Hamiltonian
+      $H = \sum H_j$ (each $H_j$ acting on at most $k$ qubits) is below a threshold $a$ or above
+      a threshold $b$. Kitaev proved it is QMA-complete for $k = 5$ (later improved to $k = 2$).
+      It is the quantum analog of SAT for NP - the "quantum Cook-Levin theorem."
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch30-qip-pspace">
+    <div class="card-front">State the QIP = PSPACE theorem. Who proved it, and what does it mean?</div>
+    <div class="card-back">
+      Jain, Ji, Upadhyay, and Watrous proved in 2009 (published 2011) that QIP = PSPACE: the class
+      of problems with quantum interactive proof systems equals the class solvable in polynomial
+      space. Since IP = PSPACE classically, quantum messages do not add power to interactive proofs.
+      However, quantum proofs are more round-efficient: QIP = QIP(3), needing only 3 rounds.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch30-sycamore-willow">
+    <div class="card-front">Summarize the key quantum supremacy experiments by Google (Sycamore and Willow).</div>
+    <div class="card-back">
+      Google Sycamore (2019): 53 qubits, performed random circuit sampling in 200 seconds, estimated
+      10,000 years classically (later disputed). Google Willow (2024): 105 qubits, performed RCS in
+      under 5 minutes, estimated $10^{25}$ years classically. Willow also demonstrated below-threshold
+      quantum error correction, with logical error rates halving as code distance increased.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch30-bqp-np-relationship">
+    <div class="card-front">What is the believed relationship between BQP and NP? Can quantum computers solve NP-complete problems?</div>
+    <div class="card-back">
+      BQP and NP are believed to be incomparable: each contains problems not in the other. Quantum
+      computers almost certainly cannot solve NP-complete problems in polynomial time. The BBBV
+      theorem proves that unstructured search requires $\Omega(\sqrt{N})$ quantum queries, giving
+      only a quadratic speedup. For NP-complete problems like 3-SAT, Grover's algorithm reduces
+      $2^n$ to $2^{n/2}$ - still exponential.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch30-grover-lower-bound">
+    <div class="card-front">State the BBBV lower bound theorem for quantum search.</div>
+    <div class="card-back">
+      The Bennett-Bernstein-Brassard-Vazirani (BBBV) theorem proves that any quantum algorithm for
+      unstructured search on $N$ elements requires $\Omega(\sqrt{N})$ queries. This matches
+      Grover's upper bound of $O(\sqrt{N})$, making Grover's algorithm optimal. The result means
+      quantum computers provide at most quadratic speedup for problems without exploitable algebraic
+      or quantum structure.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch30-quantum-speedup-structure">
+    <div class="card-front">What kinds of problem structure allow quantum computers to achieve exponential speedups?</div>
+    <div class="card-back">
+      Quantum computers achieve exponential speedups when problems have exploitable structure:
+      (1) Algebraic structure - periodicity (Shor), group structure (HSP);
+      (2) Quantum structure - simulating quantum systems;
+      (3) Interference structure - where amplitudes can constructively boost correct answers and
+      destructively cancel wrong ones. Unstructured problems yield at most quadratic (Grover-type)
+      speedups.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+    </article>
+
+    
+    <nav class="chapter-nav" aria-label="Chapter navigation">
+      <a href="29-shannon.html" class="prev">&larr; Chapter 29: Quantum Shannon Theory</a>
+      <span class="nav-spacer"></span>
+      <a href="31-hidden-subgroup.html" class="next">Chapter 31: The Hidden Subgroup Problem and Beyond &rarr;</a>
+    </nav>
+    
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof renderMathInElement !== "undefined") {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "$", right: "$", display: false}
+          ],
+          throwOnError: false
+        });
+      }
+    });
+  </script>
+  
+  <script>
+  "use strict";
+  
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function isDark() { return window.matchMedia("(prefers-color-scheme: dark)").matches; }
+  function renderMath(el) {
+    if (typeof renderMathInElement === "function")
+      renderMathInElement(el, { delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}], throwOnError: false });
+  }
+
+  
+  var wasmReady = null;
+  function ensureWasm() {
+    if (!wasmReady) {
+      wasmReady = (async function() {
+        var go = new Go();
+        var result = await WebAssembly.instantiateStreaming(fetch("../main.wasm"), go.importObject);
+        go.run(result.instance);
+      })();
+    }
+    return wasmReady;
+  }
+
+  
+  var SRS_KEY = "goqu-srs";
+  function srsLoad() { try { return JSON.parse(localStorage.getItem(SRS_KEY) || "{}"); } catch(e) { return {}; } }
+  function srsSave(d) { localStorage.setItem(SRS_KEY, JSON.stringify(d)); }
+  function getCardState(id) { var d = srsLoad(); return d[id] || {interval:1, ease:2.5, due:0, reps:0}; }
+  function reviewCard(id, q) {
+    var d = srsLoad(), s = d[id] || {interval:1, ease:2.5, due:0, reps:0};
+    if (q >= 3) {
+      s.reps++;
+      if (s.reps === 1) s.interval = 1;
+      else if (s.reps === 2) s.interval = 6;
+      else s.interval = Math.round(s.interval * s.ease);
+      s.ease = Math.max(1.3, s.ease + 0.1 - (5-q)*(0.08 + (5-q)*0.02));
+    } else { s.reps = 0; s.interval = 1; }
+    s.due = Date.now() + s.interval * 86400000;
+    d[id] = s; srsSave(d);
+  }
+
+  
+  function initSandbox(el) {
+    var code = el.querySelector(".code"), output = el.querySelector(".output");
+    if (!code || !output) return;
+    var runBtn = el.querySelector('[data-action="run"]'), resetBtn = el.querySelector('[data-action="reset"]');
+    var shotsEl = el.querySelector("[data-shots]"), orig = code.value;
+    function shots() { return parseInt(shotsEl ? shotsEl.value : el.dataset.shots || "1024", 10); }
+    async function run() {
+      await ensureWasm();
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(code.value, shots(), isDark()));
+        if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+        output.innerHTML = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+    if (runBtn) runBtn.addEventListener("click", run);
+    if (resetBtn) resetBtn.addEventListener("click", function() { code.value = orig; });
+    if (el.hasAttribute("data-autorun")) run();
+  }
+
+  
+  function initSimulation(el) {
+    var tmplEl = el.querySelector(".sim-qasm"), output = el.querySelector(".sim-output");
+    var sliders = el.querySelectorAll('input[type="range"]');
+    var selects = el.querySelectorAll("select[data-param]");
+    if (!tmplEl || !output || (sliders.length === 0 && selects.length === 0)) return;
+    var tmpl = tmplEl.textContent, pending = false;
+    var useNoisy = el.hasAttribute("data-noisy");
+    var useComparison = el.hasAttribute("data-comparison");
+    var useExpectation = el.hasAttribute("data-expectation");
+    var useClifford = el.hasAttribute("data-clifford");
+    async function update() {
+      if (pending) return; pending = true;
+      await ensureWasm();
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var params = {};
+        sliders.forEach(function(s) { params[s.dataset.param] = parseFloat(s.value); var o = s.parentElement.querySelector("output"); if (o) o.textContent = parseFloat(s.value).toFixed(2); });
+        selects.forEach(function(s) { params[s.dataset.param] = s.value; });
+        var qasm = tmpl;
+        for (var k in params) qasm = qasm.replaceAll("{"+k+"}", params[k].toString());
+        var html = "";
+        if (useComparison && window.compareIdealNoisy) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.compareIdealNoisy(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="comparison-panels"><div class="comparison-panel"><h4>Ideal</h4>' + (r.idealHistogramSVG||"") + '</div><div class="comparison-panel"><h4>Noisy</h4>' + (r.noisyHistogramSVG||"") + '</div></div>';
+          if (r.stateCitySVG) html += r.stateCitySVG;
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useNoisy && window.runNoisyQASM) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.runNoisyQASM(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"") + (r.stateCitySVG||"");
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useClifford && window.runClifford) {
+          var r = JSON.parse(window.runClifford(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"");
+          if (r.stabilizers) { html += '<div class="stabilizer-table"><h4>Stabilizers</h4><table>'; r.stabilizers.forEach(function(s) { html += '<tr><td>' + formatStabilizer(s) + '</td></tr>'; }); html += '</table></div>'; }
+        } else if (useExpectation && window.computeExpectation) {
+          var pauliStr = params.pauliStr || el.dataset.pauli || "Z";
+          var r = JSON.parse(window.computeExpectation(qasm, pauliStr, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="sim-stats"><span>&lt;' + esc(pauliStr) + '&gt; = ' + r.expectation.toFixed(6) + '</span></div>';
+        } else {
+          var r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+          
+          if (el.hasAttribute("data-bloch") && window.getStateVector && window.renderBloch) {
+            try {
+              var sv = JSON.parse(window.getStateVector(qasm));
+              if (sv.amplitudes && sv.amplitudes.length === 2) {
+                var a = sv.amplitudes;
+                var blochSVG = window.renderBloch(a[0].re, a[0].im, a[1].re, a[1].im, isDark());
+                if (blochSVG) html += blochSVG;
+              }
+            } catch(e) {   }
+          }
+        }
+        output.innerHTML = html;
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+      pending = false;
+    }
+    sliders.forEach(function(s) { s.addEventListener("input", update); });
+    selects.forEach(function(s) { s.addEventListener("change", update); });
+    update();
+  }
+
+  
+  function formatStabilizer(s) {
+    if (!s) return "";
+    var sign = s[0], ops = s.slice(1), html = '<span class="stab-sign">' + esc(sign) + '</span>';
+    for (var i = 0; i < ops.length; i++) {
+      var c = ops[i], cls = "stab-" + c.toLowerCase();
+      html += '<span class="' + cls + '">' + c + '</span>';
+    }
+    return html;
+  }
+
+  
+  function initExercise(el) {
+    var code = el.querySelector(".code"), feedback = el.querySelector(".exercise-feedback");
+    var checkBtn = el.querySelector('[data-action="check"]');
+    var hintBtn = el.querySelector('[data-action="hint"]'), hintEl = el.querySelector(".exercise-hint");
+    if (!code || !feedback || !checkBtn) return;
+    var expected = {}, tol = 0.1;
+    var expEl = el.querySelector(".exercise-expected");
+    if (expEl) expEl.querySelectorAll("[data-state]").forEach(function(span) {
+      expected[span.dataset.state] = parseFloat(span.dataset.prob);
+      if (span.dataset.tolerance) tol = parseFloat(span.dataset.tolerance);
+    });
+    checkBtn.addEventListener("click", async function() {
+      await ensureWasm();
+      feedback.className = "exercise-feedback visible";
+      feedback.textContent = "Checking...";
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(code.value, 1024, isDark()));
+        if (r.error) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + r.error; return; }
+        if (Object.keys(expected).length === 0) { feedback.className = "exercise-feedback visible pass"; feedback.innerHTML = "Circuit ran successfully."; return; }
+        var prob = JSON.parse(window.getProbabilities(code.value, isDark()));
+        if (prob.error) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + prob.error; return; }
+        var actual = {};
+        for (var i = 0; i < prob.labels.length; i++) actual[prob.labels[i]] = prob.probabilities[i];
+        var ok = true, msgs = [];
+        for (var s in expected) {
+          var a = actual[s] || 0, p = expected[s];
+          if (Math.abs(a - p) > tol) { ok = false; msgs.push("|" + s + "\u27E9: expected " + (p*100|0) + "%, got " + (a*100|0) + "%"); }
+        }
+        if (ok) { feedback.className = "exercise-feedback visible pass"; feedback.innerHTML = "Correct! Your circuit produces the expected output."; }
+        else { feedback.className = "exercise-feedback visible fail"; feedback.innerHTML = "Not quite. " + msgs.join("; ") + "."; }
+        renderMath(feedback);
+      } catch(e) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + e.message; }
+    });
+    if (hintBtn && hintEl) hintBtn.addEventListener("click", function() { hintEl.style.display = hintEl.style.display === "none" ? "block" : "none"; });
+  }
+
+  
+  function initFlashcardDeck(el) {
+    el.querySelectorAll(".flashcard").forEach(function(card) {
+      var id = card.dataset.cardId;
+      if (!id) return;
+      var state = getCardState(id);
+      if (state.due > 0 && state.due > Date.now()) card.classList.add("reviewed");
+      card.addEventListener("click", function(e) {
+        if (e.target.closest("button")) return;
+        card.classList.toggle("flipped");
+        var back = card.querySelector(".card-back");
+        if (back) renderMath(back);
+      });
+      var easyBtn = card.querySelector(".easy"), hardBtn = card.querySelector(".hard");
+      if (easyBtn) easyBtn.addEventListener("click", function() { reviewCard(id, 4); card.classList.remove("flipped"); card.classList.add("reviewed"); });
+      if (hardBtn) hardBtn.addEventListener("click", function() { reviewCard(id, 2); card.classList.remove("flipped"); });
+    });
+  }
+
+  
+  function initPOE(el) {
+    var steps = el.querySelectorAll(".poe-step"), prog = el.querySelectorAll(".poe-progress-step");
+    if (steps.length === 0) return;
+    var cur = 0;
+    function show(idx) {
+      steps.forEach(function(s,i) { s.classList.toggle("active", i === idx); });
+      prog.forEach(function(s,i) { s.classList.remove("active","done"); if (i < idx) s.classList.add("done"); if (i === idx) s.classList.add("active"); });
+      cur = idx;
+      var active = steps[idx];
+      if (active) active.querySelectorAll('.sandbox:not([data-initialized])').forEach(function(sb) { sb.setAttribute("data-initialized","true"); initSandbox(sb); });
+    }
+    el.querySelectorAll('[data-action="next"]').forEach(function(btn) { btn.addEventListener("click", function() { if (cur < steps.length - 1) show(cur + 1); }); });
+    el.querySelectorAll('[data-action="complete"]').forEach(function(btn) { btn.addEventListener("click", function() { prog.forEach(function(s) { s.classList.remove("active"); s.classList.add("done"); }); }); });
+    show(0);
+  }
+
+  
+  function initStepThrough(el) {
+    var qasmEl = el.querySelector(".step-qasm");
+    var output = el.querySelector(".step-output");
+    var prevBtn = el.querySelector('[data-action="prev"]');
+    var nextBtn = el.querySelector('[data-action="next"]');
+    var stepInfo = el.querySelector(".step-info");
+    if (!qasmEl || !output) return;
+    var qasm = qasmEl.textContent;
+    var mode = el.dataset.mode || "clifford"; 
+    var steps = null, cur = -1;
+
+    async function load() {
+      await ensureWasm();
+      try {
+        if (mode === "clifford" && window.cliffordStepThrough) {
+          var r = JSON.parse(window.cliffordStepThrough(qasm));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+          
+          steps.unshift({gate: "init", qubits: [], stabilizers: r.steps.length > 0 ? null : []});
+        } else if (mode === "grover" && window.groverStepThrough) {
+          var nq = parseInt(el.dataset.qubits || "2", 10);
+          var targets = JSON.parse(el.dataset.targets || "[]");
+          var r = JSON.parse(window.groverStepThrough(nq, targets.join(",")));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+        }
+        if (steps && steps.length > 0) { cur = 0; renderStep(); }
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    function renderStep() {
+      if (!steps || cur < 0 || cur >= steps.length) return;
+      var s = steps[cur];
+      var html = "";
+      if (mode === "clifford") {
+        if (s.gate === "init") {
+          html = '<p class="step-label">Initial state |0...0&gt;</p>';
+          
+          if (steps.length > 1 && steps[1].stabilizers) {
+            var nq = steps[1].stabilizers[0].length - 1;
+            html += '<div class="stabilizer-table"><table>';
+            for (var i = 0; i < nq; i++) {
+              var row = "+";
+              for (var j = 0; j < nq; j++) row += (j === i) ? "Z" : "I";
+              html += '<tr><td>' + formatStabilizer(row) + '</td></tr>';
+            }
+            html += '</table></div>';
+          }
+        } else {
+          html = '<p class="step-label">After <strong>' + esc(s.gate) + '</strong> on qubit' + (s.qubits.length > 1 ? 's ' : ' ') + s.qubits.join(', ') + '</p>';
+          if (s.stabilizers) {
+            html += '<div class="stabilizer-table"><table>';
+            s.stabilizers.forEach(function(st) { html += '<tr><td>' + formatStabilizer(st) + '</td></tr>'; });
+            html += '</table></div>';
+          }
+        }
+      } else if (mode === "grover") {
+        html = '<p class="step-label">Iteration ' + s.iteration + '</p>';
+        if (s.probabilities) {
+          html += '<div class="amplitude-bars">';
+          for (var i = 0; i < s.probabilities.length; i++) {
+            var label = i.toString(2).padStart(Math.ceil(Math.log2(s.probabilities.length)), '0');
+            var pct = (s.probabilities[i] * 100).toFixed(1);
+            var isTarget = el.dataset.targets && JSON.parse(el.dataset.targets).indexOf(i) >= 0;
+            html += '<div class="amp-bar' + (isTarget ? ' target' : '') + '"><div class="amp-fill" style="height:' + pct + '%"></div><span class="amp-label">|' + label + '&gt;</span><span class="amp-value">' + pct + '%</span></div>';
+          }
+          html += '</div>';
+        }
+      }
+      output.innerHTML = html;
+      if (stepInfo) stepInfo.textContent = "Step " + cur + " / " + (steps.length - 1);
+      if (prevBtn) prevBtn.disabled = (cur === 0);
+      if (nextBtn) nextBtn.disabled = (cur >= steps.length - 1);
+    }
+
+    if (prevBtn) prevBtn.addEventListener("click", function() { if (cur > 0) { cur--; renderStep(); } });
+    if (nextBtn) nextBtn.addEventListener("click", function() { if (steps && cur < steps.length - 1) { cur++; renderStep(); } });
+    load();
+  }
+
+  
+  document.addEventListener("DOMContentLoaded", function() {
+    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough};
+    document.querySelectorAll("[data-component]").forEach(function(el) { var fn = reg[el.dataset.component]; if (fn) fn(el); });
+  });
+  </script>
+  
+</body>
+</html>

@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chapter 29: Quantum Shannon Theory - Goqu Textbook</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/contrib/auto-render.min.js"></script>
+  
+  <link rel="preload" href="../main.wasm" as="fetch" type="application/wasm" crossorigin>
+  <script src="../wasm_exec.js"></script>
+  
+</head>
+<body>
+  <input type="checkbox" id="nav-toggle" hidden>
+  <label for="nav-toggle" class="nav-hamburger" aria-label="Toggle navigation">
+    <span></span><span></span><span></span>
+  </label>
+
+  <nav class="sidebar" aria-label="Table of contents">
+    <a href="../index.html" class="sidebar-logo">Goqu Textbook</a>
+    
+    <details>
+      <summary>Part 1: The World of Classical Computing</summary>
+      <ol start="1">
+        
+        <li value="1"><a href="01-computation.html">What Is Computation?</a></li>
+        
+        <li value="2"><a href="02-math-of-information.html">The Mathematics of Information</a></li>
+        
+        <li value="3"><a href="03-reversible-computing.html">Reversible Computing</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 2: Entering the Quantum World</summary>
+      <ol start="4">
+        
+        <li value="4"><a href="04-the-first-qubit.html">The First Qubit</a></li>
+        
+        <li value="5"><a href="05-quantum-gates.html">Quantum Gates</a></li>
+        
+        <li value="6"><a href="06-entanglement.html">Multiple Qubits and Entanglement</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 3: Quantum Protocols</summary>
+      <ol start="7">
+        
+        <li value="7"><a href="07-teleportation.html">Quantum Teleportation and Communication</a></li>
+        
+        <li value="8"><a href="08-cryptography.html">Quantum Cryptography</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 4: Quantum Algorithms - The First Wave</summary>
+      <ol start="9">
+        
+        <li value="9"><a href="09-oracles.html">Oracles and Quantum Parallelism</a></li>
+        
+        <li value="10"><a href="10-qft.html">The Quantum Fourier Transform</a></li>
+        
+        <li value="11"><a href="11-shor.html">Shor&#39;s Algorithm</a></li>
+        
+        <li value="12"><a href="12-grover.html">Grover&#39;s Algorithm</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 5: Real Quantum Hardware</summary>
+      <ol start="13">
+        
+        <li value="13"><a href="13-hardware.html">How to Build a Quantum Computer</a></li>
+        
+        <li value="14"><a href="14-noise.html">Noise, Decoherence, and the NISQ Era</a></li>
+        
+        <li value="15"><a href="15-programming.html">Programming Quantum Computers</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 6: Quantum Error Correction</summary>
+      <ol start="16">
+        
+        <li value="16"><a href="16-classical-ec.html">Classical Error Correction Refresher</a></li>
+        
+        <li value="17"><a href="17-qec-fundamentals.html">Quantum Error Correction Fundamentals</a></li>
+        
+        <li value="18"><a href="18-stabilizers.html">The Stabilizer Formalism</a></li>
+        
+        <li value="19"><a href="19-surface-codes.html">Surface Codes and Topological Protection</a></li>
+        
+        <li value="20"><a href="20-fault-tolerance.html">Fault-Tolerant Quantum Computing</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 7: Variational and Near-Term Algorithms</summary>
+      <ol start="21">
+        
+        <li value="21"><a href="21-variational.html">The Variational Quantum Computing Paradigm</a></li>
+        
+        <li value="22"><a href="22-vqe.html">Variational Quantum Eigensolver (VQE)</a></li>
+        
+        <li value="23"><a href="23-qaoa.html">Quantum Approximate Optimization (QAOA)</a></li>
+        
+        <li value="24"><a href="24-qml.html">Quantum Machine Learning</a></li>
+        
+        <li value="25"><a href="25-error-mitigation.html">Quantum Error Mitigation</a></li>
+        
+      </ol>
+    </details>
+    
+    <details open>
+      <summary>Part 8: Quantum Information Theory</summary>
+      <ol start="26">
+        
+        <li value="26"><a href="26-states-measurements.html">Quantum States and Measurements, Revisited</a></li>
+        
+        <li value="27"><a href="27-channels.html">Quantum Channels and Operations</a></li>
+        
+        <li value="28"><a href="28-entropy.html">Quantum Entropy and Information</a></li>
+        
+        <li value="29"><a href="29-shannon.html" aria-current="page">Quantum Shannon Theory</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 9: Quantum Complexity and Computation Theory</summary>
+      <ol start="30">
+        
+        <li value="30"><a href="30-complexity.html">Quantum Computational Complexity</a></li>
+        
+        <li value="31"><a href="31-hidden-subgroup.html">The Hidden Subgroup Problem and Beyond</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 10: Quantum Simulation</summary>
+      <ol start="32">
+        
+        <li value="32"><a href="32-simulation-why.html">Why Quantum Simulation Matters</a></li>
+        
+        <li value="33"><a href="33-digital-simulation.html">Digital Quantum Simulation</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 11: Quantum Networking, Cryptography, and Sensing</summary>
+      <ol start="34">
+        
+        <li value="34"><a href="34-quantum-internet.html">The Quantum Internet</a></li>
+        
+        <li value="35"><a href="35-advanced-crypto.html">Advanced Quantum Cryptography</a></li>
+        
+        <li value="36"><a href="36-sensing.html">Quantum Sensing and Metrology</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 12: Frontiers and the Future</summary>
+      <ol start="37">
+        
+        <li value="37"><a href="37-topological.html">Topological Quantum Computing</a></li>
+        
+        <li value="38"><a href="38-quantum-ai.html">Quantum Computing and Artificial Intelligence</a></li>
+        
+        <li value="39"><a href="39-open-problems.html">Open Problems in Quantum Computing</a></li>
+        
+        <li value="40"><a href="40-ecosystem.html">The Quantum Computing Ecosystem Today</a></li>
+        
+        <li value="41"><a href="41-career.html">Building Your Quantum Computing Career</a></li>
+        
+        <li value="42"><a href="42-what-next.html">What Comes Next</a></li>
+        
+      </ol>
+    </details>
+    
+  </nav>
+
+  <main>
+    
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="../index.html">Home</a> / <a href="../index.html#part-8">Part 8</a> / <span>Chapter 29</span>
+    </nav>
+    
+
+    <article>
+      <h1>Chapter 29: Quantum Shannon Theory</h1>
+      <p>
+Shannon's classical theory of communication established that every noisy channel has a
+well-defined capacity - a maximum rate at which information can be transmitted reliably.
+The quantum version of this theory is richer and more surprising. A quantum channel has
+not one but several capacities, depending on whether we want to send classical bits, quantum
+bits, or use entanglement assistance. This chapter develops the four pillars of quantum
+Shannon theory: the HSW theorem for classical communication, the LSD theorem for quantum
+communication, entanglement-assisted capacity, and Schumacher compression for quantum data.
+</p>
+
+<!-- ================================================================== -->
+<section id="hsw-theorem">
+<h2>29.1 Classical Information over Quantum Channels</h2>
+
+<p>
+The most natural question about a quantum channel is: how much classical information can it
+transmit? Alice encodes a classical message $x$ into a quantum state $\rho_x$ and sends it
+through the channel $\mathcal{N}$. Bob receives $\mathcal{N}(\rho_x)$ and performs a
+measurement to decode the message. The maximum reliable transmission rate is the
+<strong>classical capacity</strong> $C(\mathcal{N})$.
+</p>
+
+<h3>The Holevo Bound Revisited</h3>
+
+<p>
+As we saw in Chapter 26, the Holevo bound limits the mutual information between Alice's
+message and Bob's measurement outcome in a <em>single</em> use of the channel. For an
+ensemble $\{p_x, \rho_x\}$:
+</p>
+
+$$I(X:Y) \leq \chi(\{p_x, \mathcal{N}(\rho_x)\}) = S\!\left(\sum_x p_x \mathcal{N}(\rho_x)\right) - \sum_x p_x S(\mathcal{N}(\rho_x))$$
+
+<p>
+But the Holevo bound applies to a single channel use. In Shannon theory, we are interested
+in what happens when we use the channel many times and are allowed to encode across multiple
+uses (block coding). Can we do better than the single-use Holevo bound? The answer, in a
+precise asymptotic sense, is given by the HSW theorem.
+</p>
+
+<h3>The HSW Theorem</h3>
+
+<div class="callout callout-key">
+<strong>Key Concept.</strong>
+<p>
+<strong>The Holevo-Schumacher-Westmoreland (HSW) Theorem.</strong> The classical capacity of
+a quantum channel $\mathcal{N}$ is:
+$$C(\mathcal{N}) = \lim_{n \to \infty} \frac{1}{n} \chi(\mathcal{N}^{\otimes n})$$
+where $\chi(\mathcal{N}^{\otimes n}) = \max_{\{p_x, \rho_x\}} \chi(\{p_x, \mathcal{N}^{\otimes n}(\rho_x)\})$
+is the Holevo information maximized over all input ensembles for $n$ uses of the channel.
+The regularization (limit over $n$) is necessary because the Holevo information can be
+superadditive.
+</p>
+</div>
+
+<p>
+The HSW theorem was proved independently by Holevo (1998) and by Schumacher and Westmoreland
+(1997). The achievability proof constructs random codebooks of product states and shows that
+typical measurement (a quantum generalization of joint typicality decoding) can reliably
+distinguish the codewords. The converse follows from the Holevo bound.
+</p>
+
+<h3>The Additivity Problem</h3>
+
+<p>
+The regularization in the HSW formula - the limit $\lim_{n \to \infty} \frac{1}{n}\chi(\mathcal{N}^{\otimes n})$ -
+is a serious complication. If the Holevo information were additive
+($\chi(\mathcal{N}^{\otimes n}) = n \cdot \chi(\mathcal{N})$), the formula would simplify to
+$C(\mathcal{N}) = \chi(\mathcal{N})$, a single-letter formula that can be computed from one
+use of the channel.
+</p>
+
+<p>
+For many years, it was conjectured that the Holevo information is always additive. In 2009,
+Hastings disproved this by showing that there exist channels for which entangled input states
+across multiple channel uses yield strictly higher Holevo information than product inputs.
+This was a landmark result: it means that entanglement between channel inputs is a genuine
+resource for classical communication, and computing the exact classical capacity is in
+general intractable.
+</p>
+
+<div class="callout callout-warning">
+<strong>Common Misconception.</strong>
+<p>
+It is tempting to think that "the Holevo bound gives the capacity." This is only true for
+channels where the Holevo information is additive (many common channels satisfy this,
+including the depolarizing channel for all dimensions where it has been checked). For general
+channels, the capacity requires the regularized formula, which involves an optimization over
+an unbounded number of channel uses. The Holevo $\chi$-quantity gives only a lower bound on
+the capacity (it is always achievable), but it may not be tight.
+</p>
+</div>
+
+<h3>Proof Strategy: Typical Sequences Meet Quantum States</h3>
+
+<p>
+The achievability proof of the HSW theorem follows the same conceptual structure as Shannon's
+original proof, adapted to the quantum setting. Alice constructs a random codebook by
+choosing $2^{nR}$ codewords, each a product state of $n$ signal states drawn from the
+optimal input ensemble. Bob uses a POVM constructed from projections onto the typical
+subspaces associated with each codeword. The key steps are:
+</p>
+
+<ol>
+<li><strong>Random coding:</strong> Generate a random codebook $\{x^n(m)\}$ by drawing each
+symbol independently from the optimal distribution.</li>
+<li><strong>Gentle measurement lemma:</strong> Bob's POVM can be designed so that correctly
+identifying the codeword disturbs the state only slightly. This is a uniquely quantum
+ingredient with no classical analog.</li>
+<li><strong>Union bound on error:</strong> The probability that Bob mistakes one codeword for
+another decays exponentially in $n$ when the rate $R < \chi$.</li>
+</ol>
+
+<p>
+The converse (that rates above $\chi$ per use are impossible) follows from the Holevo bound
+applied to $n$ uses of the channel, combined with the Fano inequality.
+</p>
+
+<h3>Examples</h3>
+
+<p>
+For several important channels, the classical capacity is known in single-letter form:
+</p>
+
+<ul>
+<li><strong>Noiseless qubit channel:</strong> $C = 1$ bit per use.</li>
+<li><strong>Quantum erasure channel</strong> (erasure probability $\epsilon$):
+$C = (1 - \epsilon) \log 2 = 1 - \epsilon$ bits per qubit.</li>
+<li><strong>Qubit depolarizing channel</strong> (error probability $p$):
+$C = 1 - h(p) - p \log 3$ for the symmetric form, where $h$ is the binary entropy.</li>
+</ul>
+
+<p>
+For the depolarizing channel, the optimal input ensemble uses orthogonal states with equal
+probabilities, and the capacity decreases from 1 bit (no noise) to 0 as $p$ increases
+toward the fully depolarizing limit $p = 3/4$ (where every input is mapped to $I/2$).
+</p>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="quantum-capacity">
+<h2>29.2 Quantum Capacity</h2>
+
+<p>
+The <strong>quantum capacity</strong> $Q(\mathcal{N})$ is the maximum rate at which quantum
+information (qubits) can be reliably transmitted through a noisy quantum channel. This is
+a fundamentally quantum question with no classical analog: we are asking not just about
+transmitting bits, but about preserving quantum coherence and entanglement.
+</p>
+
+<h3>Coherent Information</h3>
+
+<p>
+The key quantity for quantum capacity is the <strong>coherent information</strong>,
+introduced by Schumacher and Nielsen (1996):
+</p>
+
+$$I_c(\rho, \mathcal{N}) = S(\mathcal{N}(\rho)) - S(\mathcal{N}^c(\rho))$$
+
+<p>
+where $\mathcal{N}^c$ is the complementary channel (Chapter 27). This can be rewritten as:
+</p>
+
+$$I_c(\rho, \mathcal{N}) = S(B)_\sigma - S(AB)_\sigma$$
+
+<p>
+where $\sigma_{AB} = (\mathcal{I}_A \otimes \mathcal{N}_B)(|\psi\rangle\langle\psi|_{AB})$
+and $|\psi\rangle_{AB}$ is a purification of $\rho$. Note that $I_c = -S(A|B)$, the
+negative of the conditional entropy. The coherent information measures how much more the
+receiver knows about the full state than the environment does.
+</p>
+
+<div class="callout callout-key">
+<strong>Key Concept.</strong>
+<p>
+The coherent information $I_c(\rho, \mathcal{N})$ can be negative - this happens when the
+environment captures more information than the receiver. A positive coherent information
+indicates that the channel can support some quantum communication. Unlike classical mutual
+information, the coherent information is not symmetric and can be negative, reflecting the
+fundamental asymmetry between sender and receiver in quantum communication.
+</p>
+</div>
+
+<h3>The LSD Theorem</h3>
+
+<p>
+The quantum capacity is given by the <strong>Lloyd-Shor-Devetak (LSD) theorem</strong>:
+</p>
+
+$$Q(\mathcal{N}) = \lim_{n \to \infty} \frac{1}{n} \max_\rho I_c(\rho, \mathcal{N}^{\otimes n})$$
+
+<p>
+The achievability was proved with increasing rigor by Lloyd (1997), Shor (2002), and
+Devetak (2005). Devetak's proof is the most complete and uses a clever connection to
+private classical communication: sending quantum information is equivalent to sending
+classical information that is private from the environment.
+</p>
+
+<p>
+Like the HSW theorem, the LSD formula requires regularization. The coherent information
+is known to be superadditive for some channels: there exist channels with zero single-use
+coherent information ($\max_\rho I_c(\rho, \mathcal{N}) = 0$) but positive quantum capacity.
+Two such channels used together can transmit quantum information even though neither can
+alone - a phenomenon called <strong>superactivation of quantum capacity</strong>, discovered
+by Smith and Yard (2008).
+</p>
+
+<h3>Degradable Channels</h3>
+
+<p>
+For <strong>degradable channels</strong> - channels where the complementary channel can be
+obtained by applying a degrading map to the output - the coherent information is additive,
+and the quantum capacity simplifies to a single-letter formula:
+</p>
+
+$$Q(\mathcal{N}) = \max_\rho I_c(\rho, \mathcal{N})$$
+
+<p>
+Important degradable channels include the quantum erasure channel and the amplitude damping
+channel. For the erasure channel with parameter $\epsilon$:
+$Q = \max(1 - 2\epsilon, 0)$.
+Note that $Q > 0$ only for $\epsilon < 1/2$ - a clear threshold effect.
+</p>
+
+<h3>Worked Example: Quantum Capacity of the Erasure Channel</h3>
+
+<p>
+The quantum erasure channel with parameter $\epsilon$ transmits the qubit perfectly with
+probability $1 - \epsilon$ and erases it (replacing it with a known flag state) with
+probability $\epsilon$. Because it is degradable, the quantum capacity has the single-letter
+form:
+</p>
+
+$$Q = \max_\rho I_c(\rho, \mathcal{N})$$
+
+<p>
+For any input state $\rho$, the coherent information of the erasure channel evaluates to
+$(1 - 2\epsilon)S(\rho)$, which is maximized by $\rho = I/2$ (the maximally mixed state).
+This gives:
+</p>
+
+$$Q = \max(1 - 2\epsilon, 0)$$
+
+<p>
+The capacity is positive only when $\epsilon < 1/2$ - the receiver must get more than half
+the transmitted qubits on average. At $\epsilon = 1/2$, the channel is at the threshold: the
+environment captures exactly as much as the receiver, and no quantum information survives.
+Compare with the classical capacity $C = 1 - \epsilon$, which is positive for all
+$\epsilon < 1$. Quantum information is harder to protect than classical information.
+</p>
+
+<h3>Anti-Degradable Channels and Zero Capacity</h3>
+
+<p>
+A channel is <strong>anti-degradable</strong> if the receiver's output can be obtained from
+the environment's output. For such channels, the environment has at least as much information
+as the receiver, so no quantum information can be protected: $Q = 0$. The depolarizing
+channel is anti-degradable (and hence has zero quantum capacity) when the noise parameter
+$p$ exceeds a certain threshold.
+</p>
+
+<h3>The No-Cloning Bound</h3>
+
+<p>
+A beautiful connection between quantum capacity and the no-cloning theorem: if a channel
+$\mathcal{N}$ has $Q > 0$, then its complementary channel $\mathcal{N}^c$ must have
+$Q^c = 0$. If both $\mathcal{N}$ and $\mathcal{N}^c$ had positive quantum capacity, we
+could use them together to create two copies of quantum information (one at the receiver,
+one at the environment), violating no-cloning. This fundamental constraint means quantum
+information is a zero-sum game between receiver and environment: it cannot be shared.
+</p>
+
+<div class="callout callout-info">
+<strong>Note.</strong>
+<p>
+The quantum capacity landscape is much richer than the classical one. Classical channel
+capacity is given by a simple single-letter formula (Shannon's noisy channel coding theorem).
+Quantum capacity requires regularization, can be superadditive, can be superactivated, and
+the question of whether a given channel has zero or positive capacity can be undecidable.
+This complexity reflects the fundamentally richer structure of quantum information.
+</p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="entanglement-assisted">
+<h2>29.3 Entanglement-Assisted Communication</h2>
+
+<p>
+What if Alice and Bob share entanglement before communication begins? Pre-shared entanglement
+is a powerful resource: recall that superdense coding uses one shared Bell pair to send two
+classical bits through one qubit channel. The <strong>entanglement-assisted classical capacity</strong>
+$C_E(\mathcal{N})$ quantifies this advantage.
+</p>
+
+<h3>The Bennett-Shor-Smolin-Thapliyal (BSST) Theorem</h3>
+
+<div class="callout callout-key">
+<strong>Key Concept.</strong>
+<p>
+<strong>The BSST Theorem.</strong> The entanglement-assisted classical capacity of a quantum
+channel $\mathcal{N}$ is:
+$$C_E(\mathcal{N}) = \max_\rho I(A:B)_\sigma$$
+where $\sigma_{AB} = (\mathcal{I}_A \otimes \mathcal{N}_B)(|\psi\rangle\langle\psi|_{AB})$,
+$|\psi\rangle_{AB}$ is a purification of $\rho$, and $I(A:B) = S(A) + S(B) - S(AB)$ is the
+quantum mutual information. This is a single-letter formula - no regularization is needed.
+</p>
+</div>
+
+<p>
+The BSST theorem is remarkable for several reasons:
+</p>
+
+<ul>
+<li><strong>No regularization:</strong> Unlike $C$ and $Q$, the entanglement-assisted capacity
+is given by a single-letter formula. Entanglement between channel inputs provides no additional
+benefit beyond what the mutual information formula already captures.</li>
+<li><strong>Always at least as large as $C$:</strong> $C_E(\mathcal{N}) \geq C(\mathcal{N})$,
+since pre-shared entanglement can only help. For a noiseless qubit channel,
+$C_E = 2$ bits (superdense coding) compared to $C = 1$ bit.</li>
+<li><strong>Quantum mutual information as capacity:</strong> The quantum mutual information,
+which we studied as a measure of correlations in Chapter 28, now acquires an operational
+meaning as a communication rate.</li>
+</ul>
+
+<h3>Entanglement-Assisted Quantum Capacity</h3>
+
+<p>
+With pre-shared entanglement, quantum communication also becomes easier. The
+<strong>entanglement-assisted quantum capacity</strong> is:
+</p>
+
+$$Q_E(\mathcal{N}) = \frac{1}{2} C_E(\mathcal{N}) = \frac{1}{2} \max_\rho I(A:B)_\sigma$$
+
+<p>
+The factor of $1/2$ comes from quantum teleportation: each qubit of quantum communication
+requires two classical bits via teleportation. This clean relationship between classical and
+quantum entanglement-assisted capacities is another consequence of the teleportation protocol.
+</p>
+
+<h3>The Capacity Hierarchy</h3>
+
+<p>
+We can now compare the various capacities. For a quantum channel $\mathcal{N}$:
+</p>
+
+$$Q(\mathcal{N}) \leq C(\mathcal{N}) \leq C_E(\mathcal{N})$$
+
+<p>
+The first inequality says quantum information is harder to transmit than classical information
+(protecting coherence is harder than protecting bit values). The second says entanglement
+assistance can only help. For a noiseless qubit channel: $Q = 1$ qubit, $C = 1$ bit,
+$C_E = 2$ bits.
+</p>
+
+<p>
+The gaps between these capacities can be dramatic. There exist channels with $Q = 0$ (no
+quantum communication possible) but $C > 0$ (classical communication still works). Entanglement
+assistance can turn a channel with low classical capacity into one with high capacity.
+</p>
+
+<div class="callout callout-info">
+<strong>Note.</strong>
+<p>
+There is also a <strong>private classical capacity</strong> $C_p(\mathcal{N})$ - the rate
+of classical communication secure against an eavesdropper who controls the environment.
+It satisfies $Q(\mathcal{N}) \leq C_p(\mathcal{N}) \leq C(\mathcal{N})$. In fact,
+Devetak (2005) showed that $Q(\mathcal{N}) = C_p(\mathcal{N})$ for the regularized formulas:
+the quantum capacity equals the private capacity. Sending quantum information is the same as
+sending private classical information.
+</p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="schumacher-compression">
+<h2>29.4 Quantum Data Compression</h2>
+
+<p>
+Shannon's source coding theorem says that a classical source with entropy $H$ can be
+compressed to $H$ bits per symbol and no fewer. The quantum analog is
+<strong>Schumacher compression</strong>, proved by Schumacher in 1995, which established the
+von Neumann entropy as the fundamental limit of quantum data compression.
+</p>
+
+<h3>The Setup</h3>
+
+<p>
+Alice has a quantum source that produces states from an ensemble $\{p_x, |\psi_x\rangle\}$,
+giving rise to the average state $\rho = \sum_x p_x |\psi_x\rangle\langle\psi_x|$. She wants
+to compress $n$ copies of this source into the fewest qubits possible, transmit them through
+a noiseless quantum channel, and have Bob decompress with high fidelity.
+</p>
+
+<h3>Typical Subspace</h3>
+
+<p>
+The key idea is the <strong>typical subspace</strong>, the quantum analog of the typical set
+from classical information theory. Consider the spectral decomposition
+$\rho = \sum_j \lambda_j |j\rangle\langle j|$. For $n$ copies, the Hilbert space of
+$\rho^{\otimes n}$ has dimension $d^n$, but most of the probability weight is concentrated
+on a subspace of dimension approximately $2^{nS(\rho)}$ - the typical subspace $T_{n,\delta}$.
+</p>
+
+<p>
+More precisely, the typical subspace is spanned by tensor products $|j_1\rangle \otimes
+\cdots \otimes |j_n\rangle$ whose empirical eigenvalue frequencies are close to the true
+eigenvalue distribution $\{\lambda_j\}$. By the law of large numbers:
+</p>
+
+$$\text{dim}(T_{n,\delta}) \approx 2^{nS(\rho)}$$
+
+<p>
+and the probability of the state lying outside the typical subspace vanishes as $n \to \infty$.
+</p>
+
+<h3>Schumacher's Theorem</h3>
+
+<div class="callout callout-key">
+<strong>Key Concept.</strong>
+<p>
+<strong>Schumacher's Quantum Source Coding Theorem (1995).</strong> A quantum source with
+density operator $\rho$ can be reliably compressed at rate $R$ qubits per source state if
+and only if $R \geq S(\rho)$. The von Neumann entropy $S(\rho)$ is the optimal compression
+rate - the quantum analog of Shannon entropy for source coding.
+</p>
+</div>
+
+<p>
+The compression protocol works as follows:
+</p>
+
+<ol>
+<li><strong>Encode:</strong> Project the $n$-qubit source state onto the typical subspace
+$T_{n,\delta}$ (dimension $\approx 2^{nS(\rho)}$). This projection succeeds with probability
+approaching 1 as $n \to \infty$.</li>
+<li><strong>Compress:</strong> The typical subspace has dimension $2^{nS(\rho)}$, so it can
+be encoded into $nS(\rho)$ qubits using a unitary mapping followed by discarding the
+remaining qubits.</li>
+<li><strong>Decompress:</strong> Bob applies the inverse unitary to recover the state in the
+typical subspace.</li>
+</ol>
+
+<p>
+The fidelity of this protocol approaches 1 as $n \to \infty$ for any rate $R > S(\rho)$.
+Conversely, any protocol with rate $R < S(\rho)$ has fidelity approaching 0. The von Neumann
+entropy thus has a direct operational interpretation: it is the number of qubits per copy
+needed to faithfully represent a quantum source.
+</p>
+
+<h3>Comparison with Classical Compression</h3>
+
+<table>
+  <thead>
+    <tr><th>Feature</th><th>Classical (Shannon)</th><th>Quantum (Schumacher)</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Source</td>
+      <td>i.i.d. random variable $X$</td>
+      <td>i.i.d. quantum states from $\rho$</td>
+    </tr>
+    <tr>
+      <td>Optimal rate</td>
+      <td>$H(X)$ bits/symbol</td>
+      <td>$S(\rho)$ qubits/state</td>
+    </tr>
+    <tr>
+      <td>Key tool</td>
+      <td>Typical set</td>
+      <td>Typical subspace</td>
+    </tr>
+    <tr>
+      <td>Compression map</td>
+      <td>Variable-length coding</td>
+      <td>Projection + unitary</td>
+    </tr>
+    <tr>
+      <td>Entropy meaning</td>
+      <td>Average surprise</td>
+      <td>Quantum uncertainty / mixedness</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Worked Example: Compressing a Biased Qubit Source</h3>
+
+<p>
+Suppose a source produces $|0\rangle$ with probability $0.9$ and $|1\rangle$ with probability
+$0.1$. The average state is $\rho = 0.9|0\rangle\langle 0| + 0.1|1\rangle\langle 1|$, which
+is already diagonal, with eigenvalues $0.9$ and $0.1$. The von Neumann entropy is:
+</p>
+
+$$S(\rho) = -0.9\log 0.9 - 0.1\log 0.1 = h(0.1) \approx 0.469 \text{ qubits}$$
+
+<p>
+So $n$ copies of this source can be compressed into approximately $0.469n$ qubits - less
+than one qubit per source state. The typical subspace of $\rho^{\otimes n}$ has dimension
+$\approx 2^{0.469n}$, which is exponentially smaller than the full Hilbert space of dimension
+$2^n$. Most of the probability weight is concentrated on sequences with approximately $0.9n$
+zeros and $0.1n$ ones.
+</p>
+
+<p>
+Notice that although these are orthogonal states (which classically require 1 bit each and
+compress to $h(0.1) \approx 0.469$ bits by Shannon's theorem), the quantum compression rate
+is the same. Schumacher compression reduces to Shannon compression when the states are
+orthogonal - the quantum theory properly generalizes the classical one.
+</p>
+
+<h3>Beyond i.i.d. Sources</h3>
+
+<p>
+Schumacher's theorem assumes the source produces independent and identically distributed
+(i.i.d.) quantum states. For correlated quantum sources, the compression limit is given by
+the <strong>quantum asymptotic equipartition property (AEP)</strong>: the compression rate
+equals $\lim_{n \to \infty} \frac{1}{n} S(\rho^{(n)})$, where $\rho^{(n)}$ is the joint
+state of $n$ source outputs. For i.i.d. sources, this reduces to $S(\rho)$, but for
+correlated sources it can be strictly less, reflecting the redundancy in the correlations.
+</p>
+
+<h3>Visible vs. Blind Compression</h3>
+
+<p>
+In <strong>visible compression</strong>, the encoder knows which state $|\psi_x\rangle$ was
+produced in each round (she has classical side information). In <strong>blind compression</strong>,
+she only has the quantum state and not the classical label. For pure state ensembles, blind
+compression requires $S(\rho)$ qubits (Schumacher's result), while visible compression can
+sometimes do better by exploiting the classical knowledge. However, for ensembles of mixed
+states, blind compression is the standard model, and the rate is again $S(\rho)$.
+</p>
+
+<div class="callout callout-info">
+<strong>Note.</strong>
+<p>
+Schumacher compression is sometimes called "quantum noiseless coding" by analogy with
+Shannon's noiseless coding theorem. Just as Shannon's theorem established that entropy is
+the right measure of classical information content, Schumacher's theorem established that
+the von Neumann entropy is the right measure of quantum information content. This was a
+crucial conceptual advance: it gave the von Neumann entropy, originally introduced in the
+context of quantum statistical mechanics in 1927, a precise information-theoretic
+operational interpretation.
+</p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="sandbox-capacity">
+<h2>Sandbox: Channel Capacity Exploration</h2>
+
+<p>
+This sandbox demonstrates how noise degrades information transmission. We send a known qubit
+state through different noise levels and measure how well the state is preserved. With no
+noise, the measurement outcome is deterministic. As noise increases, the outcomes become
+more random, reflecting the loss of channel capacity.
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="11">OPENQASM 3.0;
+qubit[2] q;
+bit[1] c;
+// Prepare known state |0>
+// Simulate noise: entangle with environment qubit
+// More entanglement = more noise = less capacity
+// Try changing angle: 0 = no noise, pi/4 = heavy noise
+ry(0.3) q[1];
+cx q[1], q[0];
+// Measure the data qubit
+c[0] = measure q[0];</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+Experiments to try:
+</p>
+
+<ul>
+<li><strong>No noise:</strong> Set the rotation to <code>ry(0) q[1];</code>. The environment
+qubit stays in $|0\rangle$, the CNOT has no effect, and q[0] is measured as 0 with 100%
+probability. The channel is noiseless with capacity 1.</li>
+<li><strong>Light noise:</strong> Use <code>ry(0.3) q[1];</code>. A small fraction of runs
+flip q[0]. The channel capacity is reduced but still positive.</li>
+<li><strong>Maximum noise:</strong> Use <code>ry(1.5708) q[1];</code> ($\pi/2$). The
+environment qubit is in an equal superposition, causing maximum decoherence. The data qubit
+is now 50/50 - the channel is fully depolarizing and capacity approaches zero.</li>
+<li><strong>Encoding protection:</strong> Add <code>h q[0];</code> before the noise and
+<code>h q[0];</code> after. Does changing the encoding basis affect the error rate?</li>
+</ul>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="summary">
+<h2>The Quantum Shannon Theory Landscape</h2>
+
+<p>
+The following table summarizes the major capacity theorems of quantum Shannon theory. Each
+row gives a communication task, the capacity formula, and whether the formula is single-letter
+or requires regularization.
+</p>
+
+<table>
+  <thead>
+    <tr><th>Task</th><th>Capacity</th><th>Formula</th><th>Single-letter?</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Classical bits over quantum channel</td>
+      <td>$C(\mathcal{N})$</td>
+      <td>$\lim_n \frac{1}{n}\chi(\mathcal{N}^{\otimes n})$ (HSW)</td>
+      <td>No (in general)</td>
+    </tr>
+    <tr>
+      <td>Qubits over quantum channel</td>
+      <td>$Q(\mathcal{N})$</td>
+      <td>$\lim_n \frac{1}{n}\max_\rho I_c(\rho, \mathcal{N}^{\otimes n})$ (LSD)</td>
+      <td>No (in general)</td>
+    </tr>
+    <tr>
+      <td>Classical bits with entanglement</td>
+      <td>$C_E(\mathcal{N})$</td>
+      <td>$\max_\rho I(A:B)_\sigma$ (BSST)</td>
+      <td>Yes</td>
+    </tr>
+    <tr>
+      <td>Qubits with entanglement</td>
+      <td>$Q_E(\mathcal{N})$</td>
+      <td>$\frac{1}{2}\max_\rho I(A:B)_\sigma$</td>
+      <td>Yes</td>
+    </tr>
+    <tr>
+      <td>Quantum source compression</td>
+      <td>-</td>
+      <td>$S(\rho)$ qubits/state (Schumacher)</td>
+      <td>Yes</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>
+The striking feature of this landscape is the asymmetry between the entanglement-assisted and
+unassisted scenarios. Without entanglement, the capacity formulas are regularized (involving
+a limit over many channel uses) and generally intractable to compute. With entanglement
+assistance, the formulas become single-letter and computable. Entanglement does not just
+increase capacity - it <em>simplifies the theory</em>. This deep connection between
+entanglement and the mathematical tractability of quantum information theory remains one of
+the most fascinating aspects of the field.
+</p>
+
+<div class="callout callout-key">
+<strong>Key Concept.</strong>
+<p>
+Quantum Shannon theory reveals that a quantum channel is not characterized by a single
+number. It has a classical capacity $C$, a quantum capacity $Q$, an entanglement-assisted
+capacity $C_E$, a private capacity $C_p$, and more. These capacities are generally different
+and can have surprising relationships (e.g., $Q = C_p$, superactivation of $Q$). The resource
+of pre-shared entanglement is special: it always simplifies the capacity formula to a
+single-letter expression.
+</p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+
+<div class="flashcard-deck" data-component="flashcard-deck">
+  <div class="flashcard-deck-header">Chapter 29 Review</div>
+
+  <div class="flashcard" data-card-id="ch29-hsw-theorem">
+    <div class="card-front">State the HSW theorem for the classical capacity of a quantum channel.</div>
+    <div class="card-back">
+      The Holevo-Schumacher-Westmoreland theorem states that the classical capacity of a quantum channel $\mathcal{N}$ is $C(\mathcal{N}) = \lim_{n\to\infty}\frac{1}{n}\chi(\mathcal{N}^{\otimes n})$, where $\chi$ is the Holevo information maximized over input ensembles. The regularization is needed because the Holevo information can be superadditive (Hastings, 2009). For many common channels the single-letter formula $C = \chi(\mathcal{N})$ suffices.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch29-holevo-superadditivity">
+    <div class="card-front">What did Hastings prove in 2009 about the Holevo information, and why does it matter?</div>
+    <div class="card-back">
+      Hastings proved that the Holevo information (Holevo $\chi$-quantity) is not always additive: there exist channels where entangled inputs across multiple channel uses yield strictly more Holevo information than product inputs. This means the classical capacity requires the regularized formula $\lim_n \frac{1}{n}\chi(\mathcal{N}^{\otimes n})$ and cannot in general be computed from a single channel use. Computing the exact classical capacity is therefore intractable in general.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch29-coherent-information">
+    <div class="card-front">Define the coherent information and explain how it relates to quantum capacity.</div>
+    <div class="card-back">
+      The coherent information is $I_c(\rho, \mathcal{N}) = S(\mathcal{N}(\rho)) - S(\mathcal{N}^c(\rho))$, where $\mathcal{N}^c$ is the complementary channel. Equivalently, $I_c = -S(A|B)$. The LSD theorem states $Q(\mathcal{N}) = \lim_n \frac{1}{n}\max_\rho I_c(\rho, \mathcal{N}^{\otimes n})$. Unlike classical mutual information, coherent information can be negative, indicating the environment captures more information than the receiver.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch29-degradable-channel">
+    <div class="card-front">What is a degradable channel, and why is its quantum capacity easier to compute?</div>
+    <div class="card-back">
+      A channel is degradable if the complementary channel (what the environment receives) can be obtained by applying a degrading map to the channel output. For degradable channels, the coherent information is additive, so the quantum capacity has the single-letter formula $Q = \max_\rho I_c(\rho, \mathcal{N})$ without regularization. Examples: the quantum erasure channel and the amplitude damping channel.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch29-bsst-theorem">
+    <div class="card-front">State the BSST theorem for entanglement-assisted capacity and explain why it is special.</div>
+    <div class="card-back">
+      The Bennett-Shor-Smolin-Thapliyal theorem: $C_E(\mathcal{N}) = \max_\rho I(A:B)_\sigma$, where $\sigma_{AB}$ arises from sending half of a purification through $\mathcal{N}$ and $I(A:B)$ is the quantum mutual information. It is special because it is a single-letter formula - no regularization needed. Entanglement assistance both increases the capacity ($C_E \geq C$) and simplifies the formula. For a noiseless qubit channel: $C_E = 2$ bits (superdense coding).
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch29-schumacher-compression">
+    <div class="card-front">State Schumacher's quantum source coding theorem.</div>
+    <div class="card-back">
+      A quantum source with density operator $\rho$ can be reliably compressed at rate $R$ qubits per source state iff $R \geq S(\rho)$. The protocol projects onto the typical subspace (dimension $\approx 2^{nS(\rho)}$) and encodes it into $nS(\rho)$ qubits. Fidelity approaches 1 as $n \to \infty$ for $R > S(\rho)$, and approaches 0 for $R < S(\rho)$. This establishes the von Neumann entropy as the fundamental measure of quantum information content.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch29-capacity-hierarchy">
+    <div class="card-front">Order the capacities $Q$, $C$, $C_E$ and explain the inequalities between them.</div>
+    <div class="card-back">
+      $Q(\mathcal{N}) \leq C(\mathcal{N}) \leq C_E(\mathcal{N})$. The first inequality holds because preserving quantum coherence is harder than transmitting classical bits. The second holds because pre-shared entanglement can only help. For a noiseless qubit channel: $Q = 1$, $C = 1$, $C_E = 2$. The gaps can be dramatic: some channels have $Q = 0$ but $C > 0$, and entanglement can double the classical rate.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch29-superactivation">
+    <div class="card-front">What is superactivation of quantum capacity?</div>
+    <div class="card-back">
+      Superactivation (Smith and Yard, 2008) is the phenomenon where two quantum channels each with zero quantum capacity ($Q(\mathcal{N}_1) = Q(\mathcal{N}_2) = 0$) can have positive quantum capacity when used together ($Q(\mathcal{N}_1 \otimes \mathcal{N}_2) > 0$). This is a uniquely quantum effect with no classical analog, and it demonstrates the extreme non-additivity of quantum capacity. It also means that determining whether a channel has zero capacity cannot be done from the channel alone.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+    </article>
+
+    
+    <nav class="chapter-nav" aria-label="Chapter navigation">
+      <a href="28-entropy.html" class="prev">&larr; Chapter 28: Quantum Entropy and Information</a>
+      <span class="nav-spacer"></span>
+      <a href="30-complexity.html" class="next">Chapter 30: Quantum Computational Complexity &rarr;</a>
+    </nav>
+    
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof renderMathInElement !== "undefined") {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "$", right: "$", display: false}
+          ],
+          throwOnError: false
+        });
+      }
+    });
+  </script>
+  
+  <script>
+  "use strict";
+  
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function isDark() { return window.matchMedia("(prefers-color-scheme: dark)").matches; }
+  function renderMath(el) {
+    if (typeof renderMathInElement === "function")
+      renderMathInElement(el, { delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}], throwOnError: false });
+  }
+
+  
+  var wasmReady = null;
+  function ensureWasm() {
+    if (!wasmReady) {
+      wasmReady = (async function() {
+        var go = new Go();
+        var result = await WebAssembly.instantiateStreaming(fetch("../main.wasm"), go.importObject);
+        go.run(result.instance);
+      })();
+    }
+    return wasmReady;
+  }
+
+  
+  var SRS_KEY = "goqu-srs";
+  function srsLoad() { try { return JSON.parse(localStorage.getItem(SRS_KEY) || "{}"); } catch(e) { return {}; } }
+  function srsSave(d) { localStorage.setItem(SRS_KEY, JSON.stringify(d)); }
+  function getCardState(id) { var d = srsLoad(); return d[id] || {interval:1, ease:2.5, due:0, reps:0}; }
+  function reviewCard(id, q) {
+    var d = srsLoad(), s = d[id] || {interval:1, ease:2.5, due:0, reps:0};
+    if (q >= 3) {
+      s.reps++;
+      if (s.reps === 1) s.interval = 1;
+      else if (s.reps === 2) s.interval = 6;
+      else s.interval = Math.round(s.interval * s.ease);
+      s.ease = Math.max(1.3, s.ease + 0.1 - (5-q)*(0.08 + (5-q)*0.02));
+    } else { s.reps = 0; s.interval = 1; }
+    s.due = Date.now() + s.interval * 86400000;
+    d[id] = s; srsSave(d);
+  }
+
+  
+  function initSandbox(el) {
+    var code = el.querySelector(".code"), output = el.querySelector(".output");
+    if (!code || !output) return;
+    var runBtn = el.querySelector('[data-action="run"]'), resetBtn = el.querySelector('[data-action="reset"]');
+    var shotsEl = el.querySelector("[data-shots]"), orig = code.value;
+    function shots() { return parseInt(shotsEl ? shotsEl.value : el.dataset.shots || "1024", 10); }
+    async function run() {
+      await ensureWasm();
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(code.value, shots(), isDark()));
+        if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+        output.innerHTML = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+    if (runBtn) runBtn.addEventListener("click", run);
+    if (resetBtn) resetBtn.addEventListener("click", function() { code.value = orig; });
+    if (el.hasAttribute("data-autorun")) run();
+  }
+
+  
+  function initSimulation(el) {
+    var tmplEl = el.querySelector(".sim-qasm"), output = el.querySelector(".sim-output");
+    var sliders = el.querySelectorAll('input[type="range"]');
+    var selects = el.querySelectorAll("select[data-param]");
+    if (!tmplEl || !output || (sliders.length === 0 && selects.length === 0)) return;
+    var tmpl = tmplEl.textContent, pending = false;
+    var useNoisy = el.hasAttribute("data-noisy");
+    var useComparison = el.hasAttribute("data-comparison");
+    var useExpectation = el.hasAttribute("data-expectation");
+    var useClifford = el.hasAttribute("data-clifford");
+    async function update() {
+      if (pending) return; pending = true;
+      await ensureWasm();
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var params = {};
+        sliders.forEach(function(s) { params[s.dataset.param] = parseFloat(s.value); var o = s.parentElement.querySelector("output"); if (o) o.textContent = parseFloat(s.value).toFixed(2); });
+        selects.forEach(function(s) { params[s.dataset.param] = s.value; });
+        var qasm = tmpl;
+        for (var k in params) qasm = qasm.replaceAll("{"+k+"}", params[k].toString());
+        var html = "";
+        if (useComparison && window.compareIdealNoisy) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.compareIdealNoisy(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="comparison-panels"><div class="comparison-panel"><h4>Ideal</h4>' + (r.idealHistogramSVG||"") + '</div><div class="comparison-panel"><h4>Noisy</h4>' + (r.noisyHistogramSVG||"") + '</div></div>';
+          if (r.stateCitySVG) html += r.stateCitySVG;
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useNoisy && window.runNoisyQASM) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.runNoisyQASM(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"") + (r.stateCitySVG||"");
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useClifford && window.runClifford) {
+          var r = JSON.parse(window.runClifford(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"");
+          if (r.stabilizers) { html += '<div class="stabilizer-table"><h4>Stabilizers</h4><table>'; r.stabilizers.forEach(function(s) { html += '<tr><td>' + formatStabilizer(s) + '</td></tr>'; }); html += '</table></div>'; }
+        } else if (useExpectation && window.computeExpectation) {
+          var pauliStr = params.pauliStr || el.dataset.pauli || "Z";
+          var r = JSON.parse(window.computeExpectation(qasm, pauliStr, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="sim-stats"><span>&lt;' + esc(pauliStr) + '&gt; = ' + r.expectation.toFixed(6) + '</span></div>';
+        } else {
+          var r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+          
+          if (el.hasAttribute("data-bloch") && window.getStateVector && window.renderBloch) {
+            try {
+              var sv = JSON.parse(window.getStateVector(qasm));
+              if (sv.amplitudes && sv.amplitudes.length === 2) {
+                var a = sv.amplitudes;
+                var blochSVG = window.renderBloch(a[0].re, a[0].im, a[1].re, a[1].im, isDark());
+                if (blochSVG) html += blochSVG;
+              }
+            } catch(e) {   }
+          }
+        }
+        output.innerHTML = html;
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+      pending = false;
+    }
+    sliders.forEach(function(s) { s.addEventListener("input", update); });
+    selects.forEach(function(s) { s.addEventListener("change", update); });
+    update();
+  }
+
+  
+  function formatStabilizer(s) {
+    if (!s) return "";
+    var sign = s[0], ops = s.slice(1), html = '<span class="stab-sign">' + esc(sign) + '</span>';
+    for (var i = 0; i < ops.length; i++) {
+      var c = ops[i], cls = "stab-" + c.toLowerCase();
+      html += '<span class="' + cls + '">' + c + '</span>';
+    }
+    return html;
+  }
+
+  
+  function initExercise(el) {
+    var code = el.querySelector(".code"), feedback = el.querySelector(".exercise-feedback");
+    var checkBtn = el.querySelector('[data-action="check"]');
+    var hintBtn = el.querySelector('[data-action="hint"]'), hintEl = el.querySelector(".exercise-hint");
+    if (!code || !feedback || !checkBtn) return;
+    var expected = {}, tol = 0.1;
+    var expEl = el.querySelector(".exercise-expected");
+    if (expEl) expEl.querySelectorAll("[data-state]").forEach(function(span) {
+      expected[span.dataset.state] = parseFloat(span.dataset.prob);
+      if (span.dataset.tolerance) tol = parseFloat(span.dataset.tolerance);
+    });
+    checkBtn.addEventListener("click", async function() {
+      await ensureWasm();
+      feedback.className = "exercise-feedback visible";
+      feedback.textContent = "Checking...";
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(code.value, 1024, isDark()));
+        if (r.error) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + r.error; return; }
+        if (Object.keys(expected).length === 0) { feedback.className = "exercise-feedback visible pass"; feedback.innerHTML = "Circuit ran successfully."; return; }
+        var prob = JSON.parse(window.getProbabilities(code.value, isDark()));
+        if (prob.error) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + prob.error; return; }
+        var actual = {};
+        for (var i = 0; i < prob.labels.length; i++) actual[prob.labels[i]] = prob.probabilities[i];
+        var ok = true, msgs = [];
+        for (var s in expected) {
+          var a = actual[s] || 0, p = expected[s];
+          if (Math.abs(a - p) > tol) { ok = false; msgs.push("|" + s + "\u27E9: expected " + (p*100|0) + "%, got " + (a*100|0) + "%"); }
+        }
+        if (ok) { feedback.className = "exercise-feedback visible pass"; feedback.innerHTML = "Correct! Your circuit produces the expected output."; }
+        else { feedback.className = "exercise-feedback visible fail"; feedback.innerHTML = "Not quite. " + msgs.join("; ") + "."; }
+        renderMath(feedback);
+      } catch(e) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + e.message; }
+    });
+    if (hintBtn && hintEl) hintBtn.addEventListener("click", function() { hintEl.style.display = hintEl.style.display === "none" ? "block" : "none"; });
+  }
+
+  
+  function initFlashcardDeck(el) {
+    el.querySelectorAll(".flashcard").forEach(function(card) {
+      var id = card.dataset.cardId;
+      if (!id) return;
+      var state = getCardState(id);
+      if (state.due > 0 && state.due > Date.now()) card.classList.add("reviewed");
+      card.addEventListener("click", function(e) {
+        if (e.target.closest("button")) return;
+        card.classList.toggle("flipped");
+        var back = card.querySelector(".card-back");
+        if (back) renderMath(back);
+      });
+      var easyBtn = card.querySelector(".easy"), hardBtn = card.querySelector(".hard");
+      if (easyBtn) easyBtn.addEventListener("click", function() { reviewCard(id, 4); card.classList.remove("flipped"); card.classList.add("reviewed"); });
+      if (hardBtn) hardBtn.addEventListener("click", function() { reviewCard(id, 2); card.classList.remove("flipped"); });
+    });
+  }
+
+  
+  function initPOE(el) {
+    var steps = el.querySelectorAll(".poe-step"), prog = el.querySelectorAll(".poe-progress-step");
+    if (steps.length === 0) return;
+    var cur = 0;
+    function show(idx) {
+      steps.forEach(function(s,i) { s.classList.toggle("active", i === idx); });
+      prog.forEach(function(s,i) { s.classList.remove("active","done"); if (i < idx) s.classList.add("done"); if (i === idx) s.classList.add("active"); });
+      cur = idx;
+      var active = steps[idx];
+      if (active) active.querySelectorAll('.sandbox:not([data-initialized])').forEach(function(sb) { sb.setAttribute("data-initialized","true"); initSandbox(sb); });
+    }
+    el.querySelectorAll('[data-action="next"]').forEach(function(btn) { btn.addEventListener("click", function() { if (cur < steps.length - 1) show(cur + 1); }); });
+    el.querySelectorAll('[data-action="complete"]').forEach(function(btn) { btn.addEventListener("click", function() { prog.forEach(function(s) { s.classList.remove("active"); s.classList.add("done"); }); }); });
+    show(0);
+  }
+
+  
+  function initStepThrough(el) {
+    var qasmEl = el.querySelector(".step-qasm");
+    var output = el.querySelector(".step-output");
+    var prevBtn = el.querySelector('[data-action="prev"]');
+    var nextBtn = el.querySelector('[data-action="next"]');
+    var stepInfo = el.querySelector(".step-info");
+    if (!qasmEl || !output) return;
+    var qasm = qasmEl.textContent;
+    var mode = el.dataset.mode || "clifford"; 
+    var steps = null, cur = -1;
+
+    async function load() {
+      await ensureWasm();
+      try {
+        if (mode === "clifford" && window.cliffordStepThrough) {
+          var r = JSON.parse(window.cliffordStepThrough(qasm));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+          
+          steps.unshift({gate: "init", qubits: [], stabilizers: r.steps.length > 0 ? null : []});
+        } else if (mode === "grover" && window.groverStepThrough) {
+          var nq = parseInt(el.dataset.qubits || "2", 10);
+          var targets = JSON.parse(el.dataset.targets || "[]");
+          var r = JSON.parse(window.groverStepThrough(nq, targets.join(",")));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+        }
+        if (steps && steps.length > 0) { cur = 0; renderStep(); }
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    function renderStep() {
+      if (!steps || cur < 0 || cur >= steps.length) return;
+      var s = steps[cur];
+      var html = "";
+      if (mode === "clifford") {
+        if (s.gate === "init") {
+          html = '<p class="step-label">Initial state |0...0&gt;</p>';
+          
+          if (steps.length > 1 && steps[1].stabilizers) {
+            var nq = steps[1].stabilizers[0].length - 1;
+            html += '<div class="stabilizer-table"><table>';
+            for (var i = 0; i < nq; i++) {
+              var row = "+";
+              for (var j = 0; j < nq; j++) row += (j === i) ? "Z" : "I";
+              html += '<tr><td>' + formatStabilizer(row) + '</td></tr>';
+            }
+            html += '</table></div>';
+          }
+        } else {
+          html = '<p class="step-label">After <strong>' + esc(s.gate) + '</strong> on qubit' + (s.qubits.length > 1 ? 's ' : ' ') + s.qubits.join(', ') + '</p>';
+          if (s.stabilizers) {
+            html += '<div class="stabilizer-table"><table>';
+            s.stabilizers.forEach(function(st) { html += '<tr><td>' + formatStabilizer(st) + '</td></tr>'; });
+            html += '</table></div>';
+          }
+        }
+      } else if (mode === "grover") {
+        html = '<p class="step-label">Iteration ' + s.iteration + '</p>';
+        if (s.probabilities) {
+          html += '<div class="amplitude-bars">';
+          for (var i = 0; i < s.probabilities.length; i++) {
+            var label = i.toString(2).padStart(Math.ceil(Math.log2(s.probabilities.length)), '0');
+            var pct = (s.probabilities[i] * 100).toFixed(1);
+            var isTarget = el.dataset.targets && JSON.parse(el.dataset.targets).indexOf(i) >= 0;
+            html += '<div class="amp-bar' + (isTarget ? ' target' : '') + '"><div class="amp-fill" style="height:' + pct + '%"></div><span class="amp-label">|' + label + '&gt;</span><span class="amp-value">' + pct + '%</span></div>';
+          }
+          html += '</div>';
+        }
+      }
+      output.innerHTML = html;
+      if (stepInfo) stepInfo.textContent = "Step " + cur + " / " + (steps.length - 1);
+      if (prevBtn) prevBtn.disabled = (cur === 0);
+      if (nextBtn) nextBtn.disabled = (cur >= steps.length - 1);
+    }
+
+    if (prevBtn) prevBtn.addEventListener("click", function() { if (cur > 0) { cur--; renderStep(); } });
+    if (nextBtn) nextBtn.addEventListener("click", function() { if (steps && cur < steps.length - 1) { cur++; renderStep(); } });
+    load();
+  }
+
+  
+  document.addEventListener("DOMContentLoaded", function() {
+    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough};
+    document.querySelectorAll("[data-component]").forEach(function(el) { var fn = reg[el.dataset.component]; if (fn) fn(el); });
+  });
+  </script>
+  
+</body>
+</html>

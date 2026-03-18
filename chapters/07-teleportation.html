@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chapter 7: Quantum Teleportation and Communication - Goqu Textbook</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/contrib/auto-render.min.js"></script>
+  
+  <link rel="preload" href="../main.wasm" as="fetch" type="application/wasm" crossorigin>
+  <script src="../wasm_exec.js"></script>
+  
+</head>
+<body>
+  <input type="checkbox" id="nav-toggle" hidden>
+  <label for="nav-toggle" class="nav-hamburger" aria-label="Toggle navigation">
+    <span></span><span></span><span></span>
+  </label>
+
+  <nav class="sidebar" aria-label="Table of contents">
+    <a href="../index.html" class="sidebar-logo">Goqu Textbook</a>
+    
+    <details>
+      <summary>Part 1: The World of Classical Computing</summary>
+      <ol start="1">
+        
+        <li value="1"><a href="01-computation.html">What Is Computation?</a></li>
+        
+        <li value="2"><a href="02-math-of-information.html">The Mathematics of Information</a></li>
+        
+        <li value="3"><a href="03-reversible-computing.html">Reversible Computing</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 2: Entering the Quantum World</summary>
+      <ol start="4">
+        
+        <li value="4"><a href="04-the-first-qubit.html">The First Qubit</a></li>
+        
+        <li value="5"><a href="05-quantum-gates.html">Quantum Gates</a></li>
+        
+        <li value="6"><a href="06-entanglement.html">Multiple Qubits and Entanglement</a></li>
+        
+      </ol>
+    </details>
+    
+    <details open>
+      <summary>Part 3: Quantum Protocols</summary>
+      <ol start="7">
+        
+        <li value="7"><a href="07-teleportation.html" aria-current="page">Quantum Teleportation and Communication</a></li>
+        
+        <li value="8"><a href="08-cryptography.html">Quantum Cryptography</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 4: Quantum Algorithms - The First Wave</summary>
+      <ol start="9">
+        
+        <li value="9"><a href="09-oracles.html">Oracles and Quantum Parallelism</a></li>
+        
+        <li value="10"><a href="10-qft.html">The Quantum Fourier Transform</a></li>
+        
+        <li value="11"><a href="11-shor.html">Shor&#39;s Algorithm</a></li>
+        
+        <li value="12"><a href="12-grover.html">Grover&#39;s Algorithm</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 5: Real Quantum Hardware</summary>
+      <ol start="13">
+        
+        <li value="13"><a href="13-hardware.html">How to Build a Quantum Computer</a></li>
+        
+        <li value="14"><a href="14-noise.html">Noise, Decoherence, and the NISQ Era</a></li>
+        
+        <li value="15"><a href="15-programming.html">Programming Quantum Computers</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 6: Quantum Error Correction</summary>
+      <ol start="16">
+        
+        <li value="16"><a href="16-classical-ec.html">Classical Error Correction Refresher</a></li>
+        
+        <li value="17"><a href="17-qec-fundamentals.html">Quantum Error Correction Fundamentals</a></li>
+        
+        <li value="18"><a href="18-stabilizers.html">The Stabilizer Formalism</a></li>
+        
+        <li value="19"><a href="19-surface-codes.html">Surface Codes and Topological Protection</a></li>
+        
+        <li value="20"><a href="20-fault-tolerance.html">Fault-Tolerant Quantum Computing</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 7: Variational and Near-Term Algorithms</summary>
+      <ol start="21">
+        
+        <li value="21"><a href="21-variational.html">The Variational Quantum Computing Paradigm</a></li>
+        
+        <li value="22"><a href="22-vqe.html">Variational Quantum Eigensolver (VQE)</a></li>
+        
+        <li value="23"><a href="23-qaoa.html">Quantum Approximate Optimization (QAOA)</a></li>
+        
+        <li value="24"><a href="24-qml.html">Quantum Machine Learning</a></li>
+        
+        <li value="25"><a href="25-error-mitigation.html">Quantum Error Mitigation</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 8: Quantum Information Theory</summary>
+      <ol start="26">
+        
+        <li value="26"><a href="26-states-measurements.html">Quantum States and Measurements, Revisited</a></li>
+        
+        <li value="27"><a href="27-channels.html">Quantum Channels and Operations</a></li>
+        
+        <li value="28"><a href="28-entropy.html">Quantum Entropy and Information</a></li>
+        
+        <li value="29"><a href="29-shannon.html">Quantum Shannon Theory</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 9: Quantum Complexity and Computation Theory</summary>
+      <ol start="30">
+        
+        <li value="30"><a href="30-complexity.html">Quantum Computational Complexity</a></li>
+        
+        <li value="31"><a href="31-hidden-subgroup.html">The Hidden Subgroup Problem and Beyond</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 10: Quantum Simulation</summary>
+      <ol start="32">
+        
+        <li value="32"><a href="32-simulation-why.html">Why Quantum Simulation Matters</a></li>
+        
+        <li value="33"><a href="33-digital-simulation.html">Digital Quantum Simulation</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 11: Quantum Networking, Cryptography, and Sensing</summary>
+      <ol start="34">
+        
+        <li value="34"><a href="34-quantum-internet.html">The Quantum Internet</a></li>
+        
+        <li value="35"><a href="35-advanced-crypto.html">Advanced Quantum Cryptography</a></li>
+        
+        <li value="36"><a href="36-sensing.html">Quantum Sensing and Metrology</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 12: Frontiers and the Future</summary>
+      <ol start="37">
+        
+        <li value="37"><a href="37-topological.html">Topological Quantum Computing</a></li>
+        
+        <li value="38"><a href="38-quantum-ai.html">Quantum Computing and Artificial Intelligence</a></li>
+        
+        <li value="39"><a href="39-open-problems.html">Open Problems in Quantum Computing</a></li>
+        
+        <li value="40"><a href="40-ecosystem.html">The Quantum Computing Ecosystem Today</a></li>
+        
+        <li value="41"><a href="41-career.html">Building Your Quantum Computing Career</a></li>
+        
+        <li value="42"><a href="42-what-next.html">What Comes Next</a></li>
+        
+      </ol>
+    </details>
+    
+  </nav>
+
+  <main>
+    
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="../index.html">Home</a> / <a href="../index.html#part-3">Part 3</a> / <span>Chapter 7</span>
+    </nav>
+    
+
+    <article>
+      <h1>Chapter 7: Quantum Teleportation and Communication</h1>
+      <p>In the previous chapter, we discovered entanglement - the strange quantum correlations that Einstein called "spooky action at a distance." Now we put entanglement to work. This chapter presents four landmark protocols that demonstrate what entanglement can actually <em>do</em>: teleport quantum states, double the capacity of a communication channel, and prove that nature itself violates the assumptions of classical physics.</p>
+
+<p>These protocols are not just theoretical curiosities. Quantum teleportation is a fundamental building block of quantum networks and quantum error correction. Superdense coding demonstrates that entanglement is a genuine physical resource. And the Bell and GHZ games settle a deep philosophical question about the nature of reality - with a definitive experimental answer.</p>
+
+<!-- ================================================================== -->
+
+<section id="teleportation">
+<h2>7.1 Quantum Teleportation: Moving Qubits Without Moving Particles</h2>
+
+<p>Suppose Alice has a qubit in some unknown state $|\psi\rangle = \alpha|0\rangle + \beta|1\rangle$ and she wants to transfer this exact state to Bob, who is far away. She faces two fundamental obstacles:</p>
+
+<ol>
+  <li><strong>The no-cloning theorem</strong> (Chapter 6) forbids copying the state, so she cannot just "read it and send the information."</li>
+  <li><strong>Measurement destroys the state.</strong> If she measures the qubit to learn something about $\alpha$ and $\beta$, the superposition collapses.</li>
+</ol>
+
+<p>It seems impossible. Yet in 1993, Charles Bennett and colleagues discovered that if Alice and Bob share an entangled Bell pair, Alice can transfer $|\psi\rangle$ to Bob using only two classical bits of communication - without ever physically sending a qubit. The original quantum state is destroyed at Alice's end and recreated at Bob's end. This is <strong>quantum teleportation</strong>.</p>
+
+<h3>The setup</h3>
+
+<p>The protocol requires three qubits:</p>
+
+<ul>
+  <li><strong>q[0]</strong> - Alice's data qubit, in the unknown state $|\psi\rangle = \alpha|0\rangle + \beta|1\rangle$</li>
+  <li><strong>q[1]</strong> - Alice's half of a shared Bell pair</li>
+  <li><strong>q[2]</strong> - Bob's half of the shared Bell pair</li>
+</ul>
+
+<p>Before the protocol begins, qubits q[1] and q[2] are prepared in the Bell state $|\Phi^+\rangle = \frac{1}{\sqrt{2}}(|00\rangle + |11\rangle)$. The full three-qubit state is:</p>
+
+$$|\psi\rangle \otimes |\Phi^+\rangle = (\alpha|0\rangle + \beta|1\rangle) \otimes \frac{1}{\sqrt{2}}(|00\rangle + |11\rangle)$$
+
+$$= \frac{1}{\sqrt{2}}\big(\alpha|000\rangle + \alpha|011\rangle + \beta|100\rangle + \beta|111\rangle\big)$$
+
+<h3>Step 1: Alice applies CNOT and Hadamard</h3>
+
+<p>Alice applies a CNOT gate with q[0] as control and q[1] as target, then a Hadamard gate on q[0]. Let us trace through the math carefully.</p>
+
+<p>After CNOT(q[0], q[1]):</p>
+
+$$\frac{1}{\sqrt{2}}\big(\alpha|000\rangle + \alpha|011\rangle + \beta|110\rangle + \beta|101\rangle\big)$$
+
+<p>After H on q[0], using $H|0\rangle = \frac{1}{\sqrt{2}}(|0\rangle + |1\rangle)$ and $H|1\rangle = \frac{1}{\sqrt{2}}(|0\rangle - |1\rangle)$:</p>
+
+$$\frac{1}{2}\big[\alpha(|0\rangle + |1\rangle)|00\rangle + \alpha(|0\rangle + |1\rangle)|11\rangle + \beta(|0\rangle - |1\rangle)|10\rangle + \beta(|0\rangle - |1\rangle)|01\rangle\big]$$
+
+<p>Regrouping by the state of the first two qubits (Alice's qubits):</p>
+
+$$\frac{1}{2}\big[|00\rangle(\alpha|0\rangle + \beta|1\rangle) + |01\rangle(\alpha|1\rangle + \beta|0\rangle) + |10\rangle(\alpha|0\rangle - \beta|1\rangle) + |11\rangle(\alpha|1\rangle - \beta|0\rangle)\big]$$
+
+<div class="callout callout-key">
+  <strong>Key insight: the magic of regrouping</strong>
+  <p>Look at what happened. Bob's qubit (the third one) now contains the original state $|\psi\rangle = \alpha|0\rangle + \beta|1\rangle$ in the $|00\rangle$ branch, and simple transformations of it in the other three branches. Alice's measurement will tell her which branch she is in, and then Bob can apply the right correction.</p>
+</div>
+
+<h3>Step 2: Alice measures and sends classical bits</h3>
+
+<p>Alice measures q[0] and q[1], obtaining one of four equally likely outcomes. She sends these two classical bits to Bob over an ordinary communication channel (phone, email, carrier pigeon - anything).</p>
+
+<h3>Step 3: Bob applies corrections</h3>
+
+<p>Based on Alice's two-bit message, Bob applies a correction to his qubit q[2]:</p>
+
+<table>
+  <thead>
+    <tr><th>Alice measures</th><th>Bob's qubit state</th><th>Bob's correction</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>$|00\rangle$</td><td>$\alpha|0\rangle + \beta|1\rangle$</td><td>Do nothing ($I$)</td></tr>
+    <tr><td>$|01\rangle$</td><td>$\alpha|1\rangle + \beta|0\rangle$</td><td>Apply $X$</td></tr>
+    <tr><td>$|10\rangle$</td><td>$\alpha|0\rangle - \beta|1\rangle$</td><td>Apply $Z$</td></tr>
+    <tr><td>$|11\rangle$</td><td>$\alpha|1\rangle - \beta|0\rangle$</td><td>Apply $ZX$</td></tr>
+  </tbody>
+</table>
+
+<p>After Bob's correction, his qubit is always in the state $\alpha|0\rangle + \beta|1\rangle = |\psi\rangle$. The teleportation is complete.</p>
+
+<h3>The complete circuit</h3>
+
+<p>Here is the full teleportation circuit. We prepare Alice's data qubit in a specific state (here, $|1\rangle$ via an X gate) so we can verify the teleportation worked. Alice's measurement outcomes feed into classically controlled corrections on Bob's qubit:</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="18">OPENQASM 3.0;
+qubit[3] q;
+bit[3] c;
+
+// Prepare Alice's data qubit in |1> state
+x q[0];
+
+// Create Bell pair between q[1] and q[2]
+h q[1];
+cx q[1], q[2];
+
+// Alice's operations: CNOT then H
+cx q[0], q[1];
+h q[0];
+
+// Alice measures her two qubits
+c[0] = measure q[0];
+c[1] = measure q[1];
+
+// Bob's corrections based on Alice's results
+if (c[1] == 1) {
+  x q[2];
+}
+if (c[0] == 1) {
+  z q[2];
+}
+
+// Measure Bob's qubit to verify
+c[2] = measure q[2];</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>Run this circuit. Since we prepared Alice's qubit as $|1\rangle$, Bob's qubit should always measure $1$ after the corrections. The first two bits (Alice's measurements) will be random - each of the four outcomes $00$, $01$, $10$, $11$ occurs with equal probability - but Bob's bit will always be $1$.</p>
+
+<p>Try changing the initial state. Replace <code>x q[0]</code> with <code>h q[0]</code> to teleport the state $|+\rangle = \frac{1}{\sqrt{2}}(|0\rangle + |1\rangle)$. Bob's measurement should then give $0$ and $1$ with equal probability.</p>
+
+<h3>What teleportation is NOT</h3>
+
+<div class="callout callout-warning">
+  <strong>No faster-than-light communication</strong>
+  <p>Before Alice sends her classical bits, Bob's qubit is in a completely random mixed state - it looks like a coin flip regardless of what $|\psi\rangle$ was. Bob cannot extract <em>any</em> information about $|\psi\rangle$ until he receives Alice's classical message, which travels at most at the speed of light. Teleportation moves quantum information, but it does not allow faster-than-light communication. The classical channel is essential.</p>
+</div>
+
+<div class="callout callout-info">
+  <strong>What gets teleported?</strong>
+  <p>Teleportation transfers the <em>quantum state</em> - the full complex amplitudes $\alpha$ and $\beta$ - not the physical particle. Alice's original qubit is destroyed in the process (it collapses when she measures it). This is consistent with the no-cloning theorem: the state is moved, not copied. One copy is destroyed and another is created.</p>
+</div>
+
+<h3>Why teleportation matters beyond communication</h3>
+
+<p>Quantum teleportation is not just a communication protocol. It is a fundamental primitive in quantum computing and quantum networking:</p>
+
+<ul>
+  <li><strong>Quantum error correction</strong> (Part VI of this book) uses teleportation-like circuits to move quantum information between encoded blocks without exposing it to noise.</li>
+  <li><strong>Gate teleportation</strong> is a technique where a quantum gate is applied to a qubit by teleporting it through a specially prepared entangled state. This allows "offline" preparation of difficult gates and is a key ingredient in fault-tolerant quantum computing.</li>
+  <li><strong>Quantum networks</strong> use teleportation to transmit qubits between distant nodes. Since photons (the natural carriers for long-distance communication) are easily lost, teleportation with entanglement swapping allows quantum information to traverse networks without requiring a single photon to travel the full distance.</li>
+</ul>
+
+<h3>Predict, Observe, Explain: Can we send information faster than light?</h3>
+
+<div class="poe" data-component="poe">
+  <div class="poe-progress">
+    <div class="poe-progress-step active">Predict</div>
+    <div class="poe-progress-step">Observe</div>
+    <div class="poe-progress-step">Explain</div>
+  </div>
+  <div class="poe-step poe-predict active">
+    <h3>Predict</h3>
+    <p>Consider a modified teleportation circuit where Alice skips the classical communication step - she performs her measurements but does not tell Bob the results. Bob simply measures his qubit without any corrections. What will Bob see? Will his measurement outcomes depend on what state Alice was trying to teleport?</p>
+    <textarea rows="3" placeholder="Write your prediction..."></textarea>
+    <button data-action="next">Submit Prediction</button>
+  </div>
+  <div class="poe-step poe-observe">
+    <h3>Observe</h3>
+    <p>Here is the circuit with Alice teleporting $|1\rangle$ but Bob applying no corrections:</p>
+    <div class="sandbox" data-component="sandbox" data-shots="1024" data-autorun>
+      <textarea class="code" rows="14">OPENQASM 3.0;
+qubit[3] q;
+bit[3] c;
+
+// Alice prepares |1>
+x q[0];
+
+// Bell pair
+h q[1];
+cx q[1], q[2];
+
+// Alice's operations and measurement
+cx q[0], q[1];
+h q[0];
+c[0] = measure q[0];
+c[1] = measure q[1];
+
+// Bob measures WITHOUT corrections
+c[2] = measure q[2];</textarea>
+      <div class="sandbox-controls"><button data-action="run">Run</button></div>
+      <div class="output"></div>
+    </div>
+    <button data-action="next">Continue</button>
+  </div>
+  <div class="poe-step poe-explain">
+    <h3>Explain</h3>
+    <p>Without corrections, Bob's qubit (c[2]) measures 0 about half the time and 1 about half the time - completely random, regardless of what Alice sent. This is because the four correction branches (corresponding to Alice's four measurement outcomes) average out to a completely mixed state. Bob's local measurement statistics are identical whether Alice teleported $|0\rangle$, $|1\rangle$, or any other state. Only when he receives Alice's classical bits and applies the corrections does the teleported state emerge. This is why teleportation cannot transmit information faster than light.</p>
+    <button data-action="complete">Complete</button>
+  </div>
+</div>
+</section>
+
+<!-- ================================================================== -->
+
+<section id="superdense-coding">
+<h2>7.2 Superdense Coding: Two Bits Through One Qubit</h2>
+
+<p>Teleportation uses 2 classical bits plus 1 shared entangled pair to transmit 1 qubit. Superdense coding is its mirror image: it uses 1 qubit plus 1 shared entangled pair to transmit 2 classical bits. These two protocols are dual to each other, and together they reveal the deep relationship between entanglement and communication.</p>
+
+<p>The protocol was proposed by Charles Bennett and Stephen Wiesner in 1992, one year before the teleportation paper.</p>
+
+<h3>The protocol</h3>
+
+<p>Alice and Bob again start by sharing a Bell pair $|\Phi^+\rangle = \frac{1}{\sqrt{2}}(|00\rangle + |11\rangle)$, with Alice holding q[0] and Bob holding q[1].</p>
+
+<p>Alice wants to send one of four two-bit messages: 00, 01, 10, or 11. She applies one of four single-qubit gates to <em>her</em> qubit only:</p>
+
+<table>
+  <thead>
+    <tr><th>Message</th><th>Alice's gate</th><th>Resulting Bell state</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>00</td><td>$I$ (do nothing)</td><td>$|\Phi^+\rangle = \frac{1}{\sqrt{2}}(|00\rangle + |11\rangle)$</td></tr>
+    <tr><td>01</td><td>$X$ (bit flip)</td><td>$|\Psi^+\rangle = \frac{1}{\sqrt{2}}(|10\rangle + |01\rangle)$</td></tr>
+    <tr><td>10</td><td>$Z$ (phase flip)</td><td>$|\Phi^-\rangle = \frac{1}{\sqrt{2}}(|00\rangle - |11\rangle)$</td></tr>
+    <tr><td>11</td><td>$ZX$</td><td>$|\Psi^-\rangle = \frac{1}{\sqrt{2}}(|01\rangle - |10\rangle)$</td></tr>
+  </tbody>
+</table>
+
+<p>The key insight is that Alice's single-qubit operation transforms the shared Bell pair into one of the four orthogonal Bell states. Since orthogonal states can be perfectly distinguished by measurement, Bob can recover both bits.</p>
+
+<h3>Why do these gates produce different Bell states?</h3>
+
+<p>Let us verify one case in detail. Starting from $|\Phi^+\rangle = \frac{1}{\sqrt{2}}(|00\rangle + |11\rangle)$, Alice applies $X$ to her qubit (q[0]):</p>
+
+$$X \otimes I \cdot \frac{1}{\sqrt{2}}(|00\rangle + |11\rangle) = \frac{1}{\sqrt{2}}(|10\rangle + |01\rangle) = |\Psi^+\rangle$$
+
+<p>The $X$ gate flips the first qubit of each term, transforming $|00\rangle \to |10\rangle$ and $|11\rangle \to |01\rangle$. Similarly, the $Z$ gate changes the sign of the $|1\rangle$ component: $Z \otimes I \cdot \frac{1}{\sqrt{2}}(|00\rangle + |11\rangle) = \frac{1}{\sqrt{2}}(|00\rangle - |11\rangle) = |\Phi^-\rangle$. Each single-qubit gate on Alice's side produces a distinct, orthogonal Bell state.</p>
+
+<h3>Bob's decoding</h3>
+
+<p>After receiving Alice's qubit, Bob has both halves of the (now modified) Bell pair. He applies the <strong>reverse</strong> of the Bell pair creation circuit: first a CNOT with q[0] as control and q[1] as target, then a Hadamard on q[0]. This maps each Bell state back to a unique computational basis state:</p>
+
+$$|\Phi^+\rangle \to |00\rangle, \quad |\Psi^+\rangle \to |01\rangle, \quad |\Phi^-\rangle \to |10\rangle, \quad |\Psi^-\rangle \to |11\rangle$$
+
+<p>Let us trace one example. For message 01, the state is $|\Psi^+\rangle = \frac{1}{\sqrt{2}}(|10\rangle + |01\rangle)$. After CNOT:</p>
+
+$$\frac{1}{\sqrt{2}}(|11\rangle + |01\rangle) = \frac{1}{\sqrt{2}}(|1\rangle + |0\rangle) \otimes |1\rangle$$
+
+<p>After Hadamard on q[0]: since $H \cdot \frac{1}{\sqrt{2}}(|0\rangle + |1\rangle) = |0\rangle$, we get $|01\rangle$. Bob measures and reads the message 01.</p>
+
+<p>Bob then measures both qubits to read the two-bit message.</p>
+
+<div class="callout callout-key">
+  <strong>Two bits from one qubit?</strong>
+  <p>A single qubit can normally carry at most one bit of information (Holevo's theorem). Superdense coding achieves two bits only because Alice and Bob share a pre-existing entangled pair. The entanglement acts as a resource that was "pre-distributed" before communication began. You can think of one bit as stored in the qubit Alice sends and the other bit as stored in the entanglement itself.</p>
+</div>
+
+<h3>Sandbox: sending message 00</h3>
+
+<p>Alice applies $I$ (no gate). Bob decodes and should get $|00\rangle$ every time:</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="12">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+
+// Create Bell pair
+h q[0];
+cx q[0], q[1];
+
+// Alice encodes 00: apply I (nothing)
+
+// Bob decodes: reverse Bell circuit
+cx q[0], q[1];
+h q[0];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<h3>Sandbox: sending message 01</h3>
+
+<p>Alice applies $X$. Bob decodes and should get $|01\rangle$ every time:</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="13">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+
+// Create Bell pair
+h q[0];
+cx q[0], q[1];
+
+// Alice encodes 01: apply X
+x q[0];
+
+// Bob decodes
+cx q[0], q[1];
+h q[0];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<h3>Sandbox: sending message 10</h3>
+
+<p>Alice applies $Z$. Bob decodes and should get $|10\rangle$ every time:</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="13">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+
+// Create Bell pair
+h q[0];
+cx q[0], q[1];
+
+// Alice encodes 10: apply Z
+z q[0];
+
+// Bob decodes
+cx q[0], q[1];
+h q[0];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<h3>Sandbox: sending message 11</h3>
+
+<p>Alice applies $X$ then $Z$ (the combined operation $ZX$). Bob decodes and should get $|11\rangle$ every time:</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="14">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+
+// Create Bell pair
+h q[0];
+cx q[0], q[1];
+
+// Alice encodes 11: apply X then Z (= ZX operator)
+x q[0];
+z q[0];
+
+// Bob decodes
+cx q[0], q[1];
+h q[0];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<div class="callout callout-info">
+  <strong>Teleportation and superdense coding: a duality</strong>
+  <p>Teleportation consumes 1 Bell pair + 2 classical bits to send 1 qubit. Superdense coding consumes 1 Bell pair + 1 qubit to send 2 classical bits. In both cases, entanglement serves as a catalyst that bridges the gap between quantum and classical information. This duality is a deep feature of quantum information theory.</p>
+</div>
+
+<h3>The resource accounting of entanglement</h3>
+
+<p>These two protocols give us a precise "exchange rate" between quantum and classical communication when entanglement is available:</p>
+
+$$1 \text{ ebit} + 2 \text{ cbits} \geq 1 \text{ qubit} \quad \text{(teleportation)}$$
+$$1 \text{ ebit} + 1 \text{ qubit} \geq 2 \text{ cbits} \quad \text{(superdense coding)}$$
+
+<p>Here "ebit" means one shared Bell pair and "cbit" means one classical bit. These inequalities are tight - you cannot do better with less. Together they imply a beautiful identity at the heart of quantum information theory:</p>
+
+$$1 \text{ qubit} = 1 \text{ ebit} + 1 \text{ cbit}$$
+
+<p>A qubit of communication is worth exactly one bit of entanglement plus one classical bit. This relationship, formalized by the quantum reverse Shannon theorem, shows that entanglement is a quantifiable physical resource with a precise value.</p>
+</section>
+
+<!-- ================================================================== -->
+
+<section id="chsh">
+<h2>7.3 Bell's Inequality and the CHSH Game</h2>
+
+<p>In Chapter 6, we mentioned the EPR paradox: Einstein, Podolsky, and Rosen argued that quantum mechanics must be incomplete because entangled particles seem to exhibit "spooky action at a distance." They proposed that there must be <strong>local hidden variables</strong> - pre-existing instructions that each particle carries, determining the outcomes of any measurement. Under this view, entanglement is just classical correlation: each particle "knows" in advance what it will do when measured.</p>
+
+<p>In 1964, John Bell proved that any local hidden variable theory makes specific predictions that differ from quantum mechanics. In 1969, Clauser, Horne, Shimony, and Holt (CHSH) reformulated Bell's result as a precise inequality that can be tested experimentally. We will present this as a cooperative game.</p>
+
+<h3>The CHSH game</h3>
+
+<p>Alice and Bob are in separate rooms with no communication. A referee sends each of them a random input bit:</p>
+
+<ul>
+  <li>Alice receives bit $x \in \{0, 1\}$</li>
+  <li>Bob receives bit $y \in \{0, 1\}$</li>
+</ul>
+
+<p>Each player must respond with an output bit:</p>
+
+<ul>
+  <li>Alice outputs $a \in \{0, 1\}$</li>
+  <li>Bob outputs $b \in \{0, 1\}$</li>
+</ul>
+
+<p>They <strong>win</strong> if and only if:</p>
+
+$$a \oplus b = x \wedge y$$
+
+<p>In other words: their output bits should be the same (both 0 or both 1), <em>except</em> when $x = y = 1$, in which case they should be different. Let us write the winning condition for each input pair:</p>
+
+<table>
+  <thead>
+    <tr><th>$x$</th><th>$y$</th><th>$x \wedge y$</th><th>Winning condition</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>0</td><td>0</td><td>0</td><td>$a = b$ (same outputs)</td></tr>
+    <tr><td>0</td><td>1</td><td>0</td><td>$a = b$ (same outputs)</td></tr>
+    <tr><td>1</td><td>0</td><td>0</td><td>$a = b$ (same outputs)</td></tr>
+    <tr><td>1</td><td>1</td><td>1</td><td>$a \neq b$ (different outputs)</td></tr>
+  </tbody>
+</table>
+
+<h3>Classical strategies: at most 75%</h3>
+
+<p>Without quantum resources, the best deterministic strategy is simple: both players always output 0. This wins on inputs $(0,0)$, $(0,1)$, and $(1,0)$ but loses on $(1,1)$. That is 3 out of 4 input pairs, giving a <strong>75% win rate</strong>.</p>
+
+<p>You might wonder if a cleverer strategy could do better. Let us check systematically. Alice has a function $a(x)$ and Bob has a function $b(y)$. There are $2^2 = 4$ possible strategies for each player (since each function maps one bit to one bit), giving $4 \times 4 = 16$ total deterministic strategies. For each, count the wins:</p>
+
+<table>
+  <thead>
+    <tr><th>Alice's strategy</th><th>Bob's strategy</th><th>Wins</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Always 0</td><td>Always 0</td><td>3/4 (lose on $x{=}y{=}1$)</td></tr>
+    <tr><td>Always 0</td><td>Always 1</td><td>1/4 (win only $x{=}y{=}1$)</td></tr>
+    <tr><td>Output $x$</td><td>Output $y$</td><td>2/4</td></tr>
+    <tr><td colspan="3" style="text-align:center">...and so on for all 16 combinations</td></tr>
+  </tbody>
+</table>
+
+<p>No deterministic strategy wins more than 3 out of 4. Can a randomized classical strategy do better? No. Any classical strategy (including shared randomness) can be decomposed into a probabilistic mixture of deterministic strategies. Since each deterministic strategy wins at most 3 out of 4 cases, no mixture can exceed 75%. This is the content of Bell's inequality (in the CHSH form): classical correlations are bounded.</p>
+
+<div class="callout callout-key">
+  <strong>The CHSH inequality</strong>
+  <p>Define the CHSH value $S = E_{00} + E_{01} + E_{10} - E_{11}$, where $E_{xy}$ is the correlation between Alice's and Bob's outputs for inputs $x, y$. For any local hidden variable theory, $|S| \leq 2$. This bound is equivalent to the 75% maximum classical win rate.</p>
+</div>
+
+<h3>The quantum strategy: approximately 85%</h3>
+
+<p>Now suppose Alice and Bob share an entangled Bell pair $|\Phi^+\rangle = \frac{1}{\sqrt{2}}(|00\rangle + |11\rangle)$. They use the following strategy:</p>
+
+<ul>
+  <li><strong>Alice:</strong> If $x = 0$, measure in the standard basis ($Z$ basis). If $x = 1$, measure in a basis rotated by $\pi/4$ (apply $R_y(-\pi/4)$ then measure in $Z$).</li>
+  <li><strong>Bob:</strong> If $y = 0$, measure in a basis rotated by $\pi/8$ (apply $R_y(-\pi/8)$ then measure). If $y = 1$, measure in a basis rotated by $-\pi/8$ (apply $R_y(\pi/8)$ then measure).</li>
+</ul>
+
+<p>The idea is geometrical. Picture the measurement bases as directions on a circle. Alice has two directions (angles 0 and $\pi/4$) and Bob has two directions ($\pi/8$ and $-\pi/8$). For each input pair, the angle between their chosen measurement bases determines the correlation:</p>
+
+<table>
+  <thead>
+    <tr><th>Inputs $(x, y)$</th><th>Alice's angle</th><th>Bob's angle</th><th>Angle between</th><th>Want</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>$(0, 0)$</td><td>$0$</td><td>$\pi/8$</td><td>$\pi/8$</td><td>Same</td></tr>
+    <tr><td>$(0, 1)$</td><td>$0$</td><td>$-\pi/8$</td><td>$\pi/8$</td><td>Same</td></tr>
+    <tr><td>$(1, 0)$</td><td>$\pi/4$</td><td>$\pi/8$</td><td>$\pi/8$</td><td>Same</td></tr>
+    <tr><td>$(1, 1)$</td><td>$\pi/4$</td><td>$-\pi/8$</td><td>$3\pi/8$</td><td>Different</td></tr>
+  </tbody>
+</table>
+
+<p>When the angle between the measurement bases is $\theta$, the probability of getting matching outcomes from the Bell state is $\cos^2(\theta/2)$. For the three "same" cases, the angle is $\pi/8$, giving correlation $\cos^2(\pi/16)$... but wait, the way the Ry rotation works on a Bell state, the relevant parameter is the full angle between basis vectors.</p>
+
+<p>Working through the quantum mechanics (or using the fact that Bell state correlations go as $\cos^2$ of half the angle between measurement axes on the Bloch sphere), the win probability for each case is $\cos^2(\pi/8)$. Crucially, this is the <em>same</em> value for all four input pairs - the angles are cleverly arranged so that the three "matching" cases and the one "different" case all have the same $\pi/8$ effective angle.</p>
+
+<p>The quantum strategy wins with probability:</p>
+
+$$p_{\text{win}} = \cos^2\!\left(\frac{\pi}{8}\right) \approx 0.8536$$
+
+<p>This corresponds to a CHSH value of $S = 2\sqrt{2} \approx 2.828$, which violates the classical bound of 2. The value $2\sqrt{2}$ is known as <strong>Tsirelson's bound</strong> - it is the maximum achievable by quantum mechanics.</p>
+
+<div class="callout callout-info">
+  <strong>The significance of Bell violation</strong>
+  <p>Experiments have confirmed the quantum prediction with high statistical significance (most notably the 2015 "loophole-free" Bell tests). This means at least one of the following classical assumptions must be false: (1) locality - physical influences cannot travel faster than light, (2) realism - physical properties have definite values before measurement, or (3) freedom of choice - experimenters can freely choose their measurement settings. Most physicists accept that local realism is violated, while the speed-of-light limit on communication is preserved.</p>
+</div>
+
+<h3>Sandbox: the quantum CHSH strategy</h3>
+
+<p>Below is a circuit implementing the quantum strategy for the input case $x = 0, y = 0$. Alice measures in the standard basis and Bob rotates by $\pi/8$. They should mostly output matching bits and win this round:</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="13">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+
+// Shared Bell pair
+h q[0];
+cx q[0], q[1];
+
+// Alice: x=0, measure in Z basis (no rotation)
+
+// Bob: y=0, rotate by -pi/8
+ry(-pi/8) q[1];
+
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>The matching outcomes ($|00\rangle$ and $|11\rangle$) should appear approximately $\cos^2(\pi/8) \approx 85\%$ of the time - significantly more than the 75% classical limit.</p>
+
+<p>Now try the critical case $x = 1, y = 1$, where they want <em>different</em> outputs:</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="14">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+
+// Shared Bell pair
+h q[0];
+cx q[0], q[1];
+
+// Alice: x=1, rotate by -pi/4
+ry(-pi/4) q[0];
+
+// Bob: y=1, rotate by pi/8
+ry(pi/8) q[1];
+
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>Here the <em>different</em> outcomes ($|01\rangle$ and $|10\rangle$) should again appear about 85% of the time. The quantum strategy manages to win approximately 85% in <em>all four</em> input cases, not just three out of four.</p>
+
+<p>Try the other two cases yourself by setting $(x, y) = (0, 1)$ and $(1, 0)$. For $(x=0, y=1)$: no rotation on Alice, $R_y(\pi/8)$ on Bob. For $(x=1, y=0)$: $R_y(-\pi/4)$ on Alice, $R_y(-\pi/8)$ on Bob. In both cases, matching outputs should dominate.</p>
+
+<h3>Why not better than $2\sqrt{2}$?</h3>
+
+<p>One might wonder: could there be "super-quantum" correlations that win the CHSH game with even higher probability? Mathematically, the winning condition $a \oplus b = x \wedge y$ could be satisfied with up to 100% probability if the players shared a hypothetical "PR box" (named after Popescu and Rohrlich). However, quantum mechanics limits correlations to $S \leq 2\sqrt{2}$ (Tsirelson's bound). This is not just an accident - it follows from the mathematical structure of quantum mechanics: operators on a Hilbert space satisfy specific norm bounds that prevent stronger-than-quantum correlations.</p>
+
+<p>Understanding <em>why</em> nature obeys exactly the Tsirelson bound rather than the algebraic maximum remains one of the deep open questions in quantum foundations. Various "information-theoretic" principles have been proposed (such as "information causality" and "macroscopic locality") that attempt to derive this bound from more basic assumptions.</p>
+
+<div class="callout callout-warning">
+  <strong>No communication, no cheating</strong>
+  <p>The quantum strategy works without any communication between Alice and Bob during the game. They only share entanglement that was prepared beforehand. The entanglement does not allow them to send messages - remember the no-communication theorem from our teleportation discussion. Instead, it creates correlations that are stronger than anything achievable with shared classical randomness. This is the essence of quantum nonlocality.</p>
+</div>
+</section>
+
+<!-- ================================================================== -->
+
+<section id="ghz">
+<h2>7.4 The GHZ Game: Entanglement Wins Again</h2>
+
+<p>The CHSH game shows that quantum strategies beat classical ones by roughly 10 percentage points (85% versus 75%). The GHZ game, devised by Daniel Greenberger, Michael Horne, and Anton Zeilinger, provides an even more dramatic separation: a problem where classical strategies can <em>never</em> win with certainty, but a quantum strategy wins <em>every single time</em>.</p>
+
+<h3>The rules</h3>
+
+<p>Three players - Alice, Bob, and Charlie - are in separate rooms. A referee gives each player an input bit $x$, $y$, $z \in \{0, 1\}$, with the constraint that the total number of 1s is even. That is, the valid input triples are:</p>
+
+$$\{(0,0,0),\; (0,1,1),\; (1,0,1),\; (1,1,0)\}$$
+
+<p>Each player outputs a bit ($a$, $b$, $c$ respectively). They win if:</p>
+
+$$a \oplus b \oplus c = x \vee y \vee z$$
+
+<p>In other words: if all inputs are 0, the outputs should XOR to 0. If any input is 1 (which means exactly two inputs are 1), the outputs should XOR to 1.</p>
+
+<h3>Classical strategies fail</h3>
+
+<p>Let us see why no deterministic strategy can win every round. The players agree on a strategy before the game. Since the only thing each player knows is their own input bit, Alice's output is a function $a(x)$, Bob's is $b(y)$, and Charlie's is $c(z)$.</p>
+
+<p>The winning conditions for each input triple give four equations (writing $a_0 = a(0)$, $a_1 = a(1)$, etc.):</p>
+
+<ul>
+  <li>$(0,0,0)$: $a_0 \oplus b_0 \oplus c_0 = 0$</li>
+  <li>$(0,1,1)$: $a_0 \oplus b_1 \oplus c_1 = 1$</li>
+  <li>$(1,0,1)$: $a_1 \oplus b_0 \oplus c_1 = 1$</li>
+  <li>$(1,1,0)$: $a_1 \oplus b_1 \oplus c_0 = 1$</li>
+</ul>
+
+<p>XOR all four equations together. Every variable appears exactly twice on the left, so the left side is $0 \oplus 0 \oplus 0 = 0$. The right side is $0 \oplus 1 \oplus 1 \oplus 1 = 1$. We get $0 = 1$, a contradiction.</p>
+
+<div class="callout callout-key">
+  <strong>No classical strategy can win all four cases</strong>
+  <p>The system of equations has no solution, so any deterministic strategy must fail on at least one of the four input triples. The best possible classical success rate is 3 out of 4, or <strong>75%</strong>. (For instance, always output 0 wins the first three cases but fails the last.)</p>
+</div>
+
+<h3>The quantum strategy: 100% win rate</h3>
+
+<p>Now suppose the three players share a <strong>GHZ state</strong>:</p>
+
+$$|\text{GHZ}\rangle = \frac{1}{\sqrt{2}}(|000\rangle + |111\rangle)$$
+
+<p>The strategy is elegant. Each player applies the following rule based on their input:</p>
+
+<ul>
+  <li>If input is $0$: apply $H$ (Hadamard), then measure in the $Z$ basis</li>
+  <li>If input is $1$: apply $S^\dagger$ (the gate that maps $|1\rangle \to -i|1\rangle$), then $H$, then measure in the $Z$ basis</li>
+</ul>
+
+<p>The $S^\dagger$ followed by $H$ sequence is equivalent to measuring in the $Y$ basis. So the strategy amounts to: measure in $X$ for input 0, measure in $Y$ for input 1.</p>
+
+<p>Let us verify this works. The GHZ state in the $X$/$Y$ measurement basis has the property that:</p>
+
+<ul>
+  <li>$XXX$ measurement (input $000$): outcomes always have an even number of $1$s, so $a \oplus b \oplus c = 0$</li>
+  <li>$XYY$ measurement (input $011$): outcomes always have an odd number of $1$s, so $a \oplus b \oplus c = 1$</li>
+  <li>$YXY$ measurement (input $101$): outcomes always have an odd number of $1$s, so $a \oplus b \oplus c = 1$</li>
+  <li>$YYX$ measurement (input $110$): outcomes always have an odd number of $1$s, so $a \oplus b \oplus c = 1$</li>
+</ul>
+
+<p>This matches the winning condition exactly, for all four input cases. The quantum strategy wins with probability <strong>100%</strong>.</p>
+
+<h3>Verifying the math</h3>
+
+<p>Let us prove the $XXX$ case (input $000$) in detail. The GHZ state is $|\text{GHZ}\rangle = \frac{1}{\sqrt{2}}(|000\rangle + |111\rangle)$. Applying $H$ to each qubit:</p>
+
+$$H^{\otimes 3}|\text{GHZ}\rangle = \frac{1}{\sqrt{2}} \cdot \frac{1}{2\sqrt{2}}\Big[\sum_{a,b,c}|abc\rangle + \sum_{a,b,c}(-1)^{a+b+c}|abc\rangle\Big]$$
+
+<p>The terms where $a + b + c$ is even get coefficient $\frac{2}{4} = \frac{1}{2}$, and the terms where $a + b + c$ is odd cancel to 0. So the outcome is uniform over the four states $|000\rangle$, $|011\rangle$, $|101\rangle$, $|110\rangle$ - all having even parity ($a \oplus b \oplus c = 0$), exactly as required.</p>
+
+<p>For the $XYY$ case (input $011$), we apply $H$ to qubit 0 and $S^\dagger H$ to qubits 1 and 2. The $S^\dagger$ introduces a factor of $-i$ for each $|1\rangle$ in the last two qubits. Working through the algebra (or using the stabilizer formalism from later chapters), the outcomes are exactly those with odd parity.</p>
+
+<h3>Sandbox: the GHZ game in action</h3>
+
+<p>Below is the quantum strategy for the input case $(x, y, z) = (0, 1, 1)$. Alice measures in $X$ (just $H$ then measure), Bob and Charlie measure in $Y$ ($S^\dagger$ then $H$ then measure). The outputs should XOR to 1:</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="18">OPENQASM 3.0;
+qubit[3] q;
+bit[3] c;
+
+// Create GHZ state
+h q[0];
+cx q[0], q[1];
+cx q[0], q[2];
+
+// Alice: input 0, measure in X basis
+h q[0];
+
+// Bob: input 1, measure in Y basis
+sdg q[1];
+h q[1];
+
+// Charlie: input 1, measure in Y basis
+sdg q[2];
+h q[2];
+
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>Run this and examine the outcomes. You should see only states where the three bits XOR to 1 (an odd number of 1s): $|001\rangle$, $|010\rangle$, $|100\rangle$, and $|111\rangle$. The states with an even number of 1s ($|000\rangle$, $|011\rangle$, $|101\rangle$, $|110\rangle$) should never appear.</p>
+
+<p>Try the all-zeros case $(0, 0, 0)$ where all three players measure in the $X$ basis (all apply $H$ before measuring). You should see only outcomes where the bits XOR to 0.</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="14">OPENQASM 3.0;
+qubit[3] q;
+bit[3] c;
+
+// Create GHZ state
+h q[0];
+cx q[0], q[1];
+cx q[0], q[2];
+
+// All players: input 0, measure in X basis
+h q[0];
+h q[1];
+h q[2];
+
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>Here you should see only outcomes where the bits XOR to 0 (an even number of 1s): $|000\rangle$, $|011\rangle$, $|101\rangle$, and $|110\rangle$.</p>
+
+<p>Finally, try the case $(1, 1, 0)$ where Alice and Bob measure in $Y$ and Charlie measures in $X$:</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="17">OPENQASM 3.0;
+qubit[3] q;
+bit[3] c;
+
+// Create GHZ state
+h q[0];
+cx q[0], q[1];
+cx q[0], q[2];
+
+// Alice: input 1, measure in Y basis
+sdg q[0];
+h q[0];
+
+// Bob: input 1, measure in Y basis
+sdg q[1];
+h q[1];
+
+// Charlie: input 0, measure in X basis
+h q[2];
+
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>Again, only odd-parity outcomes should appear. Try modifying the circuit for the remaining case $(1, 0, 1)$ yourself - Alice and Charlie measure in $Y$, Bob in $X$.</p>
+
+<div class="callout callout-key">
+  <strong>GHZ: a stronger-than-Bell argument</strong>
+  <p>The CHSH game shows a <em>statistical</em> gap between classical and quantum strategies (75% versus approximately 85%). The GHZ game shows a <em>logical</em> gap: the classical impossibility is not about probabilities but about the non-existence of any consistent assignment. A single round of the GHZ game, if all outcomes are as predicted by quantum mechanics, rules out all local hidden variable theories. No statistics needed - just one perfect round.</p>
+</div>
+
+<div class="callout callout-info">
+  <strong>From games to reality</strong>
+  <p>These "games" are not just mathematical abstractions. They correspond to real experiments that have been performed in laboratories around the world. Bell inequality violations using entangled photon pairs were demonstrated as early as the 1980s (by Alain Aspect and colleagues), and GHZ experiments followed in the late 1990s. In 2022, the Nobel Prize in Physics was awarded to Aspect, Clauser, and Zeilinger for their experimental work establishing that Bell inequalities are violated in nature.</p>
+</div>
+</section>
+
+<!-- ================================================================== -->
+
+<section id="summary">
+<h2>Chapter Summary</h2>
+
+<p>This chapter explored four protocols that showcase the power of quantum entanglement:</p>
+
+<ul>
+  <li><strong>Quantum teleportation</strong> transfers an unknown quantum state from Alice to Bob using a shared Bell pair and two classical bits. The original state is destroyed and recreated, consistent with no-cloning. Classical communication is essential - no faster-than-light signaling is possible.</li>
+  <li><strong>Superdense coding</strong> is the dual protocol: using a shared Bell pair, Alice sends two classical bits by transmitting only one qubit. These two protocols together show that 1 entangled pair + 2 classical bits = 1 qubit of communication, and vice versa.</li>
+  <li><strong>The CHSH game</strong> demonstrates that entangled particles produce correlations that cannot be explained by any local hidden variable theory. The classical win rate is bounded at 75%, while the quantum strategy achieves $\cos^2(\pi/8) \approx 85\%$, corresponding to the CHSH value of $2\sqrt{2}$ (Tsirelson's bound).</li>
+  <li><strong>The GHZ game</strong> provides an even starker demonstration: no classical strategy can win every round, but the GHZ state gives a 100% win rate, ruling out local hidden variables with a single perfect experiment.</li>
+</ul>
+
+<p>These protocols form the conceptual foundation of quantum communication. In the next chapter, we will see how entanglement and quantum measurement lead to practical applications in cryptography - specifically, quantum key distribution protocols that offer security guaranteed by the laws of physics.</p>
+</section>
+
+<!-- ================================================================== -->
+
+<section id="flashcards">
+<h2>Review Flashcards</h2>
+
+<div class="flashcard-deck" data-component="flashcard-deck">
+  <div class="flashcard-deck-header">Chapter 7 Review</div>
+
+  <div class="flashcard" data-card-id="ch07-teleportation-protocol">
+    <div class="card-front">What are the three resources required for quantum teleportation, and what does each contribute?</div>
+    <div class="card-back">Teleportation requires: (1) a shared Bell pair between Alice and Bob, which provides the entanglement channel; (2) Alice's operations (CNOT + H) and measurement of her two qubits, which entangle her data with the Bell pair and produce two classical bits; (3) a classical communication channel for Alice to send the two measurement bits to Bob. Bob then applies correction gates ($I$, $X$, $Z$, or $ZX$) based on those bits to recover the teleported state.</div>
+    <div class="flashcard-controls">
+      <button class="easy">Easy</button>
+      <button class="hard">Hard</button>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch07-no-ftl">
+    <div class="card-front">Why can't quantum teleportation be used for faster-than-light communication?</div>
+    <div class="card-back">Without Alice's classical measurement results, Bob's qubit is in a completely mixed state - it looks uniformly random regardless of what state Alice teleported. Bob cannot extract any information until he receives the two classical bits, which must travel through a conventional channel at or below the speed of light. The classical communication step is essential for teleportation to work.</div>
+    <div class="flashcard-controls">
+      <button class="easy">Easy</button>
+      <button class="hard">Hard</button>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch07-superdense-coding">
+    <div class="card-front">How does superdense coding send 2 classical bits using only 1 qubit?</div>
+    <div class="card-back">Alice and Bob pre-share a Bell pair $|\Phi^+\rangle$. Alice encodes her two-bit message by applying one of four gates ($I$, $X$, $Z$, or $ZX$) to her qubit, transforming the Bell pair into one of four orthogonal Bell states. She sends her qubit to Bob, who applies the reverse Bell circuit (CNOT then H) and measures both qubits to recover the two bits. The entangled pair provides the "extra" bit of capacity beyond what a single qubit normally carries.</div>
+    <div class="flashcard-controls">
+      <button class="easy">Easy</button>
+      <button class="hard">Hard</button>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch07-teleport-superdense-duality">
+    <div class="card-front">In what sense are teleportation and superdense coding "dual" protocols?</div>
+    <div class="card-back">Teleportation uses 1 Bell pair + 2 classical bits to transmit 1 qubit. Superdense coding uses 1 Bell pair + 1 qubit to transmit 2 classical bits. They represent the two directions of converting between quantum and classical communication resources, with entanglement as the bridge. Both consume one shared Bell pair in the process.</div>
+    <div class="flashcard-controls">
+      <button class="easy">Easy</button>
+      <button class="hard">Hard</button>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch07-chsh-classical">
+    <div class="card-front">What is the CHSH game, and why can classical players win at most 75% of the time?</div>
+    <div class="card-back">Alice and Bob each receive a random bit ($x$ and $y$) and must output bits ($a$ and $b$) satisfying $a \oplus b = x \wedge y$ - they want matching outputs except when both inputs are 1. The best deterministic strategy (e.g., always output 0) wins 3 of 4 cases. Since randomized strategies are mixtures of deterministic ones, no classical strategy exceeds 75%. This is the Bell/CHSH inequality.</div>
+    <div class="flashcard-controls">
+      <button class="easy">Easy</button>
+      <button class="hard">Hard</button>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch07-chsh-quantum">
+    <div class="card-front">What win rate does the optimal quantum CHSH strategy achieve, and what is Tsirelson's bound?</div>
+    <div class="card-back">Using a shared Bell pair and appropriately chosen measurement angles, Alice and Bob can win the CHSH game with probability $\cos^2(\pi/8) \approx 85.36\%$. This corresponds to a CHSH value of $S = 2\sqrt{2} \approx 2.828$, which exceeds the classical bound of $S \leq 2$. Tsirelson's bound states that $2\sqrt{2}$ is the maximum value achievable by any quantum strategy.</div>
+    <div class="flashcard-controls">
+      <button class="easy">Easy</button>
+      <button class="hard">Hard</button>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch07-ghz-classical">
+    <div class="card-front">Why is it impossible for a classical strategy to always win the GHZ game?</div>
+    <div class="card-back">The GHZ game has three players receiving inputs $(x,y,z)$ with an even number of 1s. They must output bits with $a \oplus b \oplus c = x \vee y \vee z$. Writing the winning conditions as four equations and XOR-ing them all gives $0 = 1$, a contradiction. Therefore no consistent assignment of deterministic strategies exists, and the best classical success rate is 75%.</div>
+    <div class="flashcard-controls">
+      <button class="easy">Easy</button>
+      <button class="hard">Hard</button>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch07-ghz-quantum">
+    <div class="card-front">How does the GHZ state achieve a 100% win rate in the GHZ game?</div>
+    <div class="card-back">The players share the state $\frac{1}{\sqrt{2}}(|000\rangle + |111\rangle)$. Each player measures in the $X$ basis (apply $H$) if their input is 0, or in the $Y$ basis (apply $S^\dagger$ then $H$) if their input is 1. The GHZ state has the algebraic property that $XXX$ measurements yield even-parity outcomes, while $XYY$, $YXY$, and $YYX$ measurements yield odd-parity outcomes - exactly matching the winning condition for all four valid input triples.</div>
+    <div class="flashcard-controls">
+      <button class="easy">Easy</button>
+      <button class="hard">Hard</button>
+    </div>
+  </div>
+</div>
+</section>
+    </article>
+
+    
+    <nav class="chapter-nav" aria-label="Chapter navigation">
+      <a href="06-entanglement.html" class="prev">&larr; Chapter 6: Multiple Qubits and Entanglement</a>
+      <span class="nav-spacer"></span>
+      <a href="08-cryptography.html" class="next">Chapter 8: Quantum Cryptography &rarr;</a>
+    </nav>
+    
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof renderMathInElement !== "undefined") {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "$", right: "$", display: false}
+          ],
+          throwOnError: false
+        });
+      }
+    });
+  </script>
+  
+  <script>
+  "use strict";
+  
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function isDark() { return window.matchMedia("(prefers-color-scheme: dark)").matches; }
+  function renderMath(el) {
+    if (typeof renderMathInElement === "function")
+      renderMathInElement(el, { delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}], throwOnError: false });
+  }
+
+  
+  var wasmReady = null;
+  function ensureWasm() {
+    if (!wasmReady) {
+      wasmReady = (async function() {
+        var go = new Go();
+        var result = await WebAssembly.instantiateStreaming(fetch("../main.wasm"), go.importObject);
+        go.run(result.instance);
+      })();
+    }
+    return wasmReady;
+  }
+
+  
+  var SRS_KEY = "goqu-srs";
+  function srsLoad() { try { return JSON.parse(localStorage.getItem(SRS_KEY) || "{}"); } catch(e) { return {}; } }
+  function srsSave(d) { localStorage.setItem(SRS_KEY, JSON.stringify(d)); }
+  function getCardState(id) { var d = srsLoad(); return d[id] || {interval:1, ease:2.5, due:0, reps:0}; }
+  function reviewCard(id, q) {
+    var d = srsLoad(), s = d[id] || {interval:1, ease:2.5, due:0, reps:0};
+    if (q >= 3) {
+      s.reps++;
+      if (s.reps === 1) s.interval = 1;
+      else if (s.reps === 2) s.interval = 6;
+      else s.interval = Math.round(s.interval * s.ease);
+      s.ease = Math.max(1.3, s.ease + 0.1 - (5-q)*(0.08 + (5-q)*0.02));
+    } else { s.reps = 0; s.interval = 1; }
+    s.due = Date.now() + s.interval * 86400000;
+    d[id] = s; srsSave(d);
+  }
+
+  
+  function initSandbox(el) {
+    var code = el.querySelector(".code"), output = el.querySelector(".output");
+    if (!code || !output) return;
+    var runBtn = el.querySelector('[data-action="run"]'), resetBtn = el.querySelector('[data-action="reset"]');
+    var shotsEl = el.querySelector("[data-shots]"), orig = code.value;
+    function shots() { return parseInt(shotsEl ? shotsEl.value : el.dataset.shots || "1024", 10); }
+    async function run() {
+      await ensureWasm();
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(code.value, shots(), isDark()));
+        if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+        output.innerHTML = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+    if (runBtn) runBtn.addEventListener("click", run);
+    if (resetBtn) resetBtn.addEventListener("click", function() { code.value = orig; });
+    if (el.hasAttribute("data-autorun")) run();
+  }
+
+  
+  function initSimulation(el) {
+    var tmplEl = el.querySelector(".sim-qasm"), output = el.querySelector(".sim-output");
+    var sliders = el.querySelectorAll('input[type="range"]');
+    var selects = el.querySelectorAll("select[data-param]");
+    if (!tmplEl || !output || (sliders.length === 0 && selects.length === 0)) return;
+    var tmpl = tmplEl.textContent, pending = false;
+    var useNoisy = el.hasAttribute("data-noisy");
+    var useComparison = el.hasAttribute("data-comparison");
+    var useExpectation = el.hasAttribute("data-expectation");
+    var useClifford = el.hasAttribute("data-clifford");
+    async function update() {
+      if (pending) return; pending = true;
+      await ensureWasm();
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var params = {};
+        sliders.forEach(function(s) { params[s.dataset.param] = parseFloat(s.value); var o = s.parentElement.querySelector("output"); if (o) o.textContent = parseFloat(s.value).toFixed(2); });
+        selects.forEach(function(s) { params[s.dataset.param] = s.value; });
+        var qasm = tmpl;
+        for (var k in params) qasm = qasm.replaceAll("{"+k+"}", params[k].toString());
+        var html = "";
+        if (useComparison && window.compareIdealNoisy) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.compareIdealNoisy(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="comparison-panels"><div class="comparison-panel"><h4>Ideal</h4>' + (r.idealHistogramSVG||"") + '</div><div class="comparison-panel"><h4>Noisy</h4>' + (r.noisyHistogramSVG||"") + '</div></div>';
+          if (r.stateCitySVG) html += r.stateCitySVG;
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useNoisy && window.runNoisyQASM) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.runNoisyQASM(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"") + (r.stateCitySVG||"");
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useClifford && window.runClifford) {
+          var r = JSON.parse(window.runClifford(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"");
+          if (r.stabilizers) { html += '<div class="stabilizer-table"><h4>Stabilizers</h4><table>'; r.stabilizers.forEach(function(s) { html += '<tr><td>' + formatStabilizer(s) + '</td></tr>'; }); html += '</table></div>'; }
+        } else if (useExpectation && window.computeExpectation) {
+          var pauliStr = params.pauliStr || el.dataset.pauli || "Z";
+          var r = JSON.parse(window.computeExpectation(qasm, pauliStr, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="sim-stats"><span>&lt;' + esc(pauliStr) + '&gt; = ' + r.expectation.toFixed(6) + '</span></div>';
+        } else {
+          var r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+          
+          if (el.hasAttribute("data-bloch") && window.getStateVector && window.renderBloch) {
+            try {
+              var sv = JSON.parse(window.getStateVector(qasm));
+              if (sv.amplitudes && sv.amplitudes.length === 2) {
+                var a = sv.amplitudes;
+                var blochSVG = window.renderBloch(a[0].re, a[0].im, a[1].re, a[1].im, isDark());
+                if (blochSVG) html += blochSVG;
+              }
+            } catch(e) {   }
+          }
+        }
+        output.innerHTML = html;
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+      pending = false;
+    }
+    sliders.forEach(function(s) { s.addEventListener("input", update); });
+    selects.forEach(function(s) { s.addEventListener("change", update); });
+    update();
+  }
+
+  
+  function formatStabilizer(s) {
+    if (!s) return "";
+    var sign = s[0], ops = s.slice(1), html = '<span class="stab-sign">' + esc(sign) + '</span>';
+    for (var i = 0; i < ops.length; i++) {
+      var c = ops[i], cls = "stab-" + c.toLowerCase();
+      html += '<span class="' + cls + '">' + c + '</span>';
+    }
+    return html;
+  }
+
+  
+  function initExercise(el) {
+    var code = el.querySelector(".code"), feedback = el.querySelector(".exercise-feedback");
+    var checkBtn = el.querySelector('[data-action="check"]');
+    var hintBtn = el.querySelector('[data-action="hint"]'), hintEl = el.querySelector(".exercise-hint");
+    if (!code || !feedback || !checkBtn) return;
+    var expected = {}, tol = 0.1;
+    var expEl = el.querySelector(".exercise-expected");
+    if (expEl) expEl.querySelectorAll("[data-state]").forEach(function(span) {
+      expected[span.dataset.state] = parseFloat(span.dataset.prob);
+      if (span.dataset.tolerance) tol = parseFloat(span.dataset.tolerance);
+    });
+    checkBtn.addEventListener("click", async function() {
+      await ensureWasm();
+      feedback.className = "exercise-feedback visible";
+      feedback.textContent = "Checking...";
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(code.value, 1024, isDark()));
+        if (r.error) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + r.error; return; }
+        if (Object.keys(expected).length === 0) { feedback.className = "exercise-feedback visible pass"; feedback.innerHTML = "Circuit ran successfully."; return; }
+        var prob = JSON.parse(window.getProbabilities(code.value, isDark()));
+        if (prob.error) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + prob.error; return; }
+        var actual = {};
+        for (var i = 0; i < prob.labels.length; i++) actual[prob.labels[i]] = prob.probabilities[i];
+        var ok = true, msgs = [];
+        for (var s in expected) {
+          var a = actual[s] || 0, p = expected[s];
+          if (Math.abs(a - p) > tol) { ok = false; msgs.push("|" + s + "\u27E9: expected " + (p*100|0) + "%, got " + (a*100|0) + "%"); }
+        }
+        if (ok) { feedback.className = "exercise-feedback visible pass"; feedback.innerHTML = "Correct! Your circuit produces the expected output."; }
+        else { feedback.className = "exercise-feedback visible fail"; feedback.innerHTML = "Not quite. " + msgs.join("; ") + "."; }
+        renderMath(feedback);
+      } catch(e) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + e.message; }
+    });
+    if (hintBtn && hintEl) hintBtn.addEventListener("click", function() { hintEl.style.display = hintEl.style.display === "none" ? "block" : "none"; });
+  }
+
+  
+  function initFlashcardDeck(el) {
+    el.querySelectorAll(".flashcard").forEach(function(card) {
+      var id = card.dataset.cardId;
+      if (!id) return;
+      var state = getCardState(id);
+      if (state.due > 0 && state.due > Date.now()) card.classList.add("reviewed");
+      card.addEventListener("click", function(e) {
+        if (e.target.closest("button")) return;
+        card.classList.toggle("flipped");
+        var back = card.querySelector(".card-back");
+        if (back) renderMath(back);
+      });
+      var easyBtn = card.querySelector(".easy"), hardBtn = card.querySelector(".hard");
+      if (easyBtn) easyBtn.addEventListener("click", function() { reviewCard(id, 4); card.classList.remove("flipped"); card.classList.add("reviewed"); });
+      if (hardBtn) hardBtn.addEventListener("click", function() { reviewCard(id, 2); card.classList.remove("flipped"); });
+    });
+  }
+
+  
+  function initPOE(el) {
+    var steps = el.querySelectorAll(".poe-step"), prog = el.querySelectorAll(".poe-progress-step");
+    if (steps.length === 0) return;
+    var cur = 0;
+    function show(idx) {
+      steps.forEach(function(s,i) { s.classList.toggle("active", i === idx); });
+      prog.forEach(function(s,i) { s.classList.remove("active","done"); if (i < idx) s.classList.add("done"); if (i === idx) s.classList.add("active"); });
+      cur = idx;
+      var active = steps[idx];
+      if (active) active.querySelectorAll('.sandbox:not([data-initialized])').forEach(function(sb) { sb.setAttribute("data-initialized","true"); initSandbox(sb); });
+    }
+    el.querySelectorAll('[data-action="next"]').forEach(function(btn) { btn.addEventListener("click", function() { if (cur < steps.length - 1) show(cur + 1); }); });
+    el.querySelectorAll('[data-action="complete"]').forEach(function(btn) { btn.addEventListener("click", function() { prog.forEach(function(s) { s.classList.remove("active"); s.classList.add("done"); }); }); });
+    show(0);
+  }
+
+  
+  function initStepThrough(el) {
+    var qasmEl = el.querySelector(".step-qasm");
+    var output = el.querySelector(".step-output");
+    var prevBtn = el.querySelector('[data-action="prev"]');
+    var nextBtn = el.querySelector('[data-action="next"]');
+    var stepInfo = el.querySelector(".step-info");
+    if (!qasmEl || !output) return;
+    var qasm = qasmEl.textContent;
+    var mode = el.dataset.mode || "clifford"; 
+    var steps = null, cur = -1;
+
+    async function load() {
+      await ensureWasm();
+      try {
+        if (mode === "clifford" && window.cliffordStepThrough) {
+          var r = JSON.parse(window.cliffordStepThrough(qasm));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+          
+          steps.unshift({gate: "init", qubits: [], stabilizers: r.steps.length > 0 ? null : []});
+        } else if (mode === "grover" && window.groverStepThrough) {
+          var nq = parseInt(el.dataset.qubits || "2", 10);
+          var targets = JSON.parse(el.dataset.targets || "[]");
+          var r = JSON.parse(window.groverStepThrough(nq, targets.join(",")));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+        }
+        if (steps && steps.length > 0) { cur = 0; renderStep(); }
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    function renderStep() {
+      if (!steps || cur < 0 || cur >= steps.length) return;
+      var s = steps[cur];
+      var html = "";
+      if (mode === "clifford") {
+        if (s.gate === "init") {
+          html = '<p class="step-label">Initial state |0...0&gt;</p>';
+          
+          if (steps.length > 1 && steps[1].stabilizers) {
+            var nq = steps[1].stabilizers[0].length - 1;
+            html += '<div class="stabilizer-table"><table>';
+            for (var i = 0; i < nq; i++) {
+              var row = "+";
+              for (var j = 0; j < nq; j++) row += (j === i) ? "Z" : "I";
+              html += '<tr><td>' + formatStabilizer(row) + '</td></tr>';
+            }
+            html += '</table></div>';
+          }
+        } else {
+          html = '<p class="step-label">After <strong>' + esc(s.gate) + '</strong> on qubit' + (s.qubits.length > 1 ? 's ' : ' ') + s.qubits.join(', ') + '</p>';
+          if (s.stabilizers) {
+            html += '<div class="stabilizer-table"><table>';
+            s.stabilizers.forEach(function(st) { html += '<tr><td>' + formatStabilizer(st) + '</td></tr>'; });
+            html += '</table></div>';
+          }
+        }
+      } else if (mode === "grover") {
+        html = '<p class="step-label">Iteration ' + s.iteration + '</p>';
+        if (s.probabilities) {
+          html += '<div class="amplitude-bars">';
+          for (var i = 0; i < s.probabilities.length; i++) {
+            var label = i.toString(2).padStart(Math.ceil(Math.log2(s.probabilities.length)), '0');
+            var pct = (s.probabilities[i] * 100).toFixed(1);
+            var isTarget = el.dataset.targets && JSON.parse(el.dataset.targets).indexOf(i) >= 0;
+            html += '<div class="amp-bar' + (isTarget ? ' target' : '') + '"><div class="amp-fill" style="height:' + pct + '%"></div><span class="amp-label">|' + label + '&gt;</span><span class="amp-value">' + pct + '%</span></div>';
+          }
+          html += '</div>';
+        }
+      }
+      output.innerHTML = html;
+      if (stepInfo) stepInfo.textContent = "Step " + cur + " / " + (steps.length - 1);
+      if (prevBtn) prevBtn.disabled = (cur === 0);
+      if (nextBtn) nextBtn.disabled = (cur >= steps.length - 1);
+    }
+
+    if (prevBtn) prevBtn.addEventListener("click", function() { if (cur > 0) { cur--; renderStep(); } });
+    if (nextBtn) nextBtn.addEventListener("click", function() { if (steps && cur < steps.length - 1) { cur++; renderStep(); } });
+    load();
+  }
+
+  
+  document.addEventListener("DOMContentLoaded", function() {
+    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough};
+    document.querySelectorAll("[data-component]").forEach(function(el) { var fn = reg[el.dataset.component]; if (fn) fn(el); });
+  });
+  </script>
+  
+</body>
+</html>

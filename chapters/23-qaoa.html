@@ -1,0 +1,1547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chapter 23: Quantum Approximate Optimization (QAOA) - Goqu Textbook</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/contrib/auto-render.min.js"></script>
+  
+  <link rel="preload" href="../main.wasm" as="fetch" type="application/wasm" crossorigin>
+  <script src="../wasm_exec.js"></script>
+  
+</head>
+<body>
+  <input type="checkbox" id="nav-toggle" hidden>
+  <label for="nav-toggle" class="nav-hamburger" aria-label="Toggle navigation">
+    <span></span><span></span><span></span>
+  </label>
+
+  <nav class="sidebar" aria-label="Table of contents">
+    <a href="../index.html" class="sidebar-logo">Goqu Textbook</a>
+    
+    <details>
+      <summary>Part 1: The World of Classical Computing</summary>
+      <ol start="1">
+        
+        <li value="1"><a href="01-computation.html">What Is Computation?</a></li>
+        
+        <li value="2"><a href="02-math-of-information.html">The Mathematics of Information</a></li>
+        
+        <li value="3"><a href="03-reversible-computing.html">Reversible Computing</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 2: Entering the Quantum World</summary>
+      <ol start="4">
+        
+        <li value="4"><a href="04-the-first-qubit.html">The First Qubit</a></li>
+        
+        <li value="5"><a href="05-quantum-gates.html">Quantum Gates</a></li>
+        
+        <li value="6"><a href="06-entanglement.html">Multiple Qubits and Entanglement</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 3: Quantum Protocols</summary>
+      <ol start="7">
+        
+        <li value="7"><a href="07-teleportation.html">Quantum Teleportation and Communication</a></li>
+        
+        <li value="8"><a href="08-cryptography.html">Quantum Cryptography</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 4: Quantum Algorithms - The First Wave</summary>
+      <ol start="9">
+        
+        <li value="9"><a href="09-oracles.html">Oracles and Quantum Parallelism</a></li>
+        
+        <li value="10"><a href="10-qft.html">The Quantum Fourier Transform</a></li>
+        
+        <li value="11"><a href="11-shor.html">Shor&#39;s Algorithm</a></li>
+        
+        <li value="12"><a href="12-grover.html">Grover&#39;s Algorithm</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 5: Real Quantum Hardware</summary>
+      <ol start="13">
+        
+        <li value="13"><a href="13-hardware.html">How to Build a Quantum Computer</a></li>
+        
+        <li value="14"><a href="14-noise.html">Noise, Decoherence, and the NISQ Era</a></li>
+        
+        <li value="15"><a href="15-programming.html">Programming Quantum Computers</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 6: Quantum Error Correction</summary>
+      <ol start="16">
+        
+        <li value="16"><a href="16-classical-ec.html">Classical Error Correction Refresher</a></li>
+        
+        <li value="17"><a href="17-qec-fundamentals.html">Quantum Error Correction Fundamentals</a></li>
+        
+        <li value="18"><a href="18-stabilizers.html">The Stabilizer Formalism</a></li>
+        
+        <li value="19"><a href="19-surface-codes.html">Surface Codes and Topological Protection</a></li>
+        
+        <li value="20"><a href="20-fault-tolerance.html">Fault-Tolerant Quantum Computing</a></li>
+        
+      </ol>
+    </details>
+    
+    <details open>
+      <summary>Part 7: Variational and Near-Term Algorithms</summary>
+      <ol start="21">
+        
+        <li value="21"><a href="21-variational.html">The Variational Quantum Computing Paradigm</a></li>
+        
+        <li value="22"><a href="22-vqe.html">Variational Quantum Eigensolver (VQE)</a></li>
+        
+        <li value="23"><a href="23-qaoa.html" aria-current="page">Quantum Approximate Optimization (QAOA)</a></li>
+        
+        <li value="24"><a href="24-qml.html">Quantum Machine Learning</a></li>
+        
+        <li value="25"><a href="25-error-mitigation.html">Quantum Error Mitigation</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 8: Quantum Information Theory</summary>
+      <ol start="26">
+        
+        <li value="26"><a href="26-states-measurements.html">Quantum States and Measurements, Revisited</a></li>
+        
+        <li value="27"><a href="27-channels.html">Quantum Channels and Operations</a></li>
+        
+        <li value="28"><a href="28-entropy.html">Quantum Entropy and Information</a></li>
+        
+        <li value="29"><a href="29-shannon.html">Quantum Shannon Theory</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 9: Quantum Complexity and Computation Theory</summary>
+      <ol start="30">
+        
+        <li value="30"><a href="30-complexity.html">Quantum Computational Complexity</a></li>
+        
+        <li value="31"><a href="31-hidden-subgroup.html">The Hidden Subgroup Problem and Beyond</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 10: Quantum Simulation</summary>
+      <ol start="32">
+        
+        <li value="32"><a href="32-simulation-why.html">Why Quantum Simulation Matters</a></li>
+        
+        <li value="33"><a href="33-digital-simulation.html">Digital Quantum Simulation</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 11: Quantum Networking, Cryptography, and Sensing</summary>
+      <ol start="34">
+        
+        <li value="34"><a href="34-quantum-internet.html">The Quantum Internet</a></li>
+        
+        <li value="35"><a href="35-advanced-crypto.html">Advanced Quantum Cryptography</a></li>
+        
+        <li value="36"><a href="36-sensing.html">Quantum Sensing and Metrology</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 12: Frontiers and the Future</summary>
+      <ol start="37">
+        
+        <li value="37"><a href="37-topological.html">Topological Quantum Computing</a></li>
+        
+        <li value="38"><a href="38-quantum-ai.html">Quantum Computing and Artificial Intelligence</a></li>
+        
+        <li value="39"><a href="39-open-problems.html">Open Problems in Quantum Computing</a></li>
+        
+        <li value="40"><a href="40-ecosystem.html">The Quantum Computing Ecosystem Today</a></li>
+        
+        <li value="41"><a href="41-career.html">Building Your Quantum Computing Career</a></li>
+        
+        <li value="42"><a href="42-what-next.html">What Comes Next</a></li>
+        
+      </ol>
+    </details>
+    
+  </nav>
+
+  <main>
+    
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="../index.html">Home</a> / <a href="../index.html#part-7">Part 7</a> / <span>Chapter 23</span>
+    </nav>
+    
+
+    <article>
+      <h1>Chapter 23: Quantum Approximate Optimization (QAOA)</h1>
+      <p>
+  Throughout this textbook, we have built up the mathematical machinery of quantum computing -
+  qubits, gates, entanglement, interference. Now we put that machinery to work on one of the
+  most practically important classes of problems in all of computer science: combinatorial
+  optimization. These are problems where you must find the best solution from a vast, discrete
+  set of possibilities - routing delivery trucks, scheduling airline crews, assigning frequencies
+  to cell towers, or designing integrated circuits. Many of these problems are NP-hard, meaning
+  no known classical algorithm can solve them efficiently in the worst case.
+</p>
+
+<p>
+  In 2014, Edward Farhi, Jeffrey Goldstone, and Sam Gutmann proposed the <strong>Quantum
+  Approximate Optimization Algorithm</strong> (QAOA), a hybrid quantum-classical algorithm
+  designed to tackle these problems on near-term quantum hardware. QAOA does not promise exact
+  solutions - the word "approximate" is right there in the name - but it offers a structured,
+  principled approach to finding good solutions using shallow quantum circuits. In this chapter,
+  we will build QAOA from the ground up, apply it to the canonical MaxCut problem, connect it
+  to the deeper theory of adiabatic quantum computation, and explore D-Wave's radically
+  different approach to quantum optimization.
+</p>
+
+<!-- ================================================================== -->
+
+<section id="combinatorial-optimization">
+
+<h2>23.1 Combinatorial Optimization</h2>
+
+<p>
+  A <strong>combinatorial optimization problem</strong> asks: given a finite set of candidate
+  solutions, each with an associated cost (or objective value), find the solution that maximizes
+  or minimizes that cost. The challenge is that the number of candidates grows exponentially with
+  the problem size, making exhaustive search impractical.
+</p>
+
+<h3>MaxCut: The Canonical Example</h3>
+
+<p>
+  Given an undirected graph $G = (V, E)$ with $n$ vertices and $m$ edges, the <strong>MaxCut
+  problem</strong> asks: partition the vertices into two groups (call them $S$ and $\bar{S}$) so
+  that the number of edges crossing between the two groups is maximized. An edge $(i, j)$ is
+  "cut" if vertex $i$ is in one group and vertex $j$ is in the other.
+</p>
+
+<p>
+  We encode the partition using binary variables $z_i \in \{0, 1\}$ for each vertex $i$. Vertex
+  $i$ goes into group $S$ if $z_i = 0$ and into $\bar{S}$ if $z_i = 1$. An edge $(i,j)$ is cut
+  whenever $z_i \neq z_j$, which we can express mathematically as $z_i + z_j - 2 z_i z_j$ (this
+  equals 1 when the bits differ and 0 when they match). The total number of cut edges is:
+</p>
+
+$$C(z) = \sum_{(i,j) \in E} \left( z_i + z_j - 2 z_i z_j \right)$$
+
+<p>
+  For a graph with $n$ vertices, there are $2^n$ possible partitions. A graph with just 50
+  vertices has over $10^{15}$ possible cuts - far too many to check one by one. MaxCut is
+  NP-hard: no known classical algorithm solves it exactly in polynomial time for all graphs.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    MaxCut encodes a graph partitioning problem into binary variables. The objective function
+    counts edges between the two groups. Finding the partition that maximizes this count is
+    NP-hard, making it an ideal benchmark for quantum optimization algorithms.
+  </p>
+</div>
+
+<h3>From Classical Bits to Quantum Spins</h3>
+
+<p>
+  To bring MaxCut into the quantum world, we replace each classical bit $z_i \in \{0, 1\}$ with
+  a qubit and use the Pauli-Z operator to encode the partition. Recall that $Z|0\rangle =
+  +|0\rangle$ and $Z|1\rangle = -|1\rangle$, so the eigenvalue of $Z_i$ tells us which group
+  vertex $i$ belongs to. The classical cost function translates to a quantum operator called the
+  <strong>cost Hamiltonian</strong>:
+</p>
+
+$$H_C = \frac{1}{2} \sum_{(i,j) \in E} \left( I - Z_i Z_j \right)$$
+
+<p>
+  When qubits $i$ and $j$ are in different computational basis states (one $|0\rangle$, one
+  $|1\rangle$), the term $Z_i Z_j$ evaluates to $-1$, so $(I - Z_i Z_j)/2 = 1$ - the edge
+  contributes to the cut. When they are in the same state, $Z_i Z_j = +1$ and the term
+  vanishes. The eigenvalues of $H_C$ are exactly the cut values $C(z)$ for each bitstring $z$.
+  Maximizing the cut is equivalent to finding the highest eigenvalue of $H_C$.
+</p>
+
+<h3>Beyond MaxCut: SAT and Scheduling</h3>
+
+<p>
+  The QAOA framework extends far beyond MaxCut. Any combinatorial optimization problem whose
+  objective function can be written as a sum of terms involving a bounded number of variables
+  can be encoded as a cost Hamiltonian:
+</p>
+
+<ul>
+  <li>
+    <strong>Satisfiability (SAT):</strong> Given a Boolean formula in conjunctive normal form
+    (a conjunction of clauses, each a disjunction of literals), find an assignment that satisfies
+    the maximum number of clauses. Each clause becomes a term in $H_C$ using products of
+    $Z$ operators and identity shifts.
+  </li>
+  <li>
+    <strong>Graph coloring:</strong> Assign colors to vertices so that no two adjacent vertices
+    share a color, using the minimum number of colors. The penalty for adjacent same-color
+    vertices becomes the cost Hamiltonian.
+  </li>
+  <li>
+    <strong>Scheduling:</strong> Assign jobs to time slots and machines to minimize total
+    completion time or conflicts. Constraints become penalty terms in the Hamiltonian; the
+    objective becomes the cost to minimize.
+  </li>
+  <li>
+    <strong>Portfolio optimization:</strong> Select a subset of financial assets to maximize
+    expected return while minimizing risk, subject to budget constraints. The quadratic
+    risk-return trade-off maps naturally to a QUBO (Quadratic Unconstrained Binary Optimization)
+    formulation.
+  </li>
+</ul>
+
+<p>
+  The general pattern is always the same: encode the problem as a cost Hamiltonian $H_C$ whose
+  ground state (or highest eigenstate) encodes the optimal solution, then use QAOA to prepare a
+  quantum state with high overlap on that optimal state.
+</p>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="qaoa-circuit">
+
+<h2>23.2 The QAOA Circuit</h2>
+
+<p>
+  The QAOA circuit has an elegant, layered structure. It alternates between two types of
+  unitary operations - the <strong>problem unitary</strong> (which encodes the cost function)
+  and the <strong>mixing unitary</strong> (which explores the solution space) - applied $p$
+  times, where $p$ is the number of layers (also called the circuit depth). Each layer is
+  parameterized by two angles, $\gamma_k$ and $\beta_k$, which are optimized classically.
+</p>
+
+<h3>Step 1: Initial State</h3>
+
+<p>
+  QAOA begins by preparing an equal superposition over all $2^n$ computational basis states.
+  This is achieved by applying a Hadamard gate to each of the $n$ qubits:
+</p>
+
+$$|s\rangle = H^{\otimes n} |0\rangle^{\otimes n} = \frac{1}{\sqrt{2^n}} \sum_{z \in \{0,1\}^n} |z\rangle$$
+
+<p>
+  This initial state gives every possible solution an equal amplitude. The subsequent QAOA
+  layers will reshape these amplitudes, concentrating probability on high-quality solutions.
+</p>
+
+<h3>Step 2: The Problem Unitary $U(H_C, \gamma)$</h3>
+
+<p>
+  The problem unitary applies the cost Hamiltonian as a phase rotation:
+</p>
+
+$$U(H_C, \gamma) = e^{-i \gamma H_C}$$
+
+<p>
+  For MaxCut, the cost Hamiltonian is a sum of commuting $Z_i Z_j$ terms (diagonal operators
+  commute with each other), so the exponential factors cleanly:
+</p>
+
+$$U(H_C, \gamma) = \prod_{(i,j) \in E} e^{-i \gamma (I - Z_i Z_j)/2} = \prod_{(i,j) \in E} e^{i \gamma Z_i Z_j / 2}$$
+
+<p>
+  up to a global phase. Each factor $e^{i \gamma Z_i Z_j / 2}$ is implemented by an
+  $R_{ZZ}(\gamma)$ gate - a two-qubit gate that applies a relative phase depending on whether
+  qubits $i$ and $j$ agree or disagree. In QASM, this is written as
+  <code>rzz(gamma) q[i], q[j];</code>. The problem unitary stamps the cost function into the
+  phases of the quantum state: bitstrings with higher cut values accumulate different phases
+  than those with lower cut values.
+</p>
+
+<h3>Step 3: The Mixing Unitary $U(H_B, \beta)$</h3>
+
+<p>
+  The mixing unitary is generated by a "mixer" Hamiltonian $H_B$ that does not commute with
+  $H_C$. The standard choice is the transverse-field mixer:
+</p>
+
+$$H_B = \sum_{i=1}^{n} X_i$$
+
+<p>
+  which gives the mixing unitary:
+</p>
+
+$$U(H_B, \beta) = e^{-i \beta H_B} = \prod_{i=1}^{n} e^{-i \beta X_i} = \prod_{i=1}^{n} R_X(2\beta)_i$$
+
+<p>
+  Since the individual $X_i$ operators commute with each other (they act on different qubits),
+  the product factorizes into single-qubit $R_X$ rotations. The mixer's role is to create
+  transitions between computational basis states - it "mixes" the amplitudes, allowing the
+  algorithm to explore the solution space. Without the mixer, the problem unitary would only
+  modify phases, never moving amplitude between different bitstrings.
+</p>
+
+<h3>Step 4: Layer the Unitaries</h3>
+
+<p>
+  A depth-$p$ QAOA circuit applies $p$ alternating layers of problem and mixing unitaries:
+</p>
+
+$$|\gamma, \beta\rangle = U(H_B, \beta_p) \, U(H_C, \gamma_p) \cdots U(H_B, \beta_1) \, U(H_C, \gamma_1) \, |s\rangle$$
+
+<p>
+  The full parameter set is $(\gamma_1, \ldots, \gamma_p, \beta_1, \ldots, \beta_p)$ - a total
+  of $2p$ real numbers. The quantum state $|\gamma, \beta\rangle$ depends on these parameters,
+  and the goal is to choose them so that measuring the final state yields high-quality solutions
+  with high probability.
+</p>
+
+<h3>Step 5: Measure and Optimize</h3>
+
+<p>
+  After preparing $|\gamma, \beta\rangle$, we measure all qubits in the computational basis.
+  Each measurement outcome is a bitstring $z$ representing a candidate partition. We evaluate
+  the classical cost $C(z)$ for this bitstring. Repeating many times, we estimate the expected
+  cost:
+</p>
+
+$$\langle C \rangle = \langle \gamma, \beta | H_C | \gamma, \beta \rangle$$
+
+<p>
+  A classical optimizer (such as COBYLA, Nelder-Mead, or gradient-based methods) then adjusts
+  the $2p$ parameters to maximize $\langle C \rangle$. This classical-quantum feedback loop
+  continues until the parameters converge. The best bitstring observed during the entire
+  optimization process is returned as the approximate solution.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    QAOA is a hybrid quantum-classical algorithm. The quantum computer prepares a parameterized
+    state by alternating problem and mixing unitaries. The classical computer optimizes the
+    parameters to maximize the expected cost. Increasing the depth $p$ improves the
+    approximation quality, and in the limit $p \to \infty$, QAOA can find the exact optimum.
+  </p>
+</div>
+
+<p>
+  The sandbox below implements a single-layer ($p = 1$) QAOA circuit for MaxCut on a triangle
+  graph (3 vertices, 3 edges). Each edge contributes an <code>rzz</code> gate for the problem
+  unitary, and each qubit gets an <code>rx</code> gate for the mixer. Try varying the angles
+  to see how the output distribution changes.
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="18">OPENQASM 3.0;
+qubit[3] q;
+bit[3] c;
+// Initial superposition
+h q[0]; h q[1]; h q[2];
+// Problem unitary: edges (0,1), (1,2), (0,2)
+// gamma = pi/4
+rzz(pi/4) q[0], q[1];
+rzz(pi/4) q[1], q[2];
+rzz(pi/4) q[0], q[2];
+// Mixing unitary: rx on each qubit
+// beta = pi/8
+rx(pi/4) q[0];
+rx(pi/4) q[1];
+rx(pi/4) q[2];
+// Measure
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+  For the triangle graph, the optimal MaxCut partitions cut exactly 2 out of 3 edges (you
+  cannot cut all three edges of a triangle). The optimal bitstrings are <code>001</code>,
+  <code>010</code>, <code>100</code>, <code>110</code>, <code>101</code>, and <code>011</code>
+  - any partition where the groups are not trivially all-zero or all-one. A well-tuned QAOA
+  circuit should concentrate probability on these six bitstrings while suppressing
+  <code>000</code> and <code>111</code>.
+</p>
+
+<div class="callout callout-info">
+  <strong>Note.</strong>
+  <p>
+    The <code>rx</code> gate implements $R_X(\theta) = e^{-i \theta X / 2}$, so
+    <code>rx(2*beta)</code> corresponds to the mixing unitary $e^{-i \beta X}$. In the sandbox
+    above, <code>rx(pi/4)</code> corresponds to $\beta = \pi/8$. Similarly,
+    <code>rzz(gamma)</code> implements $e^{-i \gamma Z_i Z_j / 2}$, which is the problem
+    unitary factor for each edge (up to global phase).
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="qaoa-to-adiabatic">
+
+<h2>23.3 From QAOA to the Adiabatic Theorem</h2>
+
+<p>
+  QAOA is not just a clever heuristic - it has deep roots in one of quantum mechanics' most
+  powerful results: the <strong>adiabatic theorem</strong>. Understanding this connection
+  explains why QAOA works, when it fails, and how to improve it.
+</p>
+
+<h3>The Adiabatic Theorem</h3>
+
+<p>
+  The adiabatic theorem, first formulated by Max Born and Vladimir Fock in 1928, states: if a
+  quantum system starts in the ground state of a Hamiltonian $H(0)$, and the Hamiltonian is
+  changed <em>slowly enough</em> to a final Hamiltonian $H(T)$, then the system will remain
+  in the ground state of the instantaneous Hamiltonian throughout the evolution. "Slowly enough"
+  means the evolution time $T$ must be large compared to the inverse of the minimum energy gap
+  squared between the ground state and the first excited state:
+</p>
+
+$$T \gg \frac{1}{\Delta_{\min}^2}$$
+
+<p>
+  where $\Delta_{\min} = \min_{0 \leq t \leq T} \left( E_1(t) - E_0(t) \right)$ is the
+  minimum spectral gap along the entire evolution path.
+</p>
+
+<h3>Adiabatic Quantum Computation</h3>
+
+<p>
+  Adiabatic quantum computation (AQC) exploits this theorem directly. The idea: start with a
+  simple Hamiltonian $H_B$ whose ground state is easy to prepare (the equal superposition
+  $|s\rangle$ is the ground state of $H_B = -\sum_i X_i$), and slowly interpolate to the
+  problem Hamiltonian $H_C$ whose ground state encodes the solution:
+</p>
+
+$$H(t) = \left(1 - \frac{t}{T}\right) H_B + \frac{t}{T} H_C$$
+
+<p>
+  If the interpolation is slow enough, the adiabatic theorem guarantees that the system ends
+  in the ground state of $H_C$ - the optimal solution. The required evolution time depends on
+  the minimum gap, which is problem-dependent and can be exponentially small for hard instances.
+</p>
+
+<h3>QAOA as Trotterized Adiabatic Evolution</h3>
+
+<p>
+  Here is the key insight: QAOA can be viewed as a <strong>Trotterized</strong> (discretized)
+  version of adiabatic evolution. In the Trotterization of the continuous-time evolution under
+  $H(t)$, we break the evolution into $p$ discrete steps. At step $k$, the system evolves
+  under $H_C$ for a short time $\gamma_k$ and then under $H_B$ for a short time $\beta_k$.
+  This is exactly the QAOA circuit structure:
+</p>
+
+$$|\psi\rangle = \prod_{k=1}^{p} e^{-i \beta_k H_B} \, e^{-i \gamma_k H_C} \, |s\rangle$$
+
+<p>
+  If we choose $\gamma_k$ and $\beta_k$ to mimic a linear adiabatic schedule - small at the
+  beginning (mostly mixer) and large at the end (mostly problem) - the QAOA circuit
+  approximates the continuous adiabatic evolution. As $p \to \infty$ with an appropriate choice
+  of parameters, QAOA converges to exact adiabatic evolution and finds the optimal solution.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    QAOA at depth $p$ can be understood as a $p$-step Trotterization of adiabatic quantum
+    computation. In the limit $p \to \infty$, QAOA recovers the exact adiabatic evolution
+    and is guaranteed to find the ground state of $H_C$. At finite $p$, the variational
+    freedom to optimize $\gamma$ and $\beta$ allows QAOA to outperform a naive Trotter
+    discretization of the same depth.
+  </p>
+</div>
+
+<h3>Why Variational Freedom Helps</h3>
+
+<p>
+  A crucial advantage of QAOA over a fixed Trotter schedule: the parameters $\gamma_k$ and
+  $\beta_k$ are <em>variationally optimized</em>, not fixed by a predetermined schedule. This
+  means QAOA can compensate for the discretization error inherent in using only $p$ layers.
+  Research has shown that the "Trotter errors" in QAOA can actually be beneficial - they act
+  like counterdiabatic driving terms that suppress transitions out of the ground state, allowing
+  QAOA to achieve better performance than a naive discretization of adiabatic evolution at the
+  same circuit depth.
+</p>
+
+<p>
+  This also explains a practical observation: optimal QAOA parameters often follow a smooth,
+  monotonic pattern. The $\gamma$ values tend to increase across layers (the problem Hamiltonian
+  gets stronger) while the $\beta$ values tend to decrease (the mixer gets weaker) - precisely
+  mimicking an adiabatic ramp. This pattern has been exploited to develop parameter
+  initialization strategies that reduce the classical optimization burden.
+</p>
+
+<h3>The Gap Sets the Difficulty</h3>
+
+<p>
+  The adiabatic perspective reveals why some optimization problems are harder than others for
+  QAOA. The minimum spectral gap $\Delta_{\min}$ along the interpolation path determines how
+  many QAOA layers are needed. Problems with exponentially small gaps require exponentially many
+  layers - and thus exponentially long circuits - to solve exactly. This is consistent with
+  computational complexity theory: if QAOA could efficiently solve NP-hard problems with
+  polynomial-depth circuits, it would imply P = NP.
+</p>
+
+<div class="callout callout-warning">
+  <strong>Common Misconception.</strong>
+  <p>
+    QAOA does not solve NP-hard problems efficiently. For worst-case instances of NP-hard
+    problems, the required circuit depth $p$ can grow exponentially with problem size. What QAOA
+    offers is a structured, quantum-enhanced heuristic that may find good approximate solutions
+    faster than classical heuristics for certain problem classes - but rigorous quantum advantage
+    for QAOA on practically relevant problems remains an active area of research.
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="maxcut-qaoa-simulator">
+
+<h2>23.4 Solving MaxCut with QAOA on a Simulator</h2>
+
+<p>
+  Let us now put QAOA into practice. We will solve MaxCut on a small graph, exploring how the
+  parameters $\gamma$ and $\beta$ affect the quality of the solution. The simulation below
+  implements a depth-1 QAOA circuit for MaxCut on a 4-vertex path graph with edges
+  $(0,1)$, $(1,2)$, and $(2,3)$. The optimal MaxCut for this graph cuts all 3 edges, achieved
+  by the bitstrings <code>0101</code> and <code>1010</code>.
+</p>
+
+<h3>Interactive Parameter Exploration</h3>
+
+<p>
+  Use the sliders below to adjust the QAOA parameters $\gamma$ and $\beta$. Watch how the
+  measurement distribution changes as you sweep through different parameter values. The goal
+  is to find parameters that concentrate probability on the optimal bitstrings.
+</p>
+
+<div class="simulation" data-component="simulation">
+  <div class="sim-controls">
+    <label>$\gamma$: <input type="range" data-param="gamma" min="0" max="6.283" step="0.01" value="0.50"><output>0.50</output></label>
+    <label>$\beta$: <input type="range" data-param="beta" min="0" max="3.142" step="0.01" value="0.50"><output>0.50</output></label>
+  </div>
+  <pre class="sim-qasm">OPENQASM 3.0;
+qubit[4] q;
+bit[4] c;
+// Initial superposition
+h q[0]; h q[1]; h q[2]; h q[3];
+// Problem unitary: path graph edges (0,1), (1,2), (2,3)
+rzz({gamma}) q[0], q[1];
+rzz({gamma}) q[1], q[2];
+rzz({gamma}) q[2], q[3];
+// Mixing unitary
+rx({beta}) q[0];
+rx({beta}) q[1];
+rx({beta}) q[2];
+rx({beta}) q[3];
+// Measure
+c = measure q;</pre>
+  <div class="sim-output"></div>
+</div>
+
+<p>
+  As you explore the parameter landscape, notice several features. When $\gamma = 0$, the
+  problem unitary is the identity and you get a uniform distribution over all 16 bitstrings.
+  When $\beta = 0$, the mixer is the identity and the problem unitary only adds phases (which
+  do not affect measurement probabilities after a single layer). The interesting behavior
+  emerges when both parameters are nonzero. Try values near $\gamma \approx 0.6$ and
+  $\beta \approx 1.0$ - you should see the optimal bitstrings <code>0101</code> and
+  <code>1010</code> begin to dominate the distribution.
+</p>
+
+<h3>The Optimization Landscape</h3>
+
+<p>
+  The function $\langle C \rangle(\gamma, \beta)$ defines a two-dimensional landscape for
+  depth-1 QAOA. This landscape has the following properties:
+</p>
+
+<ul>
+  <li>
+    It is periodic in both $\gamma$ (period $2\pi$) and $\beta$ (period $\pi$), because the
+    $R_{ZZ}$ and $R_X$ gates are periodic in their angles.
+  </li>
+  <li>
+    It can have multiple local maxima, making the classical optimization non-trivial. However,
+    for small graphs, the landscape is smooth and the global optimum is easy to find.
+  </li>
+  <li>
+    For depth-1 QAOA on MaxCut, analytical formulas exist for the expected cost as a function
+    of $\gamma$ and $\beta$, enabling exact optimization without sampling noise.
+  </li>
+</ul>
+
+<h3>Exercise: Build a QAOA Circuit for a Square Graph</h3>
+
+<p>
+  Now it is your turn. Construct a depth-1 QAOA circuit for MaxCut on a 4-vertex cycle
+  (square) graph with edges $(0,1)$, $(1,2)$, $(2,3)$, and $(3,0)$. The optimal MaxCut for a
+  square cuts all 4 edges, achieved by the bitstrings <code>0101</code> and <code>1010</code>.
+  Use $\gamma = \pi/4$ and $\beta = \pi/4$ as starting parameters.
+</p>
+
+<div class="exercise" data-component="exercise">
+  <div class="exercise-header">Exercise 23.1: QAOA for MaxCut on a Square</div>
+  <div class="exercise-prompt">
+    <p>
+      Build a depth-1 QAOA circuit for MaxCut on a 4-vertex cycle graph. Start with Hadamard
+      gates on all qubits, apply <code>rzz(pi/4)</code> for each of the four edges
+      (0,1), (1,2), (2,3), and (3,0), then apply <code>rx(pi/4)</code> as the mixer on each
+      qubit. The optimal bitstrings <code>0101</code> and <code>1010</code> should have the
+      highest probabilities.
+    </p>
+  </div>
+  <textarea class="code" rows="14">OPENQASM 3.0;
+qubit[4] q;
+bit[4] c;
+// Step 1: Initial superposition
+h q[0]; h q[1]; h q[2]; h q[3];
+// Step 2: Problem unitary - add rzz gates for all 4 edges
+// Your code here
+
+// Step 3: Mixing unitary - add rx gates for all 4 qubits
+// Your code here
+
+c = measure q;</textarea>
+  <div class="exercise-expected">
+    <span data-state="0101" data-prob="0.25" data-tolerance="0.12"></span>
+    <span data-state="1010" data-prob="0.25" data-tolerance="0.12"></span>
+  </div>
+  <div class="exercise-hint" style="display:none">
+    <p>
+      Add four <code>rzz(pi/4)</code> gates for the edges: <code>rzz(pi/4) q[0], q[1];</code>,
+      <code>rzz(pi/4) q[1], q[2];</code>, <code>rzz(pi/4) q[2], q[3];</code>, and
+      <code>rzz(pi/4) q[3], q[0];</code>. Then add four <code>rx(pi/4)</code> gates, one for
+      each qubit.
+    </p>
+  </div>
+  <div class="exercise-controls">
+    <button data-action="check">Check</button>
+    <button data-action="hint">Hint</button>
+  </div>
+  <div class="exercise-feedback"></div>
+</div>
+
+<h3>Scaling Up: Deeper Circuits</h3>
+
+<p>
+  Depth-1 QAOA provides a limited approximation. For the triangle graph, depth-1 QAOA achieves
+  an approximation ratio (ratio of expected cut to optimal cut) of about 0.6924 - provably
+  above the trivial 0.5 ratio of random guessing, but below the 0.878 ratio achievable by
+  the best known classical algorithm (the Goemans-Williamson semidefinite programming
+  relaxation).
+</p>
+
+<p>
+  Increasing $p$ improves the approximation ratio. At depth $p = 2$, the QAOA state depends on
+  4 parameters ($\gamma_1, \gamma_2, \beta_1, \beta_2$), and the circuit applies two rounds
+  of problem and mixing unitaries. Each additional layer adds more parameters and more
+  expressive power, but also increases the circuit depth and the difficulty of classical
+  parameter optimization. In practice, QAOA circuits with $p = 5$ to $p = 20$ are explored
+  on near-term devices, with parameter initialization strategies (such as linear ramp
+  schedules inspired by the adiabatic connection) helping the classical optimizer converge.
+</p>
+
+<div class="callout callout-info">
+  <strong>Note.</strong>
+  <p>
+    The approximation ratio of depth-1 QAOA for MaxCut on 3-regular graphs is exactly
+    $0.6924$, proven by Farhi, Goldstone, and Gutmann in their original 2014 paper. Whether
+    QAOA at any fixed depth $p$ can beat the Goemans-Williamson ratio of $0.878$ remains an
+    important open question. Some results suggest depth-$p$ QAOA on bounded-degree graphs
+    cannot surpass classical algorithms for fixed $p$, but the performance at growing $p$ (as
+    a function of problem size) may tell a different story.
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="quantum-annealing">
+
+<h2>23.5 Quantum Annealing: D-Wave's Alternative</h2>
+
+<p>
+  While QAOA runs on gate-based quantum computers, there is an entirely different approach to
+  quantum optimization: <strong>quantum annealing</strong>. The Canadian company D-Wave Systems
+  has built a series of special-purpose quantum processors based on this principle, with their
+  latest systems containing over 5,000 qubits - far more than any gate-based quantum computer,
+  though with a much more restricted set of operations.
+</p>
+
+<h3>How Quantum Annealing Works</h3>
+
+<p>
+  Quantum annealing is a physical implementation of adiabatic quantum computation (the same
+  principle that inspired QAOA). The processor implements a time-dependent Hamiltonian:
+</p>
+
+$$H(t) = A(t) \sum_i X_i + B(t) \left[ \sum_i h_i Z_i + \sum_{i<j} J_{ij} Z_i Z_j \right]$$
+
+<p>
+  At the start of the anneal ($t = 0$), $A(0)$ is large and $B(0) \approx 0$, so the system
+  is dominated by the transverse field $\sum_i X_i$ and sits in an equal superposition of all
+  bitstrings. Over a time period (typically microseconds), $A(t)$ decreases to zero while
+  $B(t)$ increases, gradually turning on the problem Hamiltonian defined by the biases $h_i$
+  and couplings $J_{ij}$. If the anneal is slow enough relative to the spectral gap, the
+  system follows the ground state and ends in the solution to the optimization problem.
+</p>
+
+<h3>The Ising Model and QUBO</h3>
+
+<p>
+  D-Wave processors natively solve problems expressed as an <strong>Ising model</strong> (with
+  spin variables $s_i \in \{-1, +1\}$) or equivalently as a Quadratic Unconstrained Binary
+  Optimization (QUBO) problem (with binary variables $x_i \in \{0, 1\}$). The user specifies
+  the coefficients $h_i$ (local biases on each qubit) and $J_{ij}$ (coupling strengths between
+  pairs of qubits), and the annealer searches for the spin configuration that minimizes the
+  total energy.
+</p>
+
+<p>
+  Many practical optimization problems - MaxCut, graph coloring, scheduling, portfolio
+  optimization, logistics routing - can be formulated as QUBO problems. The translation from
+  a high-level problem to QUBO coefficients is a well-studied field with available software
+  libraries.
+</p>
+
+<h3>Hardware Topology: Chimera and Pegasus</h3>
+
+<p>
+  A critical constraint of D-Wave processors is that qubits are not fully connected. Each
+  qubit couples to only a limited number of other qubits, determined by the hardware topology:
+</p>
+
+<ul>
+  <li>
+    <strong>Chimera topology</strong> (used in earlier D-Wave systems): a grid of unit cells,
+    each containing 8 qubits arranged as a $K_{4,4}$ bipartite graph. Each qubit connects to
+    at most 6 others. This sparse connectivity means that fully connected problems must be
+    "embedded" into the hardware graph using chains of physical qubits to represent a single
+    logical qubit.
+  </li>
+  <li>
+    <strong>Pegasus topology</strong> (used in D-Wave Advantage): a denser connectivity graph
+    where each qubit connects to 15 others. This significantly reduces the embedding overhead,
+    allowing larger problems to be solved with fewer physical qubits.
+  </li>
+</ul>
+
+<p>
+  The embedding overhead is a practical bottleneck: a fully connected $n$-variable problem may
+  require $O(n^2)$ physical qubits on a Chimera graph. The Pegasus topology improves this
+  significantly but does not eliminate it. This is fundamentally different from gate-based
+  quantum computers, where any two qubits can interact (though with SWAP gate overhead on
+  hardware with limited connectivity).
+</p>
+
+<h3>QAOA vs. Quantum Annealing</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Feature</th>
+      <th>QAOA (Gate-Based)</th>
+      <th>Quantum Annealing (D-Wave)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Hardware</td>
+      <td>Universal gate-based QPU</td>
+      <td>Special-purpose annealing QPU</td>
+    </tr>
+    <tr>
+      <td>Qubit count</td>
+      <td>~100-1000 (current)</td>
+      <td>~5000+ (current)</td>
+    </tr>
+    <tr>
+      <td>Flexibility</td>
+      <td>Any quantum algorithm</td>
+      <td>Optimization problems only</td>
+    </tr>
+    <tr>
+      <td>Error correction</td>
+      <td>Compatible with QEC</td>
+      <td>No standard QEC; uses thermal sampling</td>
+    </tr>
+    <tr>
+      <td>Parameters</td>
+      <td>Variational ($\gamma, \beta$)</td>
+      <td>Anneal schedule, chain strengths</td>
+    </tr>
+    <tr>
+      <td>Connectivity</td>
+      <td>All-to-all (with SWAP overhead)</td>
+      <td>Limited by hardware topology</td>
+    </tr>
+    <tr>
+      <td>Theoretical basis</td>
+      <td>Circuit model + adiabatic limit</td>
+      <td>Adiabatic theorem directly</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    Quantum annealing and QAOA both exploit the connection between optimization and finding
+    ground states of quantum Hamiltonians. Quantum annealing uses continuous-time adiabatic
+    evolution on special-purpose hardware. QAOA discretizes this evolution into gate-based
+    circuits that run on universal quantum computers. QAOA's variational parameters give it
+    flexibility beyond a fixed annealing schedule, while D-Wave's higher qubit count allows it
+    to tackle larger problem instances today.
+  </p>
+</div>
+
+<h3>The Quantum Advantage Debate</h3>
+
+<p>
+  Whether quantum annealing provides a genuine speedup over classical optimization algorithms
+  remains hotly debated. D-Wave systems have been benchmarked extensively against classical
+  solvers (simulated annealing, parallel tempering, semidefinite programming), and the results
+  are mixed. For many problem types and sizes tested, state-of-the-art classical solvers
+  match or outperform the quantum annealer. However, D-Wave has demonstrated competitive
+  performance on certain structured problems, and the technology continues to improve.
+</p>
+
+<p>
+  The same uncertainty applies to QAOA on gate-based hardware. Demonstrating unambiguous
+  quantum advantage for optimization - not just for contrived, worst-case problems, but for
+  practical instances at scale - remains one of the grand challenges of quantum computing
+  research.
+</p>
+
+</section>
+
+<!-- ================================================================== -->
+
+<h3>Interactive: QAOA Energy Landscape</h3>
+<p>
+  Visualize the 2D energy landscape over the QAOA parameters $\gamma$ (problem layer)
+  and $\beta$ (mixer layer) for a simple MaxCut instance. The optimizer must navigate
+  this terrain to find the minimum energy (best cut).
+</p>
+<div class="widget" id="qaoa-landscape-widget">
+  <div class="widget-header">QAOA Energy Landscape (Triangle Graph)</div>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label>Grid size: <select id="qaoa-land-grid"><option>10</option><option selected>15</option><option>20</option></select></label>
+    <button onclick="runQAOALandscape()">Compute Landscape</button>
+  </div>
+  <div class="widget-output" id="qaoa-landscape-output"></div>
+</div>
+<script>
+async function runQAOALandscape() {
+  await ensureWasm();
+  var out = document.getElementById('qaoa-landscape-output');
+  out.innerHTML = '<p style="color:var(--color-text-muted)">Computing landscape...</p>';
+  await new Promise(function(r) { setTimeout(r, 0); });
+  try {
+    var qasm = 'OPENQASM 3.0;\nqubit[3] q;\nh q[0]; h q[1]; h q[2];\ncx q[0], q[1]; rz({gamma}) q[1]; cx q[0], q[1];\ncx q[1], q[2]; rz({gamma}) q[2]; cx q[1], q[2];\ncx q[0], q[2]; rz({gamma}) q[2]; cx q[0], q[2];\nrx({beta}) q[0]; rx({beta}) q[1]; rx({beta}) q[2];';
+    var pauliStr = '0.5*IIZ+0.5*IZI+0.5*ZII+-0.5*IZZ+-0.5*ZIZ+-0.5*ZZI';
+    var gridSize = parseInt(document.getElementById('qaoa-land-grid').value);
+    var r = JSON.parse(window.sweep2D(qasm, pauliStr, 'gamma', 0, 3.141592653589793, 'beta', 0, 3.141592653589793, gridSize, isDark()));
+    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+    var energies = r.energies, p1 = r.param1Values, p2 = r.param2Values;
+    var n = energies.length;
+    var eMin = energies[0][0], eMax = energies[0][0];
+    for (var i = 0; i < n; i++) for (var j = 0; j < energies[i].length; j++) {
+      if (energies[i][j] < eMin) eMin = energies[i][j];
+      if (energies[i][j] > eMax) eMax = energies[i][j];
+    }
+    var eRange = eMax - eMin || 1;
+    var W = 400, H = 360, pad = 50, pR = 60, pT = 15, pB = 35;
+    var plotW = W - pad - pR, plotH = H - pT - pB;
+    var cellW = plotW / n, cellH = plotH / n;
+    var fg = isDark() ? '#e0e0e0' : '#333';
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;max-width:400px;display:block;">';
+    for (var i = 0; i < n; i++) {
+      for (var j = 0; j < energies[i].length; j++) {
+        var t = (energies[i][j] - eMin) / eRange;
+        var cr = Math.round(36 + 219 * t);
+        var cg = Math.round(36 + 80 * (1 - Math.abs(t - 0.5) * 2));
+        var cb = Math.round(255 - 219 * t);
+        var x = pad + j * cellW;
+        var y = pT + i * cellH;
+        svg += '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + (cellW + 0.5).toFixed(1) + '" height="' + (cellH + 0.5).toFixed(1) + '" fill="rgb(' + cr + ',' + cg + ',' + cb + ')"/>';
+      }
+    }
+    var minI = 0, minJ = 0;
+    for (var i = 0; i < n; i++) for (var j = 0; j < energies[i].length; j++) {
+      if (energies[i][j] < energies[minI][minJ]) { minI = i; minJ = j; }
+    }
+    var mx = pad + (minJ + 0.5) * cellW, my = pT + (minI + 0.5) * cellH;
+    svg += '<text x="' + mx.toFixed(1) + '" y="' + (my + 4).toFixed(1) + '" text-anchor="middle" fill="white" font-size="14" font-weight="bold" stroke="black" stroke-width="0.5">x</text>';
+    svg += '<line x1="' + pad + '" y1="' + pT + '" x2="' + pad + '" y2="' + (pT + plotH) + '" stroke="' + fg + '" stroke-width="1"/>';
+    svg += '<line x1="' + pad + '" y1="' + (pT + plotH) + '" x2="' + (pad + plotW) + '" y2="' + (pT + plotH) + '" stroke="' + fg + '" stroke-width="1"/>';
+    var xLabels = [{v: 0, l: '0'}, {v: Math.PI / 2, l: '\u03c0/2'}, {v: Math.PI, l: '\u03c0'}];
+    for (var k = 0; k < xLabels.length; k++) {
+      var xPos = pad + (xLabels[k].v / 3.141592653589793) * plotW;
+      svg += '<text x="' + xPos + '" y="' + (pT + plotH + 15) + '" text-anchor="middle" fill="' + fg + '" font-size="9">' + xLabels[k].l + '</text>';
+    }
+    var yLabels = [{v: 0, l: '0'}, {v: Math.PI / 2, l: '\u03c0/2'}, {v: Math.PI, l: '\u03c0'}];
+    for (var k = 0; k < yLabels.length; k++) {
+      var yPos = pT + (yLabels[k].v / 3.141592653589793) * plotH;
+      svg += '<text x="' + (pad - 5) + '" y="' + (yPos + 3) + '" text-anchor="end" fill="' + fg + '" font-size="9">' + yLabels[k].l + '</text>';
+    }
+    svg += '<text x="' + (pad + plotW / 2) + '" y="' + (H - 5) + '" text-anchor="middle" fill="' + fg + '" font-size="10">\u03b3</text>';
+    svg += '<text x="12" y="' + (pT + plotH / 2) + '" text-anchor="middle" fill="' + fg + '" font-size="10" transform="rotate(-90,12,' + (pT + plotH / 2) + ')">\u03b2</text>';
+    var barX = pad + plotW + 10, barW = 12, barH = plotH;
+    for (var s = 0; s < barH; s++) {
+      var t = s / barH;
+      var cr = Math.round(36 + 219 * t);
+      var cg = Math.round(36 + 80 * (1 - Math.abs(t - 0.5) * 2));
+      var cb = Math.round(255 - 219 * t);
+      svg += '<rect x="' + barX + '" y="' + (pT + s) + '" width="' + barW + '" height="1.5" fill="rgb(' + cr + ',' + cg + ',' + cb + ')"/>';
+    }
+    svg += '<text x="' + (barX + barW + 3) + '" y="' + (pT + 8) + '" fill="' + fg + '" font-size="8">' + eMin.toFixed(2) + '</text>';
+    svg += '<text x="' + (barX + barW + 3) + '" y="' + (pT + barH) + '" fill="' + fg + '" font-size="8">' + eMax.toFixed(2) + '</text>';
+    svg += '</svg>';
+    svg += '<div class="sim-stats"><span>Min energy: ' + r.minEnergy.toFixed(4) + '</span><span>at \u03b3 = ' + r.minParam1.toFixed(3) + ', \u03b2 = ' + r.minParam2.toFixed(3) + '</span></div>';
+    out.innerHTML = svg;
+  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+}
+</script>
+
+<!-- ================================================================== -->
+
+<h3>Interactive: QAOA MaxCut Solver</h3>
+<p>
+  Run the QAOA algorithm to find approximate solutions to the MaxCut problem on small
+  graphs. Select a graph topology and the number of QAOA layers (higher $p$ gives
+  better approximation ratios but takes longer to optimize).
+</p>
+<div class="widget" id="qaoa-widget">
+  <div class="widget-header">QAOA for MaxCut</div>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label>Graph: <select id="qaoa-graph">
+      <option value="0-1,1-2,2-0" data-nq="3">Triangle (3 nodes)</option>
+      <option value="0-1,1-2,2-3,3-0" data-nq="4" selected>Square (4 nodes)</option>
+      <option value="0-1,1-2,2-3,3-0,0-2" data-nq="4">Square + diagonal (4)</option>
+      <option value="0-1,0-2,0-3,1-2,1-3,2-3" data-nq="4">Complete K4 (4 nodes)</option>
+    </select></label>
+    <label>Layers (p): <select id="qaoa-layers"><option selected>1</option><option>2</option><option>3</option></select></label>
+    <button onclick="runQAOAWidget()">Optimize</button>
+  </div>
+  <div class="widget-output" id="qaoa-output"></div>
+</div>
+<script>
+async function runQAOAWidget() {
+  await ensureWasm();
+  var sel = document.getElementById('qaoa-graph');
+  var edges = sel.value;
+  var nq = parseInt(sel.options[sel.selectedIndex].dataset.nq);
+  var layers = parseInt(document.getElementById('qaoa-layers').value);
+  var out = document.getElementById('qaoa-output');
+  out.innerHTML = '<p style="color:var(--color-text-muted)">Optimizing (this may take a moment)...</p>';
+  await new Promise(function(r) { setTimeout(r, 0); });
+  try {
+    var r = JSON.parse(window.runQAOA(edges, nq, layers, 1024, isDark()));
+    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+    var html = (r.circuitSVG||'') + (r.histogramSVG||'');
+    html += '<div class="sim-stats">';
+    if (r.bestBitstring) html += '<span>Best partition: ' + esc(r.bestBitstring) + '</span>';
+    html += '<span>Energy: ' + r.energy.toFixed(4) + '</span></div>';
+    if (r.qasmCode) html += '<details><summary>Generated QASM</summary><pre>' + esc(r.qasmCode) + '</pre></details>';
+    out.innerHTML = html;
+  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+}
+</script>
+
+<!-- ================================================================== -->
+
+<div class="flashcard-deck" data-component="flashcard-deck">
+  <div class="flashcard-deck-header">Chapter 23 Review</div>
+
+  <div class="flashcard" data-card-id="ch23-maxcut-hamiltonian">
+    <div class="card-front">What is the cost Hamiltonian for MaxCut, and what do its eigenvalues represent?</div>
+    <div class="card-back">
+      The MaxCut cost Hamiltonian is $H_C = \frac{1}{2} \sum_{(i,j) \in E} (I - Z_i Z_j)$.
+      Each eigenvalue equals the number of edges cut by the corresponding computational basis
+      state (bitstring). Maximizing the cut is equivalent to finding the highest eigenvalue of
+      $H_C$.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch23-qaoa-structure">
+    <div class="card-front">Describe the structure of a depth-$p$ QAOA circuit. What are the two types of unitaries?</div>
+    <div class="card-back">
+      A depth-$p$ QAOA circuit starts with Hadamard gates creating an equal superposition, then
+      applies $p$ alternating layers of: (1) the problem unitary $e^{-i \gamma_k H_C}$, which
+      encodes the cost function as phase rotations, and (2) the mixing unitary $e^{-i \beta_k H_B}$,
+      which creates transitions between basis states using $R_X$ rotations. The $2p$ parameters
+      $(\gamma_1, \ldots, \gamma_p, \beta_1, \ldots, \beta_p)$ are optimized classically.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch23-problem-unitary-gates">
+    <div class="card-front">How is the MaxCut problem unitary implemented in terms of quantum gates?</div>
+    <div class="card-back">
+      Since the MaxCut cost Hamiltonian is a sum of commuting $Z_i Z_j$ terms, the problem
+      unitary factorizes as a product of $R_{ZZ}(\gamma)$ gates, one per edge:
+      $U(H_C, \gamma) = \prod_{(i,j) \in E} e^{i \gamma Z_i Z_j / 2}$. Each
+      <code>rzz(gamma)</code> gate applies a relative phase depending on whether qubits $i$ and
+      $j$ agree or disagree.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch23-mixer-role">
+    <div class="card-front">What is the role of the mixing unitary in QAOA, and what happens without it?</div>
+    <div class="card-back">
+      The mixing unitary $U(H_B, \beta) = \prod_i R_X(2\beta)_i$ creates transitions between
+      computational basis states, allowing the algorithm to explore the solution space. Without
+      the mixer, the problem unitary only modifies phases of basis states, which does not change
+      measurement probabilities. The mixer is what enables amplitude transfer between different
+      candidate solutions.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch23-qaoa-adiabatic">
+    <div class="card-front">How is QAOA connected to adiabatic quantum computation?</div>
+    <div class="card-back">
+      QAOA can be viewed as a Trotterized (discretized) version of adiabatic quantum computation.
+      The alternating problem and mixing unitaries correspond to discrete time steps of a
+      continuous adiabatic interpolation from $H_B$ to $H_C$. In the limit $p \to \infty$ with
+      appropriately chosen parameters, QAOA converges to exact adiabatic evolution and finds the
+      optimal solution. The variational freedom to optimize parameters allows QAOA to outperform
+      a fixed Trotter schedule at the same depth.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch23-adiabatic-gap">
+    <div class="card-front">What determines the difficulty of an optimization problem for adiabatic/QAOA methods?</div>
+    <div class="card-back">
+      The minimum spectral gap $\Delta_{\min}$ between the ground state and first excited state
+      along the adiabatic interpolation path determines the difficulty. The required evolution
+      time scales as $T \sim 1/\Delta_{\min}^2$. For hard instances, the gap can be
+      exponentially small, requiring exponentially many QAOA layers or exponentially long anneal
+      times.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch23-quantum-annealing">
+    <div class="card-front">How does D-Wave's quantum annealing differ from gate-based QAOA?</div>
+    <div class="card-back">
+      D-Wave uses special-purpose hardware that physically implements continuous-time adiabatic
+      evolution, ramping from a transverse field to a problem Hamiltonian. It has thousands of
+      qubits but limited connectivity (Pegasus topology, 15 neighbors per qubit) and can only
+      solve optimization problems. QAOA runs on universal gate-based hardware with fewer qubits
+      but full flexibility, and its variational parameters provide more control than a fixed
+      anneal schedule.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch23-qaoa-limitations">
+    <div class="card-front">Does QAOA solve NP-hard problems efficiently? What are its practical limitations?</div>
+    <div class="card-back">
+      No. For worst-case NP-hard instances, the required circuit depth can grow exponentially.
+      Depth-1 QAOA on MaxCut achieves an approximation ratio of about 0.6924 on 3-regular
+      graphs, below the classical Goemans-Williamson ratio of 0.878. Practical limitations
+      include noise on near-term hardware, the difficulty of classically optimizing the $2p$
+      parameters (especially for large $p$), and the lack of proven quantum advantage over
+      classical heuristics for practically relevant problem sizes.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+    </article>
+
+    
+    <nav class="chapter-nav" aria-label="Chapter navigation">
+      <a href="22-vqe.html" class="prev">&larr; Chapter 22: Variational Quantum Eigensolver (VQE)</a>
+      <span class="nav-spacer"></span>
+      <a href="24-qml.html" class="next">Chapter 24: Quantum Machine Learning &rarr;</a>
+    </nav>
+    
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof renderMathInElement !== "undefined") {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "$", right: "$", display: false}
+          ],
+          throwOnError: false
+        });
+      }
+    });
+  </script>
+  
+  <script>
+  "use strict";
+  
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function isDark() { return window.matchMedia("(prefers-color-scheme: dark)").matches; }
+  function renderMath(el) {
+    if (typeof renderMathInElement === "function")
+      renderMathInElement(el, { delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}], throwOnError: false });
+  }
+
+  
+  var wasmReady = null;
+  function ensureWasm() {
+    if (!wasmReady) {
+      wasmReady = (async function() {
+        var go = new Go();
+        var result = await WebAssembly.instantiateStreaming(fetch("../main.wasm"), go.importObject);
+        go.run(result.instance);
+      })();
+    }
+    return wasmReady;
+  }
+
+  
+  var SRS_KEY = "goqu-srs";
+  function srsLoad() { try { return JSON.parse(localStorage.getItem(SRS_KEY) || "{}"); } catch(e) { return {}; } }
+  function srsSave(d) { localStorage.setItem(SRS_KEY, JSON.stringify(d)); }
+  function getCardState(id) { var d = srsLoad(); return d[id] || {interval:1, ease:2.5, due:0, reps:0}; }
+  function reviewCard(id, q) {
+    var d = srsLoad(), s = d[id] || {interval:1, ease:2.5, due:0, reps:0};
+    if (q >= 3) {
+      s.reps++;
+      if (s.reps === 1) s.interval = 1;
+      else if (s.reps === 2) s.interval = 6;
+      else s.interval = Math.round(s.interval * s.ease);
+      s.ease = Math.max(1.3, s.ease + 0.1 - (5-q)*(0.08 + (5-q)*0.02));
+    } else { s.reps = 0; s.interval = 1; }
+    s.due = Date.now() + s.interval * 86400000;
+    d[id] = s; srsSave(d);
+  }
+
+  
+  function initSandbox(el) {
+    var code = el.querySelector(".code"), output = el.querySelector(".output");
+    if (!code || !output) return;
+    var runBtn = el.querySelector('[data-action="run"]'), resetBtn = el.querySelector('[data-action="reset"]');
+    var shotsEl = el.querySelector("[data-shots]"), orig = code.value;
+    function shots() { return parseInt(shotsEl ? shotsEl.value : el.dataset.shots || "1024", 10); }
+    async function run() {
+      await ensureWasm();
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(code.value, shots(), isDark()));
+        if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+        output.innerHTML = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+    if (runBtn) runBtn.addEventListener("click", run);
+    if (resetBtn) resetBtn.addEventListener("click", function() { code.value = orig; });
+    if (el.hasAttribute("data-autorun")) run();
+  }
+
+  
+  function initSimulation(el) {
+    var tmplEl = el.querySelector(".sim-qasm"), output = el.querySelector(".sim-output");
+    var sliders = el.querySelectorAll('input[type="range"]');
+    var selects = el.querySelectorAll("select[data-param]");
+    if (!tmplEl || !output || (sliders.length === 0 && selects.length === 0)) return;
+    var tmpl = tmplEl.textContent, pending = false;
+    var useNoisy = el.hasAttribute("data-noisy");
+    var useComparison = el.hasAttribute("data-comparison");
+    var useExpectation = el.hasAttribute("data-expectation");
+    var useClifford = el.hasAttribute("data-clifford");
+    async function update() {
+      if (pending) return; pending = true;
+      await ensureWasm();
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var params = {};
+        sliders.forEach(function(s) { params[s.dataset.param] = parseFloat(s.value); var o = s.parentElement.querySelector("output"); if (o) o.textContent = parseFloat(s.value).toFixed(2); });
+        selects.forEach(function(s) { params[s.dataset.param] = s.value; });
+        var qasm = tmpl;
+        for (var k in params) qasm = qasm.replaceAll("{"+k+"}", params[k].toString());
+        var html = "";
+        if (useComparison && window.compareIdealNoisy) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.compareIdealNoisy(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="comparison-panels"><div class="comparison-panel"><h4>Ideal</h4>' + (r.idealHistogramSVG||"") + '</div><div class="comparison-panel"><h4>Noisy</h4>' + (r.noisyHistogramSVG||"") + '</div></div>';
+          if (r.stateCitySVG) html += r.stateCitySVG;
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useNoisy && window.runNoisyQASM) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.runNoisyQASM(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"") + (r.stateCitySVG||"");
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useClifford && window.runClifford) {
+          var r = JSON.parse(window.runClifford(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"");
+          if (r.stabilizers) { html += '<div class="stabilizer-table"><h4>Stabilizers</h4><table>'; r.stabilizers.forEach(function(s) { html += '<tr><td>' + formatStabilizer(s) + '</td></tr>'; }); html += '</table></div>'; }
+        } else if (useExpectation && window.computeExpectation) {
+          var pauliStr = params.pauliStr || el.dataset.pauli || "Z";
+          var r = JSON.parse(window.computeExpectation(qasm, pauliStr, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="sim-stats"><span>&lt;' + esc(pauliStr) + '&gt; = ' + r.expectation.toFixed(6) + '</span></div>';
+        } else {
+          var r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+          
+          if (el.hasAttribute("data-bloch") && window.getStateVector && window.renderBloch) {
+            try {
+              var sv = JSON.parse(window.getStateVector(qasm));
+              if (sv.amplitudes && sv.amplitudes.length === 2) {
+                var a = sv.amplitudes;
+                var blochSVG = window.renderBloch(a[0].re, a[0].im, a[1].re, a[1].im, isDark());
+                if (blochSVG) html += blochSVG;
+              }
+            } catch(e) {   }
+          }
+        }
+        output.innerHTML = html;
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+      pending = false;
+    }
+    sliders.forEach(function(s) { s.addEventListener("input", update); });
+    selects.forEach(function(s) { s.addEventListener("change", update); });
+    update();
+  }
+
+  
+  function formatStabilizer(s) {
+    if (!s) return "";
+    var sign = s[0], ops = s.slice(1), html = '<span class="stab-sign">' + esc(sign) + '</span>';
+    for (var i = 0; i < ops.length; i++) {
+      var c = ops[i], cls = "stab-" + c.toLowerCase();
+      html += '<span class="' + cls + '">' + c + '</span>';
+    }
+    return html;
+  }
+
+  
+  function initExercise(el) {
+    var code = el.querySelector(".code"), feedback = el.querySelector(".exercise-feedback");
+    var checkBtn = el.querySelector('[data-action="check"]');
+    var hintBtn = el.querySelector('[data-action="hint"]'), hintEl = el.querySelector(".exercise-hint");
+    if (!code || !feedback || !checkBtn) return;
+    var expected = {}, tol = 0.1;
+    var expEl = el.querySelector(".exercise-expected");
+    if (expEl) expEl.querySelectorAll("[data-state]").forEach(function(span) {
+      expected[span.dataset.state] = parseFloat(span.dataset.prob);
+      if (span.dataset.tolerance) tol = parseFloat(span.dataset.tolerance);
+    });
+    checkBtn.addEventListener("click", async function() {
+      await ensureWasm();
+      feedback.className = "exercise-feedback visible";
+      feedback.textContent = "Checking...";
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(code.value, 1024, isDark()));
+        if (r.error) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + r.error; return; }
+        if (Object.keys(expected).length === 0) { feedback.className = "exercise-feedback visible pass"; feedback.innerHTML = "Circuit ran successfully."; return; }
+        var prob = JSON.parse(window.getProbabilities(code.value, isDark()));
+        if (prob.error) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + prob.error; return; }
+        var actual = {};
+        for (var i = 0; i < prob.labels.length; i++) actual[prob.labels[i]] = prob.probabilities[i];
+        var ok = true, msgs = [];
+        for (var s in expected) {
+          var a = actual[s] || 0, p = expected[s];
+          if (Math.abs(a - p) > tol) { ok = false; msgs.push("|" + s + "\u27E9: expected " + (p*100|0) + "%, got " + (a*100|0) + "%"); }
+        }
+        if (ok) { feedback.className = "exercise-feedback visible pass"; feedback.innerHTML = "Correct! Your circuit produces the expected output."; }
+        else { feedback.className = "exercise-feedback visible fail"; feedback.innerHTML = "Not quite. " + msgs.join("; ") + "."; }
+        renderMath(feedback);
+      } catch(e) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + e.message; }
+    });
+    if (hintBtn && hintEl) hintBtn.addEventListener("click", function() { hintEl.style.display = hintEl.style.display === "none" ? "block" : "none"; });
+  }
+
+  
+  function initFlashcardDeck(el) {
+    el.querySelectorAll(".flashcard").forEach(function(card) {
+      var id = card.dataset.cardId;
+      if (!id) return;
+      var state = getCardState(id);
+      if (state.due > 0 && state.due > Date.now()) card.classList.add("reviewed");
+      card.addEventListener("click", function(e) {
+        if (e.target.closest("button")) return;
+        card.classList.toggle("flipped");
+        var back = card.querySelector(".card-back");
+        if (back) renderMath(back);
+      });
+      var easyBtn = card.querySelector(".easy"), hardBtn = card.querySelector(".hard");
+      if (easyBtn) easyBtn.addEventListener("click", function() { reviewCard(id, 4); card.classList.remove("flipped"); card.classList.add("reviewed"); });
+      if (hardBtn) hardBtn.addEventListener("click", function() { reviewCard(id, 2); card.classList.remove("flipped"); });
+    });
+  }
+
+  
+  function initPOE(el) {
+    var steps = el.querySelectorAll(".poe-step"), prog = el.querySelectorAll(".poe-progress-step");
+    if (steps.length === 0) return;
+    var cur = 0;
+    function show(idx) {
+      steps.forEach(function(s,i) { s.classList.toggle("active", i === idx); });
+      prog.forEach(function(s,i) { s.classList.remove("active","done"); if (i < idx) s.classList.add("done"); if (i === idx) s.classList.add("active"); });
+      cur = idx;
+      var active = steps[idx];
+      if (active) active.querySelectorAll('.sandbox:not([data-initialized])').forEach(function(sb) { sb.setAttribute("data-initialized","true"); initSandbox(sb); });
+    }
+    el.querySelectorAll('[data-action="next"]').forEach(function(btn) { btn.addEventListener("click", function() { if (cur < steps.length - 1) show(cur + 1); }); });
+    el.querySelectorAll('[data-action="complete"]').forEach(function(btn) { btn.addEventListener("click", function() { prog.forEach(function(s) { s.classList.remove("active"); s.classList.add("done"); }); }); });
+    show(0);
+  }
+
+  
+  function initStepThrough(el) {
+    var qasmEl = el.querySelector(".step-qasm");
+    var output = el.querySelector(".step-output");
+    var prevBtn = el.querySelector('[data-action="prev"]');
+    var nextBtn = el.querySelector('[data-action="next"]');
+    var stepInfo = el.querySelector(".step-info");
+    if (!qasmEl || !output) return;
+    var qasm = qasmEl.textContent;
+    var mode = el.dataset.mode || "clifford"; 
+    var steps = null, cur = -1;
+
+    async function load() {
+      await ensureWasm();
+      try {
+        if (mode === "clifford" && window.cliffordStepThrough) {
+          var r = JSON.parse(window.cliffordStepThrough(qasm));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+          
+          steps.unshift({gate: "init", qubits: [], stabilizers: r.steps.length > 0 ? null : []});
+        } else if (mode === "grover" && window.groverStepThrough) {
+          var nq = parseInt(el.dataset.qubits || "2", 10);
+          var targets = JSON.parse(el.dataset.targets || "[]");
+          var r = JSON.parse(window.groverStepThrough(nq, targets.join(",")));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+        }
+        if (steps && steps.length > 0) { cur = 0; renderStep(); }
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    function renderStep() {
+      if (!steps || cur < 0 || cur >= steps.length) return;
+      var s = steps[cur];
+      var html = "";
+      if (mode === "clifford") {
+        if (s.gate === "init") {
+          html = '<p class="step-label">Initial state |0...0&gt;</p>';
+          
+          if (steps.length > 1 && steps[1].stabilizers) {
+            var nq = steps[1].stabilizers[0].length - 1;
+            html += '<div class="stabilizer-table"><table>';
+            for (var i = 0; i < nq; i++) {
+              var row = "+";
+              for (var j = 0; j < nq; j++) row += (j === i) ? "Z" : "I";
+              html += '<tr><td>' + formatStabilizer(row) + '</td></tr>';
+            }
+            html += '</table></div>';
+          }
+        } else {
+          html = '<p class="step-label">After <strong>' + esc(s.gate) + '</strong> on qubit' + (s.qubits.length > 1 ? 's ' : ' ') + s.qubits.join(', ') + '</p>';
+          if (s.stabilizers) {
+            html += '<div class="stabilizer-table"><table>';
+            s.stabilizers.forEach(function(st) { html += '<tr><td>' + formatStabilizer(st) + '</td></tr>'; });
+            html += '</table></div>';
+          }
+        }
+      } else if (mode === "grover") {
+        html = '<p class="step-label">Iteration ' + s.iteration + '</p>';
+        if (s.probabilities) {
+          html += '<div class="amplitude-bars">';
+          for (var i = 0; i < s.probabilities.length; i++) {
+            var label = i.toString(2).padStart(Math.ceil(Math.log2(s.probabilities.length)), '0');
+            var pct = (s.probabilities[i] * 100).toFixed(1);
+            var isTarget = el.dataset.targets && JSON.parse(el.dataset.targets).indexOf(i) >= 0;
+            html += '<div class="amp-bar' + (isTarget ? ' target' : '') + '"><div class="amp-fill" style="height:' + pct + '%"></div><span class="amp-label">|' + label + '&gt;</span><span class="amp-value">' + pct + '%</span></div>';
+          }
+          html += '</div>';
+        }
+      }
+      output.innerHTML = html;
+      if (stepInfo) stepInfo.textContent = "Step " + cur + " / " + (steps.length - 1);
+      if (prevBtn) prevBtn.disabled = (cur === 0);
+      if (nextBtn) nextBtn.disabled = (cur >= steps.length - 1);
+    }
+
+    if (prevBtn) prevBtn.addEventListener("click", function() { if (cur > 0) { cur--; renderStep(); } });
+    if (nextBtn) nextBtn.addEventListener("click", function() { if (steps && cur < steps.length - 1) { cur++; renderStep(); } });
+    load();
+  }
+
+  
+  document.addEventListener("DOMContentLoaded", function() {
+    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough};
+    document.querySelectorAll("[data-component]").forEach(function(el) { var fn = reg[el.dataset.component]; if (fn) fn(el); });
+  });
+  </script>
+  
+</body>
+</html>

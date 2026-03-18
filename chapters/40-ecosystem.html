@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chapter 40: The Quantum Computing Ecosystem Today - Goqu Textbook</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/contrib/auto-render.min.js"></script>
+  
+  <link rel="preload" href="../main.wasm" as="fetch" type="application/wasm" crossorigin>
+  <script src="../wasm_exec.js"></script>
+  
+</head>
+<body>
+  <input type="checkbox" id="nav-toggle" hidden>
+  <label for="nav-toggle" class="nav-hamburger" aria-label="Toggle navigation">
+    <span></span><span></span><span></span>
+  </label>
+
+  <nav class="sidebar" aria-label="Table of contents">
+    <a href="../index.html" class="sidebar-logo">Goqu Textbook</a>
+    
+    <details>
+      <summary>Part 1: The World of Classical Computing</summary>
+      <ol start="1">
+        
+        <li value="1"><a href="01-computation.html">What Is Computation?</a></li>
+        
+        <li value="2"><a href="02-math-of-information.html">The Mathematics of Information</a></li>
+        
+        <li value="3"><a href="03-reversible-computing.html">Reversible Computing</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 2: Entering the Quantum World</summary>
+      <ol start="4">
+        
+        <li value="4"><a href="04-the-first-qubit.html">The First Qubit</a></li>
+        
+        <li value="5"><a href="05-quantum-gates.html">Quantum Gates</a></li>
+        
+        <li value="6"><a href="06-entanglement.html">Multiple Qubits and Entanglement</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 3: Quantum Protocols</summary>
+      <ol start="7">
+        
+        <li value="7"><a href="07-teleportation.html">Quantum Teleportation and Communication</a></li>
+        
+        <li value="8"><a href="08-cryptography.html">Quantum Cryptography</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 4: Quantum Algorithms - The First Wave</summary>
+      <ol start="9">
+        
+        <li value="9"><a href="09-oracles.html">Oracles and Quantum Parallelism</a></li>
+        
+        <li value="10"><a href="10-qft.html">The Quantum Fourier Transform</a></li>
+        
+        <li value="11"><a href="11-shor.html">Shor&#39;s Algorithm</a></li>
+        
+        <li value="12"><a href="12-grover.html">Grover&#39;s Algorithm</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 5: Real Quantum Hardware</summary>
+      <ol start="13">
+        
+        <li value="13"><a href="13-hardware.html">How to Build a Quantum Computer</a></li>
+        
+        <li value="14"><a href="14-noise.html">Noise, Decoherence, and the NISQ Era</a></li>
+        
+        <li value="15"><a href="15-programming.html">Programming Quantum Computers</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 6: Quantum Error Correction</summary>
+      <ol start="16">
+        
+        <li value="16"><a href="16-classical-ec.html">Classical Error Correction Refresher</a></li>
+        
+        <li value="17"><a href="17-qec-fundamentals.html">Quantum Error Correction Fundamentals</a></li>
+        
+        <li value="18"><a href="18-stabilizers.html">The Stabilizer Formalism</a></li>
+        
+        <li value="19"><a href="19-surface-codes.html">Surface Codes and Topological Protection</a></li>
+        
+        <li value="20"><a href="20-fault-tolerance.html">Fault-Tolerant Quantum Computing</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 7: Variational and Near-Term Algorithms</summary>
+      <ol start="21">
+        
+        <li value="21"><a href="21-variational.html">The Variational Quantum Computing Paradigm</a></li>
+        
+        <li value="22"><a href="22-vqe.html">Variational Quantum Eigensolver (VQE)</a></li>
+        
+        <li value="23"><a href="23-qaoa.html">Quantum Approximate Optimization (QAOA)</a></li>
+        
+        <li value="24"><a href="24-qml.html">Quantum Machine Learning</a></li>
+        
+        <li value="25"><a href="25-error-mitigation.html">Quantum Error Mitigation</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 8: Quantum Information Theory</summary>
+      <ol start="26">
+        
+        <li value="26"><a href="26-states-measurements.html">Quantum States and Measurements, Revisited</a></li>
+        
+        <li value="27"><a href="27-channels.html">Quantum Channels and Operations</a></li>
+        
+        <li value="28"><a href="28-entropy.html">Quantum Entropy and Information</a></li>
+        
+        <li value="29"><a href="29-shannon.html">Quantum Shannon Theory</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 9: Quantum Complexity and Computation Theory</summary>
+      <ol start="30">
+        
+        <li value="30"><a href="30-complexity.html">Quantum Computational Complexity</a></li>
+        
+        <li value="31"><a href="31-hidden-subgroup.html">The Hidden Subgroup Problem and Beyond</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 10: Quantum Simulation</summary>
+      <ol start="32">
+        
+        <li value="32"><a href="32-simulation-why.html">Why Quantum Simulation Matters</a></li>
+        
+        <li value="33"><a href="33-digital-simulation.html">Digital Quantum Simulation</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 11: Quantum Networking, Cryptography, and Sensing</summary>
+      <ol start="34">
+        
+        <li value="34"><a href="34-quantum-internet.html">The Quantum Internet</a></li>
+        
+        <li value="35"><a href="35-advanced-crypto.html">Advanced Quantum Cryptography</a></li>
+        
+        <li value="36"><a href="36-sensing.html">Quantum Sensing and Metrology</a></li>
+        
+      </ol>
+    </details>
+    
+    <details open>
+      <summary>Part 12: Frontiers and the Future</summary>
+      <ol start="37">
+        
+        <li value="37"><a href="37-topological.html">Topological Quantum Computing</a></li>
+        
+        <li value="38"><a href="38-quantum-ai.html">Quantum Computing and Artificial Intelligence</a></li>
+        
+        <li value="39"><a href="39-open-problems.html">Open Problems in Quantum Computing</a></li>
+        
+        <li value="40"><a href="40-ecosystem.html" aria-current="page">The Quantum Computing Ecosystem Today</a></li>
+        
+        <li value="41"><a href="41-career.html">Building Your Quantum Computing Career</a></li>
+        
+        <li value="42"><a href="42-what-next.html">What Comes Next</a></li>
+        
+      </ol>
+    </details>
+    
+  </nav>
+
+  <main>
+    
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="../index.html">Home</a> / <a href="../index.html#part-12">Part 12</a> / <span>Chapter 40</span>
+    </nav>
+    
+
+    <article>
+      <h1>Chapter 40: The Quantum Computing Ecosystem Today</h1>
+      <p>
+  Quantum computing is no longer a laboratory curiosity. It is a global industry backed
+  by tens of billions of dollars in government and private investment, with dozens of
+  hardware companies, a maturing software ecosystem, and a growing roster of enterprise
+  customers. This chapter provides a snapshot of the quantum computing ecosystem as it
+  stands in early 2026 - the companies, the software tools, the money, and the
+  applications. Like any snapshot, it will be outdated quickly. But understanding the
+  landscape today is essential for anyone planning to work in, invest in, or build on
+  quantum technology.
+</p>
+
+<!-- ================================================================== -->
+<section id="hardware-landscape">
+<h2>40.1 The Hardware Landscape</h2>
+
+<p>
+  Quantum computing hardware is pursued through several fundamentally different physical
+  approaches. No single technology has "won" - each has distinct strengths and
+  weaknesses. The table below summarizes the leading approaches and their key players.
+</p>
+
+<h3>Superconducting Qubits</h3>
+
+<p>
+  <strong>How it works:</strong> Superconducting circuits (typically transmon qubits) at
+  millikelvin temperatures. Qubits are microwave-frequency resonators with
+  Josephson junctions providing the necessary nonlinearity.
+</p>
+
+<p>
+  <strong>Key players:</strong>
+</p>
+
+<ul>
+  <li><strong>IBM</strong> - The most established quantum computing program. Operates
+    the largest fleet of cloud-accessible quantum computers. Released the 1,121-qubit
+    Condor processor and is building toward the Starling fault-tolerant system (200
+    logical qubits) by 2029. Headquarters: Armonk, NY.</li>
+  <li><strong>Google Quantum AI</strong> - Developed the Sycamore and Willow processors.
+    Demonstrated the threshold result for quantum error correction (error rates decreasing
+    with code distance). Mountain View, CA.</li>
+  <li><strong>Rigetti Computing</strong> - Publicly traded (RGTI). Focuses on hybrid
+    quantum-classical cloud computing. Offers multi-chip processor architectures.
+    Berkeley, CA.</li>
+  <li><strong>Alice & Bob</strong> - French startup pursuing cat qubits (a superconducting
+    design with built-in error protection against bit-flip errors). Paris, France.</li>
+</ul>
+
+<p>
+  <strong>Strengths:</strong> Fast gate speeds (~10-100 ns), mature fabrication (leverages
+  semiconductor manufacturing), strong classical control infrastructure.
+  <strong>Challenges:</strong> Requires dilution refrigeration (~15 mK), limited
+  connectivity (typically nearest-neighbor), relatively short coherence times (~100 us).
+</p>
+
+<h3>Trapped Ions</h3>
+
+<p>
+  <strong>How it works:</strong> Individual ions (often ytterbium or barium) confined in
+  electromagnetic traps and manipulated with laser beams. Qubit states are encoded in
+  electronic energy levels of the ions.
+</p>
+
+<ul>
+  <li><strong>Quantinuum</strong> - Formed from Honeywell Quantum Solutions and Cambridge
+    Quantum Computing. Operates the H-series trapped-ion processors, widely regarded as
+    having the highest gate fidelities in the industry (>99.9%). Targeting fully
+    fault-tolerant QC by ~2030 with their Apollo system. Broomfield, CO / Cambridge, UK.</li>
+  <li><strong>IonQ</strong> - Publicly traded (IONQ). Pioneered the algorithmic qubit
+    (#AQ) metric. Active in quantum ML research. Demonstrated quantum-enhanced LLM
+    fine-tuning and materials science applications. College Park, MD.</li>
+  <li><strong>Alpine Quantum Technologies (AQT)</strong> - European trapped-ion startup
+    building compact, rack-mounted quantum computers. Innsbruck, Austria.</li>
+</ul>
+
+<p>
+  <strong>Strengths:</strong> Highest gate fidelities, all-to-all connectivity, long
+  coherence times (seconds to minutes), identical qubits (ions of the same species
+  are physically identical).
+  <strong>Challenges:</strong> Slower gate speeds (~1-100 us), scaling beyond ~50 ions
+  in a single trap requires shuttling or modular architectures.
+</p>
+
+<h3>Neutral Atoms</h3>
+
+<p>
+  <strong>How it works:</strong> Individual neutral atoms (often rubidium or cesium)
+  trapped in arrays of optical tweezers (focused laser beams). Qubit states are encoded
+  in atomic energy levels, and entangling gates use Rydberg interactions.
+</p>
+
+<ul>
+  <li><strong>QuEra</strong> - Demonstrated a 3,000-qubit array operating continuously
+    for two hours. Showed below-threshold fault-tolerant performance with up to 96
+    logical qubits. Raised $230M+ led by Google Quantum AI, SoftBank, and NVIDIA in
+    2025. Boston, MA.</li>
+  <li><strong>Atom Computing</strong> - Partnered with Microsoft to provide a neutral
+    atom backend for Azure Quantum. Demonstrated arrays of over 1,000 qubits.
+    Boulder, CO.</li>
+  <li><strong>Pasqal</strong> - European neutral-atom company offering analog and digital
+    quantum computing. Strong focus on optimization and quantum simulation applications.
+    Paris, France.</li>
+</ul>
+
+<p>
+  <strong>Strengths:</strong> Scalable to thousands of qubits, reconfigurable connectivity
+  (atoms can be physically rearranged), natural parallelism in gate operations, operates
+  at less extreme temperatures than superconducting qubits.
+  <strong>Challenges:</strong> Slower gate speeds than superconducting, atom loss during
+  computation (though recent work has mitigated this), less mature fabrication ecosystem.
+</p>
+
+<h3>Photonic Qubits</h3>
+
+<ul>
+  <li><strong>PsiQuantum</strong> - Pursuing a manufacturing-first approach, building
+    photonic quantum computers in partnership with GlobalFoundries semiconductor fabs.
+    Claims this approach can scale to millions of qubits. Palo Alto, CA.</li>
+  <li><strong>Xanadu</strong> - Developer of PennyLane (a leading QML framework) and
+    photonic quantum hardware using squeezed light. Toronto, Canada.</li>
+</ul>
+
+<p>
+  <strong>Strengths:</strong> Room temperature operation, natural compatibility with
+  optical networks, potential for high-speed operations.
+  <strong>Challenges:</strong> Photon loss, difficult deterministic two-qubit gates,
+  requires massive resource overhead for error correction.
+</p>
+
+<h3>Topological Qubits</h3>
+
+<ul>
+  <li><strong>Microsoft</strong> - The sole major pursuer of topological qubits. Unveiled
+    the Majorana 1 processor in February 2025. Redmond, WA. (See Chapter 37 for
+    details.)</li>
+</ul>
+
+</section>
+
+<hr />
+
+<!-- ================================================================== -->
+<section id="software-ecosystem">
+<h2>40.2 The Software Ecosystem</h2>
+
+<p>
+  The quantum software ecosystem has matured significantly. Several frameworks have
+  emerged as standards, each with different strengths and communities.
+</p>
+
+<h3>Qiskit (IBM)</h3>
+
+<p>
+  <strong>Qiskit</strong> is the most widely used open-source quantum computing framework.
+  Originally released in 2017, it provides a full stack from circuit construction to
+  transpilation to execution on IBM hardware. Qiskit is written in Python (with
+  performance-critical components in Rust) and has the largest community of contributors
+  and tutorials. IBM's Qiskit Runtime provides serverless execution of quantum programs
+  with built-in error mitigation.
+</p>
+
+<h3>Cirq (Google)</h3>
+
+<p>
+  <strong>Cirq</strong> is Google's open-source framework, designed for writing and
+  optimizing quantum circuits for near-term quantum computers. Cirq emphasizes precise
+  control over circuit placement and scheduling, making it popular for research into
+  noise-aware algorithms and error correction. It integrates with Google's quantum
+  hardware through the Quantum Engine service.
+</p>
+
+<h3>PennyLane (Xanadu)</h3>
+
+<p>
+  <strong>PennyLane</strong> specializes in quantum machine learning and quantum
+  differentiable programming. It treats quantum circuits as differentiable computational
+  graphs, enabling seamless integration with classical ML frameworks (PyTorch,
+  TensorFlow, JAX). PennyLane is hardware-agnostic, supporting backends from IBM,
+  Google, Amazon, and others.
+</p>
+
+<h3>Q# and Azure Quantum (Microsoft)</h3>
+
+<p>
+  <strong>Q#</strong> is Microsoft's domain-specific quantum programming language,
+  designed for expressing quantum algorithms at a high level of abstraction.
+  <strong>Azure Quantum</strong> is Microsoft's cloud platform, notable for providing
+  access to multiple hardware backends (IonQ, Quantinuum, Rigetti, and eventually
+  Microsoft's topological qubits) through a single interface.
+</p>
+
+<h3>Amazon Braket (AWS)</h3>
+
+<p>
+  <strong>Amazon Braket</strong> is AWS's quantum computing service, offering access to
+  quantum hardware from IonQ, Rigetti, and QuEra through the AWS cloud. Braket provides
+  a hardware-agnostic SDK and managed simulators, making it straightforward for
+  organizations already in the AWS ecosystem to experiment with quantum computing.
+</p>
+
+<h3>CUDA-Q (NVIDIA)</h3>
+
+<p>
+  <strong>CUDA-Q</strong> (formerly CUDA Quantum) is NVIDIA's platform for hybrid
+  quantum-classical computing. It provides a unified programming model where quantum
+  circuits and classical GPU code coexist in the same program. CUDA-Q is positioned
+  for the era of hybrid computing, where quantum processors work alongside GPUs in
+  heterogeneous computing environments.
+</p>
+
+<div class="callout callout-info">
+  <strong>Which Framework Should You Learn?</strong>
+  If you are starting out: <strong>Qiskit</strong>, for its community size, documentation,
+  and free hardware access. If you are interested in quantum ML: <strong>PennyLane</strong>.
+  If you are a researcher focused on noise and error correction: <strong>Cirq</strong>.
+  If your organization uses Azure: <strong>Q#</strong> and Azure Quantum. If your
+  organization uses AWS: <strong>Braket</strong>. And if you are building hybrid
+  quantum-GPU applications: <strong>CUDA-Q</strong>. The concepts transfer across
+  frameworks; learning one makes learning the others straightforward.
+</div>
+
+</section>
+
+<hr />
+
+<!-- ================================================================== -->
+<section id="government-investment">
+<h2>40.3 Government Investment</h2>
+
+<p>
+  Quantum computing has become a matter of national strategic importance. Governments
+  around the world have committed more than <strong>$40 billion</strong> in public
+  funding for quantum technology, with the figure rising rapidly.
+</p>
+
+<h3>Global Investment Overview</h3>
+
+<p>
+  <strong>China</strong> leads in public investment with approximately <strong>$15
+  billion</strong> committed, including the construction of the National Laboratory for
+  Quantum Information Sciences in Hefei and substantial funding for quantum communication
+  networks. China has deployed the world's longest quantum key distribution network and
+  launched the Micius quantum satellite.
+</p>
+
+<p>
+  The <strong>European Union</strong> collectively ranks second at approximately
+  <strong>$10 billion</strong>, driven primarily by Germany's national quantum strategy.
+  The EU's Quantum Flagship program coordinates research across member states.
+  Individual countries have their own programs: France, the Netherlands, the UK,
+  Finland, and others each invest hundreds of millions to billions.
+</p>
+
+<p>
+  The <strong>United States</strong> has committed approximately <strong>$5 billion</strong>
+  in public funding. The National Quantum Initiative Act (2018, reauthorized 2024) funds
+  research through the DOE, NSF, NIST, and DoD. The proposed Quantum Leadership Act of
+  2025 would add $2.5 billion across fiscal years 2026-2030 for DOE programs, including
+  $875 million for National Quantum Information Science Research Centers and $500 million
+  for quantum network infrastructure.
+</p>
+
+<p>
+  <strong>Japan</strong> made a dramatic entrance in 2025 with a <strong>$7.4 billion</strong>
+  commitment, instantly becoming one of the largest national quantum investors.
+  <strong>Spain</strong> announced an $900 million quantum strategy for 2025-2030.
+  South Korea, Australia, Canada, India, Israel, and Singapore also maintain significant
+  national quantum programs.
+</p>
+
+<h3>Private Investment</h3>
+
+<p>
+  Private capital has poured into quantum computing alongside government funding. In the
+  first three quarters of 2025 alone, the sector saw $3.77 billion in equity funding -
+  a dramatic acceleration that positions quantum computing as one of the fastest-growing
+  deep technology sectors. Major investments include QuEra's $230M+ round, PsiQuantum's
+  partnerships with semiconductor fabs, and continued public market activity by IonQ,
+  Rigetti, and D-Wave.
+</p>
+
+<div class="callout callout-warning">
+  <strong>Investment Does Not Equal Capability.</strong>
+  The quantum computing industry has experienced hype cycles before. Not every
+  well-funded company will succeed, and large government investments do not guarantee
+  technological leadership. History shows that concentrated expertise, strong
+  university-industry partnerships, and sustained long-term funding matter more than
+  headline dollar amounts.
+</div>
+
+</section>
+
+<hr />
+
+<!-- ================================================================== -->
+<section id="industry-applications">
+<h2>40.4 Industry Applications</h2>
+
+<p>
+  Quantum computing is being explored across virtually every industry. Here is an
+  honest assessment of where quantum applications stand in 2026 - what is real, what
+  is promising, and what is still hype.
+</p>
+
+<h3>Finance</h3>
+
+<p>
+  <strong>Status: Active exploration, limited deployment.</strong> Financial institutions
+  are among the most active quantum computing customers. Use cases include portfolio
+  optimization, risk analysis (Monte Carlo simulation), derivative pricing, and fraud
+  detection. JP Morgan Chase, Goldman Sachs, HSBC, and others have dedicated quantum
+  research teams. The financial industry is attractive for quantum because even small
+  percentage improvements in optimization can translate to large dollar values. However,
+  current quantum hardware is too noisy and small for production-scale financial
+  applications. Most work is proof-of-concept, running on simulators or small quantum
+  hardware with classical pre- and post-processing.
+</p>
+
+<h3>Pharmaceuticals and Materials Science</h3>
+
+<p>
+  <strong>Status: High potential, long timeline.</strong> Simulating molecular systems is
+  one of the theoretically strongest applications of quantum computing. Drug companies
+  want to simulate protein folding, molecular interactions, and reaction pathways that
+  are intractable classically. Companies like Roche, Merck, Pfizer, and Boehringer
+  Ingelheim have quantum computing partnerships. However, simulating industrially
+  relevant molecules (hundreds of atoms) requires thousands of logical qubits - well
+  beyond current capabilities. Near-term work focuses on small molecules and hybrid
+  classical-quantum approaches that provide incremental insights.
+</p>
+
+<h3>Logistics and Optimization</h3>
+
+<p>
+  <strong>Status: Promising but unproven at scale.</strong> Vehicle routing, supply chain
+  optimization, scheduling, and network design are combinatorial optimization problems
+  where quantum approaches (QAOA, quantum annealing) might help. IBM partnered with a
+  commercial vehicle manufacturer to optimize deliveries across 1,200 New York City
+  locations. D-Wave's quantum annealers have been used for various optimization
+  experiments. The challenge: for most practical optimization problems, highly tuned
+  classical heuristics are extremely competitive, and quantum approaches have not yet
+  demonstrated a clear advantage at meaningful scale.
+</p>
+
+<h3>Cybersecurity</h3>
+
+<p>
+  <strong>Status: Urgent and actionable now.</strong> Unlike other applications, quantum
+  cybersecurity does not wait for fault-tolerant quantum computers - the <em>threat</em>
+  of future quantum computers breaking current encryption requires action today. NIST
+  finalized the first three post-quantum cryptography standards in August 2024 (FIPS
+  203, 204, 205) and selected a fifth algorithm (HQC) in March 2025 as a backup for
+  the primary ML-KEM standard. Organizations should already be migrating to
+  quantum-resistant cryptographic algorithms. On the positive side, quantum key
+  distribution (QKD) offers information-theoretic security for key exchange, though
+  practical deployment remains limited by distance and infrastructure requirements.
+</p>
+
+<h3>Energy and Climate</h3>
+
+<p>
+  <strong>Status: Early exploration.</strong> Quantum computing could aid in catalyst
+  design (for more efficient industrial processes), battery material simulation,
+  grid optimization, and carbon capture chemistry. These are among the highest-impact
+  potential applications but require large-scale fault-tolerant systems that are still
+  years away.
+</p>
+
+<div class="callout callout-key">
+  <strong>The Honest Bottom Line.</strong>
+  In 2026, no industry has deployed quantum computing in production at a scale that
+  provides clear advantage over classical alternatives. The most commercially mature
+  applications are in cybersecurity (post-quantum migration) and finance (proof-of-concept
+  optimization). The highest-impact future applications (drug discovery, materials science,
+  climate) require hardware that does not yet exist. Organizations investing in quantum
+  today are building expertise, not deploying production systems. This is a reasonable
+  strategy - the learning curve is steep, and being prepared when the hardware matures
+  provides a competitive advantage.
+</div>
+
+</section>
+
+<hr />
+
+<!-- ================================================================== -->
+<section id="ch40-review">
+<h2>Chapter 40 Review</h2>
+
+<div class="flashcard-deck" data-component="flashcard-deck">
+  <div class="flashcard-deck-header">Chapter 40 Review</div>
+
+  <div class="flashcard" data-card-id="ch40-hardware-tradeoffs">
+    <div class="card-front">Name three qubit technologies and one key strength of each.</div>
+    <div class="card-back">
+      (1) Superconducting qubits (IBM, Google): fast gate speeds (~10-100 ns). (2) Trapped ions (Quantinuum, IonQ): highest gate fidelities (>99.9%) and all-to-all connectivity. (3) Neutral atoms (QuEra, Pasqal): scalable to thousands of qubits with reconfigurable connectivity. Others include photonic (room-temperature operation) and topological (hardware-level fault tolerance).
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch40-software-frameworks">
+    <div class="card-front">Match each quantum software framework to its primary developer and specialty.</div>
+    <div class="card-back">
+      Qiskit (IBM): most widely used, full-stack framework. Cirq (Google): noise-aware circuits and error correction research. PennyLane (Xanadu): quantum ML and differentiable programming. Q#/Azure Quantum (Microsoft): high-level language, multi-backend cloud. Amazon Braket (AWS): hardware-agnostic cloud access. CUDA-Q (NVIDIA): hybrid quantum-GPU programming.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch40-global-investment">
+    <div class="card-front">What are the approximate government quantum investments for China, the EU, and the US?</div>
+    <div class="card-back">
+      China: ~$15 billion (largest, including the National Lab in Hefei). EU: ~$10 billion (driven by Germany, plus the Quantum Flagship program). US: ~$5 billion (National Quantum Initiative Act, proposed Quantum Leadership Act adding $2.5B for 2026-2030). Global total exceeds $40 billion. Japan announced $7.4B in 2025.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch40-pqc-standards">
+    <div class="card-front">What are the NIST post-quantum cryptography standards and why do they matter now?</div>
+    <div class="card-back">
+      NIST finalized FIPS 203 (ML-KEM, key encapsulation), FIPS 204 (ML-DSA, digital signatures), and FIPS 205 (SLH-DSA, hash-based signatures) in August 2024. HQC was selected as a fifth algorithm in March 2025. These matter now because "harvest now, decrypt later" attacks mean data encrypted today could be broken by future quantum computers. Organizations must migrate to PQC before fault-tolerant quantum computers exist.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch40-finance-status">
+    <div class="card-front">What is the honest status of quantum computing in finance as of 2026?</div>
+    <div class="card-back">
+      Active exploration but limited deployment. Use cases include portfolio optimization, Monte Carlo risk analysis, and derivative pricing. Major banks (JPMorgan, Goldman Sachs, HSBC) have dedicated quantum teams. However, current hardware is too noisy and small for production-scale financial applications. Most work is proof-of-concept on simulators or small quantum devices. Organizations are building expertise in anticipation of capable hardware.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch40-honest-bottom-line">
+    <div class="card-front">What is the most commercially mature quantum application area in 2026?</div>
+    <div class="card-back">
+      Cybersecurity and post-quantum cryptography migration. Unlike other applications, this does not require waiting for fault-tolerant quantum computers - the <em>threat</em> of future quantum computers breaking RSA/ECC drives action today. NIST standards are finalized and organizations are migrating. This is the only area where quantum computing creates immediate, production-level business requirements.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+</section>
+
+    </article>
+
+    
+    <nav class="chapter-nav" aria-label="Chapter navigation">
+      <a href="39-open-problems.html" class="prev">&larr; Chapter 39: Open Problems in Quantum Computing</a>
+      <span class="nav-spacer"></span>
+      <a href="41-career.html" class="next">Chapter 41: Building Your Quantum Computing Career &rarr;</a>
+    </nav>
+    
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof renderMathInElement !== "undefined") {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "$", right: "$", display: false}
+          ],
+          throwOnError: false
+        });
+      }
+    });
+  </script>
+  
+  <script>
+  "use strict";
+  
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function isDark() { return window.matchMedia("(prefers-color-scheme: dark)").matches; }
+  function renderMath(el) {
+    if (typeof renderMathInElement === "function")
+      renderMathInElement(el, { delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}], throwOnError: false });
+  }
+
+  
+  var wasmReady = null;
+  function ensureWasm() {
+    if (!wasmReady) {
+      wasmReady = (async function() {
+        var go = new Go();
+        var result = await WebAssembly.instantiateStreaming(fetch("../main.wasm"), go.importObject);
+        go.run(result.instance);
+      })();
+    }
+    return wasmReady;
+  }
+
+  
+  var SRS_KEY = "goqu-srs";
+  function srsLoad() { try { return JSON.parse(localStorage.getItem(SRS_KEY) || "{}"); } catch(e) { return {}; } }
+  function srsSave(d) { localStorage.setItem(SRS_KEY, JSON.stringify(d)); }
+  function getCardState(id) { var d = srsLoad(); return d[id] || {interval:1, ease:2.5, due:0, reps:0}; }
+  function reviewCard(id, q) {
+    var d = srsLoad(), s = d[id] || {interval:1, ease:2.5, due:0, reps:0};
+    if (q >= 3) {
+      s.reps++;
+      if (s.reps === 1) s.interval = 1;
+      else if (s.reps === 2) s.interval = 6;
+      else s.interval = Math.round(s.interval * s.ease);
+      s.ease = Math.max(1.3, s.ease + 0.1 - (5-q)*(0.08 + (5-q)*0.02));
+    } else { s.reps = 0; s.interval = 1; }
+    s.due = Date.now() + s.interval * 86400000;
+    d[id] = s; srsSave(d);
+  }
+
+  
+  function initSandbox(el) {
+    var code = el.querySelector(".code"), output = el.querySelector(".output");
+    if (!code || !output) return;
+    var runBtn = el.querySelector('[data-action="run"]'), resetBtn = el.querySelector('[data-action="reset"]');
+    var shotsEl = el.querySelector("[data-shots]"), orig = code.value;
+    function shots() { return parseInt(shotsEl ? shotsEl.value : el.dataset.shots || "1024", 10); }
+    async function run() {
+      await ensureWasm();
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(code.value, shots(), isDark()));
+        if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+        output.innerHTML = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+    if (runBtn) runBtn.addEventListener("click", run);
+    if (resetBtn) resetBtn.addEventListener("click", function() { code.value = orig; });
+    if (el.hasAttribute("data-autorun")) run();
+  }
+
+  
+  function initSimulation(el) {
+    var tmplEl = el.querySelector(".sim-qasm"), output = el.querySelector(".sim-output");
+    var sliders = el.querySelectorAll('input[type="range"]');
+    var selects = el.querySelectorAll("select[data-param]");
+    if (!tmplEl || !output || (sliders.length === 0 && selects.length === 0)) return;
+    var tmpl = tmplEl.textContent, pending = false;
+    var useNoisy = el.hasAttribute("data-noisy");
+    var useComparison = el.hasAttribute("data-comparison");
+    var useExpectation = el.hasAttribute("data-expectation");
+    var useClifford = el.hasAttribute("data-clifford");
+    async function update() {
+      if (pending) return; pending = true;
+      await ensureWasm();
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var params = {};
+        sliders.forEach(function(s) { params[s.dataset.param] = parseFloat(s.value); var o = s.parentElement.querySelector("output"); if (o) o.textContent = parseFloat(s.value).toFixed(2); });
+        selects.forEach(function(s) { params[s.dataset.param] = s.value; });
+        var qasm = tmpl;
+        for (var k in params) qasm = qasm.replaceAll("{"+k+"}", params[k].toString());
+        var html = "";
+        if (useComparison && window.compareIdealNoisy) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.compareIdealNoisy(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="comparison-panels"><div class="comparison-panel"><h4>Ideal</h4>' + (r.idealHistogramSVG||"") + '</div><div class="comparison-panel"><h4>Noisy</h4>' + (r.noisyHistogramSVG||"") + '</div></div>';
+          if (r.stateCitySVG) html += r.stateCitySVG;
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useNoisy && window.runNoisyQASM) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.runNoisyQASM(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"") + (r.stateCitySVG||"");
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useClifford && window.runClifford) {
+          var r = JSON.parse(window.runClifford(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"");
+          if (r.stabilizers) { html += '<div class="stabilizer-table"><h4>Stabilizers</h4><table>'; r.stabilizers.forEach(function(s) { html += '<tr><td>' + formatStabilizer(s) + '</td></tr>'; }); html += '</table></div>'; }
+        } else if (useExpectation && window.computeExpectation) {
+          var pauliStr = params.pauliStr || el.dataset.pauli || "Z";
+          var r = JSON.parse(window.computeExpectation(qasm, pauliStr, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="sim-stats"><span>&lt;' + esc(pauliStr) + '&gt; = ' + r.expectation.toFixed(6) + '</span></div>';
+        } else {
+          var r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+          
+          if (el.hasAttribute("data-bloch") && window.getStateVector && window.renderBloch) {
+            try {
+              var sv = JSON.parse(window.getStateVector(qasm));
+              if (sv.amplitudes && sv.amplitudes.length === 2) {
+                var a = sv.amplitudes;
+                var blochSVG = window.renderBloch(a[0].re, a[0].im, a[1].re, a[1].im, isDark());
+                if (blochSVG) html += blochSVG;
+              }
+            } catch(e) {   }
+          }
+        }
+        output.innerHTML = html;
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+      pending = false;
+    }
+    sliders.forEach(function(s) { s.addEventListener("input", update); });
+    selects.forEach(function(s) { s.addEventListener("change", update); });
+    update();
+  }
+
+  
+  function formatStabilizer(s) {
+    if (!s) return "";
+    var sign = s[0], ops = s.slice(1), html = '<span class="stab-sign">' + esc(sign) + '</span>';
+    for (var i = 0; i < ops.length; i++) {
+      var c = ops[i], cls = "stab-" + c.toLowerCase();
+      html += '<span class="' + cls + '">' + c + '</span>';
+    }
+    return html;
+  }
+
+  
+  function initExercise(el) {
+    var code = el.querySelector(".code"), feedback = el.querySelector(".exercise-feedback");
+    var checkBtn = el.querySelector('[data-action="check"]');
+    var hintBtn = el.querySelector('[data-action="hint"]'), hintEl = el.querySelector(".exercise-hint");
+    if (!code || !feedback || !checkBtn) return;
+    var expected = {}, tol = 0.1;
+    var expEl = el.querySelector(".exercise-expected");
+    if (expEl) expEl.querySelectorAll("[data-state]").forEach(function(span) {
+      expected[span.dataset.state] = parseFloat(span.dataset.prob);
+      if (span.dataset.tolerance) tol = parseFloat(span.dataset.tolerance);
+    });
+    checkBtn.addEventListener("click", async function() {
+      await ensureWasm();
+      feedback.className = "exercise-feedback visible";
+      feedback.textContent = "Checking...";
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(code.value, 1024, isDark()));
+        if (r.error) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + r.error; return; }
+        if (Object.keys(expected).length === 0) { feedback.className = "exercise-feedback visible pass"; feedback.innerHTML = "Circuit ran successfully."; return; }
+        var prob = JSON.parse(window.getProbabilities(code.value, isDark()));
+        if (prob.error) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + prob.error; return; }
+        var actual = {};
+        for (var i = 0; i < prob.labels.length; i++) actual[prob.labels[i]] = prob.probabilities[i];
+        var ok = true, msgs = [];
+        for (var s in expected) {
+          var a = actual[s] || 0, p = expected[s];
+          if (Math.abs(a - p) > tol) { ok = false; msgs.push("|" + s + "\u27E9: expected " + (p*100|0) + "%, got " + (a*100|0) + "%"); }
+        }
+        if (ok) { feedback.className = "exercise-feedback visible pass"; feedback.innerHTML = "Correct! Your circuit produces the expected output."; }
+        else { feedback.className = "exercise-feedback visible fail"; feedback.innerHTML = "Not quite. " + msgs.join("; ") + "."; }
+        renderMath(feedback);
+      } catch(e) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + e.message; }
+    });
+    if (hintBtn && hintEl) hintBtn.addEventListener("click", function() { hintEl.style.display = hintEl.style.display === "none" ? "block" : "none"; });
+  }
+
+  
+  function initFlashcardDeck(el) {
+    el.querySelectorAll(".flashcard").forEach(function(card) {
+      var id = card.dataset.cardId;
+      if (!id) return;
+      var state = getCardState(id);
+      if (state.due > 0 && state.due > Date.now()) card.classList.add("reviewed");
+      card.addEventListener("click", function(e) {
+        if (e.target.closest("button")) return;
+        card.classList.toggle("flipped");
+        var back = card.querySelector(".card-back");
+        if (back) renderMath(back);
+      });
+      var easyBtn = card.querySelector(".easy"), hardBtn = card.querySelector(".hard");
+      if (easyBtn) easyBtn.addEventListener("click", function() { reviewCard(id, 4); card.classList.remove("flipped"); card.classList.add("reviewed"); });
+      if (hardBtn) hardBtn.addEventListener("click", function() { reviewCard(id, 2); card.classList.remove("flipped"); });
+    });
+  }
+
+  
+  function initPOE(el) {
+    var steps = el.querySelectorAll(".poe-step"), prog = el.querySelectorAll(".poe-progress-step");
+    if (steps.length === 0) return;
+    var cur = 0;
+    function show(idx) {
+      steps.forEach(function(s,i) { s.classList.toggle("active", i === idx); });
+      prog.forEach(function(s,i) { s.classList.remove("active","done"); if (i < idx) s.classList.add("done"); if (i === idx) s.classList.add("active"); });
+      cur = idx;
+      var active = steps[idx];
+      if (active) active.querySelectorAll('.sandbox:not([data-initialized])').forEach(function(sb) { sb.setAttribute("data-initialized","true"); initSandbox(sb); });
+    }
+    el.querySelectorAll('[data-action="next"]').forEach(function(btn) { btn.addEventListener("click", function() { if (cur < steps.length - 1) show(cur + 1); }); });
+    el.querySelectorAll('[data-action="complete"]').forEach(function(btn) { btn.addEventListener("click", function() { prog.forEach(function(s) { s.classList.remove("active"); s.classList.add("done"); }); }); });
+    show(0);
+  }
+
+  
+  function initStepThrough(el) {
+    var qasmEl = el.querySelector(".step-qasm");
+    var output = el.querySelector(".step-output");
+    var prevBtn = el.querySelector('[data-action="prev"]');
+    var nextBtn = el.querySelector('[data-action="next"]');
+    var stepInfo = el.querySelector(".step-info");
+    if (!qasmEl || !output) return;
+    var qasm = qasmEl.textContent;
+    var mode = el.dataset.mode || "clifford"; 
+    var steps = null, cur = -1;
+
+    async function load() {
+      await ensureWasm();
+      try {
+        if (mode === "clifford" && window.cliffordStepThrough) {
+          var r = JSON.parse(window.cliffordStepThrough(qasm));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+          
+          steps.unshift({gate: "init", qubits: [], stabilizers: r.steps.length > 0 ? null : []});
+        } else if (mode === "grover" && window.groverStepThrough) {
+          var nq = parseInt(el.dataset.qubits || "2", 10);
+          var targets = JSON.parse(el.dataset.targets || "[]");
+          var r = JSON.parse(window.groverStepThrough(nq, targets.join(",")));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+        }
+        if (steps && steps.length > 0) { cur = 0; renderStep(); }
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    function renderStep() {
+      if (!steps || cur < 0 || cur >= steps.length) return;
+      var s = steps[cur];
+      var html = "";
+      if (mode === "clifford") {
+        if (s.gate === "init") {
+          html = '<p class="step-label">Initial state |0...0&gt;</p>';
+          
+          if (steps.length > 1 && steps[1].stabilizers) {
+            var nq = steps[1].stabilizers[0].length - 1;
+            html += '<div class="stabilizer-table"><table>';
+            for (var i = 0; i < nq; i++) {
+              var row = "+";
+              for (var j = 0; j < nq; j++) row += (j === i) ? "Z" : "I";
+              html += '<tr><td>' + formatStabilizer(row) + '</td></tr>';
+            }
+            html += '</table></div>';
+          }
+        } else {
+          html = '<p class="step-label">After <strong>' + esc(s.gate) + '</strong> on qubit' + (s.qubits.length > 1 ? 's ' : ' ') + s.qubits.join(', ') + '</p>';
+          if (s.stabilizers) {
+            html += '<div class="stabilizer-table"><table>';
+            s.stabilizers.forEach(function(st) { html += '<tr><td>' + formatStabilizer(st) + '</td></tr>'; });
+            html += '</table></div>';
+          }
+        }
+      } else if (mode === "grover") {
+        html = '<p class="step-label">Iteration ' + s.iteration + '</p>';
+        if (s.probabilities) {
+          html += '<div class="amplitude-bars">';
+          for (var i = 0; i < s.probabilities.length; i++) {
+            var label = i.toString(2).padStart(Math.ceil(Math.log2(s.probabilities.length)), '0');
+            var pct = (s.probabilities[i] * 100).toFixed(1);
+            var isTarget = el.dataset.targets && JSON.parse(el.dataset.targets).indexOf(i) >= 0;
+            html += '<div class="amp-bar' + (isTarget ? ' target' : '') + '"><div class="amp-fill" style="height:' + pct + '%"></div><span class="amp-label">|' + label + '&gt;</span><span class="amp-value">' + pct + '%</span></div>';
+          }
+          html += '</div>';
+        }
+      }
+      output.innerHTML = html;
+      if (stepInfo) stepInfo.textContent = "Step " + cur + " / " + (steps.length - 1);
+      if (prevBtn) prevBtn.disabled = (cur === 0);
+      if (nextBtn) nextBtn.disabled = (cur >= steps.length - 1);
+    }
+
+    if (prevBtn) prevBtn.addEventListener("click", function() { if (cur > 0) { cur--; renderStep(); } });
+    if (nextBtn) nextBtn.addEventListener("click", function() { if (steps && cur < steps.length - 1) { cur++; renderStep(); } });
+    load();
+  }
+
+  
+  document.addEventListener("DOMContentLoaded", function() {
+    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough};
+    document.querySelectorAll("[data-component]").forEach(function(el) { var fn = reg[el.dataset.component]; if (fn) fn(el); });
+  });
+  </script>
+  
+</body>
+</html>

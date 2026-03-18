@@ -1,0 +1,1692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chapter 12: Grover&#39;s Algorithm - Goqu Textbook</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/contrib/auto-render.min.js"></script>
+  
+  <link rel="preload" href="../main.wasm" as="fetch" type="application/wasm" crossorigin>
+  <script src="../wasm_exec.js"></script>
+  
+</head>
+<body>
+  <input type="checkbox" id="nav-toggle" hidden>
+  <label for="nav-toggle" class="nav-hamburger" aria-label="Toggle navigation">
+    <span></span><span></span><span></span>
+  </label>
+
+  <nav class="sidebar" aria-label="Table of contents">
+    <a href="../index.html" class="sidebar-logo">Goqu Textbook</a>
+    
+    <details>
+      <summary>Part 1: The World of Classical Computing</summary>
+      <ol start="1">
+        
+        <li value="1"><a href="01-computation.html">What Is Computation?</a></li>
+        
+        <li value="2"><a href="02-math-of-information.html">The Mathematics of Information</a></li>
+        
+        <li value="3"><a href="03-reversible-computing.html">Reversible Computing</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 2: Entering the Quantum World</summary>
+      <ol start="4">
+        
+        <li value="4"><a href="04-the-first-qubit.html">The First Qubit</a></li>
+        
+        <li value="5"><a href="05-quantum-gates.html">Quantum Gates</a></li>
+        
+        <li value="6"><a href="06-entanglement.html">Multiple Qubits and Entanglement</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 3: Quantum Protocols</summary>
+      <ol start="7">
+        
+        <li value="7"><a href="07-teleportation.html">Quantum Teleportation and Communication</a></li>
+        
+        <li value="8"><a href="08-cryptography.html">Quantum Cryptography</a></li>
+        
+      </ol>
+    </details>
+    
+    <details open>
+      <summary>Part 4: Quantum Algorithms - The First Wave</summary>
+      <ol start="9">
+        
+        <li value="9"><a href="09-oracles.html">Oracles and Quantum Parallelism</a></li>
+        
+        <li value="10"><a href="10-qft.html">The Quantum Fourier Transform</a></li>
+        
+        <li value="11"><a href="11-shor.html">Shor&#39;s Algorithm</a></li>
+        
+        <li value="12"><a href="12-grover.html" aria-current="page">Grover&#39;s Algorithm</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 5: Real Quantum Hardware</summary>
+      <ol start="13">
+        
+        <li value="13"><a href="13-hardware.html">How to Build a Quantum Computer</a></li>
+        
+        <li value="14"><a href="14-noise.html">Noise, Decoherence, and the NISQ Era</a></li>
+        
+        <li value="15"><a href="15-programming.html">Programming Quantum Computers</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 6: Quantum Error Correction</summary>
+      <ol start="16">
+        
+        <li value="16"><a href="16-classical-ec.html">Classical Error Correction Refresher</a></li>
+        
+        <li value="17"><a href="17-qec-fundamentals.html">Quantum Error Correction Fundamentals</a></li>
+        
+        <li value="18"><a href="18-stabilizers.html">The Stabilizer Formalism</a></li>
+        
+        <li value="19"><a href="19-surface-codes.html">Surface Codes and Topological Protection</a></li>
+        
+        <li value="20"><a href="20-fault-tolerance.html">Fault-Tolerant Quantum Computing</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 7: Variational and Near-Term Algorithms</summary>
+      <ol start="21">
+        
+        <li value="21"><a href="21-variational.html">The Variational Quantum Computing Paradigm</a></li>
+        
+        <li value="22"><a href="22-vqe.html">Variational Quantum Eigensolver (VQE)</a></li>
+        
+        <li value="23"><a href="23-qaoa.html">Quantum Approximate Optimization (QAOA)</a></li>
+        
+        <li value="24"><a href="24-qml.html">Quantum Machine Learning</a></li>
+        
+        <li value="25"><a href="25-error-mitigation.html">Quantum Error Mitigation</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 8: Quantum Information Theory</summary>
+      <ol start="26">
+        
+        <li value="26"><a href="26-states-measurements.html">Quantum States and Measurements, Revisited</a></li>
+        
+        <li value="27"><a href="27-channels.html">Quantum Channels and Operations</a></li>
+        
+        <li value="28"><a href="28-entropy.html">Quantum Entropy and Information</a></li>
+        
+        <li value="29"><a href="29-shannon.html">Quantum Shannon Theory</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 9: Quantum Complexity and Computation Theory</summary>
+      <ol start="30">
+        
+        <li value="30"><a href="30-complexity.html">Quantum Computational Complexity</a></li>
+        
+        <li value="31"><a href="31-hidden-subgroup.html">The Hidden Subgroup Problem and Beyond</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 10: Quantum Simulation</summary>
+      <ol start="32">
+        
+        <li value="32"><a href="32-simulation-why.html">Why Quantum Simulation Matters</a></li>
+        
+        <li value="33"><a href="33-digital-simulation.html">Digital Quantum Simulation</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 11: Quantum Networking, Cryptography, and Sensing</summary>
+      <ol start="34">
+        
+        <li value="34"><a href="34-quantum-internet.html">The Quantum Internet</a></li>
+        
+        <li value="35"><a href="35-advanced-crypto.html">Advanced Quantum Cryptography</a></li>
+        
+        <li value="36"><a href="36-sensing.html">Quantum Sensing and Metrology</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 12: Frontiers and the Future</summary>
+      <ol start="37">
+        
+        <li value="37"><a href="37-topological.html">Topological Quantum Computing</a></li>
+        
+        <li value="38"><a href="38-quantum-ai.html">Quantum Computing and Artificial Intelligence</a></li>
+        
+        <li value="39"><a href="39-open-problems.html">Open Problems in Quantum Computing</a></li>
+        
+        <li value="40"><a href="40-ecosystem.html">The Quantum Computing Ecosystem Today</a></li>
+        
+        <li value="41"><a href="41-career.html">Building Your Quantum Computing Career</a></li>
+        
+        <li value="42"><a href="42-what-next.html">What Comes Next</a></li>
+        
+      </ol>
+    </details>
+    
+  </nav>
+
+  <main>
+    
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="../index.html">Home</a> / <a href="../index.html#part-4">Part 4</a> / <span>Chapter 12</span>
+    </nav>
+    
+
+    <article>
+      <h1>Chapter 12: Grover&#39;s Algorithm</h1>
+      <p>
+  In the previous chapters, we explored quantum algorithms that exploit the structure of
+  specific mathematical problems. Shor's algorithm (Chapter 11) uses the periodicity of modular
+  exponentiation; the Quantum Fourier Transform (Chapter 10) leverages the algebraic structure of
+  Fourier coefficients. But what if your problem has no exploitable structure at all? What if you
+  simply need to find a needle in a haystack - a single marked item hidden among millions of
+  unmarked ones - and the only thing you can do is check items one at a time?
+</p>
+
+<p>
+  Classically, this is a hopeless situation. Without structure to guide the search, you must check
+  items one by one, and on average you will need to examine half of them before finding the
+  answer. For a haystack of $N$ items, that means $O(N)$ checks, and no clever classical
+  strategy can do better.
+</p>
+
+<p>
+  In 1996, Lov Grover showed that a quantum computer can find the needle in only
+  $O(\sqrt{N})$ checks - a quadratic speedup. This chapter tells the story of how. The key
+  insight is beautifully geometric: Grover's algorithm works by rotating a quantum state in a
+  two-dimensional subspace, nudging it closer and closer to the solution with each iteration. We
+  will build the algorithm from the ground up, see it in action on a 3-qubit search space, and
+  then prove that no quantum algorithm can do better - the quadratic speedup is optimal.
+</p>
+
+<!-- ================================================================== -->
+<section id="unstructured-search">
+<h2>12.1 The Unstructured Search Problem</h2>
+
+<p>
+  Suppose you are given a function $f : \{0, 1, \ldots, N-1\} \to \{0, 1\}$ that outputs 1 for
+  exactly $M$ special inputs (called <em>marked items</em> or <em>solutions</em>) and 0 for
+  everything else. You can evaluate $f$ on any input you choose, but you know nothing about
+  which inputs are marked. Your task: find any one of the $M$ marked items.
+</p>
+
+<p>
+  This is the <strong>unstructured search problem</strong>. The word "unstructured" is critical -
+  it means the function $f$ is a black box (an <em>oracle</em>, as we defined in Chapter 9).
+  You cannot peek inside it, reverse-engineer it, or exploit any pattern in its outputs. All you
+  can do is query it: "Is $x$ a solution?" and receive a yes-or-no answer.
+</p>
+
+<h3>The Classical Lower Bound</h3>
+
+<p>
+  How many queries does a classical computer need? In the worst case, with $M = 1$ marked item
+  among $N$ items, a classical algorithm might need to check all $N$ items before finding the
+  answer. On average, it needs $N/2$ queries. More precisely, any classical deterministic
+  algorithm requires $\Omega(N)$ queries in the worst case, and any classical randomized
+  algorithm requires $\Omega(N/M)$ queries on average to succeed with constant probability.
+</p>
+
+<p>
+  This lower bound is tight - you cannot beat it classically, no matter how clever your
+  strategy. The reason is intuitive: each classical query eliminates at most one candidate. To
+  find the needle, you must examine a constant fraction of the haystack.
+</p>
+
+<h3>Why This Matters</h3>
+
+<p>
+  At first glance, searching an unstructured list might seem like a narrow problem. But many
+  important computational problems <em>reduce</em> to unstructured search. Consider:
+</p>
+
+<ul>
+  <li>
+    <strong>Satisfiability (SAT):</strong> Given a Boolean formula with $n$ variables, is there
+    an assignment that makes it true? The search space has $N = 2^n$ candidate assignments, and
+    checking each one is straightforward.
+  </li>
+  <li>
+    <strong>Optimization:</strong> Find the input that minimizes a cost function. If the function
+    has no exploitable structure, this reduces to searching over all possible inputs.
+  </li>
+  <li>
+    <strong>Cryptographic key search:</strong> Given a ciphertext and a known plaintext, find the
+    key. The search space is all possible keys.
+  </li>
+  <li>
+    <strong>Constraint satisfaction:</strong> Find an assignment of values to variables that
+    satisfies all constraints. If the constraint structure is opaque, you must search exhaustively.
+  </li>
+</ul>
+
+<p>
+  Any problem where you can efficiently <em>verify</em> a candidate solution but cannot
+  efficiently <em>find</em> one is a candidate for Grover's algorithm. This is exactly the class
+  NP - the class of problems with efficiently checkable solutions. Grover's algorithm gives a
+  generic quadratic speedup for all such problems.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    The unstructured search problem asks: given a black-box function $f$ that marks $M$ out of $N$
+    items, find a marked item. Classically this requires $\Omega(N/M)$ queries. Grover's algorithm
+    solves it with $O(\sqrt{N/M})$ queries - a quadratic speedup.
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="geometric-picture">
+<h2>12.2 Amplitude Amplification: The Geometric Picture</h2>
+
+<p>
+  Before diving into the circuit, let us understand <em>why</em> Grover's algorithm works. The
+  explanation is entirely geometric, and once you see it, the algorithm becomes almost inevitable.
+</p>
+
+<h3>The Two-Dimensional Subspace</h3>
+
+<p>
+  Consider the $N$-dimensional Hilbert space of $n = \log_2 N$ qubits. We define two special
+  states:
+</p>
+
+$$|\text{good}\rangle = \frac{1}{\sqrt{M}} \sum_{x : f(x)=1} |x\rangle$$
+
+<p>
+  the uniform superposition over all $M$ marked (solution) items, and
+</p>
+
+$$|\text{bad}\rangle = \frac{1}{\sqrt{N - M}} \sum_{x : f(x)=0} |x\rangle$$
+
+<p>
+  the uniform superposition over all $N - M$ unmarked items. These two states are orthogonal and
+  span a two-dimensional subspace. Crucially, the uniform superposition over all items,
+</p>
+
+$$|s\rangle = \frac{1}{\sqrt{N}} \sum_{x=0}^{N-1} |x\rangle = H^{\otimes n} |0\rangle^{\otimes n},$$
+
+<p>
+  lies in this two-dimensional subspace. Specifically,
+</p>
+
+$$|s\rangle = \sin\theta \, |\text{good}\rangle + \cos\theta \, |\text{bad}\rangle,$$
+
+<p>
+  where $\theta$ is defined by
+</p>
+
+$$\sin\theta = \sqrt{\frac{M}{N}}.$$
+
+<p>
+  When $M$ is small compared to $N$, the angle $\theta$ is small, meaning $|s\rangle$ is
+  nearly perpendicular to $|\text{good}\rangle$ - it has very little overlap with the solution
+  states. Measuring $|s\rangle$ would find a solution with probability only $M/N$, which is
+  tiny for large $N$.
+</p>
+
+<h3>Two Reflections Make a Rotation</h3>
+
+<p>
+  Grover's algorithm uses two operators, each of which is a <em>reflection</em> in this
+  two-dimensional subspace:
+</p>
+
+<ol>
+  <li>
+    <strong>Oracle reflection $U_f$:</strong> Reflects about $|\text{bad}\rangle$. This flips
+    the sign of the amplitude of every marked item while leaving unmarked items unchanged. In the
+    $|\text{good}\rangle$-$|\text{bad}\rangle$ plane, this is a reflection across the
+    $|\text{bad}\rangle$ axis.
+  </li>
+  <li>
+    <strong>Diffusion reflection $U_s$:</strong> Reflects about $|s\rangle$. This is the
+    operator $2|s\rangle\langle s| - I$, which reflects any state about the uniform
+    superposition $|s\rangle$.
+  </li>
+</ol>
+
+<p>
+  A fundamental fact of geometry: the composition of two reflections is a rotation. If the axes of
+  the two reflections make an angle $\theta$ with each other, the composition rotates by
+  $2\theta$. In our case, the angle between $|\text{bad}\rangle$ and $|s\rangle$ is $\theta$
+  (since $|s\rangle = \sin\theta\,|\text{good}\rangle + \cos\theta\,|\text{bad}\rangle$). So
+  each Grover iteration - one oracle reflection followed by one diffusion reflection - rotates
+  the state by $2\theta$ toward $|\text{good}\rangle$.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    Each Grover iteration rotates the quantum state by an angle of $2\theta = 2\arcsin(\sqrt{M/N})$
+    in the two-dimensional subspace spanned by $|\text{good}\rangle$ and $|\text{bad}\rangle$,
+    moving it closer to the solution states.
+  </p>
+</div>
+
+<h3>Optimal Number of Iterations</h3>
+
+<p>
+  After $k$ Grover iterations, the state has been rotated by a total angle of $(2k+1)\theta$ from
+  the $|\text{bad}\rangle$ axis (including the initial angle $\theta$ of the starting state
+  $|s\rangle$). The probability of measuring a solution is
+</p>
+
+$$P_{\text{success}}(k) = \sin^2\!\big((2k+1)\theta\big).$$
+
+<p>
+  This probability is maximized when $(2k+1)\theta \approx \pi/2$, giving
+</p>
+
+$$k_{\text{opt}} = \left\lfloor \frac{\pi}{4\theta} - \frac{1}{2} \right\rfloor \approx \frac{\pi}{4}\sqrt{\frac{N}{M}}.$$
+
+<p>
+  For the common case $M = 1$ (a single solution), this gives $k_{\text{opt}} \approx
+  (\pi/4)\sqrt{N}$. For $N = 8$ (3 qubits) with $M = 1$, we get $k_{\text{opt}} \approx
+  (\pi/4)\sqrt{8} \approx 2.22$, so 2 iterations would be close to optimal. But for $N = 8$
+  and $M = 1$, we can verify: $\theta = \arcsin(1/\sqrt{8}) \approx 0.3614$ radians, and
+  $(2 \cdot 1 + 1)(0.3614) \approx 1.084$, while $(2 \cdot 2 + 1)(0.3614) \approx 1.807$.
+  Since $\pi/2 \approx 1.571$, $k = 1$ gives a total rotation of $1.084$ radians (yielding
+  $\sin^2(1.084) \approx 0.781$) and $k = 2$ gives $1.807$ radians (yielding
+  $\sin^2(1.807) \approx 0.945$). So for $N = 8$ and $M = 1$, one iteration already gives 78%
+  success probability, and two iterations give about 95%.
+</p>
+
+<div class="callout callout-warning">
+  <strong>Common Misconception.</strong>
+  <p>
+    "More iterations are always better." This is false. Grover's algorithm is a rotation, and
+    if you rotate past the target angle $\pi/2$, the success probability <em>decreases</em>.
+    After about $(\pi/2\theta)$ iterations, you have rotated past $|\text{good}\rangle$ and
+    the probability drops back toward zero. The algorithm is periodic, not monotonically improving.
+  </p>
+</div>
+
+<h3>Simulation: Watching the Rotation</h3>
+
+<p>
+  The simulation below shows a 3-qubit Grover search for the marked state $|101\rangle$
+  (decimal 5) among $N = 8$ items. Use the slider to choose the number of Grover iterations
+  and observe how the probability distribution changes. Notice that 1 or 2 iterations concentrate
+  probability on the marked state, but more iterations cause the probability to oscillate away.
+</p>
+
+<div class="widget" id="grover-rotation-widget">
+  <div class="widget-header">Grover Iteration Simulator (3 qubits, target = |101>)</div>
+  <div style="margin-bottom: 0.75rem;">
+    <label for="grover-iter-slider" style="font-weight: 500; font-size: 0.9rem;">
+      Iterations: <output id="grover-iter-display">1</output>
+    </label>
+    <input type="range" id="grover-iter-slider" min="0" max="8" step="1" value="1"
+           style="width: 100%; margin-top: 0.25rem;">
+  </div>
+  <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-start;">
+    <div style="flex: 1; min-width: 280px;">
+      <div style="font-size: 0.85rem; font-weight: 500; margin-bottom: 0.25rem;">Probability of each basis state:</div>
+      <svg id="grover-bar-chart" viewBox="0 0 400 200" style="width: 100%; max-width: 420px; background: var(--color-code-bg); border-radius: var(--radius); border: 1px solid var(--color-border);"></svg>
+    </div>
+    <div style="flex: 0 0 auto; min-width: 160px;">
+      <div style="font-size: 0.85rem; font-weight: 500; margin-bottom: 0.25rem;">Geometric view:</div>
+      <svg id="grover-geo-view" viewBox="0 0 180 180" style="width: 180px; height: 180px; background: var(--color-code-bg); border-radius: var(--radius); border: 1px solid var(--color-border);"></svg>
+    </div>
+  </div>
+  <div id="grover-info" style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--color-text-muted);"></div>
+</div>
+
+<script>
+(function() {
+  "use strict";
+  var N = 8, M = 1, target = 5;
+  var theta = Math.asin(Math.sqrt(M / N));
+  var slider = document.getElementById("grover-iter-slider");
+  var display = document.getElementById("grover-iter-display");
+  var barSvg = document.getElementById("grover-bar-chart");
+  var geoSvg = document.getElementById("grover-geo-view");
+  var info = document.getElementById("grover-info");
+  if (!slider || !barSvg) return;
+
+  function computeProbs(k) {
+    var totalAngle = (2 * k + 1) * theta;
+    var pGood = Math.pow(Math.sin(totalAngle), 2);
+    var pBad = Math.pow(Math.cos(totalAngle), 2);
+    var probs = [];
+    for (var i = 0; i < N; i++) {
+      if (i === target) {
+        probs.push(pGood / M);
+      } else {
+        probs.push(pBad / (N - M));
+      }
+    }
+    return probs;
+  }
+
+  function drawBars(probs) {
+    var svgNS = "http://www.w3.org/2000/svg";
+    barSvg.innerHTML = "";
+    var W = 400, H = 200, pad = 30, barW = (W - 2 * pad) / N - 4;
+    // y-axis
+    var axis = document.createElementNS(svgNS, "line");
+    axis.setAttribute("x1", pad); axis.setAttribute("y1", 10);
+    axis.setAttribute("x2", pad); axis.setAttribute("y2", H - pad);
+    axis.setAttribute("stroke", "var(--color-text-muted)"); axis.setAttribute("stroke-width", "1");
+    barSvg.appendChild(axis);
+    // x-axis
+    var xaxis = document.createElementNS(svgNS, "line");
+    xaxis.setAttribute("x1", pad); xaxis.setAttribute("y1", H - pad);
+    xaxis.setAttribute("x2", W - 10); xaxis.setAttribute("y2", H - pad);
+    xaxis.setAttribute("stroke", "var(--color-text-muted)"); xaxis.setAttribute("stroke-width", "1");
+    barSvg.appendChild(xaxis);
+    // y-axis label
+    var yLabel = document.createElementNS(svgNS, "text");
+    yLabel.setAttribute("x", 2); yLabel.setAttribute("y", 10);
+    yLabel.setAttribute("font-size", "10"); yLabel.setAttribute("fill", "var(--color-text-muted)");
+    yLabel.textContent = "1.0";
+    barSvg.appendChild(yLabel);
+    var maxH = H - pad - 14;
+    for (var i = 0; i < N; i++) {
+      var x = pad + 4 + i * ((W - 2 * pad) / N);
+      var bh = probs[i] * maxH;
+      var rect = document.createElementNS(svgNS, "rect");
+      rect.setAttribute("x", x); rect.setAttribute("y", H - pad - bh);
+      rect.setAttribute("width", barW); rect.setAttribute("height", bh);
+      rect.setAttribute("rx", "2");
+      rect.setAttribute("fill", i === target ? "var(--color-accent)" : "var(--color-text-muted)");
+      rect.setAttribute("opacity", i === target ? "1" : "0.4");
+      barSvg.appendChild(rect);
+      // label
+      var label = document.createElementNS(svgNS, "text");
+      label.setAttribute("x", x + barW / 2); label.setAttribute("y", H - pad + 14);
+      label.setAttribute("text-anchor", "middle"); label.setAttribute("font-size", "10");
+      label.setAttribute("font-family", "var(--font-mono)");
+      label.setAttribute("fill", "var(--color-text)");
+      var bits = ("000" + i.toString(2)).slice(-3);
+      label.textContent = bits;
+      barSvg.appendChild(label);
+      // probability value on top
+      if (probs[i] > 0.02) {
+        var pLabel = document.createElementNS(svgNS, "text");
+        pLabel.setAttribute("x", x + barW / 2); pLabel.setAttribute("y", H - pad - bh - 3);
+        pLabel.setAttribute("text-anchor", "middle"); pLabel.setAttribute("font-size", "9");
+        pLabel.setAttribute("fill", "var(--color-text-muted)");
+        pLabel.textContent = probs[i].toFixed(3);
+        barSvg.appendChild(pLabel);
+      }
+    }
+  }
+
+  function drawGeo(k) {
+    var svgNS = "http://www.w3.org/2000/svg";
+    geoSvg.innerHTML = "";
+    var cx = 90, cy = 100, r = 70;
+    // axes: |bad> horizontal, |good> vertical (upward)
+    // |bad> axis
+    var badAxis = document.createElementNS(svgNS, "line");
+    badAxis.setAttribute("x1", cx); badAxis.setAttribute("y1", cy);
+    badAxis.setAttribute("x2", cx + r + 10); badAxis.setAttribute("y2", cy);
+    badAxis.setAttribute("stroke", "var(--color-text-muted)"); badAxis.setAttribute("stroke-width", "1");
+    badAxis.setAttribute("stroke-dasharray", "3,3");
+    geoSvg.appendChild(badAxis);
+    var badLabel = document.createElementNS(svgNS, "text");
+    badLabel.setAttribute("x", cx + r + 14); badLabel.setAttribute("y", cy + 4);
+    badLabel.setAttribute("font-size", "10"); badLabel.setAttribute("fill", "var(--color-text-muted)");
+    badLabel.textContent = "|bad>";
+    geoSvg.appendChild(badLabel);
+    // |good> axis (up)
+    var goodAxis = document.createElementNS(svgNS, "line");
+    goodAxis.setAttribute("x1", cx); goodAxis.setAttribute("y1", cy);
+    goodAxis.setAttribute("x2", cx); goodAxis.setAttribute("y2", cy - r - 10);
+    goodAxis.setAttribute("stroke", "var(--color-text-muted)"); goodAxis.setAttribute("stroke-width", "1");
+    goodAxis.setAttribute("stroke-dasharray", "3,3");
+    geoSvg.appendChild(goodAxis);
+    var goodLabel = document.createElementNS(svgNS, "text");
+    goodLabel.setAttribute("x", cx + 4); goodLabel.setAttribute("y", cy - r - 14);
+    goodLabel.setAttribute("font-size", "10"); goodLabel.setAttribute("fill", "var(--color-text-muted)");
+    goodLabel.textContent = "|good>";
+    geoSvg.appendChild(goodLabel);
+    // arc for reference
+    var arc = document.createElementNS(svgNS, "path");
+    var arcR = r;
+    arc.setAttribute("d", "M " + (cx + arcR) + " " + cy + " A " + arcR + " " + arcR + " 0 0 0 " + cx + " " + (cy - arcR));
+    arc.setAttribute("fill", "none"); arc.setAttribute("stroke", "var(--color-border)"); arc.setAttribute("stroke-width", "0.5");
+    geoSvg.appendChild(arc);
+    // |s> vector (initial state)
+    var sAngle = theta; // angle from |bad> axis
+    var sx = cx + r * Math.cos(sAngle);
+    var sy = cy - r * Math.sin(sAngle);
+    var sLine = document.createElementNS(svgNS, "line");
+    sLine.setAttribute("x1", cx); sLine.setAttribute("y1", cy);
+    sLine.setAttribute("x2", sx); sLine.setAttribute("y2", sy);
+    sLine.setAttribute("stroke", "var(--color-text-muted)"); sLine.setAttribute("stroke-width", "1.5");
+    sLine.setAttribute("stroke-dasharray", "4,2");
+    geoSvg.appendChild(sLine);
+    var sLabel = document.createElementNS(svgNS, "text");
+    sLabel.setAttribute("x", sx + 4); sLabel.setAttribute("y", sy - 2);
+    sLabel.setAttribute("font-size", "9"); sLabel.setAttribute("fill", "var(--color-text-muted)");
+    sLabel.textContent = "|s>";
+    geoSvg.appendChild(sLabel);
+    // Current state vector after k iterations
+    var curAngle = (2 * k + 1) * theta;
+    var vx = cx + r * Math.cos(curAngle);
+    var vy = cy - r * Math.sin(curAngle);
+    var vLine = document.createElementNS(svgNS, "line");
+    vLine.setAttribute("x1", cx); vLine.setAttribute("y1", cy);
+    vLine.setAttribute("x2", vx); vLine.setAttribute("y2", vy);
+    vLine.setAttribute("stroke", "var(--color-accent)"); vLine.setAttribute("stroke-width", "2.5");
+    geoSvg.appendChild(vLine);
+    // arrowhead
+    var arrowLen = 8, arrowAng = 0.4;
+    var lineAng = Math.atan2(cy - vy, vx - cx);
+    var a1x = vx - arrowLen * Math.cos(lineAng - arrowAng);
+    var a1y = vy + arrowLen * Math.sin(lineAng - arrowAng);
+    var a2x = vx - arrowLen * Math.cos(lineAng + arrowAng);
+    var a2y = vy + arrowLen * Math.sin(lineAng + arrowAng);
+    var arrow = document.createElementNS(svgNS, "polygon");
+    arrow.setAttribute("points", vx + "," + vy + " " + a1x + "," + a1y + " " + a2x + "," + a2y);
+    arrow.setAttribute("fill", "var(--color-accent)");
+    geoSvg.appendChild(arrow);
+    // angle arc
+    if (k > 0) {
+      var arcSmallR = 25;
+      var startX = cx + arcSmallR;
+      var startY = cy;
+      var endX = cx + arcSmallR * Math.cos(curAngle);
+      var endY = cy - arcSmallR * Math.sin(curAngle);
+      var largeArc = curAngle > Math.PI ? 1 : 0;
+      var arcPath = document.createElementNS(svgNS, "path");
+      arcPath.setAttribute("d", "M " + startX + " " + startY + " A " + arcSmallR + " " + arcSmallR + " 0 " + largeArc + " 0 " + endX + " " + endY);
+      arcPath.setAttribute("fill", "none"); arcPath.setAttribute("stroke", "var(--color-accent)");
+      arcPath.setAttribute("stroke-width", "1.5"); arcPath.setAttribute("opacity", "0.6");
+      geoSvg.appendChild(arcPath);
+    }
+  }
+
+  function update() {
+    var k = parseInt(slider.value, 10);
+    display.textContent = k;
+    var probs = computeProbs(k);
+    drawBars(probs);
+    drawGeo(k);
+    var totalAngle = (2 * k + 1) * theta;
+    var pTarget = probs[target];
+    info.innerHTML = "Total rotation angle: " + ((2 * k + 1) * theta).toFixed(3) +
+      " rad (target: &pi;/2 &asymp; 1.571 rad). P(101) = " + pTarget.toFixed(4) +
+      ". " + (pTarget > 0.9 ? "Excellent - high success probability." :
+              pTarget > 0.5 ? "Good - majority probability on target." :
+              "Low success probability" + (k > 3 ? " - you have rotated past the optimum." : "."));
+  }
+  slider.addEventListener("input", update);
+  update();
+})();
+</script>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="step-by-step">
+<h2>12.3 Grover's Algorithm Step by Step</h2>
+
+<p>
+  Now let us build the algorithm as an explicit quantum circuit. There are three stages:
+  initialization, iteration, and measurement.
+</p>
+
+<h3>Step 1: Initialization</h3>
+
+<p>
+  Start with $n$ qubits in state $|0\rangle^{\otimes n}$ and apply Hadamard gates to each qubit.
+  This creates the uniform superposition:
+</p>
+
+$$|s\rangle = H^{\otimes n} |0\rangle^{\otimes n} = \frac{1}{\sqrt{N}} \sum_{x=0}^{N-1} |x\rangle.$$
+
+<p>
+  Every basis state has equal amplitude $1/\sqrt{N}$.
+</p>
+
+<h3>Step 2: The Oracle $U_f$</h3>
+
+<p>
+  The oracle flips the phase of marked states:
+</p>
+
+$$U_f |x\rangle = \begin{cases} -|x\rangle & \text{if } f(x) = 1 \\ |x\rangle & \text{if } f(x) = 0 \end{cases}$$
+
+<p>
+  This is a <em>phase oracle</em>, the same type we used in Chapter 9 for Deutsch-Jozsa and
+  Bernstein-Vazirani. It does not measure anything or collapse the superposition - it merely
+  applies a phase of $-1$ to the amplitudes of solution states.
+</p>
+
+<p>
+  For our running example, we will search for $|101\rangle$ (decimal 5) in a 3-qubit system.
+  The oracle for this specific target marks the state where $q_0 = 1$, $q_1 = 0$, $q_2 = 1$.
+  We can implement this as: flip $q_1$ (so that all three qubits are 1 when the input is
+  $|101\rangle$), apply a CCZ gate (which applies a phase of $-1$ when all three qubits are
+  $|1\rangle$), and flip $q_1$ back:
+</p>
+
+<pre><code>gate oracle q0, q1, q2 {
+  x q1;
+  ccz q0, q1, q2;
+  x q1;
+}</code></pre>
+
+<p>
+  The X gates on $q_1$ temporarily invert that qubit so that the CCZ fires precisely when the
+  original input is $|101\rangle$. This is the standard technique for building oracles that mark
+  a specific computational basis state, as discussed in Chapter 9.
+</p>
+
+<h3>Step 3: The Diffusion Operator $U_s$</h3>
+
+<p>
+  The diffusion operator reflects the state about the uniform superposition $|s\rangle$:
+</p>
+
+$$U_s = 2|s\rangle\langle s| - I.$$
+
+<p>
+  Since $|s\rangle = H^{\otimes n}|0\rangle^{\otimes n}$, we can rewrite this as:
+</p>
+
+$$U_s = H^{\otimes n}\big(2|0\rangle\langle 0| - I\big)H^{\otimes n}.$$
+
+<p>
+  The operator $2|0\rangle\langle 0| - I$ flips the phase of every basis state except
+  $|000\ldots0\rangle$. In circuit terms, this means: apply X to all qubits (so $|0\rangle^{\otimes n}$
+  becomes $|1\rangle^{\otimes n}$), apply a multi-controlled Z gate (which applies $-1$ when all
+  qubits are $|1\rangle$), then apply X to all qubits again. Wrapping the whole thing in Hadamard
+  gates gives the complete diffusion operator:
+</p>
+
+<pre><code>gate diffusion q0, q1, q2 {
+  h q0; h q1; h q2;
+  x q0; x q1; x q2;
+  ccz q0, q1, q2;
+  x q0; x q1; x q2;
+  h q0; h q1; h q2;
+}</code></pre>
+
+<div class="callout callout-info">
+  <strong>Note.</strong>
+  <p>
+    The diffusion operator is sometimes called the "inversion about the mean." To see why,
+    consider its effect on amplitudes: if the average amplitude is $\bar{a}$, then each amplitude
+    $a_x$ gets mapped to $2\bar{a} - a_x$. Amplitudes below the mean increase; amplitudes above
+    the mean decrease. After the oracle has flipped the sign of the marked states (making them
+    below the mean), the diffusion step boosts them above the mean. This is the essence of
+    amplitude amplification.
+  </p>
+</div>
+
+<h3>Step 4: Iterate and Measure</h3>
+
+<p>
+  The complete algorithm repeats the oracle and diffusion steps $k$ times, then measures all
+  qubits:
+</p>
+
+<ol>
+  <li>Apply $H^{\otimes n}$ to create $|s\rangle$.</li>
+  <li>Repeat $k$ times: apply $U_f$ (oracle), then apply $U_s$ (diffusion).</li>
+  <li>Measure all qubits in the computational basis.</li>
+</ol>
+
+<p>
+  For $N = 8$ and $M = 1$, one iteration already gives about 78% success probability, and two
+  iterations give about 95%. Try it yourself in the sandbox below.
+</p>
+
+<h3>Sandbox: 3-Qubit Grover Search</h3>
+
+<p>
+  The circuit below implements one iteration of Grover's algorithm searching for $|101\rangle$
+  among 8 items. Run it and observe that the marked state has significantly higher probability
+  than the others. Then try modifying the circuit to add a second iteration by duplicating the
+  oracle and diffusion calls.
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="18">OPENQASM 3.0;
+qubit[3] q;
+bit[3] c;
+
+// Initialize uniform superposition
+h q[0]; h q[1]; h q[2];
+
+// Oracle for |101> (marks state 5)
+gate oracle q0, q1, q2 {
+  x q1;
+  ccz q0, q1, q2;
+  x q1;
+}
+
+// Diffusion operator
+gate diffusion q0, q1, q2 {
+  h q0; h q1; h q2;
+  x q0; x q1; x q2;
+  ccz q0, q1, q2;
+  x q0; x q1; x q2;
+  h q0; h q1; h q2;
+}
+
+// One Grover iteration
+oracle q[0], q[1], q[2];
+diffusion q[0], q[1], q[2];
+
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<h3>Interactive: Grover Search Engine</h3>
+<p>
+  Use the WASM-backed Grover implementation to search for one or more target states.
+  Choose the number of qubits (determining the search space size $N = 2^n$), specify
+  which states to mark as targets, and run the full algorithm. The engine automatically
+  computes the optimal number of iterations.
+</p>
+<div class="widget" id="grover-search-widget">
+  <div class="widget-header">Grover Search Engine</div>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label>Qubits: <select id="grover-qubits">
+      <option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option>
+    </select></label>
+    <label>Targets: <input type="text" id="grover-targets" value="5" placeholder="e.g. 3,5" style="width:6rem" title="Comma-separated target state indices"></label>
+    <label>Shots: <input type="number" id="grover-shots" value="1024" min="1" max="8192" style="width:5rem"></label>
+    <button onclick="runGroverSearch()">Search</button>
+  </div>
+  <div class="widget-output" id="grover-search-output"></div>
+</div>
+<script>
+async function runGroverSearch() {
+  await ensureWasm();
+  var nq = parseInt(document.getElementById('grover-qubits').value);
+  var targets = document.getElementById('grover-targets').value.trim();
+  var shots = parseInt(document.getElementById('grover-shots').value) || 1024;
+  var out = document.getElementById('grover-search-output');
+  out.innerHTML = '<p style="color:var(--color-text-muted)">Running Grover search...</p>';
+  await new Promise(function(r) { setTimeout(r, 0); });
+  try {
+    var r = JSON.parse(window.runSearchAlgorithm("grover", nq, targets, shots, isDark()));
+    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+    var html = (r.circuitSVG || '') + (r.histogramSVG || '');
+    if (r.result) html += '<p><strong>Result:</strong> ' + esc(r.result) + '</p>';
+    if (r.qasmCode) html += '<details><summary>Generated QASM</summary><pre>' + esc(r.qasmCode) + '</pre></details>';
+    out.innerHTML = html;
+  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+}
+</script>
+
+<h3>Interactive: Step-by-Step Amplitude Amplification</h3>
+<p>
+  Step through Grover's algorithm one iteration at a time. Watch how the probability
+  of the target state grows with each application of the oracle and diffusion operator.
+  Target states are highlighted.
+</p>
+<div class="step-through" data-component="step-through" data-mode="grover" data-qubits="3" data-targets="[5]">
+  <pre class="step-qasm" style="display:none">placeholder</pre>
+  <div class="step-controls">
+    <button data-action="prev">Previous</button>
+    <span class="step-info"></span>
+    <button data-action="next">Next</button>
+  </div>
+  <div class="step-output"></div>
+</div>
+
+<h3>Predict-Observe-Explain: Too Many Iterations</h3>
+
+<p>
+  What happens when you iterate Grover's algorithm too many times? The following exercise
+  demonstrates a surprising and counterintuitive result.
+</p>
+
+<div class="poe" data-component="poe">
+  <div class="poe-progress">
+    <div class="poe-progress-step active">Predict</div>
+    <div class="poe-progress-step">Observe</div>
+    <div class="poe-progress-step">Explain</div>
+  </div>
+  <div class="poe-step poe-predict active">
+    <h3>Predict</h3>
+    <p>
+      The circuit below runs <strong>5 Grover iterations</strong> on a 3-qubit search for
+      $|101\rangle$. We know 1 iteration gives 78% and 2 iterations give 95%. What do you think
+      5 iterations will give? Will the probability of measuring $|101\rangle$ be higher, lower,
+      or about the same?
+    </p>
+    <textarea rows="3" placeholder="Write your prediction here..."></textarea>
+    <button data-action="next">Submit Prediction</button>
+  </div>
+  <div class="poe-step poe-observe">
+    <h3>Observe</h3>
+    <p>Run the circuit and look at the histogram. What state has the highest probability?</p>
+    <div class="sandbox" data-component="sandbox" data-shots="1024" data-autorun>
+      <textarea class="code" rows="22">OPENQASM 3.0;
+qubit[3] q;
+bit[3] c;
+
+h q[0]; h q[1]; h q[2];
+
+gate oracle q0, q1, q2 {
+  x q1;
+  ccz q0, q1, q2;
+  x q1;
+}
+gate diffusion q0, q1, q2 {
+  h q0; h q1; h q2;
+  x q0; x q1; x q2;
+  ccz q0, q1, q2;
+  x q0; x q1; x q2;
+  h q0; h q1; h q2;
+}
+
+// Five Grover iterations
+oracle q[0], q[1], q[2];
+diffusion q[0], q[1], q[2];
+oracle q[0], q[1], q[2];
+diffusion q[0], q[1], q[2];
+oracle q[0], q[1], q[2];
+diffusion q[0], q[1], q[2];
+oracle q[0], q[1], q[2];
+diffusion q[0], q[1], q[2];
+oracle q[0], q[1], q[2];
+diffusion q[0], q[1], q[2];
+
+c = measure q;</textarea>
+      <div class="sandbox-controls">
+        <button data-action="run">Run Again</button>
+      </div>
+      <div class="output"></div>
+    </div>
+    <button data-action="next">Continue to Explanation</button>
+  </div>
+  <div class="poe-step poe-explain">
+    <h3>Explain</h3>
+    <p>
+      After 5 iterations, the total rotation angle is $(2 \times 5 + 1) \times 0.3614 \approx
+      3.976$ radians. Since $\pi/2 \approx 1.571$, we have rotated well past the optimum and
+      the state has swung past $|\text{good}\rangle$ and is now heading back toward
+      $|\text{bad}\rangle$. The probability of finding the marked state has decreased
+      significantly - $\sin^2(3.976) \approx 0.432$, much less than the 95% we achieved with
+      just 2 iterations.
+    </p>
+    <p>
+      This is the overshooting phenomenon. Grover's algorithm is a rotation in a
+      two-dimensional subspace, and like a pendulum swinging past the bottom, more iterations
+      can make things worse. Choosing the right number of iterations is essential. You can verify
+      this quantitatively using the slider in Section 12.2.
+    </p>
+    <button data-action="complete">Complete</button>
+  </div>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="quantum-counting">
+<h2>12.4 Quantum Counting: How Many Solutions Exist?</h2>
+
+<p>
+  There is an apparent catch-22 in Grover's algorithm: to choose the optimal number of iterations,
+  you need to know $M$, the number of solutions. But if you already knew $M$, you would already
+  know a great deal about the problem. What if $M$ is unknown?
+</p>
+
+<p>
+  The elegant answer comes from combining Grover's algorithm with Quantum Phase Estimation (QPE),
+  which we studied in Chapter 10. The resulting algorithm is called <strong>quantum
+  counting</strong>, devised by Brassard, Hoyer, and Tapp in 1998.
+</p>
+
+<h3>The Eigenvalues of the Grover Operator</h3>
+
+<p>
+  Define the <em>Grover operator</em> as $G = U_s U_f$, the composition of one oracle reflection
+  and one diffusion reflection. In the two-dimensional subspace spanned by $|\text{good}\rangle$
+  and $|\text{bad}\rangle$, $G$ acts as a rotation by $2\theta$. The eigenvalues of a
+  two-dimensional rotation by angle $2\theta$ are:
+</p>
+
+$$\lambda_{\pm} = e^{\pm 2i\theta},$$
+
+<p>
+  where $\theta = \arcsin(\sqrt{M/N})$. If we could measure these eigenvalues, we could extract
+  $\theta$ and therefore $M$.
+</p>
+
+<h3>Applying QPE to the Grover Operator</h3>
+
+<p>
+  Quantum Phase Estimation does precisely this. By treating the Grover operator $G$ as a unitary
+  whose eigenvalues we want to estimate, QPE returns an approximation to the phase $2\theta /
+  (2\pi) = \theta / \pi$. From $\theta$, we recover the number of solutions:
+</p>
+
+$$M = N \sin^2(\theta).$$
+
+<p>
+  The precision of our estimate of $M$ depends on the number of ancilla qubits used for QPE.
+  With $t$ ancilla qubits, we can estimate $\theta$ to $t$ bits of precision, giving an estimate
+  of $M$ that is accurate to within $O(\sqrt{NM}/2^t + N/2^{2t})$.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    Quantum counting uses QPE on the Grover operator to estimate the number of solutions $M$
+    without knowing it in advance. This resolves the chicken-and-egg problem: first count the
+    solutions, then run the optimal number of Grover iterations.
+  </p>
+</div>
+
+<h3>The Complete Strategy</h3>
+
+<p>
+  In practice, the full search strategy is:
+</p>
+
+<ol>
+  <li>Run quantum counting (QPE on the Grover operator) to estimate $M$.</li>
+  <li>Compute the optimal number of iterations $k_{\text{opt}} \approx (\pi/4)\sqrt{N/M}$.</li>
+  <li>Run Grover's algorithm with $k_{\text{opt}}$ iterations.</li>
+  <li>Measure and verify the result.</li>
+</ol>
+
+<p>
+  The total query complexity remains $O(\sqrt{N/M})$, because the quantum counting step itself
+  uses only $O(\sqrt{N/M})$ queries. As a bonus, quantum counting also solves the <em>quantum
+  existence problem</em> - determining whether any solution exists at all - because if the
+  estimated $M$ is zero (or very close to it), we know there are no solutions.
+</p>
+
+<div class="callout callout-info">
+  <strong>Note.</strong>
+  <p>
+    There are also randomized approaches that avoid quantum counting entirely. If $M$ is unknown,
+    one can run Grover's algorithm with a random number of iterations drawn from a suitable
+    distribution. With proper randomization, this succeeds with constant probability after
+    $O(\sqrt{N/M})$ queries. However, quantum counting is more elegant and provides a concrete
+    estimate of $M$ as useful side information.
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="applications">
+<h2>12.5 Applications: SAT, Optimization, and Database Search</h2>
+
+<p>
+  Grover's algorithm provides a generic quadratic speedup for any problem that can be cast as an
+  unstructured search. Let us examine the most important applications and the practical
+  considerations that govern whether the speedup is useful.
+</p>
+
+<h3>Speeding Up NP Problems</h3>
+
+<p>
+  For any problem in NP, there is a polynomial-time verifier that checks whether a candidate
+  solution is correct. We can turn this verifier into a Grover oracle: the oracle evaluates the
+  verifier on the input and flips the phase if the verifier accepts. Grover's algorithm then
+  finds a valid solution (if one exists) with a quadratic speedup.
+</p>
+
+<p>
+  Concretely, if the best classical algorithm for an NP problem runs in time $T$ (where $T$
+  might be exponential in the input size), Grover's algorithm reduces this to approximately
+  $\sqrt{T}$ quantum operations. For a brute-force search over $2^n$ candidates, this means:
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Problem size ($n$)</th>
+      <th>Classical brute force</th>
+      <th>Grover's algorithm</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>20</td><td>$2^{20} \approx 10^6$</td><td>$2^{10} \approx 10^3$</td></tr>
+    <tr><td>40</td><td>$2^{40} \approx 10^{12}$</td><td>$2^{20} \approx 10^6$</td></tr>
+    <tr><td>80</td><td>$2^{80} \approx 10^{24}$</td><td>$2^{40} \approx 10^{12}$</td></tr>
+    <tr><td>128</td><td>$2^{128} \approx 10^{38}$</td><td>$2^{64} \approx 10^{19}$</td></tr>
+  </tbody>
+</table>
+
+<h3>SAT Solving</h3>
+
+<p>
+  The Boolean satisfiability problem (SAT) is the canonical NP-complete problem. Given a Boolean
+  formula with $n$ variables in conjunctive normal form (CNF), the search space has $N = 2^n$
+  possible assignments. The oracle evaluates the formula on a candidate assignment and marks it
+  if the formula is satisfied. Grover's algorithm finds a satisfying assignment in
+  $O(\sqrt{2^n}) = O(2^{n/2})$ queries if one exists.
+</p>
+
+<p>
+  For comparison, the best classical SAT solvers use heuristics (like DPLL or CDCL) that
+  exploit the structure of typical formulas and often run much faster than brute force in
+  practice, even though their worst-case complexity is still exponential. Grover's speedup
+  applies to the worst case and to truly unstructured instances, but may not outperform
+  structure-exploiting classical algorithms on structured instances.
+</p>
+
+<h3>Cryptographic Key Search</h3>
+
+<p>
+  One of the most concrete applications of Grover's algorithm is searching for cryptographic
+  keys. If a symmetric cipher uses a $k$-bit key, a brute-force classical attack requires
+  $O(2^k)$ operations. Grover's algorithm reduces this to $O(2^{k/2})$, effectively halving
+  the security level. This is why post-quantum cryptography recommends doubling symmetric key
+  lengths: AES-128 provides only 64-bit security against a quantum adversary, while AES-256
+  provides 128-bit security.
+</p>
+
+<h3>Practical Considerations</h3>
+
+<p>
+  A quadratic speedup, while provably optimal for unstructured search, is more modest than the
+  exponential speedups provided by Shor's algorithm for factoring. Several practical factors
+  determine whether Grover's speedup is worthwhile:
+</p>
+
+<ul>
+  <li>
+    <strong>Constant factors:</strong> Each Grover iteration requires implementing the oracle
+    circuit, which may be expensive. If a single oracle query costs thousands of gates on a
+    quantum computer, the constant-factor overhead can be substantial.
+  </li>
+  <li>
+    <strong>Error correction overhead:</strong> Running $\sqrt{N}$ iterations of a complex
+    circuit on a fault-tolerant quantum computer requires significant error correction resources.
+    The practical crossover point - where the quantum algorithm beats the classical one - may
+    require very large $N$.
+  </li>
+  <li>
+    <strong>Classical heuristics:</strong> For many structured NP problems, classical algorithms
+    exploiting problem structure vastly outperform brute-force search. Grover's speedup applies
+    to the brute-force baseline, not necessarily to the best known classical algorithm.
+  </li>
+  <li>
+    <strong>Parallelism:</strong> Classical search is embarrassingly parallel - you can split the
+    search space across many processors. A classical computer with $p$ processors can search in
+    time $O(N/p)$. A quantum computer needs $O(\sqrt{N})$ sequential steps, and parallelizing
+    quantum search is more constrained.
+  </li>
+</ul>
+
+<div class="callout callout-info">
+  <strong>Note.</strong>
+  <p>
+    Despite these caveats, Grover's algorithm remains one of the most important quantum algorithms
+    because it establishes a fundamental separation between classical and quantum computation for
+    the broadest possible class of problems. Even when the speedup is "only" quadratic, it
+    represents the maximum quantum advantage achievable for search without structural assumptions.
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="optimality">
+<h2>12.6 Optimality: Grover's Speedup Is the Best Possible</h2>
+
+<p>
+  One of the most remarkable facts about Grover's algorithm is that it is <em>optimal</em>. No
+  quantum algorithm - no matter how clever - can solve unstructured search using fewer than
+  $\Omega(\sqrt{N/M})$ queries. This was proved by Bennett, Bernstein, Brassard, and Vazirani
+  (BBBV) in 1997, in one of the foundational results of quantum complexity theory.
+</p>
+
+<h3>The BBBV Lower Bound</h3>
+
+<p>
+  The BBBV theorem states:
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    <strong>BBBV Theorem:</strong> Any quantum algorithm that solves the unstructured search
+    problem with constant success probability must make $\Omega(\sqrt{N/M})$ queries to the
+    oracle, where $N$ is the number of items and $M$ is the number of solutions. For the
+    single-solution case ($M = 1$), this gives $\Omega(\sqrt{N})$.
+  </p>
+</div>
+
+<p>
+  The proof uses an elegant adversary argument. The key insight is that quantum mechanics is a
+  linear, norm-preserving theory. After $T$ queries, the quantum state can only have accumulated
+  $O(T/\sqrt{N})$ "knowledge" about which item is marked, because each query can only move
+  $O(1/\sqrt{N})$ amplitude toward the marked item. To accumulate constant probability on the
+  marked item, you need $T = \Omega(\sqrt{N})$ queries.
+</p>
+
+<p>
+  More precisely, the proof shows that if a quantum algorithm makes $T$ queries and the oracle is
+  chosen uniformly at random from all possible oracles (each marking a single item), then the
+  algorithm's state after $T$ queries is close to what it would be if no item were marked,
+  unless $T = \Omega(\sqrt{N})$. This closeness is measured by the trace distance between the
+  actual state and the "no-solution" state, and the BBBV argument bounds how quickly this
+  distance can grow.
+</p>
+
+<h3>Implications for Quantum Computing</h3>
+
+<p>
+  The BBBV lower bound has profound consequences:
+</p>
+
+<ul>
+  <li>
+    <strong>Quantum computers cannot solve NP-complete problems in polynomial time</strong>
+    (at least not by unstructured search). Since NP-complete problems have search spaces of size
+    $2^{n}$ where $n$ is the input size, Grover's algorithm reduces this to $2^{n/2}$ - still
+    exponential. This means that if P is not equal to NP, then BQP (the class of problems
+    efficiently solvable by quantum computers) does not contain NP, at least via this approach.
+    The question of whether BQP contains NP remains open, but the BBBV bound rules out the most
+    natural route.
+  </li>
+  <li>
+    <strong>Quadratic is the maximum generic speedup.</strong> For problems with no exploitable
+    structure beyond a yes/no verifier, a quantum computer can offer at most a quadratic speedup
+    over classical brute force. To get exponential speedups (like Shor's algorithm), you must
+    exploit specific mathematical structure.
+  </li>
+  <li>
+    <strong>Structure matters more than quantumness.</strong> The difference between Shor's
+    exponential speedup and Grover's quadratic speedup illustrates a deep lesson: quantum
+    computers are not uniformly faster at everything. Their advantage depends critically on the
+    structure of the problem. The Quantum Fourier Transform exploits periodicity; Grover's
+    algorithm exploits the minimal structure of a search oracle.
+  </li>
+</ul>
+
+<h3>The Hybrid Polynomial Method</h3>
+
+<p>
+  The BBBV result has been refined and generalized using the <em>polynomial method</em>,
+  developed by Beals, Buhrman, Cleve, Mosca, and de Wolf. This technique shows that any
+  quantum query algorithm computing a Boolean function $f$ must make $\Omega(\sqrt{\deg(f)})$
+  queries, where $\deg(f)$ is the degree of the polynomial representing $f$. For the
+  OR function on $N$ bits (which is equivalent to the search problem), $\deg(\text{OR}) = N$,
+  recovering the $\Omega(\sqrt{N})$ lower bound.
+</p>
+
+<p>
+  Together, these results paint a precise picture: Grover's algorithm extracts every last drop
+  of quantum advantage available for unstructured search. It is not merely a good algorithm - it
+  is the <em>best possible</em> algorithm for this problem, up to constant factors.
+</p>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="review">
+<h2>Chapter 12 Review</h2>
+
+<div class="flashcard-deck" data-component="flashcard-deck">
+  <div class="flashcard-deck-header">Chapter 12 Review</div>
+
+  <div class="flashcard" data-card-id="ch12-search-speedup">
+    <div class="card-front">What speedup does Grover's algorithm provide for unstructured search, and how many oracle queries does it require?</div>
+    <div class="card-back">
+      Grover's algorithm provides a quadratic speedup. For searching among $N$ items with $M$ solutions, it requires $O(\sqrt{N/M})$ oracle queries, compared to $\Omega(N/M)$ classically. For a single solution ($M = 1$), this is $O(\sqrt{N})$ versus $O(N)$.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch12-geometric-rotation">
+    <div class="card-front">Describe the geometric picture of Grover's algorithm. What two states define the relevant subspace, and what operation does each Grover iteration perform?</div>
+    <div class="card-back">
+      The algorithm operates in the 2D subspace spanned by $|\text{good}\rangle$ (uniform superposition over solutions) and $|\text{bad}\rangle$ (uniform superposition over non-solutions). Each Grover iteration is a rotation by $2\theta = 2\arcsin(\sqrt{M/N})$ toward $|\text{good}\rangle$, achieved by composing two reflections: the oracle reflection (about $|\text{bad}\rangle$) and the diffusion reflection (about $|s\rangle$).
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch12-optimal-iterations">
+    <div class="card-front">What is the formula for the optimal number of Grover iterations, and what happens if you use too many?</div>
+    <div class="card-back">
+      The optimal number of iterations is $k_{\text{opt}} = \lfloor \pi/(4\theta) - 1/2 \rfloor$ where $\theta = \arcsin(\sqrt{M/N})$, approximately $(\pi/4)\sqrt{N/M}$. Using too many iterations causes the state to rotate <em>past</em> $|\text{good}\rangle$, decreasing the success probability. The behavior is periodic, not monotonically improving.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch12-diffusion-operator">
+    <div class="card-front">What does the diffusion operator $2|s\rangle\langle s| - I$ do to the amplitudes of a quantum state?</div>
+    <div class="card-back">
+      It performs an "inversion about the mean." If the average amplitude is $\bar{a}$, each amplitude $a_x$ is mapped to $2\bar{a} - a_x$. Amplitudes below the mean are boosted above it, and amplitudes above the mean are pushed below it. After the oracle has made the marked states' amplitudes negative (below the mean), the diffusion operator amplifies them.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch12-quantum-counting">
+    <div class="card-front">What is quantum counting, and how does it solve the problem of not knowing the number of solutions $M$ in advance?</div>
+    <div class="card-back">
+      Quantum counting applies Quantum Phase Estimation (QPE) to the Grover operator $G = U_s U_f$. Since $G$ rotates by $2\theta$ in the good/bad subspace, its eigenvalues are $e^{\pm 2i\theta}$. QPE estimates $\theta$, from which we recover $M = N\sin^2(\theta)$. We can then compute the optimal number of Grover iterations.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch12-bbbv-theorem">
+    <div class="card-front">What does the BBBV theorem prove, and why is it significant?</div>
+    <div class="card-back">
+      The BBBV theorem (Bennett, Bernstein, Brassard, Vazirani, 1997) proves that any quantum algorithm solving unstructured search with constant success probability requires $\Omega(\sqrt{N})$ oracle queries. This means Grover's algorithm is asymptotically optimal - no quantum algorithm can do better. It shows the quadratic speedup is the maximum possible for unstructured search.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch12-np-not-polynomial">
+    <div class="card-front">Can Grover's algorithm solve NP-complete problems in polynomial time? Why or why not?</div>
+    <div class="card-back">
+      No. NP-complete problems have search spaces of size $2^n$, so Grover's algorithm reduces this to $O(2^{n/2})$ - still exponential, just with a halved exponent. The BBBV lower bound shows this quadratic speedup is optimal for unstructured search, so quantum computers cannot solve NP-complete problems in polynomial time via this route.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch12-grover-vs-shor">
+    <div class="card-front">Why does Shor's algorithm achieve an exponential speedup while Grover's algorithm achieves only a quadratic speedup?</div>
+    <div class="card-back">
+      Shor's algorithm exploits the specific mathematical structure of periodicity in modular exponentiation, using the Quantum Fourier Transform to extract this structure efficiently. Grover's algorithm works on unstructured problems with no such exploitable pattern. The BBBV lower bound proves that without structure, quadratic is the best possible quantum speedup. Structure-exploiting algorithms can do exponentially better, but only for problems with the right structure.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</section>
+
+    </article>
+
+    
+    <nav class="chapter-nav" aria-label="Chapter navigation">
+      <a href="11-shor.html" class="prev">&larr; Chapter 11: Shor&#39;s Algorithm</a>
+      <span class="nav-spacer"></span>
+      <a href="13-hardware.html" class="next">Chapter 13: How to Build a Quantum Computer &rarr;</a>
+    </nav>
+    
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof renderMathInElement !== "undefined") {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "$", right: "$", display: false}
+          ],
+          throwOnError: false
+        });
+      }
+    });
+  </script>
+  
+  <script>
+  "use strict";
+  
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function isDark() { return window.matchMedia("(prefers-color-scheme: dark)").matches; }
+  function renderMath(el) {
+    if (typeof renderMathInElement === "function")
+      renderMathInElement(el, { delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}], throwOnError: false });
+  }
+
+  
+  var wasmReady = null;
+  function ensureWasm() {
+    if (!wasmReady) {
+      wasmReady = (async function() {
+        var go = new Go();
+        var result = await WebAssembly.instantiateStreaming(fetch("../main.wasm"), go.importObject);
+        go.run(result.instance);
+      })();
+    }
+    return wasmReady;
+  }
+
+  
+  var SRS_KEY = "goqu-srs";
+  function srsLoad() { try { return JSON.parse(localStorage.getItem(SRS_KEY) || "{}"); } catch(e) { return {}; } }
+  function srsSave(d) { localStorage.setItem(SRS_KEY, JSON.stringify(d)); }
+  function getCardState(id) { var d = srsLoad(); return d[id] || {interval:1, ease:2.5, due:0, reps:0}; }
+  function reviewCard(id, q) {
+    var d = srsLoad(), s = d[id] || {interval:1, ease:2.5, due:0, reps:0};
+    if (q >= 3) {
+      s.reps++;
+      if (s.reps === 1) s.interval = 1;
+      else if (s.reps === 2) s.interval = 6;
+      else s.interval = Math.round(s.interval * s.ease);
+      s.ease = Math.max(1.3, s.ease + 0.1 - (5-q)*(0.08 + (5-q)*0.02));
+    } else { s.reps = 0; s.interval = 1; }
+    s.due = Date.now() + s.interval * 86400000;
+    d[id] = s; srsSave(d);
+  }
+
+  
+  function initSandbox(el) {
+    var code = el.querySelector(".code"), output = el.querySelector(".output");
+    if (!code || !output) return;
+    var runBtn = el.querySelector('[data-action="run"]'), resetBtn = el.querySelector('[data-action="reset"]');
+    var shotsEl = el.querySelector("[data-shots]"), orig = code.value;
+    function shots() { return parseInt(shotsEl ? shotsEl.value : el.dataset.shots || "1024", 10); }
+    async function run() {
+      await ensureWasm();
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(code.value, shots(), isDark()));
+        if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+        output.innerHTML = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+    if (runBtn) runBtn.addEventListener("click", run);
+    if (resetBtn) resetBtn.addEventListener("click", function() { code.value = orig; });
+    if (el.hasAttribute("data-autorun")) run();
+  }
+
+  
+  function initSimulation(el) {
+    var tmplEl = el.querySelector(".sim-qasm"), output = el.querySelector(".sim-output");
+    var sliders = el.querySelectorAll('input[type="range"]');
+    var selects = el.querySelectorAll("select[data-param]");
+    if (!tmplEl || !output || (sliders.length === 0 && selects.length === 0)) return;
+    var tmpl = tmplEl.textContent, pending = false;
+    var useNoisy = el.hasAttribute("data-noisy");
+    var useComparison = el.hasAttribute("data-comparison");
+    var useExpectation = el.hasAttribute("data-expectation");
+    var useClifford = el.hasAttribute("data-clifford");
+    async function update() {
+      if (pending) return; pending = true;
+      await ensureWasm();
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var params = {};
+        sliders.forEach(function(s) { params[s.dataset.param] = parseFloat(s.value); var o = s.parentElement.querySelector("output"); if (o) o.textContent = parseFloat(s.value).toFixed(2); });
+        selects.forEach(function(s) { params[s.dataset.param] = s.value; });
+        var qasm = tmpl;
+        for (var k in params) qasm = qasm.replaceAll("{"+k+"}", params[k].toString());
+        var html = "";
+        if (useComparison && window.compareIdealNoisy) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.compareIdealNoisy(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="comparison-panels"><div class="comparison-panel"><h4>Ideal</h4>' + (r.idealHistogramSVG||"") + '</div><div class="comparison-panel"><h4>Noisy</h4>' + (r.noisyHistogramSVG||"") + '</div></div>';
+          if (r.stateCitySVG) html += r.stateCitySVG;
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useNoisy && window.runNoisyQASM) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.runNoisyQASM(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"") + (r.stateCitySVG||"");
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useClifford && window.runClifford) {
+          var r = JSON.parse(window.runClifford(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"");
+          if (r.stabilizers) { html += '<div class="stabilizer-table"><h4>Stabilizers</h4><table>'; r.stabilizers.forEach(function(s) { html += '<tr><td>' + formatStabilizer(s) + '</td></tr>'; }); html += '</table></div>'; }
+        } else if (useExpectation && window.computeExpectation) {
+          var pauliStr = params.pauliStr || el.dataset.pauli || "Z";
+          var r = JSON.parse(window.computeExpectation(qasm, pauliStr, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="sim-stats"><span>&lt;' + esc(pauliStr) + '&gt; = ' + r.expectation.toFixed(6) + '</span></div>';
+        } else {
+          var r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+          
+          if (el.hasAttribute("data-bloch") && window.getStateVector && window.renderBloch) {
+            try {
+              var sv = JSON.parse(window.getStateVector(qasm));
+              if (sv.amplitudes && sv.amplitudes.length === 2) {
+                var a = sv.amplitudes;
+                var blochSVG = window.renderBloch(a[0].re, a[0].im, a[1].re, a[1].im, isDark());
+                if (blochSVG) html += blochSVG;
+              }
+            } catch(e) {   }
+          }
+        }
+        output.innerHTML = html;
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+      pending = false;
+    }
+    sliders.forEach(function(s) { s.addEventListener("input", update); });
+    selects.forEach(function(s) { s.addEventListener("change", update); });
+    update();
+  }
+
+  
+  function formatStabilizer(s) {
+    if (!s) return "";
+    var sign = s[0], ops = s.slice(1), html = '<span class="stab-sign">' + esc(sign) + '</span>';
+    for (var i = 0; i < ops.length; i++) {
+      var c = ops[i], cls = "stab-" + c.toLowerCase();
+      html += '<span class="' + cls + '">' + c + '</span>';
+    }
+    return html;
+  }
+
+  
+  function initExercise(el) {
+    var code = el.querySelector(".code"), feedback = el.querySelector(".exercise-feedback");
+    var checkBtn = el.querySelector('[data-action="check"]');
+    var hintBtn = el.querySelector('[data-action="hint"]'), hintEl = el.querySelector(".exercise-hint");
+    if (!code || !feedback || !checkBtn) return;
+    var expected = {}, tol = 0.1;
+    var expEl = el.querySelector(".exercise-expected");
+    if (expEl) expEl.querySelectorAll("[data-state]").forEach(function(span) {
+      expected[span.dataset.state] = parseFloat(span.dataset.prob);
+      if (span.dataset.tolerance) tol = parseFloat(span.dataset.tolerance);
+    });
+    checkBtn.addEventListener("click", async function() {
+      await ensureWasm();
+      feedback.className = "exercise-feedback visible";
+      feedback.textContent = "Checking...";
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(code.value, 1024, isDark()));
+        if (r.error) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + r.error; return; }
+        if (Object.keys(expected).length === 0) { feedback.className = "exercise-feedback visible pass"; feedback.innerHTML = "Circuit ran successfully."; return; }
+        var prob = JSON.parse(window.getProbabilities(code.value, isDark()));
+        if (prob.error) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + prob.error; return; }
+        var actual = {};
+        for (var i = 0; i < prob.labels.length; i++) actual[prob.labels[i]] = prob.probabilities[i];
+        var ok = true, msgs = [];
+        for (var s in expected) {
+          var a = actual[s] || 0, p = expected[s];
+          if (Math.abs(a - p) > tol) { ok = false; msgs.push("|" + s + "\u27E9: expected " + (p*100|0) + "%, got " + (a*100|0) + "%"); }
+        }
+        if (ok) { feedback.className = "exercise-feedback visible pass"; feedback.innerHTML = "Correct! Your circuit produces the expected output."; }
+        else { feedback.className = "exercise-feedback visible fail"; feedback.innerHTML = "Not quite. " + msgs.join("; ") + "."; }
+        renderMath(feedback);
+      } catch(e) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + e.message; }
+    });
+    if (hintBtn && hintEl) hintBtn.addEventListener("click", function() { hintEl.style.display = hintEl.style.display === "none" ? "block" : "none"; });
+  }
+
+  
+  function initFlashcardDeck(el) {
+    el.querySelectorAll(".flashcard").forEach(function(card) {
+      var id = card.dataset.cardId;
+      if (!id) return;
+      var state = getCardState(id);
+      if (state.due > 0 && state.due > Date.now()) card.classList.add("reviewed");
+      card.addEventListener("click", function(e) {
+        if (e.target.closest("button")) return;
+        card.classList.toggle("flipped");
+        var back = card.querySelector(".card-back");
+        if (back) renderMath(back);
+      });
+      var easyBtn = card.querySelector(".easy"), hardBtn = card.querySelector(".hard");
+      if (easyBtn) easyBtn.addEventListener("click", function() { reviewCard(id, 4); card.classList.remove("flipped"); card.classList.add("reviewed"); });
+      if (hardBtn) hardBtn.addEventListener("click", function() { reviewCard(id, 2); card.classList.remove("flipped"); });
+    });
+  }
+
+  
+  function initPOE(el) {
+    var steps = el.querySelectorAll(".poe-step"), prog = el.querySelectorAll(".poe-progress-step");
+    if (steps.length === 0) return;
+    var cur = 0;
+    function show(idx) {
+      steps.forEach(function(s,i) { s.classList.toggle("active", i === idx); });
+      prog.forEach(function(s,i) { s.classList.remove("active","done"); if (i < idx) s.classList.add("done"); if (i === idx) s.classList.add("active"); });
+      cur = idx;
+      var active = steps[idx];
+      if (active) active.querySelectorAll('.sandbox:not([data-initialized])').forEach(function(sb) { sb.setAttribute("data-initialized","true"); initSandbox(sb); });
+    }
+    el.querySelectorAll('[data-action="next"]').forEach(function(btn) { btn.addEventListener("click", function() { if (cur < steps.length - 1) show(cur + 1); }); });
+    el.querySelectorAll('[data-action="complete"]').forEach(function(btn) { btn.addEventListener("click", function() { prog.forEach(function(s) { s.classList.remove("active"); s.classList.add("done"); }); }); });
+    show(0);
+  }
+
+  
+  function initStepThrough(el) {
+    var qasmEl = el.querySelector(".step-qasm");
+    var output = el.querySelector(".step-output");
+    var prevBtn = el.querySelector('[data-action="prev"]');
+    var nextBtn = el.querySelector('[data-action="next"]');
+    var stepInfo = el.querySelector(".step-info");
+    if (!qasmEl || !output) return;
+    var qasm = qasmEl.textContent;
+    var mode = el.dataset.mode || "clifford"; 
+    var steps = null, cur = -1;
+
+    async function load() {
+      await ensureWasm();
+      try {
+        if (mode === "clifford" && window.cliffordStepThrough) {
+          var r = JSON.parse(window.cliffordStepThrough(qasm));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+          
+          steps.unshift({gate: "init", qubits: [], stabilizers: r.steps.length > 0 ? null : []});
+        } else if (mode === "grover" && window.groverStepThrough) {
+          var nq = parseInt(el.dataset.qubits || "2", 10);
+          var targets = JSON.parse(el.dataset.targets || "[]");
+          var r = JSON.parse(window.groverStepThrough(nq, targets.join(",")));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+        }
+        if (steps && steps.length > 0) { cur = 0; renderStep(); }
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    function renderStep() {
+      if (!steps || cur < 0 || cur >= steps.length) return;
+      var s = steps[cur];
+      var html = "";
+      if (mode === "clifford") {
+        if (s.gate === "init") {
+          html = '<p class="step-label">Initial state |0...0&gt;</p>';
+          
+          if (steps.length > 1 && steps[1].stabilizers) {
+            var nq = steps[1].stabilizers[0].length - 1;
+            html += '<div class="stabilizer-table"><table>';
+            for (var i = 0; i < nq; i++) {
+              var row = "+";
+              for (var j = 0; j < nq; j++) row += (j === i) ? "Z" : "I";
+              html += '<tr><td>' + formatStabilizer(row) + '</td></tr>';
+            }
+            html += '</table></div>';
+          }
+        } else {
+          html = '<p class="step-label">After <strong>' + esc(s.gate) + '</strong> on qubit' + (s.qubits.length > 1 ? 's ' : ' ') + s.qubits.join(', ') + '</p>';
+          if (s.stabilizers) {
+            html += '<div class="stabilizer-table"><table>';
+            s.stabilizers.forEach(function(st) { html += '<tr><td>' + formatStabilizer(st) + '</td></tr>'; });
+            html += '</table></div>';
+          }
+        }
+      } else if (mode === "grover") {
+        html = '<p class="step-label">Iteration ' + s.iteration + '</p>';
+        if (s.probabilities) {
+          html += '<div class="amplitude-bars">';
+          for (var i = 0; i < s.probabilities.length; i++) {
+            var label = i.toString(2).padStart(Math.ceil(Math.log2(s.probabilities.length)), '0');
+            var pct = (s.probabilities[i] * 100).toFixed(1);
+            var isTarget = el.dataset.targets && JSON.parse(el.dataset.targets).indexOf(i) >= 0;
+            html += '<div class="amp-bar' + (isTarget ? ' target' : '') + '"><div class="amp-fill" style="height:' + pct + '%"></div><span class="amp-label">|' + label + '&gt;</span><span class="amp-value">' + pct + '%</span></div>';
+          }
+          html += '</div>';
+        }
+      }
+      output.innerHTML = html;
+      if (stepInfo) stepInfo.textContent = "Step " + cur + " / " + (steps.length - 1);
+      if (prevBtn) prevBtn.disabled = (cur === 0);
+      if (nextBtn) nextBtn.disabled = (cur >= steps.length - 1);
+    }
+
+    if (prevBtn) prevBtn.addEventListener("click", function() { if (cur > 0) { cur--; renderStep(); } });
+    if (nextBtn) nextBtn.addEventListener("click", function() { if (steps && cur < steps.length - 1) { cur++; renderStep(); } });
+    load();
+  }
+
+  
+  document.addEventListener("DOMContentLoaded", function() {
+    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough};
+    document.querySelectorAll("[data-component]").forEach(function(el) { var fn = reg[el.dataset.component]; if (fn) fn(el); });
+  });
+  </script>
+  
+</body>
+</html>

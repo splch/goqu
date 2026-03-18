@@ -1,0 +1,1775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chapter 13: How to Build a Quantum Computer - Goqu Textbook</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/contrib/auto-render.min.js"></script>
+  
+  <link rel="preload" href="../main.wasm" as="fetch" type="application/wasm" crossorigin>
+  <script src="../wasm_exec.js"></script>
+  
+</head>
+<body>
+  <input type="checkbox" id="nav-toggle" hidden>
+  <label for="nav-toggle" class="nav-hamburger" aria-label="Toggle navigation">
+    <span></span><span></span><span></span>
+  </label>
+
+  <nav class="sidebar" aria-label="Table of contents">
+    <a href="../index.html" class="sidebar-logo">Goqu Textbook</a>
+    
+    <details>
+      <summary>Part 1: The World of Classical Computing</summary>
+      <ol start="1">
+        
+        <li value="1"><a href="01-computation.html">What Is Computation?</a></li>
+        
+        <li value="2"><a href="02-math-of-information.html">The Mathematics of Information</a></li>
+        
+        <li value="3"><a href="03-reversible-computing.html">Reversible Computing</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 2: Entering the Quantum World</summary>
+      <ol start="4">
+        
+        <li value="4"><a href="04-the-first-qubit.html">The First Qubit</a></li>
+        
+        <li value="5"><a href="05-quantum-gates.html">Quantum Gates</a></li>
+        
+        <li value="6"><a href="06-entanglement.html">Multiple Qubits and Entanglement</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 3: Quantum Protocols</summary>
+      <ol start="7">
+        
+        <li value="7"><a href="07-teleportation.html">Quantum Teleportation and Communication</a></li>
+        
+        <li value="8"><a href="08-cryptography.html">Quantum Cryptography</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 4: Quantum Algorithms - The First Wave</summary>
+      <ol start="9">
+        
+        <li value="9"><a href="09-oracles.html">Oracles and Quantum Parallelism</a></li>
+        
+        <li value="10"><a href="10-qft.html">The Quantum Fourier Transform</a></li>
+        
+        <li value="11"><a href="11-shor.html">Shor&#39;s Algorithm</a></li>
+        
+        <li value="12"><a href="12-grover.html">Grover&#39;s Algorithm</a></li>
+        
+      </ol>
+    </details>
+    
+    <details open>
+      <summary>Part 5: Real Quantum Hardware</summary>
+      <ol start="13">
+        
+        <li value="13"><a href="13-hardware.html" aria-current="page">How to Build a Quantum Computer</a></li>
+        
+        <li value="14"><a href="14-noise.html">Noise, Decoherence, and the NISQ Era</a></li>
+        
+        <li value="15"><a href="15-programming.html">Programming Quantum Computers</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 6: Quantum Error Correction</summary>
+      <ol start="16">
+        
+        <li value="16"><a href="16-classical-ec.html">Classical Error Correction Refresher</a></li>
+        
+        <li value="17"><a href="17-qec-fundamentals.html">Quantum Error Correction Fundamentals</a></li>
+        
+        <li value="18"><a href="18-stabilizers.html">The Stabilizer Formalism</a></li>
+        
+        <li value="19"><a href="19-surface-codes.html">Surface Codes and Topological Protection</a></li>
+        
+        <li value="20"><a href="20-fault-tolerance.html">Fault-Tolerant Quantum Computing</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 7: Variational and Near-Term Algorithms</summary>
+      <ol start="21">
+        
+        <li value="21"><a href="21-variational.html">The Variational Quantum Computing Paradigm</a></li>
+        
+        <li value="22"><a href="22-vqe.html">Variational Quantum Eigensolver (VQE)</a></li>
+        
+        <li value="23"><a href="23-qaoa.html">Quantum Approximate Optimization (QAOA)</a></li>
+        
+        <li value="24"><a href="24-qml.html">Quantum Machine Learning</a></li>
+        
+        <li value="25"><a href="25-error-mitigation.html">Quantum Error Mitigation</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 8: Quantum Information Theory</summary>
+      <ol start="26">
+        
+        <li value="26"><a href="26-states-measurements.html">Quantum States and Measurements, Revisited</a></li>
+        
+        <li value="27"><a href="27-channels.html">Quantum Channels and Operations</a></li>
+        
+        <li value="28"><a href="28-entropy.html">Quantum Entropy and Information</a></li>
+        
+        <li value="29"><a href="29-shannon.html">Quantum Shannon Theory</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 9: Quantum Complexity and Computation Theory</summary>
+      <ol start="30">
+        
+        <li value="30"><a href="30-complexity.html">Quantum Computational Complexity</a></li>
+        
+        <li value="31"><a href="31-hidden-subgroup.html">The Hidden Subgroup Problem and Beyond</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 10: Quantum Simulation</summary>
+      <ol start="32">
+        
+        <li value="32"><a href="32-simulation-why.html">Why Quantum Simulation Matters</a></li>
+        
+        <li value="33"><a href="33-digital-simulation.html">Digital Quantum Simulation</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 11: Quantum Networking, Cryptography, and Sensing</summary>
+      <ol start="34">
+        
+        <li value="34"><a href="34-quantum-internet.html">The Quantum Internet</a></li>
+        
+        <li value="35"><a href="35-advanced-crypto.html">Advanced Quantum Cryptography</a></li>
+        
+        <li value="36"><a href="36-sensing.html">Quantum Sensing and Metrology</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 12: Frontiers and the Future</summary>
+      <ol start="37">
+        
+        <li value="37"><a href="37-topological.html">Topological Quantum Computing</a></li>
+        
+        <li value="38"><a href="38-quantum-ai.html">Quantum Computing and Artificial Intelligence</a></li>
+        
+        <li value="39"><a href="39-open-problems.html">Open Problems in Quantum Computing</a></li>
+        
+        <li value="40"><a href="40-ecosystem.html">The Quantum Computing Ecosystem Today</a></li>
+        
+        <li value="41"><a href="41-career.html">Building Your Quantum Computing Career</a></li>
+        
+        <li value="42"><a href="42-what-next.html">What Comes Next</a></li>
+        
+      </ol>
+    </details>
+    
+  </nav>
+
+  <main>
+    
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="../index.html">Home</a> / <a href="../index.html#part-5">Part 5</a> / <span>Chapter 13</span>
+    </nav>
+    
+
+    <article>
+      <h1>Chapter 13: How to Build a Quantum Computer</h1>
+      <p>
+  In the first twelve chapters of this textbook, we treated quantum computation as an abstract
+  mathematical discipline. We manipulated qubits, applied unitary gates, and analyzed algorithms
+  without ever asking the most basic engineering question: what <em>is</em> a qubit, physically?
+  What real-world object stores a quantum superposition, and how do you poke it with just the
+  right pulse to execute a Hadamard or a CNOT? This chapter answers those questions. We will
+  survey the leading physical platforms for quantum computing, understand the criteria that any
+  platform must satisfy, and confront the engineering challenges that make building a quantum
+  computer one of the hardest technological feats ever attempted.
+</p>
+
+<p>
+  The landscape of quantum hardware is diverse and rapidly evolving. Superconducting circuits
+  operate at temperatures colder than outer space. Trapped ions float in electromagnetic cages,
+  manipulated by precisely tuned lasers. Neutral atoms are arranged by optical tweezers into
+  programmable arrays. Photons race through waveguides at room temperature. Each approach has
+  distinct strengths and weaknesses, and no single platform has yet emerged as the definitive
+  winner. Understanding these trade-offs is essential for anyone who wants to move beyond
+  textbook quantum computing and engage with the technology as it actually exists today.
+</p>
+
+<!-- ================================================================== -->
+
+<section id="what-makes-a-good-qubit">
+
+<h2>13.1 What Makes a Good Qubit? (DiVincenzo's Criteria)</h2>
+
+<p>
+  In 2000, the physicist David DiVincenzo of IBM Research published a landmark paper identifying
+  five criteria that any physical system must satisfy to serve as a practical quantum computer.
+  These criteria, now universally known as <strong>DiVincenzo's criteria</strong>, provide the
+  standard checklist against which every hardware platform is evaluated.
+</p>
+
+<h3>Criterion 1: A Scalable Physical System with Well-Characterized Qubits</h3>
+
+<p>
+  The system must contain identifiable two-level quantum systems (qubits) whose properties are
+  well understood. Crucially, it must be possible to add more qubits without fundamentally
+  changing the physics. Scalability means not just fitting more qubits on a chip but ensuring
+  that control and readout infrastructure scales manageably as the system grows.
+</p>
+
+<h3>Criterion 2: The Ability to Initialize Qubits to a Known State</h3>
+
+<p>
+  Before computation begins, all qubits must be set to a well-defined starting state, typically
+  $|0\rangle$. In practice, initialization is achieved by cooling to the ground state (for
+  superconducting qubits), optically pumping ions into a specific electronic state, or similar
+  techniques. Initialization fidelity matters: qubits starting in the wrong state propagate
+  errors through the entire computation.
+</p>
+
+<h3>Criterion 3: Long Coherence Times (Relative to Gate Operations)</h3>
+
+<p>
+  Qubits are fragile. Interactions with the environment cause <strong>decoherence</strong> -
+  the gradual loss of quantum information. Two timescales characterize this process:
+</p>
+
+<ul>
+  <li>
+    <strong>$T_1$ (energy relaxation time):</strong> The timescale on which an excited qubit
+    ($|1\rangle$) spontaneously decays to the ground state ($|0\rangle$). This is analogous to
+    a ball rolling downhill - the qubit loses energy to its environment.
+  </li>
+  <li>
+    <strong>$T_2$ (dephasing time):</strong> The timescale on which the <em>phase</em> of a
+    superposition is randomized. A qubit in the state
+    $\frac{1}{\sqrt{2}}(|0\rangle + |1\rangle)$ gradually loses the definite phase relationship
+    between its $|0\rangle$ and $|1\rangle$ components, degrading into an incoherent mixture.
+    Always $T_2 \leq 2 T_1$.
+  </li>
+</ul>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    What matters is not the absolute coherence time, but the <strong>ratio</strong> of coherence
+    time to gate time. If a gate takes 20 nanoseconds and $T_2 = 100$ microseconds, you can
+    execute roughly 5,000 gates before decoherence destroys your quantum state. This ratio
+    determines how deep a circuit the hardware can reliably execute.
+  </p>
+</div>
+
+<h3>Criterion 4: A Universal Set of Quantum Gates</h3>
+
+<p>
+  The system must support a set of gates sufficient to approximate any unitary operation to
+  arbitrary precision. As we learned in earlier chapters, a common universal gate set consists
+  of arbitrary single-qubit rotations plus a two-qubit entangling gate such as CNOT. In
+  practice, different hardware platforms implement different native gate sets - for instance,
+  IBM systems use the ECR (echoed cross-resonance) gate as their native two-qubit gate, while
+  trapped-ion systems typically implement the Molmer-Sorensen or XX gate. Compilers decompose
+  abstract circuits into whichever native gates the hardware provides.
+</p>
+
+<h3>Criterion 5: A Qubit-Specific Measurement Capability</h3>
+
+<p>
+  At the end of a computation, you must be able to measure individual qubits and read out
+  their states as classical bits (0 or 1). The measurement must be fast relative to coherence
+  times and must have high fidelity - meaning if the qubit is in $|0\rangle$, the readout
+  should report 0 with high probability, and likewise for $|1\rangle$. Measurement fidelities
+  above 99% are now standard on leading platforms.
+</p>
+
+<div class="callout callout-info">
+  <strong>Beyond the Five.</strong>
+  <p>
+    DiVincenzo also identified two additional criteria specifically for quantum communication
+    (as opposed to computation): (6) the ability to convert between stationary and flying
+    qubits, and (7) the ability to faithfully transmit flying qubits between specified
+    locations. These are essential for quantum networking and distributed quantum computing but
+    are not required for a standalone quantum processor.
+  </p>
+</div>
+
+<p>
+  Every platform in the following sections can be evaluated against these five criteria. No
+  platform satisfies all perfectly, and improving one often comes at the expense of another -
+  a tension that drives the diversity of hardware approaches.
+</p>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="superconducting-qubits">
+
+<h2>13.2 Superconducting Qubits</h2>
+
+<p>
+  Superconducting qubits are the most widely deployed quantum computing platform today,
+  championed by IBM, Google, Rigetti, and others. They encode quantum information in the
+  energy levels of tiny electrical circuits cooled to temperatures near absolute zero, where
+  electrical resistance vanishes and quantum effects dominate macroscopic behavior.
+</p>
+
+<h3>The Transmon Qubit</h3>
+
+<p>
+  The workhorse of the superconducting approach is the <strong>transmon</strong> (short for
+  "transmission-line shunted plasma oscillation qubit"), developed at Yale in 2007 by Koch,
+  Houck, and colleagues. A transmon is a nonlinear LC oscillator where the inductor is
+  replaced by a <strong>Josephson junction</strong> - a thin insulating barrier between two
+  superconducting electrodes.
+</p>
+
+<p>
+  An ordinary LC circuit has evenly spaced energy levels like a harmonic oscillator, making it
+  useless as a qubit: a pulse exciting $|0\rangle \to |1\rangle$ would also drive
+  $|1\rangle \to |2\rangle$. The Josephson junction introduces <strong>anharmonicity</strong>,
+  making the energy gaps unequal (typically by 200-300 MHz). This allows microwave pulses to
+  selectively address only the $|0\rangle$-$|1\rangle$ transition, defining a usable qubit.
+</p>
+
+<h3>Operating Environment: The Dilution Refrigerator</h3>
+
+<p>
+  Superconducting qubits must operate at approximately 10-20 millikelvin - about 100 times
+  colder than outer space (which sits at roughly 2.7 K due to the cosmic microwave background).
+  At these temperatures, thermal energy ($k_B T$) is far below the qubit's energy splitting
+  ($\hbar \omega$, typically 4-6 GHz), ensuring the qubit remains in its ground state unless
+  deliberately excited.
+</p>
+
+<p>
+  The cooling is achieved by a <strong>dilution refrigerator</strong>, a cryogenic system that
+  exploits the quantum properties of helium-3/helium-4 mixtures. A dilution refrigerator is a
+  multi-stage device roughly the size of a wardrobe, with thermal stages at ~50 K, ~4 K,
+  ~700 mK, ~100 mK, and finally ~10-15 mK at the mixing chamber where the quantum processor
+  sits. The infrastructure requirements are substantial: vacuum pumps, helium circulation,
+  heavily filtered microwave lines, and magnetic shielding.
+</p>
+
+<h3>Gates and Control</h3>
+
+<p>
+  Single-qubit gates are implemented by sending precisely calibrated microwave pulses (at the
+  qubit's resonant frequency, typically 4-6 GHz) through control lines connected to each qubit.
+  The pulse's amplitude, duration, and phase determine which rotation is applied to the qubit's
+  state on the Bloch sphere. A typical single-qubit gate takes roughly <strong>20-50
+  nanoseconds</strong>.
+</p>
+
+<p>
+  Two-qubit entangling gates exploit the coupling between neighboring qubits. IBM's systems
+  use the <strong>cross-resonance</strong> interaction: driving one qubit at the frequency of
+  its neighbor creates a conditional rotation, implementing a CNOT-like gate. Google's systems
+  use tunable couplers that allow qubits to be selectively brought into and out of resonance.
+  Two-qubit gates are slower and noisier than single-qubit gates, typically taking
+  <strong>50-100 nanoseconds</strong> with fidelities of 99-99.9%.
+</p>
+
+<h3>Connectivity and Topology</h3>
+
+<p>
+  Superconducting qubits are fabricated on planar chips using lithographic techniques. Each
+  qubit couples to a small number of nearest neighbors - typically 2 to 4 in a square lattice
+  or heavy-hex topology. To execute a CNOT between non-adjacent qubits, the compiler must
+  insert SWAP gates (each decomposing into three CNOTs) to route quantum information, adding
+  noise.
+</p>
+
+<div class="callout callout-warning">
+  <strong>Hardware Constraint.</strong>
+  <p>
+    On a superconducting chip with nearest-neighbor connectivity, executing a CNOT between
+    distant qubits may require multiple SWAP operations. Each additional SWAP introduces
+    errors. Algorithms designed for all-to-all connectivity (like many textbook circuits)
+    can incur significant overhead when compiled for superconducting hardware. This is why
+    circuit <strong>transpilation</strong> - adapting an abstract circuit to a specific
+    hardware topology - is a critical part of the quantum software stack.
+  </p>
+</div>
+
+<h3>Leading Processors</h3>
+
+<p>
+  <strong>IBM Heron (2023):</strong> 133 qubits in a heavy-hex lattice with tunable couplers,
+  achieving median two-qubit gate fidelities above 99.5%. Heron marked an architectural shift
+  from fixed-frequency transmons to tunable designs. IBM's roadmap targets 100,000+ qubits
+  by decade's end through modular multi-chip architectures.
+</p>
+
+<p>
+  <strong>Google Willow (2024):</strong> Google's Willow chip contains 105 qubits and
+  demonstrated a landmark error-correction result: increasing the surface code distance from 3
+  to 5 to 7 reduced the logical error rate at each step, achieving exponential suppression of
+  errors with scale. This was the first conclusive demonstration of the scaling behavior that
+  fault-tolerant quantum computing requires. Willow also achieved $T_1$ times exceeding
+  100 microseconds.
+</p>
+
+<h3>Performance Summary</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Metric</th>
+      <th>Typical Range</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>Qubit count</td><td>50-1,200 (current generation)</td></tr>
+    <tr><td>$T_1$ coherence</td><td>50-300 $\mu$s</td></tr>
+    <tr><td>$T_2$ coherence</td><td>50-200 $\mu$s</td></tr>
+    <tr><td>Single-qubit gate time</td><td>20-50 ns</td></tr>
+    <tr><td>Two-qubit gate time</td><td>50-100 ns</td></tr>
+    <tr><td>Single-qubit gate fidelity</td><td>99.9-99.97%</td></tr>
+    <tr><td>Two-qubit gate fidelity</td><td>99.0-99.9%</td></tr>
+    <tr><td>Readout fidelity</td><td>99.0-99.8%</td></tr>
+    <tr><td>Connectivity</td><td>Nearest-neighbor (2-4 neighbors)</td></tr>
+    <tr><td>Operating temperature</td><td>~15 mK</td></tr>
+  </tbody>
+</table>
+
+<p>
+  The sandbox below illustrates a key hardware constraint. We build a simple three-qubit GHZ
+  state. On a linear chain of superconducting qubits (where qubit 0 connects to qubit 1, and
+  qubit 1 connects to qubit 2, but qubit 0 does <em>not</em> directly connect to qubit 2),
+  this circuit maps naturally onto the hardware because both CNOTs target adjacent qubits.
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="10">OPENQASM 3.0;
+qubit[3] q;
+bit[3] c;
+// GHZ state: fits naturally on a linear chain
+// q[0]--q[1]--q[2] connectivity
+h q[0];
+cx q[0], q[1];   // adjacent: direct gate
+cx q[1], q[2];   // adjacent: direct gate
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+  You should see roughly equal probabilities for <code>000</code> and <code>111</code>, with
+  little probability on other outcomes. Both CNOT gates act on adjacent qubits, so no SWAP
+  routing is needed. Now consider what would happen if we needed a CNOT directly between
+  <code>q[0]</code> and <code>q[2]</code> on this same linear chain - we would need to insert
+  a SWAP through <code>q[1]</code>, tripling the two-qubit gate cost. Hardware topology matters.
+</p>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="trapped-ions">
+
+<h2>13.3 Trapped Ions</h2>
+
+<p>
+  Trapped-ion quantum computers use individual atoms, stripped of one electron to become
+  positively charged ions, as qubits. The ions are confined in free space by oscillating
+  electromagnetic fields (a <strong>Paul trap</strong> or linear ion trap) and manipulated by
+  precisely targeted laser beams or microwave fields. This approach, pioneered by groups at
+  NIST, Oxford, Innsbruck, and now commercialized by Quantinuum and IonQ, offers some of the
+  highest gate fidelities and longest coherence times of any platform.
+</p>
+
+<h3>How Ions Become Qubits</h3>
+
+<p>
+  The two qubit states $|0\rangle$ and $|1\rangle$ are encoded in two long-lived electronic
+  energy levels of the ion. Common choices include:
+</p>
+
+<ul>
+  <li>
+    <strong>Hyperfine qubits:</strong> Two hyperfine ground states of ions such as
+    $^{171}\text{Yb}^+$ (ytterbium) or $^{9}\text{Be}^+$ (beryllium), split by a few
+    gigahertz. These states have extremely long natural lifetimes - effectively infinite
+    for practical purposes, with $T_1$ times that can exceed minutes or even hours.
+  </li>
+  <li>
+    <strong>Optical qubits:</strong> A ground state and a metastable excited state in ions
+    such as $^{40}\text{Ca}^+$ (calcium) or $^{138}\text{Ba}^+$ (barium), connected by
+    an optical (visible-light) transition. These have shorter natural lifetimes (on the order
+    of seconds) but offer certain technical advantages for gate implementation.
+  </li>
+</ul>
+
+<h3>All-to-All Connectivity</h3>
+
+<p>
+  A chain of trapped ions in a linear Paul trap shares collective vibrational modes - the
+  ions can oscillate together like beads on a string. These shared motional modes serve as a
+  "quantum bus" that mediates entangling interactions between <em>any pair</em> of ions in
+  the chain, regardless of their physical separation. This <strong>all-to-all
+  connectivity</strong> is a major advantage over superconducting qubits. Any qubit can
+  directly interact with any other qubit without the need for SWAP routing.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    Trapped ions offer <strong>all-to-all connectivity</strong>: any qubit can be entangled
+    with any other qubit in a single gate operation. This eliminates the SWAP overhead that
+    plagues nearest-neighbor architectures. For algorithms requiring long-range interactions
+    (like the QFT used in Shor's algorithm), trapped ions can execute the circuit directly
+    without topological routing.
+  </p>
+</div>
+
+<h3>Gate Implementation</h3>
+
+<p>
+  <strong>Single-qubit gates</strong> are performed by applying laser pulses (or microwave
+  pulses for hyperfine qubits) resonant with the qubit transition. The pulse duration, phase,
+  and intensity determine the rotation angle and axis. Single-qubit fidelities routinely
+  exceed 99.99%.
+</p>
+
+<p>
+  <strong>Two-qubit entangling gates</strong> use laser beams to couple two ions through their
+  shared motional modes. The most common scheme is the <strong>Molmer-Sorensen gate</strong>,
+  which uses bichromatic laser fields (two frequencies symmetrically detuned from the qubit
+  transition) to create a state-dependent force on the ions. The resulting XX interaction
+  generates maximal entanglement. Two-qubit gate fidelities have reached 99.5-99.9% in
+  leading systems.
+</p>
+
+<p>
+  The primary downside is speed. Because gates rely on the relatively slow mechanical motion
+  of ions (oscillation frequencies of 1-5 MHz), two-qubit gates in trapped-ion systems
+  typically take <strong>100-500 microseconds</strong> - roughly 1,000 to 10,000 times slower
+  than superconducting two-qubit gates. However, coherence times are correspondingly much
+  longer, so the ratio of coherence time to gate time remains competitive.
+</p>
+
+<h3>Scalability: The QCCD Architecture</h3>
+
+<p>
+  A single linear ion chain becomes unwieldy beyond ~20-50 ions: the motional mode spectrum
+  gets crowded and cross-talk increases. The leading scaling approach is the <strong>quantum
+  charge-coupled device (QCCD)</strong> architecture (Kielpinski, Monroe, Wineland, 2002),
+  where ions are shuttled between multiple trap zones connected by junctions. Small groups
+  interact in "gate zones," and ions are physically transported as needed. Quantinuum's
+  H-series processors use this architecture.
+</p>
+
+<h3>Leading Systems</h3>
+
+<p>
+  <strong>Quantinuum H2 (2023-2024):</strong> Uses $^{171}\text{Yb}^+$ ions in a QCCD trap
+  with 56 qubits, two-qubit gate fidelities of 99.8%, and record quantum volume of 65,536
+  ($2^{16}$). All-to-all connectivity means any qubit can interact with any other without
+  routing overhead.
+</p>
+
+<p>
+  <strong>IonQ Forte (2022-2024):</strong> Uses $^{171}\text{Yb}^+$ ions with acousto-optic
+  deflectors, supporting 36 algorithmic qubits with all-to-all connectivity. IonQ has pursued
+  photonic interconnects for scaling beyond a single trap.
+</p>
+
+<h3>Performance Summary</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Metric</th>
+      <th>Typical Range</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>Qubit count</td><td>20-56 (current generation)</td></tr>
+    <tr><td>$T_1$ coherence</td><td>Seconds to hours (hyperfine)</td></tr>
+    <tr><td>$T_2$ coherence</td><td>1-10 seconds (typical operational)</td></tr>
+    <tr><td>Single-qubit gate time</td><td>1-10 $\mu$s</td></tr>
+    <tr><td>Two-qubit gate time</td><td>100-500 $\mu$s</td></tr>
+    <tr><td>Single-qubit gate fidelity</td><td>99.95-99.99%</td></tr>
+    <tr><td>Two-qubit gate fidelity</td><td>99.5-99.9%</td></tr>
+    <tr><td>Readout fidelity</td><td>99.5-99.9%</td></tr>
+    <tr><td>Connectivity</td><td>All-to-all</td></tr>
+    <tr><td>Operating temperature</td><td>Room temp (vacuum chamber)</td></tr>
+  </tbody>
+</table>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="neutral-atoms">
+
+<h2>13.4 Neutral Atoms</h2>
+
+<p>
+  Neutral-atom quantum computers use individual atoms - not ions, but electrically neutral
+  atoms - trapped and arranged by focused laser beams called <strong>optical tweezers</strong>.
+  This approach, commercialized by QuEra Computing and Pasqal, has emerged as a strong
+  contender for scalability, with systems already demonstrating hundreds of qubits in
+  programmable two-dimensional and three-dimensional arrays.
+</p>
+
+<h3>Optical Tweezers and Atom Arrays</h3>
+
+<p>
+  An optical tweezer is a tightly focused laser beam creating a microscopic potential well.
+  A single atom (typically rubidium-87 or cesium-133) is trapped at each focus. Arrays of
+  tweezers, generated by spatial light modulators, assemble atoms into arbitrary geometric
+  patterns - grids, rings, triangles, or custom arrangements. Defects in loading (empty sites)
+  can be corrected by rearranging atoms in real time, providing <strong>dynamic, reconfigurable
+  connectivity</strong> - unlike superconducting chips where topology is fixed at fabrication.
+</p>
+
+<h3>Rydberg Interactions for Entanglement</h3>
+
+<p>
+  Entangling gates exploit <strong>Rydberg states</strong> - highly excited electronic states
+  where the outermost electron orbits far from the nucleus, giving the atom an enormously
+  exaggerated electric dipole moment. The key mechanism is the <strong>Rydberg blockade</strong>:
+  when one atom is excited to a Rydberg state, the strong dipole-dipole interaction shifts the
+  energy levels of nearby atoms, preventing their excitation. This conditional behavior -
+  "if atom A is excited, atom B cannot be" - implements the controlled interaction needed for
+  entangling gates. The blockade radius is typically 5-10 micrometers.
+</p>
+
+<h3>Scalability: The Killer Feature</h3>
+
+<p>
+  Because the atoms are identical (every rubidium-87 atom has exactly the same properties)
+  and trapping is optical (no physical wires to each qubit), scaling to hundreds or thousands
+  of qubits is primarily an optics/laser engineering challenge, not a fundamental physics
+  obstacle.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    Neutral atoms benefit from <strong>natural uniformity</strong>: every atom of the same
+    isotope is identical, unlike superconducting qubits where each circuit has slightly
+    different fabrication imperfections. This eliminates an entire category of calibration
+    challenges and makes scaling more predictable.
+  </p>
+</div>
+
+<h3>Leading Systems</h3>
+
+<p>
+  <strong>QuEra (2023-2024):</strong> Uses rubidium atoms in reconfigurable optical tweezer
+  arrays with 256+ qubits available through Amazon Braket. In a landmark 2023 <em>Nature</em>
+  paper, a Harvard-QuEra-MIT collaboration demonstrated 48 logical qubits - the largest
+  demonstration of error-corrected logical qubits at the time. QuEra's roadmap targets 10,000
+  physical qubits by 2026.
+</p>
+
+<p>
+  <strong>Pasqal (2023-2024):</strong> Spun out of research by Browaeys and Lahaye at
+  Institut d'Optique, Pasqal builds neutral-atom processors using rubidium. Their systems
+  arrange atoms in arbitrary 2D and 3D geometries, making them suited for analog quantum
+  simulation. Pasqal has demonstrated systems with over 300 atoms.
+</p>
+
+<h3>Current Limitations</h3>
+
+<p>
+  Two-qubit gate fidelities using Rydberg interactions have reached 99.5% in the best
+  demonstrations but have not yet consistently matched top trapped-ion or superconducting
+  results. Atom loss during Rydberg excitation (atoms occasionally escape the trap) is another
+  challenge being actively addressed.
+</p>
+
+<h3>Performance Summary</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Metric</th>
+      <th>Typical Range</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>Qubit count</td><td>100-1,000+ (current generation)</td></tr>
+    <tr><td>$T_1$ coherence</td><td>1-10 seconds (ground-state trapping)</td></tr>
+    <tr><td>$T_2$ coherence</td><td>0.1-1 seconds (hyperfine qubit)</td></tr>
+    <tr><td>Single-qubit gate time</td><td>0.5-5 $\mu$s</td></tr>
+    <tr><td>Two-qubit gate time</td><td>0.5-2 $\mu$s</td></tr>
+    <tr><td>Single-qubit gate fidelity</td><td>99.5-99.9%</td></tr>
+    <tr><td>Two-qubit gate fidelity</td><td>99.0-99.5%</td></tr>
+    <tr><td>Readout fidelity</td><td>97-99.5%</td></tr>
+    <tr><td>Connectivity</td><td>Reconfigurable; native multi-qubit gates</td></tr>
+    <tr><td>Operating temperature</td><td>Ultracold gas (~$\mu$K), room-temp apparatus</td></tr>
+  </tbody>
+</table>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="photonic-qc">
+
+<h2>13.5 Photonic Quantum Computing</h2>
+
+<p>
+  Photonic quantum computers use particles of light - photons - as qubits. This approach is
+  radically different from the matter-based platforms above. Photons do not need to be cooled;
+  they travel at the speed of light; and they naturally resist decoherence because they
+  interact very weakly with their environment. The companies PsiQuantum and Xanadu are the
+  leading commercial efforts in this space.
+</p>
+
+<h3>Encoding Qubits in Light</h3>
+
+<p>
+  Quantum information can be encoded in photons in several ways. In <strong>polarization
+  encoding</strong>, horizontal and vertical polarization map to $|0\rangle$ and $|1\rangle$.
+  In <strong>dual-rail encoding</strong>, a single photon occupies one of two spatial paths
+  (waveguides), with the path determining the qubit value. Xanadu's approach uses
+  <strong>squeezed-state encoding</strong> with continuous-variable states rather than single
+  photons, encoding information in the quadrature amplitudes of the electromagnetic field.
+</p>
+
+<h3>The Challenge of Two-Photon Gates</h3>
+
+<p>
+  The fundamental difficulty of photonic quantum computing is that photons do not naturally
+  interact with each other. Two photons can pass through each other with no effect whatsoever.
+  This is wonderful for coherence (the environment cannot disturb your qubits) but terrible
+  for entangling gates (you need qubits to interact to create entanglement).
+</p>
+
+<p>
+  In 2001, Knill, Laflamme, and Milburn (KLM) showed that universal quantum computation is
+  possible using only <strong>linear optics</strong> (beam splitters, phase shifters,
+  single-photon detectors) combined with <strong>measurement and feed-forward</strong>.
+  KLM-style gates are probabilistic, but when combined with quantum teleportation and
+  cluster-state techniques, the probabilistic element can be managed.
+</p>
+
+<div class="callout callout-info">
+  <strong>Measurement-Based Quantum Computing.</strong>
+  <p>
+    Many photonic approaches use the <strong>measurement-based</strong> model: prepare a large
+    entangled "cluster state," then compute by measuring individual qubits in adaptively chosen
+    bases. This model is mathematically equivalent to the circuit model but maps more naturally
+    onto photonic hardware, where entangled resource states can be generated optically.
+  </p>
+</div>
+
+<h3>Advantages of Photonics</h3>
+
+<p>
+  Photonic circuits can operate at room temperature (though single-photon detectors often
+  require cryogenic cooling to ~1-4 K), dramatically reducing infrastructure. Photons travel
+  through optical fibers over long distances, making photonic systems natural candidates for
+  quantum networking. Photonic circuits can leverage existing silicon photonics fabrication
+  from the telecom industry. And photonic gates operate at the speed of light, with time-bin
+  operations running at GHz rates.
+</p>
+
+<h3>Leading Efforts</h3>
+
+<p>
+  <strong>PsiQuantum:</strong> Pursuing a fault-tolerant photonic quantum computer using
+  standard silicon photonics manufacturing at GlobalFoundries. Their approach uses fusion-based
+  quantum computation, where small entangled resource states are "fused" through Bell
+  measurements. PsiQuantum targets a million-qubit system but has not yet released a publicly
+  accessible processor.
+</p>
+
+<p>
+  <strong>Xanadu:</strong> Xanadu's Borealis processor (2022) demonstrated quantum
+  computational advantage on Gaussian boson sampling using squeezed-light states and
+  programmable beam splitter arrays. While not universal computation, it showed that photonic
+  systems can perform tasks beyond efficient classical simulation. Xanadu also develops
+  PennyLane, a widely used quantum software framework.
+</p>
+
+<h3>Current Limitations</h3>
+
+<p>
+  Photon loss is the dominant error source. Generating single photons on demand with high
+  efficiency and purity remains challenging, and photon detectors have finite efficiency
+  (typically 90-98%). The probabilistic nature of linear optical gates means that resource
+  overhead for fault tolerance is substantial. Despite these challenges, compatibility with
+  semiconductor manufacturing gives photonics a plausible path to very large-scale systems.
+</p>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="other-platforms">
+
+<h2>13.6 Other Platforms</h2>
+
+<p>
+  Beyond the four major approaches above, several other physical platforms are under active
+  development. Each offers unique potential advantages, though all are at earlier stages of
+  maturity for general-purpose quantum computing.
+</p>
+
+<h3>Topological Qubits (Microsoft)</h3>
+
+<p>
+  Microsoft has pursued one of the most ambitious and unconventional approaches: <strong>
+  topological quantum computing</strong>. The idea is to encode quantum information not in a
+  single particle's state but in the collective, global properties of exotic quasiparticles
+  called <strong>non-abelian anyons</strong>. The most studied candidate is the
+  <strong>Majorana zero mode</strong>, predicted to appear at the ends of specially engineered
+  semiconductor-superconductor nanowires.
+</p>
+
+<p>
+  The appeal is intrinsic error protection. Because quantum information is stored nonlocally -
+  spread across the spatial extent of the quasiparticle pair - local noise cannot access or
+  corrupt it. This is analogous to encoding a message in the number of knots in a rope: small
+  deformations do not change the knot count. Gates are performed by "braiding" quasiparticles
+  around each other, and the result depends only on the topological class of the braid.
+</p>
+
+<p>
+  In early 2025, Microsoft announced their Majorana 1 chip, described as the first quantum
+  processor based on a topological core architecture. The device demonstrated controllable
+  creation and measurement of Majorana zero modes in indium arsenide / aluminum nanowire
+  devices. While a milestone, it was a proof of concept rather than a functional multi-qubit
+  processor. Topological quantum computing remains the most speculative major approach, with
+  the furthest distance to travel before programmable multi-qubit systems.
+</p>
+
+<h3>Quantum Dots (Semiconductor Spin Qubits)</h3>
+
+<p>
+  Quantum dot qubits encode information in the spin of individual electrons confined in
+  semiconductor nanostructures - typically silicon or gallium arsenide. A quantum dot is a
+  tiny region (tens of nanometers) where an electron is electrostatically trapped, with
+  spin-up and spin-down serving as $|0\rangle$ and $|1\rangle$.
+</p>
+
+<p>
+  The major appeal is <strong>compatibility with existing CMOS manufacturing</strong>, raising
+  the prospect of leveraging decades of semiconductor industry investment. Intel has been a
+  prominent player, and academic groups in Delft, UNSW Sydney, and RIKEN have made significant
+  progress.
+</p>
+
+<p>
+  Silicon spin qubits have demonstrated single-qubit fidelities above 99.9% and two-qubit
+  fidelities above 99%. Gate speeds are fast (tens of nanoseconds for single-qubit, hundreds
+  for two-qubit) and they operate at ~1 K - cold, but 100 times warmer than superconducting
+  qubits. The main challenge is scaling: controlling many tightly packed dots requires dense
+  wiring and individual calibration, and achieving consistently high two-qubit fidelities
+  across large arrays remains an open problem.
+</p>
+
+<h3>NV Centers in Diamond</h3>
+
+<p>
+  A <strong>nitrogen-vacancy (NV) center</strong> is a point defect in a diamond crystal where
+  a nitrogen atom replaces one carbon atom adjacent to a vacant lattice site. The electron spin
+  associated with this defect can serve as a qubit with remarkably long coherence times - $T_2$
+  can exceed milliseconds at room temperature and seconds at cryogenic temperatures.
+</p>
+
+<p>
+  NV centers can be individually addressed and read out optically, initialized and manipulated
+  with microwave pulses. Their room-temperature operation and long coherence times make them
+  attractive for quantum sensing and small-scale quantum information. However, coupling between
+  distant NV centers is weak, limiting multi-qubit demonstrations to a handful of qubits. NV
+  centers are most promising for quantum networking (as memory nodes) and quantum sensing
+  (magnetometry, thermometry) rather than large-scale computation.
+</p>
+
+<div class="callout callout-info">
+  <strong>Why So Many Approaches?</strong>
+  <p>
+    The diversity of platforms reflects a fundamental truth: we do not yet know which physical
+    system will best satisfy all of DiVincenzo's criteria at scale. Each makes different
+    trade-offs between speed, fidelity, connectivity, scalability, and operating conditions.
+    The field is in an exploratory phase, and it is possible that different applications will
+    favor different hardware - or that the winning approach has not yet been invented.
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="comparing-platforms">
+
+<h2>13.7 Comparing Platforms</h2>
+
+<p>
+  The following table summarizes key characteristics of the major platforms. Every number is
+  approximate and rapidly evolving. The value lies not in memorizing specific figures but in
+  understanding the qualitative trade-offs.
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Property</th>
+      <th>Superconducting</th>
+      <th>Trapped Ions</th>
+      <th>Neutral Atoms</th>
+      <th>Photonic</th>
+      <th>Quantum Dots</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Qubit count</strong></td>
+      <td>50-1,200</td>
+      <td>20-56</td>
+      <td>100-1,000+</td>
+      <td>100+ (modes)</td>
+      <td>2-12</td>
+    </tr>
+    <tr>
+      <td><strong>$T_2$ coherence</strong></td>
+      <td>50-200 $\mu$s</td>
+      <td>1-10 s</td>
+      <td>0.1-1 s</td>
+      <td>N/A (photon loss)</td>
+      <td>1-100 $\mu$s</td>
+    </tr>
+    <tr>
+      <td><strong>Two-qubit gate time</strong></td>
+      <td>50-100 ns</td>
+      <td>100-500 $\mu$s</td>
+      <td>0.5-2 $\mu$s</td>
+      <td>~ns (optical)</td>
+      <td>100-500 ns</td>
+    </tr>
+    <tr>
+      <td><strong>Two-qubit gate fidelity</strong></td>
+      <td>99.0-99.9%</td>
+      <td>99.5-99.9%</td>
+      <td>99.0-99.5%</td>
+      <td>~95-99%</td>
+      <td>99.0-99.5%</td>
+    </tr>
+    <tr>
+      <td><strong>Connectivity</strong></td>
+      <td>Nearest-neighbor</td>
+      <td>All-to-all</td>
+      <td>Reconfigurable</td>
+      <td>Programmable</td>
+      <td>Nearest-neighbor</td>
+    </tr>
+    <tr>
+      <td><strong>Gate-to-coherence ratio</strong></td>
+      <td>~$10^3$-$10^4$</td>
+      <td>~$10^4$-$10^5$</td>
+      <td>~$10^4$-$10^5$</td>
+      <td>Loss-limited</td>
+      <td>~$10^2$-$10^3$</td>
+    </tr>
+    <tr>
+      <td><strong>Operating temp.</strong></td>
+      <td>~15 mK</td>
+      <td>Room temp (vacuum)</td>
+      <td>$\sim\mu$K (atoms)</td>
+      <td>Room temp*</td>
+      <td>~0.1-1 K</td>
+    </tr>
+    <tr>
+      <td><strong>Native gate set</strong></td>
+      <td>ECR/CZ + rotations</td>
+      <td>XX + rotations</td>
+      <td>CZ + rotations</td>
+      <td>Beam splitters</td>
+      <td>CNOT-like + rotations</td>
+    </tr>
+    <tr>
+      <td><strong>Key advantage</strong></td>
+      <td>Speed, maturity</td>
+      <td>Fidelity, connectivity</td>
+      <td>Scalability</td>
+      <td>Networking, room temp</td>
+      <td>CMOS compatibility</td>
+    </tr>
+    <tr>
+      <td><strong>Key challenge</strong></td>
+      <td>Connectivity, cooling</td>
+      <td>Speed, scale</td>
+      <td>Gate fidelity</td>
+      <td>Photon loss, det. gates</td>
+      <td>Scale, crosstalk</td>
+    </tr>
+    <tr>
+      <td><strong>Major players</strong></td>
+      <td>IBM, Google, Rigetti</td>
+      <td>Quantinuum, IonQ</td>
+      <td>QuEra, Pasqal</td>
+      <td>PsiQuantum, Xanadu</td>
+      <td>Intel, Delft, UNSW</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>
+  <small>* Photonic circuits operate at room temperature, but single-photon detectors
+  typically require cryogenic cooling (~1-4 K).</small>
+</p>
+
+<h3>DiVincenzo Scorecard</h3>
+
+<p>
+  How does each platform fare against DiVincenzo's five criteria? The assessment below uses
+  three levels: <strong>strong</strong>, <strong>moderate</strong>, and
+  <strong>developing</strong>.
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Criterion</th>
+      <th>Superconducting</th>
+      <th>Trapped Ions</th>
+      <th>Neutral Atoms</th>
+      <th>Photonic</th>
+      <th>Quantum Dots</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1. Scalable qubits</td>
+      <td>Strong</td>
+      <td>Moderate</td>
+      <td>Strong</td>
+      <td>Moderate</td>
+      <td>Moderate</td>
+    </tr>
+    <tr>
+      <td>2. Initialization</td>
+      <td>Strong</td>
+      <td>Strong</td>
+      <td>Strong</td>
+      <td>Strong</td>
+      <td>Strong</td>
+    </tr>
+    <tr>
+      <td>3. Long coherence</td>
+      <td>Moderate</td>
+      <td>Strong</td>
+      <td>Strong</td>
+      <td>Strong</td>
+      <td>Moderate</td>
+    </tr>
+    <tr>
+      <td>4. Universal gates</td>
+      <td>Strong</td>
+      <td>Strong</td>
+      <td>Moderate</td>
+      <td>Moderate</td>
+      <td>Moderate</td>
+    </tr>
+    <tr>
+      <td>5. Measurement</td>
+      <td>Strong</td>
+      <td>Strong</td>
+      <td>Moderate</td>
+      <td>Moderate</td>
+      <td>Strong</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>What Metric Matters Most?</h3>
+
+<p>
+  For near-term NISQ computing (Chapter 14), the most important metric is arguably
+  <strong>two-qubit gate fidelity</strong>, since two-qubit gates dominate the error budget.
+  For fault-tolerant computing, the question shifts to whether the physical error rate is below
+  the fault-tolerance threshold (~1% for the surface code) and whether the platform can scale
+  to the millions of physical qubits that error correction demands.
+</p>
+
+<p>
+  The sandbox below prepares a Bell pair - one Hadamard and one CNOT. On a perfect (simulated)
+  device, you see only <code>00</code> and <code>11</code>. On real hardware, the finite
+  fidelity of the CNOT introduces a small probability of the "wrong" outcomes <code>01</code>
+  and <code>10</code>, at rates determined by the hardware's two-qubit gate fidelity.
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="14">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+// Minimal Bell state: 1 H + 1 CNOT
+// On perfect hardware: only 00 and 11
+// On real hardware: small probability of 01 and 10 from gate errors
+h q[0];
+cx q[0], q[1];
+c = measure q;
+// Try this on a real quantum computer (e.g., IBM Quantum)
+// and compare the results to this ideal simulation.
+// The difference reveals the hardware's gate fidelity.</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<h3>The Road Ahead</h3>
+
+<p>
+  The quantum hardware landscape evolves at a pace that makes any snapshot quickly obsolete.
+  But the underlying trade-offs are durable: speed versus fidelity, connectivity versus
+  scalability, isolation from noise versus ability to control. Understanding these tensions,
+  grounded in DiVincenzo's criteria, equips you to evaluate new developments as they emerge.
+</p>
+
+<p>
+  In Chapter 14, we confront the central consequence of imperfect hardware: noise. Every real
+  quantum computer operates in the <strong>noisy intermediate-scale quantum (NISQ)</strong>
+  regime, where qubit counts are too small and error rates too high for full fault-tolerant
+  error correction. Understanding what useful computation is possible despite noise - and what
+  error correction strategies will eventually overcome it - is the subject we turn to next.
+</p>
+
+</section>
+
+<!-- ================================================================== -->
+
+<h3>Interactive: Hardware Topology Explorer</h3>
+<p>
+  Real quantum processors have limited qubit connectivity - not every pair of qubits
+  can interact directly. Explore the native gate sets and connectivity graphs of
+  different hardware platforms.
+</p>
+<div class="widget" id="target-widget">
+  <div class="widget-header">Hardware Topology</div>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label>Target: <select id="target-select">
+      <option value="ibm_brisbane">IBM Brisbane</option>
+      <option value="ionq_aria">IonQ Aria</option>
+      <option value="quantinuum_h1">Quantinuum H1</option>
+      <option value="google_sycamore">Google Sycamore</option>
+      <option value="simulator">Simulator</option>
+    </select></label>
+    <button onclick="showTopology()">Show Topology</button>
+  </div>
+  <div class="widget-output" id="target-output"></div>
+</div>
+<script>
+async function showTopology() {
+  await ensureWasm();
+  var target = document.getElementById('target-select').value;
+  var out = document.getElementById('target-output');
+  out.innerHTML = '<p style="color:var(--color-text-muted)">Loading topology...</p>';
+  await new Promise(function(r) { setTimeout(r, 0); });
+  try {
+    var r = JSON.parse(window.getTargetInfo(target));
+    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+    var html = '<div class="sim-stats" style="flex-wrap:wrap;">';
+    html += '<span><strong>Target:</strong> ' + esc(r.name) + '</span>';
+    html += '<span><strong>Qubits:</strong> ' + r.numQubits + '</span>';
+    html += '<span><strong>Basis gates:</strong> ' + (r.basisGates || []).map(function(g) { return esc(g); }).join(', ') + '</span>';
+    html += '</div>';
+    var edges = r.edges || [];
+    var n = r.numQubits;
+    if (n > 0) {
+      var cols = n < 20 ? 5 : Math.ceil(Math.sqrt(n));
+      var spacing = 60;
+      var pad = 30;
+      var rows = Math.ceil(n / cols);
+      var svgW = cols * spacing + pad * 2;
+      var svgH = rows * spacing + pad * 2;
+      var positions = [];
+      for (var i = 0; i < n; i++) {
+        positions.push({
+          x: (i % cols) * spacing + pad + spacing / 2,
+          y: Math.floor(i / cols) * spacing + pad + spacing / 2
+        });
+      }
+      var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + svgW + '" height="' + svgH + '" ';
+      svg += 'style="max-width:100%;height:auto;display:block;margin:0.75rem auto;">';
+      for (var e = 0; e < edges.length; e++) {
+        var a = edges[e][0], b = edges[e][1];
+        if (a < n && b < n) {
+          svg += '<line x1="' + positions[a].x + '" y1="' + positions[a].y + '" ';
+          svg += 'x2="' + positions[b].x + '" y2="' + positions[b].y + '" ';
+          svg += 'stroke="var(--color-text-muted)" stroke-width="1.5" stroke-opacity="0.5"/>';
+        }
+      }
+      var radius = 14;
+      for (var i = 0; i < n; i++) {
+        svg += '<circle cx="' + positions[i].x + '" cy="' + positions[i].y + '" r="' + radius + '" ';
+        svg += 'fill="var(--color-accent)" fill-opacity="0.15" stroke="var(--color-accent)" stroke-width="1.5"/>';
+        svg += '<text x="' + positions[i].x + '" y="' + (positions[i].y + 4) + '" ';
+        svg += 'text-anchor="middle" fill="var(--color-accent)" font-size="' + (n > 50 ? 8 : 10) + '" font-family="inherit">' + i + '</text>';
+      }
+      svg += '</svg>';
+      if (edges.length === 0) {
+        html += '<p style="color:var(--color-text-muted);text-align:center;margin:0.75rem 0;">All-to-all connectivity (no constraints)</p>';
+      }
+      html += svg;
+    }
+    out.innerHTML = html;
+  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+}
+</script>
+
+<!-- ================================================================== -->
+
+<h3>Interactive: Transpile for Real Hardware</h3>
+<p>
+  Quantum circuits must be <em>transpiled</em> - adapted to the native gate set and
+  qubit connectivity of the target hardware. See how the same GHZ-state circuit changes
+  when compiled for different quantum processors. Notice how the gate count and depth
+  increase for hardware with restricted connectivity.
+</p>
+<div class="widget" id="transpile-widget">
+  <div class="widget-header">Circuit Transpilation</div>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label>Target: <select id="tr-target">
+      <option value="simulator">Simulator (any gate)</option>
+      <option value="ibm_brisbane" selected>IBM Brisbane (CX+RZ+SX+X)</option>
+      <option value="ionq_aria">IonQ Aria (GPI+GPI2+MS)</option>
+      <option value="quantinuum_h1">Quantinuum H1 (RZZ+RZ+RY)</option>
+    </select></label>
+    <label>Optimization: <select id="tr-level"><option>0 (minimal)</option><option selected>1 (basic)</option><option>2 (full)</option></select></label>
+    <button onclick="runTranspileWidget()">Transpile</button>
+  </div>
+  <div class="widget-output" id="transpile-output"></div>
+</div>
+<script>
+async function runTranspileWidget() {
+  await ensureWasm();
+  var target = document.getElementById('tr-target').value;
+  var level = parseInt(document.getElementById('tr-level').value);
+  var out = document.getElementById('transpile-output');
+  out.innerHTML = '<p style="color:var(--color-text-muted)">Transpiling...</p>';
+  await new Promise(function(r) { setTimeout(r, 0); });
+  try {
+    var qasm = "OPENQASM 3.0;\nqubit[3] q;\nbit[3] c;\nh q[0];\ncx q[0], q[1];\ncx q[1], q[2];\nc = measure q;";
+    var r = JSON.parse(window.transpileQASM(qasm, target, level, isDark()));
+    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+    var html = '<div class="comparison-panels">';
+    html += '<div class="comparison-panel"><h4>Original</h4>' + (r.beforeCircuitSVG||'') + '</div>';
+    html += '<div class="comparison-panel"><h4>Transpiled</h4>' + (r.afterCircuitSVG||'') + '</div>';
+    html += '</div>';
+    if (r.beforeStats && r.afterStats) {
+      html += '<div class="sim-stats">';
+      html += '<span>Before: ' + r.beforeStats.gates + ' gates, depth ' + r.beforeStats.depth + '</span>';
+      html += '<span>After: ' + r.afterStats.gates + ' gates, depth ' + r.afterStats.depth + ', ' + r.afterStats.twoQubitGates + ' 2Q gates</span>';
+      html += '</div>';
+    }
+    if (r.transpiledQASM) html += '<details><summary>Transpiled QASM</summary><pre>' + esc(r.transpiledQASM) + '</pre></details>';
+    out.innerHTML = html;
+  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+}
+</script>
+
+<!-- ================================================================== -->
+
+<section id="review">
+<h2>Chapter 13 Review</h2>
+
+<div class="flashcard-deck" data-component="flashcard-deck">
+  <div class="flashcard-deck-header">Chapter 13 Review</div>
+
+  <div class="flashcard" data-card-id="ch13-divincenzo-criteria">
+    <div class="card-front">List DiVincenzo's five criteria for building a quantum computer.</div>
+    <div class="card-back">
+      (1) A scalable physical system with well-characterized qubits. (2) The ability to initialize
+      qubits to a known state (e.g., $|0\rangle$). (3) Long coherence times relative to gate
+      operation times. (4) A universal set of quantum gates. (5) A qubit-specific measurement
+      capability. DiVincenzo also listed two additional criteria for quantum communication:
+      interconversion between stationary and flying qubits, and faithful transmission of flying
+      qubits.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch13-t1-t2-coherence">
+    <div class="card-front">What are $T_1$ and $T_2$, and why does their ratio to gate time matter?</div>
+    <div class="card-back">
+      $T_1$ is the energy relaxation time (how long until $|1\rangle$ decays to $|0\rangle$).
+      $T_2$ is the dephasing time (how long until a superposition loses its phase coherence).
+      Always $T_2 \leq 2T_1$. The ratio $T_2 / t_{\text{gate}}$ determines how many gates can
+      be executed before decoherence corrupts the quantum state. A platform with long coherence
+      but slow gates may have the same effective circuit depth as one with short coherence but
+      fast gates.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch13-transmon-anharmonicity">
+    <div class="card-front">What is a transmon qubit, and why is the Josephson junction essential?</div>
+    <div class="card-back">
+      A transmon is a superconducting qubit made from a nonlinear LC oscillator, where the
+      inductor is replaced by a Josephson junction (a thin insulating barrier between two
+      superconductors). The Josephson junction introduces anharmonicity - it makes the energy
+      levels unequally spaced. This allows microwave pulses to selectively address only the
+      $|0\rangle$-$|1\rangle$ transition without exciting higher levels, which would not be
+      possible with a harmonic oscillator's equally spaced levels.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch13-trapped-ion-connectivity">
+    <div class="card-front">Why do trapped ions have all-to-all connectivity, and what advantage does this provide?</div>
+    <div class="card-back">
+      Ions in a linear trap share collective vibrational (motional) modes that serve as a
+      quantum bus. Laser-driven entangling gates can couple any pair of ions through these shared
+      modes, regardless of physical separation. This all-to-all connectivity eliminates the need
+      for SWAP routing, which is a major source of overhead and errors on nearest-neighbor
+      architectures like superconducting chips. Algorithms requiring long-range interactions (e.g.,
+      the QFT in Shor's algorithm) map directly onto the hardware.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch13-rydberg-blockade">
+    <div class="card-front">What is the Rydberg blockade, and how does it enable two-qubit gates in neutral-atom systems?</div>
+    <div class="card-back">
+      When a neutral atom is excited to a Rydberg state (a highly excited electronic state with
+      a large electric dipole moment), the strong dipole-dipole interaction shifts the energy
+      levels of nearby atoms, preventing them from also being excited to the Rydberg state. This
+      conditional behavior - "if atom A is in the Rydberg state, atom B cannot be excited" -
+      implements a controlled interaction between qubits. The blockade radius (typically 5-10
+      micrometers) determines which atoms can participate in a given gate.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch13-photonic-challenge">
+    <div class="card-front">What is the fundamental challenge for photonic quantum computing, and how is it addressed?</div>
+    <div class="card-back">
+      Photons do not naturally interact with each other, making deterministic two-qubit gates
+      impossible with linear optics alone. The KLM protocol (2001) showed that universal quantum
+      computation is possible using only beam splitters, phase shifters, and single-photon
+      detectors, combined with measurement and feed-forward. These gates are probabilistic, but
+      techniques like cluster-state preparation and fusion-based architectures can manage the
+      probabilistic element. Photon loss remains the dominant error source.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch13-topological-protection">
+    <div class="card-front">What is the theoretical advantage of topological qubits, and why are they difficult to build?</div>
+    <div class="card-back">
+      Topological qubits encode information nonlocally in the collective properties of exotic
+      quasiparticles (e.g., Majorana zero modes), making them inherently protected against local
+      noise. Gates are performed by braiding quasiparticles, and the result depends only on the
+      topological class of the braid, not the precise path. The difficulty is that the required
+      quasiparticles (non-abelian anyons) are extremely challenging to create and control in real
+      materials. As of early 2025, Microsoft's Majorana 1 chip demonstrated the first topological
+      core, but functional multi-qubit processors remain a future goal.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch13-swap-overhead">
+    <div class="card-front">Why does limited qubit connectivity increase circuit depth, and which platforms avoid this issue?</div>
+    <div class="card-back">
+      On hardware with nearest-neighbor connectivity (superconducting, quantum dots), executing
+      a gate between non-adjacent qubits requires inserting SWAP operations to move quantum states
+      closer together. Each SWAP decomposes into three CNOT gates, adding depth and error.
+      Trapped ions (all-to-all connectivity) and neutral atoms (reconfigurable connectivity) can
+      execute long-range gates directly, avoiding this overhead. The SWAP routing problem is
+      handled by the transpiler in the quantum software stack.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</section>
+
+    </article>
+
+    
+    <nav class="chapter-nav" aria-label="Chapter navigation">
+      <a href="12-grover.html" class="prev">&larr; Chapter 12: Grover&#39;s Algorithm</a>
+      <span class="nav-spacer"></span>
+      <a href="14-noise.html" class="next">Chapter 14: Noise, Decoherence, and the NISQ Era &rarr;</a>
+    </nav>
+    
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof renderMathInElement !== "undefined") {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "$", right: "$", display: false}
+          ],
+          throwOnError: false
+        });
+      }
+    });
+  </script>
+  
+  <script>
+  "use strict";
+  
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function isDark() { return window.matchMedia("(prefers-color-scheme: dark)").matches; }
+  function renderMath(el) {
+    if (typeof renderMathInElement === "function")
+      renderMathInElement(el, { delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}], throwOnError: false });
+  }
+
+  
+  var wasmReady = null;
+  function ensureWasm() {
+    if (!wasmReady) {
+      wasmReady = (async function() {
+        var go = new Go();
+        var result = await WebAssembly.instantiateStreaming(fetch("../main.wasm"), go.importObject);
+        go.run(result.instance);
+      })();
+    }
+    return wasmReady;
+  }
+
+  
+  var SRS_KEY = "goqu-srs";
+  function srsLoad() { try { return JSON.parse(localStorage.getItem(SRS_KEY) || "{}"); } catch(e) { return {}; } }
+  function srsSave(d) { localStorage.setItem(SRS_KEY, JSON.stringify(d)); }
+  function getCardState(id) { var d = srsLoad(); return d[id] || {interval:1, ease:2.5, due:0, reps:0}; }
+  function reviewCard(id, q) {
+    var d = srsLoad(), s = d[id] || {interval:1, ease:2.5, due:0, reps:0};
+    if (q >= 3) {
+      s.reps++;
+      if (s.reps === 1) s.interval = 1;
+      else if (s.reps === 2) s.interval = 6;
+      else s.interval = Math.round(s.interval * s.ease);
+      s.ease = Math.max(1.3, s.ease + 0.1 - (5-q)*(0.08 + (5-q)*0.02));
+    } else { s.reps = 0; s.interval = 1; }
+    s.due = Date.now() + s.interval * 86400000;
+    d[id] = s; srsSave(d);
+  }
+
+  
+  function initSandbox(el) {
+    var code = el.querySelector(".code"), output = el.querySelector(".output");
+    if (!code || !output) return;
+    var runBtn = el.querySelector('[data-action="run"]'), resetBtn = el.querySelector('[data-action="reset"]');
+    var shotsEl = el.querySelector("[data-shots]"), orig = code.value;
+    function shots() { return parseInt(shotsEl ? shotsEl.value : el.dataset.shots || "1024", 10); }
+    async function run() {
+      await ensureWasm();
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(code.value, shots(), isDark()));
+        if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+        output.innerHTML = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+    if (runBtn) runBtn.addEventListener("click", run);
+    if (resetBtn) resetBtn.addEventListener("click", function() { code.value = orig; });
+    if (el.hasAttribute("data-autorun")) run();
+  }
+
+  
+  function initSimulation(el) {
+    var tmplEl = el.querySelector(".sim-qasm"), output = el.querySelector(".sim-output");
+    var sliders = el.querySelectorAll('input[type="range"]');
+    var selects = el.querySelectorAll("select[data-param]");
+    if (!tmplEl || !output || (sliders.length === 0 && selects.length === 0)) return;
+    var tmpl = tmplEl.textContent, pending = false;
+    var useNoisy = el.hasAttribute("data-noisy");
+    var useComparison = el.hasAttribute("data-comparison");
+    var useExpectation = el.hasAttribute("data-expectation");
+    var useClifford = el.hasAttribute("data-clifford");
+    async function update() {
+      if (pending) return; pending = true;
+      await ensureWasm();
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var params = {};
+        sliders.forEach(function(s) { params[s.dataset.param] = parseFloat(s.value); var o = s.parentElement.querySelector("output"); if (o) o.textContent = parseFloat(s.value).toFixed(2); });
+        selects.forEach(function(s) { params[s.dataset.param] = s.value; });
+        var qasm = tmpl;
+        for (var k in params) qasm = qasm.replaceAll("{"+k+"}", params[k].toString());
+        var html = "";
+        if (useComparison && window.compareIdealNoisy) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.compareIdealNoisy(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="comparison-panels"><div class="comparison-panel"><h4>Ideal</h4>' + (r.idealHistogramSVG||"") + '</div><div class="comparison-panel"><h4>Noisy</h4>' + (r.noisyHistogramSVG||"") + '</div></div>';
+          if (r.stateCitySVG) html += r.stateCitySVG;
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useNoisy && window.runNoisyQASM) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.runNoisyQASM(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"") + (r.stateCitySVG||"");
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useClifford && window.runClifford) {
+          var r = JSON.parse(window.runClifford(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"");
+          if (r.stabilizers) { html += '<div class="stabilizer-table"><h4>Stabilizers</h4><table>'; r.stabilizers.forEach(function(s) { html += '<tr><td>' + formatStabilizer(s) + '</td></tr>'; }); html += '</table></div>'; }
+        } else if (useExpectation && window.computeExpectation) {
+          var pauliStr = params.pauliStr || el.dataset.pauli || "Z";
+          var r = JSON.parse(window.computeExpectation(qasm, pauliStr, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="sim-stats"><span>&lt;' + esc(pauliStr) + '&gt; = ' + r.expectation.toFixed(6) + '</span></div>';
+        } else {
+          var r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+          
+          if (el.hasAttribute("data-bloch") && window.getStateVector && window.renderBloch) {
+            try {
+              var sv = JSON.parse(window.getStateVector(qasm));
+              if (sv.amplitudes && sv.amplitudes.length === 2) {
+                var a = sv.amplitudes;
+                var blochSVG = window.renderBloch(a[0].re, a[0].im, a[1].re, a[1].im, isDark());
+                if (blochSVG) html += blochSVG;
+              }
+            } catch(e) {   }
+          }
+        }
+        output.innerHTML = html;
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+      pending = false;
+    }
+    sliders.forEach(function(s) { s.addEventListener("input", update); });
+    selects.forEach(function(s) { s.addEventListener("change", update); });
+    update();
+  }
+
+  
+  function formatStabilizer(s) {
+    if (!s) return "";
+    var sign = s[0], ops = s.slice(1), html = '<span class="stab-sign">' + esc(sign) + '</span>';
+    for (var i = 0; i < ops.length; i++) {
+      var c = ops[i], cls = "stab-" + c.toLowerCase();
+      html += '<span class="' + cls + '">' + c + '</span>';
+    }
+    return html;
+  }
+
+  
+  function initExercise(el) {
+    var code = el.querySelector(".code"), feedback = el.querySelector(".exercise-feedback");
+    var checkBtn = el.querySelector('[data-action="check"]');
+    var hintBtn = el.querySelector('[data-action="hint"]'), hintEl = el.querySelector(".exercise-hint");
+    if (!code || !feedback || !checkBtn) return;
+    var expected = {}, tol = 0.1;
+    var expEl = el.querySelector(".exercise-expected");
+    if (expEl) expEl.querySelectorAll("[data-state]").forEach(function(span) {
+      expected[span.dataset.state] = parseFloat(span.dataset.prob);
+      if (span.dataset.tolerance) tol = parseFloat(span.dataset.tolerance);
+    });
+    checkBtn.addEventListener("click", async function() {
+      await ensureWasm();
+      feedback.className = "exercise-feedback visible";
+      feedback.textContent = "Checking...";
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(code.value, 1024, isDark()));
+        if (r.error) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + r.error; return; }
+        if (Object.keys(expected).length === 0) { feedback.className = "exercise-feedback visible pass"; feedback.innerHTML = "Circuit ran successfully."; return; }
+        var prob = JSON.parse(window.getProbabilities(code.value, isDark()));
+        if (prob.error) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + prob.error; return; }
+        var actual = {};
+        for (var i = 0; i < prob.labels.length; i++) actual[prob.labels[i]] = prob.probabilities[i];
+        var ok = true, msgs = [];
+        for (var s in expected) {
+          var a = actual[s] || 0, p = expected[s];
+          if (Math.abs(a - p) > tol) { ok = false; msgs.push("|" + s + "\u27E9: expected " + (p*100|0) + "%, got " + (a*100|0) + "%"); }
+        }
+        if (ok) { feedback.className = "exercise-feedback visible pass"; feedback.innerHTML = "Correct! Your circuit produces the expected output."; }
+        else { feedback.className = "exercise-feedback visible fail"; feedback.innerHTML = "Not quite. " + msgs.join("; ") + "."; }
+        renderMath(feedback);
+      } catch(e) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + e.message; }
+    });
+    if (hintBtn && hintEl) hintBtn.addEventListener("click", function() { hintEl.style.display = hintEl.style.display === "none" ? "block" : "none"; });
+  }
+
+  
+  function initFlashcardDeck(el) {
+    el.querySelectorAll(".flashcard").forEach(function(card) {
+      var id = card.dataset.cardId;
+      if (!id) return;
+      var state = getCardState(id);
+      if (state.due > 0 && state.due > Date.now()) card.classList.add("reviewed");
+      card.addEventListener("click", function(e) {
+        if (e.target.closest("button")) return;
+        card.classList.toggle("flipped");
+        var back = card.querySelector(".card-back");
+        if (back) renderMath(back);
+      });
+      var easyBtn = card.querySelector(".easy"), hardBtn = card.querySelector(".hard");
+      if (easyBtn) easyBtn.addEventListener("click", function() { reviewCard(id, 4); card.classList.remove("flipped"); card.classList.add("reviewed"); });
+      if (hardBtn) hardBtn.addEventListener("click", function() { reviewCard(id, 2); card.classList.remove("flipped"); });
+    });
+  }
+
+  
+  function initPOE(el) {
+    var steps = el.querySelectorAll(".poe-step"), prog = el.querySelectorAll(".poe-progress-step");
+    if (steps.length === 0) return;
+    var cur = 0;
+    function show(idx) {
+      steps.forEach(function(s,i) { s.classList.toggle("active", i === idx); });
+      prog.forEach(function(s,i) { s.classList.remove("active","done"); if (i < idx) s.classList.add("done"); if (i === idx) s.classList.add("active"); });
+      cur = idx;
+      var active = steps[idx];
+      if (active) active.querySelectorAll('.sandbox:not([data-initialized])').forEach(function(sb) { sb.setAttribute("data-initialized","true"); initSandbox(sb); });
+    }
+    el.querySelectorAll('[data-action="next"]').forEach(function(btn) { btn.addEventListener("click", function() { if (cur < steps.length - 1) show(cur + 1); }); });
+    el.querySelectorAll('[data-action="complete"]').forEach(function(btn) { btn.addEventListener("click", function() { prog.forEach(function(s) { s.classList.remove("active"); s.classList.add("done"); }); }); });
+    show(0);
+  }
+
+  
+  function initStepThrough(el) {
+    var qasmEl = el.querySelector(".step-qasm");
+    var output = el.querySelector(".step-output");
+    var prevBtn = el.querySelector('[data-action="prev"]');
+    var nextBtn = el.querySelector('[data-action="next"]');
+    var stepInfo = el.querySelector(".step-info");
+    if (!qasmEl || !output) return;
+    var qasm = qasmEl.textContent;
+    var mode = el.dataset.mode || "clifford"; 
+    var steps = null, cur = -1;
+
+    async function load() {
+      await ensureWasm();
+      try {
+        if (mode === "clifford" && window.cliffordStepThrough) {
+          var r = JSON.parse(window.cliffordStepThrough(qasm));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+          
+          steps.unshift({gate: "init", qubits: [], stabilizers: r.steps.length > 0 ? null : []});
+        } else if (mode === "grover" && window.groverStepThrough) {
+          var nq = parseInt(el.dataset.qubits || "2", 10);
+          var targets = JSON.parse(el.dataset.targets || "[]");
+          var r = JSON.parse(window.groverStepThrough(nq, targets.join(",")));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+        }
+        if (steps && steps.length > 0) { cur = 0; renderStep(); }
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    function renderStep() {
+      if (!steps || cur < 0 || cur >= steps.length) return;
+      var s = steps[cur];
+      var html = "";
+      if (mode === "clifford") {
+        if (s.gate === "init") {
+          html = '<p class="step-label">Initial state |0...0&gt;</p>';
+          
+          if (steps.length > 1 && steps[1].stabilizers) {
+            var nq = steps[1].stabilizers[0].length - 1;
+            html += '<div class="stabilizer-table"><table>';
+            for (var i = 0; i < nq; i++) {
+              var row = "+";
+              for (var j = 0; j < nq; j++) row += (j === i) ? "Z" : "I";
+              html += '<tr><td>' + formatStabilizer(row) + '</td></tr>';
+            }
+            html += '</table></div>';
+          }
+        } else {
+          html = '<p class="step-label">After <strong>' + esc(s.gate) + '</strong> on qubit' + (s.qubits.length > 1 ? 's ' : ' ') + s.qubits.join(', ') + '</p>';
+          if (s.stabilizers) {
+            html += '<div class="stabilizer-table"><table>';
+            s.stabilizers.forEach(function(st) { html += '<tr><td>' + formatStabilizer(st) + '</td></tr>'; });
+            html += '</table></div>';
+          }
+        }
+      } else if (mode === "grover") {
+        html = '<p class="step-label">Iteration ' + s.iteration + '</p>';
+        if (s.probabilities) {
+          html += '<div class="amplitude-bars">';
+          for (var i = 0; i < s.probabilities.length; i++) {
+            var label = i.toString(2).padStart(Math.ceil(Math.log2(s.probabilities.length)), '0');
+            var pct = (s.probabilities[i] * 100).toFixed(1);
+            var isTarget = el.dataset.targets && JSON.parse(el.dataset.targets).indexOf(i) >= 0;
+            html += '<div class="amp-bar' + (isTarget ? ' target' : '') + '"><div class="amp-fill" style="height:' + pct + '%"></div><span class="amp-label">|' + label + '&gt;</span><span class="amp-value">' + pct + '%</span></div>';
+          }
+          html += '</div>';
+        }
+      }
+      output.innerHTML = html;
+      if (stepInfo) stepInfo.textContent = "Step " + cur + " / " + (steps.length - 1);
+      if (prevBtn) prevBtn.disabled = (cur === 0);
+      if (nextBtn) nextBtn.disabled = (cur >= steps.length - 1);
+    }
+
+    if (prevBtn) prevBtn.addEventListener("click", function() { if (cur > 0) { cur--; renderStep(); } });
+    if (nextBtn) nextBtn.addEventListener("click", function() { if (steps && cur < steps.length - 1) { cur++; renderStep(); } });
+    load();
+  }
+
+  
+  document.addEventListener("DOMContentLoaded", function() {
+    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough};
+    document.querySelectorAll("[data-component]").forEach(function(el) { var fn = reg[el.dataset.component]; if (fn) fn(el); });
+  });
+  </script>
+  
+</body>
+</html>

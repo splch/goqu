@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chapter 8: Quantum Cryptography - Goqu Textbook</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/contrib/auto-render.min.js"></script>
+  
+  <link rel="preload" href="../main.wasm" as="fetch" type="application/wasm" crossorigin>
+  <script src="../wasm_exec.js"></script>
+  
+</head>
+<body>
+  <input type="checkbox" id="nav-toggle" hidden>
+  <label for="nav-toggle" class="nav-hamburger" aria-label="Toggle navigation">
+    <span></span><span></span><span></span>
+  </label>
+
+  <nav class="sidebar" aria-label="Table of contents">
+    <a href="../index.html" class="sidebar-logo">Goqu Textbook</a>
+    
+    <details>
+      <summary>Part 1: The World of Classical Computing</summary>
+      <ol start="1">
+        
+        <li value="1"><a href="01-computation.html">What Is Computation?</a></li>
+        
+        <li value="2"><a href="02-math-of-information.html">The Mathematics of Information</a></li>
+        
+        <li value="3"><a href="03-reversible-computing.html">Reversible Computing</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 2: Entering the Quantum World</summary>
+      <ol start="4">
+        
+        <li value="4"><a href="04-the-first-qubit.html">The First Qubit</a></li>
+        
+        <li value="5"><a href="05-quantum-gates.html">Quantum Gates</a></li>
+        
+        <li value="6"><a href="06-entanglement.html">Multiple Qubits and Entanglement</a></li>
+        
+      </ol>
+    </details>
+    
+    <details open>
+      <summary>Part 3: Quantum Protocols</summary>
+      <ol start="7">
+        
+        <li value="7"><a href="07-teleportation.html">Quantum Teleportation and Communication</a></li>
+        
+        <li value="8"><a href="08-cryptography.html" aria-current="page">Quantum Cryptography</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 4: Quantum Algorithms - The First Wave</summary>
+      <ol start="9">
+        
+        <li value="9"><a href="09-oracles.html">Oracles and Quantum Parallelism</a></li>
+        
+        <li value="10"><a href="10-qft.html">The Quantum Fourier Transform</a></li>
+        
+        <li value="11"><a href="11-shor.html">Shor&#39;s Algorithm</a></li>
+        
+        <li value="12"><a href="12-grover.html">Grover&#39;s Algorithm</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 5: Real Quantum Hardware</summary>
+      <ol start="13">
+        
+        <li value="13"><a href="13-hardware.html">How to Build a Quantum Computer</a></li>
+        
+        <li value="14"><a href="14-noise.html">Noise, Decoherence, and the NISQ Era</a></li>
+        
+        <li value="15"><a href="15-programming.html">Programming Quantum Computers</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 6: Quantum Error Correction</summary>
+      <ol start="16">
+        
+        <li value="16"><a href="16-classical-ec.html">Classical Error Correction Refresher</a></li>
+        
+        <li value="17"><a href="17-qec-fundamentals.html">Quantum Error Correction Fundamentals</a></li>
+        
+        <li value="18"><a href="18-stabilizers.html">The Stabilizer Formalism</a></li>
+        
+        <li value="19"><a href="19-surface-codes.html">Surface Codes and Topological Protection</a></li>
+        
+        <li value="20"><a href="20-fault-tolerance.html">Fault-Tolerant Quantum Computing</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 7: Variational and Near-Term Algorithms</summary>
+      <ol start="21">
+        
+        <li value="21"><a href="21-variational.html">The Variational Quantum Computing Paradigm</a></li>
+        
+        <li value="22"><a href="22-vqe.html">Variational Quantum Eigensolver (VQE)</a></li>
+        
+        <li value="23"><a href="23-qaoa.html">Quantum Approximate Optimization (QAOA)</a></li>
+        
+        <li value="24"><a href="24-qml.html">Quantum Machine Learning</a></li>
+        
+        <li value="25"><a href="25-error-mitigation.html">Quantum Error Mitigation</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 8: Quantum Information Theory</summary>
+      <ol start="26">
+        
+        <li value="26"><a href="26-states-measurements.html">Quantum States and Measurements, Revisited</a></li>
+        
+        <li value="27"><a href="27-channels.html">Quantum Channels and Operations</a></li>
+        
+        <li value="28"><a href="28-entropy.html">Quantum Entropy and Information</a></li>
+        
+        <li value="29"><a href="29-shannon.html">Quantum Shannon Theory</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 9: Quantum Complexity and Computation Theory</summary>
+      <ol start="30">
+        
+        <li value="30"><a href="30-complexity.html">Quantum Computational Complexity</a></li>
+        
+        <li value="31"><a href="31-hidden-subgroup.html">The Hidden Subgroup Problem and Beyond</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 10: Quantum Simulation</summary>
+      <ol start="32">
+        
+        <li value="32"><a href="32-simulation-why.html">Why Quantum Simulation Matters</a></li>
+        
+        <li value="33"><a href="33-digital-simulation.html">Digital Quantum Simulation</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 11: Quantum Networking, Cryptography, and Sensing</summary>
+      <ol start="34">
+        
+        <li value="34"><a href="34-quantum-internet.html">The Quantum Internet</a></li>
+        
+        <li value="35"><a href="35-advanced-crypto.html">Advanced Quantum Cryptography</a></li>
+        
+        <li value="36"><a href="36-sensing.html">Quantum Sensing and Metrology</a></li>
+        
+      </ol>
+    </details>
+    
+    <details>
+      <summary>Part 12: Frontiers and the Future</summary>
+      <ol start="37">
+        
+        <li value="37"><a href="37-topological.html">Topological Quantum Computing</a></li>
+        
+        <li value="38"><a href="38-quantum-ai.html">Quantum Computing and Artificial Intelligence</a></li>
+        
+        <li value="39"><a href="39-open-problems.html">Open Problems in Quantum Computing</a></li>
+        
+        <li value="40"><a href="40-ecosystem.html">The Quantum Computing Ecosystem Today</a></li>
+        
+        <li value="41"><a href="41-career.html">Building Your Quantum Computing Career</a></li>
+        
+        <li value="42"><a href="42-what-next.html">What Comes Next</a></li>
+        
+      </ol>
+    </details>
+    
+  </nav>
+
+  <main>
+    
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="../index.html">Home</a> / <a href="../index.html#part-3">Part 3</a> / <span>Chapter 8</span>
+    </nav>
+    
+
+    <article>
+      <h1>Chapter 8: Quantum Cryptography</h1>
+      <p>
+  Cryptography is the science of keeping secrets. For thousands of years, it relied on
+  clever mathematical tricks that were easy to perform but hard to reverse. Then, in the
+  1980s, physicists realized that quantum mechanics could do something mathematics alone
+  could not: provide <strong>information-theoretic security</strong> - secrecy guaranteed
+  not by the difficulty of a computation, but by the fundamental laws of physics.
+</p>
+
+<p>
+  This chapter tells two intertwined stories. First, we survey the classical cryptographic
+  landscape - how public-key encryption works and why it has kept the internet secure for
+  decades. Then we introduce the quantum protocols that promise unbreakable key distribution,
+  unforgeable money, and - on the flip side - the quantum threat that could shatter the
+  classical systems we depend on today.
+</p>
+
+<div class="callout callout-info">
+  <strong>Prerequisites.</strong>
+  <p>You should be comfortable with single-qubit states ($|0\rangle$, $|1\rangle$, $|+\rangle$,
+  $|-\rangle$), the Hadamard gate (Chapter 5), entanglement and Bell pairs (Chapter 6),
+  and the no-cloning theorem (Chapter 7).</p>
+</div>
+
+<!-- ================================================================== -->
+<section id="classical-cryptography">
+<h2>8.1 Classical Cryptography in One Section</h2>
+
+<p>
+  Before we can appreciate what quantum cryptography offers, we need to understand what
+  classical cryptography provides - and where it falls short.
+</p>
+
+<h3>Symmetric Encryption: One Key, Two Parties</h3>
+
+<p>
+  The oldest form of cryptography is <strong>symmetric encryption</strong>: Alice and Bob
+  share a secret key, and they use the same key to both encrypt and decrypt messages. The
+  Advanced Encryption Standard (AES) is the modern workhorse - used to protect everything
+  from web traffic to classified government communications.
+</p>
+
+<p>
+  AES is fast and considered secure against both classical and quantum attacks (with
+  sufficiently large key sizes). But it has a fundamental problem: how do Alice and Bob
+  agree on the shared secret key in the first place? If they have never met and can only
+  communicate over a public channel, any key they exchange could be intercepted.
+</p>
+
+<h3>Public-Key Cryptography: The Key Exchange Revolution</h3>
+
+<p>
+  In 1976, Whitfield Diffie and Martin Hellman proposed a revolutionary idea: what if
+  encryption and decryption used <em>different</em> keys? One key could be made public,
+  while the other remained private. Anyone could encrypt a message using the public key,
+  but only the holder of the private key could decrypt it.
+</p>
+
+<p>
+  The RSA algorithm (Rivest, Shamir, Adleman, 1977) realizes this idea using the
+  mathematics of prime numbers. Here is the core insight:
+</p>
+
+<ol>
+  <li><strong>Key generation:</strong> Choose two large prime numbers $p$ and $q$. Compute
+    $n = p \times q$. The number $n$ is made public; $p$ and $q$ are kept secret.</li>
+  <li><strong>Encryption:</strong> A message $m$ is encrypted as $c = m^e \bmod n$, where
+    $e$ is the public exponent.</li>
+  <li><strong>Decryption:</strong> The ciphertext is decrypted as $m = c^d \bmod n$, where
+    $d$ is the private exponent derived from $p$ and $q$.</li>
+</ol>
+
+<p>
+  The security of RSA rests on a single assumption: <strong>factoring large numbers is
+  computationally hard</strong>. Multiplying two 1,000-digit primes takes milliseconds, but
+  no known classical algorithm can factor their product in any reasonable time. Current RSA
+  key sizes use 2048- or 4096-bit moduli, which classical computers cannot factor.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept: Computational vs. Information-Theoretic Security.</strong>
+  <p>RSA is <em>computationally secure</em> - it is safe only because we believe factoring
+  is hard for classical computers. If someone found a fast factoring algorithm (or built a
+  quantum computer), RSA would break. <em>Information-theoretic security</em>, by contrast,
+  means that an adversary gains zero information about the secret regardless of their
+  computational power. As we will see, quantum key distribution achieves this stronger
+  guarantee.</p>
+</div>
+
+<h3>Diffie-Hellman Key Exchange</h3>
+
+<p>
+  The Diffie-Hellman protocol lets Alice and Bob agree on a shared secret over a public
+  channel without ever transmitting the secret itself. It works using modular
+  exponentiation: Alice and Bob each pick a secret number, compute a public value, exchange
+  those public values, and then combine the other's public value with their own secret to
+  arrive at the same shared key. The security rests on the <strong>discrete logarithm
+  problem</strong>, which is believed to be hard classically.
+</p>
+
+<p>
+  Elliptic Curve Cryptography (ECC) offers the same functionality with smaller key sizes
+  by replacing modular arithmetic with operations on elliptic curves. Both Diffie-Hellman
+  and ECC, like RSA, are vulnerable to quantum attacks - a point we will return to in
+  Section 8.5.
+</p>
+
+<h3>The Asymmetric Assumption</h3>
+
+<p>
+  All public-key cryptography depends on <strong>one-way functions</strong> - operations
+  that are easy to compute in one direction but hard to reverse. Multiplying primes is
+  easy; factoring is hard. Computing a modular exponent is easy; finding the discrete
+  logarithm is hard. Classical cryptography bets everything on the assumption that these
+  one-way functions will remain hard. Quantum computing challenges that bet.
+</p>
+</section>
+
+<!-- ================================================================== -->
+<section id="bb84">
+<h2>8.2 BB84: Quantum Key Distribution</h2>
+
+<p>
+  In 1984, Charles Bennett and Gilles Brassard proposed the first quantum key distribution
+  (QKD) protocol, now universally known as <strong>BB84</strong>. It allows two parties to
+  generate a shared secret key with security guaranteed by quantum mechanics - not by any
+  computational assumption.
+</p>
+
+<h3>The Two Bases</h3>
+
+<p>
+  BB84 uses two conjugate bases for encoding bits into qubits:
+</p>
+
+<table class="state-table">
+  <thead>
+    <tr><th>Basis</th><th>Bit 0</th><th>Bit 1</th><th>Gate from $|0\rangle$</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Computational</strong> ($Z$-basis)</td>
+      <td>$|0\rangle$</td>
+      <td>$|1\rangle$</td>
+      <td>None / X</td>
+    </tr>
+    <tr>
+      <td><strong>Hadamard</strong> ($X$-basis)</td>
+      <td>$|+\rangle = \frac{1}{\sqrt{2}}(|0\rangle + |1\rangle)$</td>
+      <td>$|-\rangle = \frac{1}{\sqrt{2}}(|0\rangle - |1\rangle)$</td>
+      <td>H / XH</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>
+  The crucial quantum property is this: if a qubit is prepared in one basis and measured in
+  the other, the outcome is completely random. Measuring $|+\rangle$ in the $Z$-basis gives
+  $|0\rangle$ or $|1\rangle$ with equal probability. This randomness is not due to
+  ignorance - it is fundamental.
+</p>
+
+<h3>The Protocol Step by Step</h3>
+
+<ol>
+  <li><strong>Preparation.</strong> Alice generates a random bit string and, for each bit,
+    randomly chooses either the $Z$-basis or the $X$-basis. She encodes each bit as a qubit
+    in the chosen basis and sends it to Bob over a quantum channel.</li>
+  <li><strong>Measurement.</strong> Bob independently and randomly chooses a measurement
+    basis ($Z$ or $X$) for each incoming qubit and records the outcome.</li>
+  <li><strong>Sifting.</strong> Over a public classical channel, Alice and Bob announce
+    which <em>basis</em> they used for each qubit (but not the bit values). They discard
+    all bits where they chose different bases. On average, their bases match about 50% of
+    the time.</li>
+  <li><strong>Error estimation.</strong> They sacrifice a random subset of the remaining
+    bits, comparing them publicly to estimate the error rate. In a perfect channel with no
+    eavesdropper, these bits should match perfectly.</li>
+  <li><strong>Key extraction.</strong> If the error rate is below a threshold (typically
+    around 11%), they apply classical error correction and privacy amplification to the
+    remaining bits, producing a shorter but perfectly secret shared key.</li>
+</ol>
+
+<h3>Why Eavesdropping Is Detectable</h3>
+
+<p>
+  Suppose an eavesdropper, Eve, intercepts a qubit in transit. She does not know which basis
+  Alice used, so she must guess. If she guesses correctly, her measurement reveals Alice's
+  bit and the qubit passes through undisturbed. But if she guesses wrong - which happens 50%
+  of the time - her measurement collapses the qubit into the wrong basis, introducing errors.
+</p>
+
+<p>
+  Specifically, when Eve measures a $Z$-basis qubit in the $X$-basis (or vice versa), she
+  destroys the original state. The qubit she re-sends to Bob is now random with respect to
+  Alice's encoding. When Alice and Bob compare a subset of their bits, they detect an error
+  rate of approximately 25% (Eve intercepts all qubits, guesses the wrong basis half the
+  time, and introduces a 50% error in those cases: $\frac{1}{2} \times \frac{1}{2} = \frac{1}{4}$).
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept: The No-Cloning Shield.</strong>
+  <p>Eve cannot simply copy the qubit and measure her copy later. The <strong>no-cloning
+  theorem</strong> (Chapter 7) forbids making a perfect copy of an unknown quantum state.
+  This forces Eve to measure the original, which unavoidably disturbs it. This is the
+  fundamental quantum advantage: eavesdropping leaves a detectable fingerprint.</p>
+</div>
+
+<h3>Information-Theoretic Security</h3>
+
+<p>
+  Unlike RSA, whose security could be broken by a sufficiently powerful computer, BB84's
+  security is <strong>unconditional</strong>. It does not rely on any assumption about Eve's
+  computational power. Even with unlimited computing resources, Eve cannot learn the key
+  without introducing detectable errors. The proof follows directly from the laws of quantum
+  mechanics: the uncertainty principle and the no-cloning theorem.
+</p>
+
+<h3>Sandbox: The Four BB84 States</h3>
+
+<p>
+  The four states used in BB84 can each be prepared with at most two gates. Run the circuits
+  below to verify the measurement statistics. In the $Z$-basis, $|0\rangle$ always yields 0
+  and $|1\rangle$ always yields 1. In the $X$-basis, $|+\rangle$ and $|-\rangle$ each give
+  0 and 1 with equal probability when measured in the computational basis.
+</p>
+
+<p><strong>$|0\rangle$ - Bit 0 in $Z$-basis:</strong></p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="5">OPENQASM 3.0;
+qubit[1] q;
+bit[1] c;
+// |0> - no gates needed
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p><strong>$|1\rangle$ - Bit 1 in $Z$-basis:</strong></p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="5">OPENQASM 3.0;
+qubit[1] q;
+bit[1] c;
+x q[0];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p><strong>$|+\rangle$ - Bit 0 in $X$-basis:</strong></p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="5">OPENQASM 3.0;
+qubit[1] q;
+bit[1] c;
+h q[0];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p><strong>$|-\rangle$ - Bit 1 in $X$-basis:</strong></p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="5">OPENQASM 3.0;
+qubit[1] q;
+bit[1] c;
+x q[0];
+h q[0];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<div class="callout callout-info">
+  <strong>Note.</strong>
+  <p>The $|-\rangle$ state is prepared by first applying X (to get $|1\rangle$) and then
+  H. Recall from Chapter 5 that $H|1\rangle = |-\rangle$. When measured in the
+  computational basis, $|-\rangle$ gives 0 or 1 each with probability $\frac{1}{2}$ -
+  just like $|+\rangle$. The two states differ only in their <em>relative phase</em>,
+  which is invisible to $Z$-basis measurement but detectable with an additional H gate
+  before measurement.</p>
+</div>
+
+<h3>Worked Example</h3>
+
+<p>
+  Let us trace through a small instance of BB84 with 8 qubits:
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Qubit</th><th>1</th><th>2</th><th>3</th><th>4</th>
+      <th>5</th><th>6</th><th>7</th><th>8</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Alice's bit</strong></td>
+      <td>0</td><td>1</td><td>1</td><td>0</td>
+      <td>1</td><td>0</td><td>0</td><td>1</td>
+    </tr>
+    <tr>
+      <td><strong>Alice's basis</strong></td>
+      <td>Z</td><td>X</td><td>Z</td><td>X</td>
+      <td>X</td><td>Z</td><td>X</td><td>Z</td>
+    </tr>
+    <tr>
+      <td><strong>State sent</strong></td>
+      <td>$|0\rangle$</td><td>$|-\rangle$</td><td>$|1\rangle$</td><td>$|+\rangle$</td>
+      <td>$|-\rangle$</td><td>$|0\rangle$</td><td>$|+\rangle$</td><td>$|1\rangle$</td>
+    </tr>
+    <tr>
+      <td><strong>Bob's basis</strong></td>
+      <td>Z</td><td>Z</td><td>Z</td><td>X</td>
+      <td>Z</td><td>X</td><td>X</td><td>Z</td>
+    </tr>
+    <tr>
+      <td><strong>Bob's result</strong></td>
+      <td>0</td><td>?</td><td>1</td><td>0</td>
+      <td>?</td><td>?</td><td>0</td><td>1</td>
+    </tr>
+    <tr>
+      <td><strong>Bases match?</strong></td>
+      <td>Yes</td><td>No</td><td>Yes</td><td>Yes</td>
+      <td>No</td><td>No</td><td>Yes</td><td>Yes</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>
+  After sifting, Alice and Bob keep qubits 1, 3, 4, 7, and 8, giving the shared bit string
+  <code>0 1 0 0 1</code>. The entries marked "?" are random because Bob measured in the
+  wrong basis. They sacrifice some of these matching bits (say qubits 1 and 8) to check for
+  errors. If the values agree, they use the remaining bits (1, 0, 0) as their secret key.
+</p>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="e91">
+<h2>8.3 E91: Entanglement-Based Key Distribution</h2>
+
+<p>
+  In 1991, Artur Ekert proposed a fundamentally different approach to quantum key
+  distribution. Instead of Alice sending prepared qubits to Bob, a source distributes
+  <strong>entangled Bell pairs</strong> - one qubit to Alice, one to Bob. The protocol,
+  called <strong>E91</strong>, ties security to the violation of Bell inequalities, creating
+  an elegant bridge between foundational quantum physics and practical cryptography.
+</p>
+
+<h3>The Protocol</h3>
+
+<ol>
+  <li><strong>Distribution.</strong> A source (which may be untrusted) generates pairs of
+    qubits in the Bell state $|\Phi^+\rangle = \frac{1}{\sqrt{2}}(|00\rangle + |11\rangle)$
+    and sends one qubit to Alice, the other to Bob.</li>
+  <li><strong>Random measurements.</strong> For each pair, Alice randomly chooses a
+    measurement direction from a set of angles (e.g., $0$, $\pi/8$, $\pi/4$), and Bob
+    independently chooses from a different but overlapping set (e.g., $0$, $\pi/8$,
+    $-\pi/8$). They record their choices and outcomes.</li>
+  <li><strong>Sifting for the key.</strong> After all measurements, Alice and Bob publicly
+    compare which <em>angles</em> they used (not outcomes). When both used the same angle
+    (e.g., both measured at $0$ or both at $\pi/8$), their outcomes are perfectly
+    correlated due to entanglement. These matching-angle outcomes form the raw key.</li>
+  <li><strong>Bell test for security.</strong> For pairs where they used <em>different</em>
+    angles, they publicly compare outcomes and compute the CHSH correlation value $S$.
+    Quantum mechanics predicts $S = 2\sqrt{2} \approx 2.83$, violating the classical bound
+    of $S \leq 2$. If Eve has measured (and thus disturbed) the entangled pairs, the
+    correlations weaken and $S$ drops toward the classical regime.</li>
+  <li><strong>Key extraction.</strong> If the Bell test confirms strong quantum correlations
+    ($S$ close to $2\sqrt{2}$), Alice and Bob proceed with error correction and privacy
+    amplification to distill a secure key.</li>
+</ol>
+
+<h3>Why Bell Violations Guarantee Security</h3>
+
+<p>
+  The deep insight of E91 is that <strong>maximal Bell inequality violation implies maximal
+  privacy</strong>. If Alice and Bob's measurements violate the CHSH inequality to the
+  quantum-mechanical maximum, then no third party can have any information about their
+  outcomes. This follows from a result in quantum information theory called the
+  <strong>monogamy of entanglement</strong>: the more strongly two particles are entangled
+  with each other, the less entangled either can be with anything else (including Eve's
+  system).
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept: Device-Independent Security.</strong>
+  <p>A remarkable feature of E91-style protocols is that security can be verified even if
+  Alice and Bob do not trust their own measurement devices. As long as their measurement
+  statistics violate a Bell inequality, the key is secure. This is the foundation of
+  <strong>device-independent QKD</strong>, an active area of research that offers the
+  strongest possible security guarantees.</p>
+</div>
+
+<h3>BB84 vs. E91</h3>
+
+<table>
+  <thead>
+    <tr><th>Feature</th><th>BB84</th><th>E91</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Quantum resource</td>
+      <td>Single qubits in 4 states</td>
+      <td>Entangled Bell pairs</td>
+    </tr>
+    <tr>
+      <td>Eavesdropper detection</td>
+      <td>Error rate estimation</td>
+      <td>Bell inequality violation</td>
+    </tr>
+    <tr>
+      <td>Security proof basis</td>
+      <td>No-cloning, uncertainty principle</td>
+      <td>Monogamy of entanglement</td>
+    </tr>
+    <tr>
+      <td>Device trust</td>
+      <td>Devices must be trusted</td>
+      <td>Can be made device-independent</td>
+    </tr>
+    <tr>
+      <td>Key rate (ideal)</td>
+      <td>~50% of qubits sent</td>
+      <td>Lower (some pairs used for Bell test)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>
+  Both protocols achieve the same fundamental goal - information-theoretically secure key
+  distribution - but through different quantum phenomena. BB84 exploits the disturbance
+  caused by measurement; E91 exploits the fragility of entanglement.
+</p>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="quantum-money">
+<h2>8.4 Quantum Money and Unforgeable Tokens</h2>
+
+<p>
+  The idea of using quantum mechanics for cryptography actually predates BB84. In the late
+  1960s (published in 1983), Stephen Wiesner proposed <strong>quantum money</strong> -
+  banknotes that are physically impossible to counterfeit. His scheme was one of the
+  earliest applications of quantum information, and its core idea still influences quantum
+  cryptography today.
+</p>
+
+<h3>Wiesner's Scheme</h3>
+
+<p>
+  Each banknote carries a classical serial number and a sequence of qubits. The bank, when
+  minting a note with serial number $s$, generates a random sequence of bits
+  $b_1, b_2, \ldots, b_n$ and a random sequence of bases $\theta_1, \theta_2, \ldots,
+  \theta_n$ (each either $Z$ or $X$). The bank encodes bit $b_i$ in basis $\theta_i$,
+  producing a qubit in one of the four BB84 states: $|0\rangle$, $|1\rangle$, $|+\rangle$,
+  or $|-\rangle$. The bank stores the secret key $(b_i, \theta_i)$ for each serial number
+  in a secure database.
+</p>
+
+<p>
+  To verify a note, the bank looks up the serial number, retrieves the corresponding bases,
+  and measures each qubit in the correct basis. If the note is genuine, every measurement
+  matches the recorded bit value.
+</p>
+
+<h3>Why Counterfeiting Fails</h3>
+
+<p>
+  A counterfeiter who wants to forge a note must duplicate its quantum state. But the
+  <strong>no-cloning theorem</strong> makes this impossible. Without knowing which basis
+  each qubit was prepared in, the counterfeiter cannot reliably copy any of them. Measuring
+  a qubit to learn its state collapses it, and guessing the wrong basis destroys the
+  information irreversibly.
+</p>
+
+<p>
+  Quantitatively, a counterfeiter who tries to clone all $n$ qubits by guessing bases at
+  random succeeds on each qubit with probability at most $\frac{3}{4}$ (they guess the
+  right basis half the time and get it right, and guess wrong the other half, getting a
+  50-50 result). The probability of successfully forging the entire note is at most
+  $\left(\frac{3}{4}\right)^n$, which becomes negligibly small for even moderate $n$.
+</p>
+
+<div class="callout callout-info">
+  <strong>Historical note.</strong>
+  <p>Wiesner's paper was rejected by journals for over a decade before being published in
+  1983 in <em>SIGACT News</em>. Bennett, who was Wiesner's college friend, later credited
+  quantum money as the direct inspiration for BB84. The idea was simply too far ahead of
+  its time - practical quantum memory did not (and still does not fully) exist to store
+  quantum banknotes for extended periods.</p>
+</div>
+
+<h3>Limitations and Modern Extensions</h3>
+
+<p>
+  Wiesner's original scheme requires the bank to verify every transaction, since only the
+  bank knows the secret bases. This makes it more of a "quantum check" than "quantum
+  cash." Modern research has extended the idea toward <strong>public-key quantum
+  money</strong>, where anyone can verify a note without the bank's secret, and
+  <strong>quantum tokens</strong> for one-time authentication and unforgeable digital
+  tickets.
+</p>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="quantum-threat">
+<h2>8.5 The Quantum Threat to Classical Cryptography</h2>
+
+<p>
+  Quantum mechanics giveth (secure key distribution) and quantum mechanics taketh away
+  (the security of classical cryptosystems). The same quantum phenomena that enable BB84
+  also power algorithms that can break the mathematical problems underlying RSA, ECC, and
+  Diffie-Hellman.
+</p>
+
+<h3>Shor's Algorithm: Breaking RSA and ECC</h3>
+
+<p>
+  In 1994, Peter Shor discovered a quantum algorithm that factors integers in
+  <strong>polynomial time</strong>. On a classical computer, the best known factoring
+  algorithm (the general number field sieve) runs in sub-exponential time. Shor's algorithm
+  runs in $O((\log n)^3)$ time, making it exponentially faster.
+</p>
+
+<p>
+  Since RSA security depends on factoring being hard, a large enough quantum computer
+  running Shor's algorithm would break RSA entirely. The same algorithm, adapted for
+  computing discrete logarithms, also breaks Diffie-Hellman and all elliptic curve
+  cryptography. We will study Shor's algorithm in detail in Chapter 11.
+</p>
+
+<div class="callout callout-warning">
+  <strong>Common Misconception.</strong>
+  <p>Shor's algorithm does not break <em>all</em> encryption. Symmetric ciphers like AES
+  are not based on factoring or discrete logarithms. Grover's algorithm (Chapter 12) can
+  speed up brute-force search against symmetric keys, but only by a quadratic factor -
+  meaning AES-256 retains an effective security level of 128 bits against quantum attack,
+  which is still considered secure.</p>
+</div>
+
+<h3>The "Harvest Now, Decrypt Later" Threat</h3>
+
+<p>
+  Large-scale quantum computers capable of running Shor's algorithm do not exist yet. But
+  this does not mean organizations can wait. Adversaries can record encrypted communications
+  <em>today</em> and store them until a quantum computer becomes available to decrypt them.
+  This strategy is known as <strong>"harvest now, decrypt later"</strong> (HNDL).
+</p>
+
+<p>
+  Consider data that must remain secret for 20 or 30 years - diplomatic communications,
+  medical records, trade secrets, intelligence reports. If a cryptographically relevant
+  quantum computer arrives within that window, anything encrypted with RSA or ECC today
+  could be retroactively exposed. This makes the quantum threat <em>immediate</em>, even
+  though the quantum computers themselves are not.
+</p>
+
+<h3>Post-Quantum Cryptography: The NIST Standards</h3>
+
+<p>
+  The response to the quantum threat is <strong>post-quantum cryptography</strong> (PQC) -
+  classical algorithms designed to resist both classical and quantum attacks. After an
+  eight-year evaluation process, the U.S. National Institute of Standards and Technology
+  (NIST) finalized its first post-quantum cryptographic standards in 2024:
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Standard</th>
+      <th>Algorithm</th>
+      <th>Type</th>
+      <th>Based On</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>FIPS 203</td>
+      <td><strong>ML-KEM</strong> (formerly CRYSTALS-Kyber)</td>
+      <td>Key encapsulation</td>
+      <td>Module lattices</td>
+    </tr>
+    <tr>
+      <td>FIPS 204</td>
+      <td><strong>ML-DSA</strong> (formerly CRYSTALS-Dilithium)</td>
+      <td>Digital signature</td>
+      <td>Module lattices</td>
+    </tr>
+    <tr>
+      <td>FIPS 205</td>
+      <td><strong>SLH-DSA</strong> (formerly SPHINCS+)</td>
+      <td>Digital signature</td>
+      <td>Hash functions</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>
+  A fourth standard, <strong>FN-DSA</strong> (formerly FALCON), based on NTRU lattices,
+  is expected to follow as FIPS 206. NIST also continues evaluating additional signature
+  schemes in an ongoing process.
+</p>
+
+<p>
+  These algorithms replace the hard problems of factoring and discrete logarithms with
+  problems that are believed to be hard for both classical <em>and</em> quantum computers -
+  primarily the <strong>Learning With Errors</strong> (LWE) problem on lattices.
+</p>
+
+<div class="callout callout-info">
+  <strong>Note.</strong>
+  <p>Post-quantum cryptography is <em>not</em> quantum cryptography. PQC algorithms run on
+  ordinary classical computers. They simply use mathematical problems that quantum computers
+  cannot solve efficiently. QKD (BB84, E91) uses actual quantum hardware. Both approaches
+  address the quantum threat, but from completely different angles.</p>
+</div>
+
+<h3>When Should Organizations Migrate?</h3>
+
+<p>
+  The urgency of migration depends on three time horizons, sometimes called the
+  <strong>Mosca inequality</strong>:
+</p>
+
+<ul>
+  <li>$x$ = the number of years data must remain secret</li>
+  <li>$y$ = the number of years needed to migrate systems to post-quantum cryptography</li>
+  <li>$z$ = the number of years until a cryptographically relevant quantum computer exists</li>
+</ul>
+
+<p>
+  If $x + y > z$, then the organization needs to begin migration <em>now</em>. Given that
+  migration for large organizations can take 5-10 years, and many experts estimate
+  cryptographically relevant quantum computers could arrive in the 2030s to 2040s, the
+  window for comfortable migration is already narrowing.
+</p>
+
+<p>
+  Major standards bodies and governments have responded with concrete timelines. NIST
+  recommends transitioning to post-quantum algorithms by 2035, with the goal of
+  deprecating vulnerable algorithms entirely. The NSA's CNSA 2.0 suite mandates
+  post-quantum algorithms for national security systems. The message is clear: the time to
+  begin migrating is now, not when quantum computers arrive.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept: Defense in Depth.</strong>
+  <p>The safest strategy is <strong>hybrid encryption</strong> - combining a classical
+  algorithm (like RSA or ECC) with a post-quantum algorithm (like ML-KEM) in the same
+  protocol. This way, the system remains secure even if one of the two algorithms is
+  broken. Major protocols like TLS 1.3 are already being updated to support hybrid
+  key exchange, and the IETF has standardized ML-KEM hybrid modes.</p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="landscape">
+<h2>8.6 The Quantum Cryptography Landscape</h2>
+
+<p>
+  Let us step back and survey the full picture. Quantum mechanics interacts with
+  cryptography in three distinct ways:
+</p>
+
+<table>
+  <thead>
+    <tr><th>Category</th><th>What It Does</th><th>Quantum Hardware?</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Quantum Key Distribution</strong> (BB84, E91)</td>
+      <td>Generates shared secret keys with information-theoretic security</td>
+      <td>Yes - quantum channel required</td>
+    </tr>
+    <tr>
+      <td><strong>Quantum Attack</strong> (Shor, Grover)</td>
+      <td>Breaks classical public-key cryptography; weakens symmetric crypto</td>
+      <td>Yes - quantum computer required</td>
+    </tr>
+    <tr>
+      <td><strong>Post-Quantum Cryptography</strong> (ML-KEM, ML-DSA)</td>
+      <td>Classical algorithms resistant to quantum attack</td>
+      <td>No - runs on classical hardware</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>
+  These three threads will weave through the rest of this textbook. Chapter 9 introduces
+  oracles and quantum parallelism - the conceptual foundation for the quantum algorithms
+  that pose the threat. Chapter 11 dives into Shor's algorithm itself. And Chapter 35
+  explores advanced quantum cryptographic protocols beyond basic key distribution.
+</p>
+
+<h3>Practical QKD Today</h3>
+
+<p>
+  Quantum key distribution is not just a theoretical curiosity. Commercial QKD systems are
+  deployed in fiber-optic networks in China, Europe, Japan, and South Korea. The longest
+  QKD link spans over 2,000 km using the Micius satellite, which demonstrated
+  satellite-to-ground entanglement-based key distribution in 2017. However, practical
+  challenges remain: QKD systems require dedicated hardware, are limited in distance
+  (without quantum repeaters), and have lower key rates than classical key exchange.
+</p>
+
+<p>
+  The future likely involves both approaches working in tandem. Post-quantum algorithms
+  protect the bulk of internet traffic today, while QKD secures the most sensitive
+  channels where information-theoretic security justifies the additional infrastructure.
+</p>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="flashcards">
+<h2>Review Flashcards</h2>
+
+<div class="flashcard-deck" data-component="flashcard-deck">
+  <div class="flashcard-deck-header">Chapter 8 Review</div>
+
+  <div class="flashcard" data-card-id="ch08-computational-vs-info-sec">
+    <div class="card-front">What is the difference between computational security and information-theoretic security?</div>
+    <div class="card-back">
+      Computational security means a scheme is safe only because breaking it is believed to require infeasible computation (e.g., factoring large numbers for RSA). Information-theoretic security means the adversary gains zero information about the secret regardless of their computational power. BB84 achieves information-theoretic security; RSA provides only computational security.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch08-bb84-bases">
+    <div class="card-front">What are the two bases used in BB84, and what states does each encode?</div>
+    <div class="card-back">
+      The $Z$-basis (computational basis) encodes bit 0 as $|0\rangle$ and bit 1 as $|1\rangle$. The $X$-basis (Hadamard basis) encodes bit 0 as $|+\rangle$ and bit 1 as $|-\rangle$. If a qubit prepared in one basis is measured in the other, the outcome is uniformly random.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch08-bb84-sifting">
+    <div class="card-front">In BB84, what information do Alice and Bob share publicly, and what do they keep secret?</div>
+    <div class="card-back">
+      They publicly share which <em>basis</em> they used for each qubit and discard bits where their bases differ. They never reveal the actual bit values of the kept bits. They also sacrifice a random subset of matching bits to estimate the error rate, but the remaining bits form the secret key.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch08-eve-error-rate">
+    <div class="card-front">What error rate does an eavesdropper introduce in BB84 if she intercepts and re-sends every qubit?</div>
+    <div class="card-back">
+      Approximately 25%. Eve guesses the wrong basis half the time, and in those cases introduces a 50% error rate: $\frac{1}{2} \times \frac{1}{2} = \frac{1}{4}$. Alice and Bob detect this elevated error rate when they compare a subset of their sifted key bits.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch08-e91-bell">
+    <div class="card-front">How does the E91 protocol detect eavesdropping?</div>
+    <div class="card-back">
+      E91 uses entangled Bell pairs. Alice and Bob measure in randomly chosen angles and use pairs with different angle choices to compute the CHSH correlation $S$. Quantum mechanics predicts $S = 2\sqrt{2}$. If Eve has disturbed the entanglement, correlations weaken and $S$ drops toward the classical bound of 2, revealing her presence.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch08-no-cloning-crypto">
+    <div class="card-front">Why is the no-cloning theorem essential to quantum cryptography?</div>
+    <div class="card-back">
+      The no-cloning theorem prevents an eavesdropper from copying an unknown quantum state. In BB84, Eve cannot clone a qubit to keep a copy and forward the original to Bob; she must measure (and thus disturb) the original. In quantum money, it prevents counterfeiting by making it impossible to duplicate quantum banknotes.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch08-shor-threat">
+    <div class="card-front">Which classical cryptosystems does Shor's algorithm threaten, and which does it not?</div>
+    <div class="card-back">
+      Shor's algorithm breaks RSA (factoring), Diffie-Hellman (discrete log), and elliptic curve cryptography (elliptic curve discrete log) - all public-key systems. It does <em>not</em> break symmetric ciphers like AES. Grover's algorithm provides a quadratic speedup against symmetric keys, but AES-256 remains secure (128-bit effective security).
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch08-harvest-now">
+    <div class="card-front">What is the "harvest now, decrypt later" (HNDL) threat?</div>
+    <div class="card-back">
+      Adversaries record encrypted communications today and store them until a quantum computer capable of running Shor's algorithm becomes available. Data that must stay secret for decades (diplomatic cables, medical records, trade secrets) is already at risk from HNDL, even though large quantum computers do not yet exist.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+</section>
+
+    </article>
+
+    
+    <nav class="chapter-nav" aria-label="Chapter navigation">
+      <a href="07-teleportation.html" class="prev">&larr; Chapter 7: Quantum Teleportation and Communication</a>
+      <span class="nav-spacer"></span>
+      <a href="09-oracles.html" class="next">Chapter 9: Oracles and Quantum Parallelism &rarr;</a>
+    </nav>
+    
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof renderMathInElement !== "undefined") {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "$", right: "$", display: false}
+          ],
+          throwOnError: false
+        });
+      }
+    });
+  </script>
+  
+  <script>
+  "use strict";
+  
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function isDark() { return window.matchMedia("(prefers-color-scheme: dark)").matches; }
+  function renderMath(el) {
+    if (typeof renderMathInElement === "function")
+      renderMathInElement(el, { delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}], throwOnError: false });
+  }
+
+  
+  var wasmReady = null;
+  function ensureWasm() {
+    if (!wasmReady) {
+      wasmReady = (async function() {
+        var go = new Go();
+        var result = await WebAssembly.instantiateStreaming(fetch("../main.wasm"), go.importObject);
+        go.run(result.instance);
+      })();
+    }
+    return wasmReady;
+  }
+
+  
+  var SRS_KEY = "goqu-srs";
+  function srsLoad() { try { return JSON.parse(localStorage.getItem(SRS_KEY) || "{}"); } catch(e) { return {}; } }
+  function srsSave(d) { localStorage.setItem(SRS_KEY, JSON.stringify(d)); }
+  function getCardState(id) { var d = srsLoad(); return d[id] || {interval:1, ease:2.5, due:0, reps:0}; }
+  function reviewCard(id, q) {
+    var d = srsLoad(), s = d[id] || {interval:1, ease:2.5, due:0, reps:0};
+    if (q >= 3) {
+      s.reps++;
+      if (s.reps === 1) s.interval = 1;
+      else if (s.reps === 2) s.interval = 6;
+      else s.interval = Math.round(s.interval * s.ease);
+      s.ease = Math.max(1.3, s.ease + 0.1 - (5-q)*(0.08 + (5-q)*0.02));
+    } else { s.reps = 0; s.interval = 1; }
+    s.due = Date.now() + s.interval * 86400000;
+    d[id] = s; srsSave(d);
+  }
+
+  
+  function initSandbox(el) {
+    var code = el.querySelector(".code"), output = el.querySelector(".output");
+    if (!code || !output) return;
+    var runBtn = el.querySelector('[data-action="run"]'), resetBtn = el.querySelector('[data-action="reset"]');
+    var shotsEl = el.querySelector("[data-shots]"), orig = code.value;
+    function shots() { return parseInt(shotsEl ? shotsEl.value : el.dataset.shots || "1024", 10); }
+    async function run() {
+      await ensureWasm();
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(code.value, shots(), isDark()));
+        if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+        output.innerHTML = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+    if (runBtn) runBtn.addEventListener("click", run);
+    if (resetBtn) resetBtn.addEventListener("click", function() { code.value = orig; });
+    if (el.hasAttribute("data-autorun")) run();
+  }
+
+  
+  function initSimulation(el) {
+    var tmplEl = el.querySelector(".sim-qasm"), output = el.querySelector(".sim-output");
+    var sliders = el.querySelectorAll('input[type="range"]');
+    var selects = el.querySelectorAll("select[data-param]");
+    if (!tmplEl || !output || (sliders.length === 0 && selects.length === 0)) return;
+    var tmpl = tmplEl.textContent, pending = false;
+    var useNoisy = el.hasAttribute("data-noisy");
+    var useComparison = el.hasAttribute("data-comparison");
+    var useExpectation = el.hasAttribute("data-expectation");
+    var useClifford = el.hasAttribute("data-clifford");
+    async function update() {
+      if (pending) return; pending = true;
+      await ensureWasm();
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var params = {};
+        sliders.forEach(function(s) { params[s.dataset.param] = parseFloat(s.value); var o = s.parentElement.querySelector("output"); if (o) o.textContent = parseFloat(s.value).toFixed(2); });
+        selects.forEach(function(s) { params[s.dataset.param] = s.value; });
+        var qasm = tmpl;
+        for (var k in params) qasm = qasm.replaceAll("{"+k+"}", params[k].toString());
+        var html = "";
+        if (useComparison && window.compareIdealNoisy) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.compareIdealNoisy(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="comparison-panels"><div class="comparison-panel"><h4>Ideal</h4>' + (r.idealHistogramSVG||"") + '</div><div class="comparison-panel"><h4>Noisy</h4>' + (r.noisyHistogramSVG||"") + '</div></div>';
+          if (r.stateCitySVG) html += r.stateCitySVG;
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useNoisy && window.runNoisyQASM) {
+          var noiseModel = params.noiseModel || "depolarizing";
+          var noiseParam = parseFloat(params.noiseParam || "0.1");
+          var r = JSON.parse(window.runNoisyQASM(qasm, 1024, noiseModel, noiseParam, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"") + (r.stateCitySVG||"");
+          if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span><span>Fidelity: ' + r.fidelity.toFixed(4) + '</span></div>';
+        } else if (useClifford && window.runClifford) {
+          var r = JSON.parse(window.runClifford(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + (r.histogramSVG||"");
+          if (r.stabilizers) { html += '<div class="stabilizer-table"><h4>Stabilizers</h4><table>'; r.stabilizers.forEach(function(s) { html += '<tr><td>' + formatStabilizer(s) + '</td></tr>'; }); html += '</table></div>'; }
+        } else if (useExpectation && window.computeExpectation) {
+          var pauliStr = params.pauliStr || el.dataset.pauli || "Z";
+          var r = JSON.parse(window.computeExpectation(qasm, pauliStr, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuitSVG||"") + '<div class="sim-stats"><span>&lt;' + esc(pauliStr) + '&gt; = ' + r.expectation.toFixed(6) + '</span></div>';
+        } else {
+          var r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; pending = false; return; }
+          html = (r.circuit||"") + (r.histogram||"") + (r.bloch||"");
+          
+          if (el.hasAttribute("data-bloch") && window.getStateVector && window.renderBloch) {
+            try {
+              var sv = JSON.parse(window.getStateVector(qasm));
+              if (sv.amplitudes && sv.amplitudes.length === 2) {
+                var a = sv.amplitudes;
+                var blochSVG = window.renderBloch(a[0].re, a[0].im, a[1].re, a[1].im, isDark());
+                if (blochSVG) html += blochSVG;
+              }
+            } catch(e) {   }
+          }
+        }
+        output.innerHTML = html;
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+      pending = false;
+    }
+    sliders.forEach(function(s) { s.addEventListener("input", update); });
+    selects.forEach(function(s) { s.addEventListener("change", update); });
+    update();
+  }
+
+  
+  function formatStabilizer(s) {
+    if (!s) return "";
+    var sign = s[0], ops = s.slice(1), html = '<span class="stab-sign">' + esc(sign) + '</span>';
+    for (var i = 0; i < ops.length; i++) {
+      var c = ops[i], cls = "stab-" + c.toLowerCase();
+      html += '<span class="' + cls + '">' + c + '</span>';
+    }
+    return html;
+  }
+
+  
+  function initExercise(el) {
+    var code = el.querySelector(".code"), feedback = el.querySelector(".exercise-feedback");
+    var checkBtn = el.querySelector('[data-action="check"]');
+    var hintBtn = el.querySelector('[data-action="hint"]'), hintEl = el.querySelector(".exercise-hint");
+    if (!code || !feedback || !checkBtn) return;
+    var expected = {}, tol = 0.1;
+    var expEl = el.querySelector(".exercise-expected");
+    if (expEl) expEl.querySelectorAll("[data-state]").forEach(function(span) {
+      expected[span.dataset.state] = parseFloat(span.dataset.prob);
+      if (span.dataset.tolerance) tol = parseFloat(span.dataset.tolerance);
+    });
+    checkBtn.addEventListener("click", async function() {
+      await ensureWasm();
+      feedback.className = "exercise-feedback visible";
+      feedback.textContent = "Checking...";
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(code.value, 1024, isDark()));
+        if (r.error) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + r.error; return; }
+        if (Object.keys(expected).length === 0) { feedback.className = "exercise-feedback visible pass"; feedback.innerHTML = "Circuit ran successfully."; return; }
+        var prob = JSON.parse(window.getProbabilities(code.value, isDark()));
+        if (prob.error) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + prob.error; return; }
+        var actual = {};
+        for (var i = 0; i < prob.labels.length; i++) actual[prob.labels[i]] = prob.probabilities[i];
+        var ok = true, msgs = [];
+        for (var s in expected) {
+          var a = actual[s] || 0, p = expected[s];
+          if (Math.abs(a - p) > tol) { ok = false; msgs.push("|" + s + "\u27E9: expected " + (p*100|0) + "%, got " + (a*100|0) + "%"); }
+        }
+        if (ok) { feedback.className = "exercise-feedback visible pass"; feedback.innerHTML = "Correct! Your circuit produces the expected output."; }
+        else { feedback.className = "exercise-feedback visible fail"; feedback.innerHTML = "Not quite. " + msgs.join("; ") + "."; }
+        renderMath(feedback);
+      } catch(e) { feedback.className = "exercise-feedback visible fail"; feedback.textContent = "Error: " + e.message; }
+    });
+    if (hintBtn && hintEl) hintBtn.addEventListener("click", function() { hintEl.style.display = hintEl.style.display === "none" ? "block" : "none"; });
+  }
+
+  
+  function initFlashcardDeck(el) {
+    el.querySelectorAll(".flashcard").forEach(function(card) {
+      var id = card.dataset.cardId;
+      if (!id) return;
+      var state = getCardState(id);
+      if (state.due > 0 && state.due > Date.now()) card.classList.add("reviewed");
+      card.addEventListener("click", function(e) {
+        if (e.target.closest("button")) return;
+        card.classList.toggle("flipped");
+        var back = card.querySelector(".card-back");
+        if (back) renderMath(back);
+      });
+      var easyBtn = card.querySelector(".easy"), hardBtn = card.querySelector(".hard");
+      if (easyBtn) easyBtn.addEventListener("click", function() { reviewCard(id, 4); card.classList.remove("flipped"); card.classList.add("reviewed"); });
+      if (hardBtn) hardBtn.addEventListener("click", function() { reviewCard(id, 2); card.classList.remove("flipped"); });
+    });
+  }
+
+  
+  function initPOE(el) {
+    var steps = el.querySelectorAll(".poe-step"), prog = el.querySelectorAll(".poe-progress-step");
+    if (steps.length === 0) return;
+    var cur = 0;
+    function show(idx) {
+      steps.forEach(function(s,i) { s.classList.toggle("active", i === idx); });
+      prog.forEach(function(s,i) { s.classList.remove("active","done"); if (i < idx) s.classList.add("done"); if (i === idx) s.classList.add("active"); });
+      cur = idx;
+      var active = steps[idx];
+      if (active) active.querySelectorAll('.sandbox:not([data-initialized])').forEach(function(sb) { sb.setAttribute("data-initialized","true"); initSandbox(sb); });
+    }
+    el.querySelectorAll('[data-action="next"]').forEach(function(btn) { btn.addEventListener("click", function() { if (cur < steps.length - 1) show(cur + 1); }); });
+    el.querySelectorAll('[data-action="complete"]').forEach(function(btn) { btn.addEventListener("click", function() { prog.forEach(function(s) { s.classList.remove("active"); s.classList.add("done"); }); }); });
+    show(0);
+  }
+
+  
+  function initStepThrough(el) {
+    var qasmEl = el.querySelector(".step-qasm");
+    var output = el.querySelector(".step-output");
+    var prevBtn = el.querySelector('[data-action="prev"]');
+    var nextBtn = el.querySelector('[data-action="next"]');
+    var stepInfo = el.querySelector(".step-info");
+    if (!qasmEl || !output) return;
+    var qasm = qasmEl.textContent;
+    var mode = el.dataset.mode || "clifford"; 
+    var steps = null, cur = -1;
+
+    async function load() {
+      await ensureWasm();
+      try {
+        if (mode === "clifford" && window.cliffordStepThrough) {
+          var r = JSON.parse(window.cliffordStepThrough(qasm));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+          
+          steps.unshift({gate: "init", qubits: [], stabilizers: r.steps.length > 0 ? null : []});
+        } else if (mode === "grover" && window.groverStepThrough) {
+          var nq = parseInt(el.dataset.qubits || "2", 10);
+          var targets = JSON.parse(el.dataset.targets || "[]");
+          var r = JSON.parse(window.groverStepThrough(nq, targets.join(",")));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          steps = r.steps || [];
+        }
+        if (steps && steps.length > 0) { cur = 0; renderStep(); }
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    function renderStep() {
+      if (!steps || cur < 0 || cur >= steps.length) return;
+      var s = steps[cur];
+      var html = "";
+      if (mode === "clifford") {
+        if (s.gate === "init") {
+          html = '<p class="step-label">Initial state |0...0&gt;</p>';
+          
+          if (steps.length > 1 && steps[1].stabilizers) {
+            var nq = steps[1].stabilizers[0].length - 1;
+            html += '<div class="stabilizer-table"><table>';
+            for (var i = 0; i < nq; i++) {
+              var row = "+";
+              for (var j = 0; j < nq; j++) row += (j === i) ? "Z" : "I";
+              html += '<tr><td>' + formatStabilizer(row) + '</td></tr>';
+            }
+            html += '</table></div>';
+          }
+        } else {
+          html = '<p class="step-label">After <strong>' + esc(s.gate) + '</strong> on qubit' + (s.qubits.length > 1 ? 's ' : ' ') + s.qubits.join(', ') + '</p>';
+          if (s.stabilizers) {
+            html += '<div class="stabilizer-table"><table>';
+            s.stabilizers.forEach(function(st) { html += '<tr><td>' + formatStabilizer(st) + '</td></tr>'; });
+            html += '</table></div>';
+          }
+        }
+      } else if (mode === "grover") {
+        html = '<p class="step-label">Iteration ' + s.iteration + '</p>';
+        if (s.probabilities) {
+          html += '<div class="amplitude-bars">';
+          for (var i = 0; i < s.probabilities.length; i++) {
+            var label = i.toString(2).padStart(Math.ceil(Math.log2(s.probabilities.length)), '0');
+            var pct = (s.probabilities[i] * 100).toFixed(1);
+            var isTarget = el.dataset.targets && JSON.parse(el.dataset.targets).indexOf(i) >= 0;
+            html += '<div class="amp-bar' + (isTarget ? ' target' : '') + '"><div class="amp-fill" style="height:' + pct + '%"></div><span class="amp-label">|' + label + '&gt;</span><span class="amp-value">' + pct + '%</span></div>';
+          }
+          html += '</div>';
+        }
+      }
+      output.innerHTML = html;
+      if (stepInfo) stepInfo.textContent = "Step " + cur + " / " + (steps.length - 1);
+      if (prevBtn) prevBtn.disabled = (cur === 0);
+      if (nextBtn) nextBtn.disabled = (cur >= steps.length - 1);
+    }
+
+    if (prevBtn) prevBtn.addEventListener("click", function() { if (cur > 0) { cur--; renderStep(); } });
+    if (nextBtn) nextBtn.addEventListener("click", function() { if (steps && cur < steps.length - 1) { cur++; renderStep(); } });
+    load();
+  }
+
+  
+  document.addEventListener("DOMContentLoaded", function() {
+    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough};
+    document.querySelectorAll("[data-component]").forEach(function(el) { var fn = reg[el.dataset.component]; if (fn) fn(el); });
+  });
+  </script>
+  
+</body>
+</html>
