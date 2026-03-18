@@ -1,0 +1,697 @@
+<!--
+title: Multiple Qubits and Entanglement
+part: 2
+partTitle: Entering the Quantum World
+chapter: 6
+-->
+
+<section id="two-qubits-tensor-product">
+<h2>6.1 Two Qubits: The Tensor Product</h2>
+
+<p>So far, every circuit we have built uses a single qubit. A single qubit is interesting, but the real power of quantum computing emerges when we combine multiple qubits. The mathematical tool for combining quantum systems is the <strong>tensor product</strong>.</p>
+
+<h3>From one qubit to two</h3>
+
+<p>A single qubit lives in a two-dimensional space spanned by $|0\rangle$ and $|1\rangle$. Its general state is $\alpha|0\rangle + \beta|1\rangle$, described by two complex amplitudes. When we bring a second qubit into the picture, we need to describe the state of <em>both</em> qubits simultaneously. The combined state space is built using the tensor product, written $\otimes$.</p>
+
+<p>If the first qubit is in state $|\psi\rangle = \alpha|0\rangle + \beta|1\rangle$ and the second qubit is in state $|\phi\rangle = \gamma|0\rangle + \delta|1\rangle$, then the joint state is:</p>
+
+$$|\psi\rangle \otimes |\phi\rangle = \alpha\gamma|00\rangle + \alpha\delta|01\rangle + \beta\gamma|10\rangle + \beta\delta|11\rangle$$
+
+<p>We write $|00\rangle$ as shorthand for $|0\rangle \otimes |0\rangle$. The first digit refers to the first qubit, the second digit to the second qubit.</p>
+
+<h3>The four computational basis states</h3>
+
+<p>Two qubits have four computational basis states, each corresponding to a classical two-bit string:</p>
+
+<table class="state-table">
+  <thead>
+    <tr><th>State</th><th>Qubit 0</th><th>Qubit 1</th><th>Decimal</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>$|00\rangle$</td><td>0</td><td>0</td><td>0</td></tr>
+    <tr><td>$|01\rangle$</td><td>0</td><td>1</td><td>1</td></tr>
+    <tr><td>$|10\rangle$</td><td>1</td><td>0</td><td>2</td></tr>
+    <tr><td>$|11\rangle$</td><td>1</td><td>1</td><td>3</td></tr>
+  </tbody>
+</table>
+
+<p>A general two-qubit state is a superposition of all four:</p>
+
+$$|\Psi\rangle = \alpha_{00}|00\rangle + \alpha_{01}|01\rangle + \alpha_{10}|10\rangle + \alpha_{11}|11\rangle$$
+
+<p>with the normalization condition $|\alpha_{00}|^2 + |\alpha_{01}|^2 + |\alpha_{10}|^2 + |\alpha_{11}|^2 = 1$.</p>
+
+<h3>A concrete example</h3>
+
+<p>Suppose qubit 0 is in state $|+\rangle = \frac{1}{\sqrt{2}}(|0\rangle + |1\rangle)$ and qubit 1 is in state $|0\rangle$. Their tensor product is:</p>
+
+$$|+\rangle \otimes |0\rangle = \frac{1}{\sqrt{2}}(|0\rangle + |1\rangle) \otimes |0\rangle = \frac{1}{\sqrt{2}}|00\rangle + \frac{1}{\sqrt{2}}|10\rangle$$
+
+<p>Measuring this system gives $|00\rangle$ half the time and $|10\rangle$ half the time. The results of the two qubits are <strong>independent</strong> - qubit 0 is randomly 0 or 1, and qubit 1 is always 0 regardless. Try it:</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="6">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+h q[0];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<h3>Exponential growth: the power and the curse</h3>
+
+<div class="callout callout-key">
+  <strong>Key insight: exponential state space</strong>
+  <p>One qubit needs 2 amplitudes. Two qubits need 4. Three need 8. In general, $n$ qubits need $2^n$ complex amplitudes to describe their state. This exponential growth is both the <em>source of quantum computing's power</em> and the reason classical computers struggle to simulate quantum systems. With just 300 qubits, you would need more amplitudes than there are atoms in the observable universe.</p>
+</div>
+
+<table>
+  <thead>
+    <tr><th>Qubits ($n$)</th><th>Amplitudes ($2^n$)</th><th>Classical bits to store</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>1</td><td>2</td><td>~64</td></tr>
+    <tr><td>5</td><td>32</td><td>~2,048</td></tr>
+    <tr><td>10</td><td>1,024</td><td>~65,536</td></tr>
+    <tr><td>20</td><td>1,048,576</td><td>~67 million</td></tr>
+    <tr><td>50</td><td>$\approx 10^{15}$</td><td>~128 petabytes</td></tr>
+    <tr><td>300</td><td>$\approx 10^{90}$</td><td>More than atoms in the universe</td></tr>
+  </tbody>
+</table>
+
+<p>But there is a catch: we cannot access all $2^n$ amplitudes directly. Measurement collapses the state to a single basis state. The art of quantum algorithm design lies in structuring computations so that useful information concentrates in the amplitudes we can observe.</p>
+</section>
+
+<section id="cnot-gate">
+<h2>6.2 The CNOT Gate: Creating Correlations</h2>
+
+<p>All the gates we have seen so far - X, H, Z, S, T - act on a single qubit. To do anything interesting with multiple qubits, we need gates that create interactions between them. The most important two-qubit gate is the <strong>controlled-NOT</strong>, or <strong>CNOT</strong> (also written CX).</p>
+
+<h3>How CNOT works</h3>
+
+<p>The CNOT gate takes two qubits: a <strong>control</strong> and a <strong>target</strong>. If the control qubit is $|1\rangle$, the target qubit is flipped (an X gate is applied). If the control is $|0\rangle$, the target is left alone.</p>
+
+<table class="state-table">
+  <thead>
+    <tr><th>Input</th><th>Output</th><th>Rule</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>$|00\rangle$</td><td>$|00\rangle$</td><td>Control is 0, target unchanged</td></tr>
+    <tr><td>$|01\rangle$</td><td>$|01\rangle$</td><td>Control is 0, target unchanged</td></tr>
+    <tr><td>$|10\rangle$</td><td>$|11\rangle$</td><td>Control is 1, target flipped</td></tr>
+    <tr><td>$|11\rangle$</td><td>$|10\rangle$</td><td>Control is 1, target flipped</td></tr>
+  </tbody>
+</table>
+
+<p>In matrix form, the CNOT gate acting on the basis $\{|00\rangle, |01\rangle, |10\rangle, |11\rangle\}$ is:</p>
+
+$$\text{CNOT} = \begin{pmatrix} 1 & 0 & 0 & 0 \\ 0 & 1 & 0 & 0 \\ 0 & 0 & 0 & 1 \\ 0 & 0 & 1 & 0 \end{pmatrix}$$
+
+<p>Notice that CNOT is its own inverse: applying it twice returns to the original state. It is also a <strong>classical</strong> gate when acting on basis states - it computes a reversible XOR: the target becomes (target XOR control).</p>
+
+<h3>CNOT on computational basis states</h3>
+
+<p>Start with $|10\rangle$ (qubit 0 is 1, qubit 1 is 0). The CNOT with control q[0] and target q[1] flips q[1], producing $|11\rangle$:</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="7">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+x q[0];
+cx q[0], q[1];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<h3>CNOT on superpositions: where the magic happens</h3>
+
+<p>Now consider what happens when the control qubit is in a superposition. Start with $|+\rangle|0\rangle = \frac{1}{\sqrt{2}}(|00\rangle + |10\rangle)$ and apply CNOT:</p>
+
+$$\text{CNOT}\left(\frac{1}{\sqrt{2}}|00\rangle + \frac{1}{\sqrt{2}}|10\rangle\right) = \frac{1}{\sqrt{2}}|00\rangle + \frac{1}{\sqrt{2}}|11\rangle$$
+
+<p>The $|00\rangle$ term is unchanged (control is 0), but the $|10\rangle$ term becomes $|11\rangle$ (control is 1, so target flips). The result is something remarkable: a state that cannot be written as a product of two individual qubit states. This is <strong>entanglement</strong>, and we will explore it deeply in the next section.</p>
+
+<div class="callout callout-info">
+  <strong>Why CNOT is fundamental</strong>
+  <p>The CNOT gate is to multi-qubit computing what the Hadamard gate is to single-qubit superposition. It is the primary mechanism for creating correlations between qubits. Together, single-qubit gates and the CNOT form a universal gate set - any quantum computation can be decomposed into these building blocks.</p>
+</div>
+</section>
+
+<section id="entanglement">
+<h2>6.3 Entanglement: Spooky But Real</h2>
+
+<p>Entanglement is the phenomenon that sets quantum mechanics apart from all of classical physics. Einstein famously called it "spooky action at a distance," and it troubled him deeply. Today, entanglement is not just accepted - it is a <em>resource</em> that powers quantum teleportation, quantum cryptography, and quantum computation itself.</p>
+
+<h3>What entanglement IS</h3>
+
+<p>A multi-qubit state is <strong>entangled</strong> when it cannot be written as a tensor product of individual qubit states. Consider the state we just created:</p>
+
+$$|\Phi^+\rangle = \frac{1}{\sqrt{2}}(|00\rangle + |11\rangle)$$
+
+<p>Can we write this as $|\psi\rangle \otimes |\phi\rangle = (\alpha|0\rangle + \beta|1\rangle)(\gamma|0\rangle + \delta|1\rangle)$? Expanding, we would need:</p>
+
+$$\alpha\gamma = \frac{1}{\sqrt{2}}, \quad \alpha\delta = 0, \quad \beta\gamma = 0, \quad \beta\delta = \frac{1}{\sqrt{2}}$$
+
+<p>From $\alpha\delta = 0$, either $\alpha = 0$ or $\delta = 0$. But if $\alpha = 0$, then $\alpha\gamma = 0 \neq \frac{1}{\sqrt{2}}$. If $\delta = 0$, then $\beta\delta = 0 \neq \frac{1}{\sqrt{2}}$. There is no solution. The state is genuinely entangled - it has no description in terms of individual qubits.</p>
+
+<div class="callout callout-key">
+  <strong>The meaning of entanglement</strong>
+  <p>When two qubits are entangled, they share a correlation that has no classical explanation. You cannot describe what "qubit 0 is doing" independently of "qubit 1." The system has properties that the parts do not have individually. Measuring one qubit instantaneously determines the outcome of measuring the other, regardless of the physical distance between them.</p>
+</div>
+
+<h3>What entanglement IS NOT</h3>
+
+<p>Entanglement is surrounded by misconceptions. Let us clear up the most common ones:</p>
+
+<ul>
+  <li><strong>It is not faster-than-light communication.</strong> When Alice measures her entangled qubit, she gets a random result. She cannot control what result she gets, so she cannot send a message to Bob by choosing her outcome. Bob's local measurement statistics look completely random until he compares notes with Alice (which requires classical communication).</li>
+  <li><strong>It is not a physical connection.</strong> There is no wire, no field, no signal traveling between entangled particles. Entanglement is a property of the joint quantum state, not a force or interaction.</li>
+  <li><strong>It is not like a pair of matching socks.</strong> A common analogy is: "It's like putting one red sock and one blue sock into two boxes. When you open one and see red, you know the other is blue." But this analogy is wrong. In the sock scenario, the colors were determined when the socks were packed. In quantum mechanics, Bell's theorem proves that the outcomes are <em>not</em> predetermined - they are genuinely created at the moment of measurement.</li>
+</ul>
+
+<h3>The Bell states</h3>
+
+<p>There are four maximally entangled two-qubit states, called the <strong>Bell states</strong> or <strong>EPR pairs</strong> (after Einstein, Podolsky, and Rosen). They form an orthonormal basis for the two-qubit system:</p>
+
+$$|\Phi^+\rangle = \frac{1}{\sqrt{2}}(|00\rangle + |11\rangle)$$
+$$|\Phi^-\rangle = \frac{1}{\sqrt{2}}(|00\rangle - |11\rangle)$$
+$$|\Psi^+\rangle = \frac{1}{\sqrt{2}}(|01\rangle + |10\rangle)$$
+$$|\Psi^-\rangle = \frac{1}{\sqrt{2}}(|01\rangle - |10\rangle)$$
+
+<p>Each Bell state is created from $|00\rangle$ by a simple two-gate recipe: apply a Hadamard to the first qubit, then a CNOT. The four states differ in which single-qubit gates are applied before the Hadamard.</p>
+
+<h3>Bell state $|\Phi^+\rangle$: H then CNOT</h3>
+
+<p>Start with $|00\rangle$. Apply H to qubit 0 to get $\frac{1}{\sqrt{2}}(|0\rangle + |1\rangle)|0\rangle$. Then CNOT:</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="7">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+h q[0];
+cx q[0], q[1];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>You will see only $|00\rangle$ and $|11\rangle$, each with roughly 50% probability. Never $|01\rangle$ or $|10\rangle$. The qubits are perfectly correlated.</p>
+
+<h3>Bell state $|\Phi^-\rangle$: X on qubit 0 changes the phase</h3>
+
+<p>Apply a Z gate after the Hadamard (equivalently, start from $|10\rangle$):</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="8">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+x q[0];
+h q[0];
+cx q[0], q[1];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>Again, only $|00\rangle$ and $|11\rangle$ appear - the relative phase of $-1$ between them is invisible to measurement in the computational basis. The difference from $|\Phi^+\rangle$ only becomes apparent in other measurement bases.</p>
+
+<h3>Bell state $|\Psi^+\rangle$: flip qubit 1</h3>
+
+<p>Start from $|01\rangle$:</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="8">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+x q[1];
+h q[0];
+cx q[0], q[1];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>Now you see $|01\rangle$ and $|10\rangle$ - the qubits are <strong>anti-correlated</strong>. Whenever one is 0, the other is 1.</p>
+
+<h3>Bell state $|\Psi^-\rangle$: flip both</h3>
+
+<p>Start from $|11\rangle$:</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="9">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+x q[0];
+x q[1];
+h q[0];
+cx q[0], q[1];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>Again anti-correlated: only $|01\rangle$ and $|10\rangle$. The $|\Psi^-\rangle$ state is the famous <strong>singlet state</strong> of quantum mechanics, and it plays a central role in quantum teleportation (Chapter 7) and quantum cryptography (Chapter 8).</p>
+
+<h3>The EPR thought experiment</h3>
+
+<p>In 1935, Einstein, Podolsky, and Rosen published a paper arguing that quantum mechanics must be incomplete. Their argument went like this: prepare two particles in the state $|\Psi^-\rangle$ and send them far apart. If Alice measures her qubit and gets $|0\rangle$, she instantly knows Bob's qubit is $|1\rangle$. EPR argued this means Bob's qubit "already had" a definite value, and quantum mechanics simply failed to describe it - there must be "hidden variables."</p>
+
+<p>In 1964, John Bell showed this reasoning leads to a testable prediction. He derived an inequality (Bell's inequality) that any hidden-variable theory must satisfy. Quantum mechanics predicts violations of this inequality, and experiments - from Alain Aspect's pioneering work in 1982 to the loophole-free tests of 2015 - have consistently confirmed the quantum prediction. Nature really is "spooky." Entangled particles do not carry predetermined values; their correlations are genuinely quantum.</p>
+
+<h3>Predict, Observe, Explain: entanglement in action</h3>
+
+<div class="poe" data-component="poe">
+  <div class="poe-progress">
+    <div class="poe-progress-step active">Predict</div>
+    <div class="poe-progress-step">Observe</div>
+    <div class="poe-progress-step">Explain</div>
+  </div>
+  <div class="poe-step poe-predict active">
+    <h3>Predict</h3>
+    <p>We create the Bell state $|\Phi^+\rangle = \frac{1}{\sqrt{2}}(|00\rangle + |11\rangle)$ and measure both qubits. What outcomes are possible? What is the probability of each? Could you ever see $|01\rangle$ or $|10\rangle$?</p>
+    <textarea rows="3" placeholder="Write your prediction..."></textarea>
+    <button data-action="next">Submit Prediction</button>
+  </div>
+  <div class="poe-step poe-observe">
+    <h3>Observe</h3>
+    <div class="sandbox" data-component="sandbox" data-shots="1024" data-autorun>
+      <textarea class="code" rows="6">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+h q[0];
+cx q[0], q[1];
+c = measure q;</textarea>
+      <div class="sandbox-controls"><button data-action="run">Run</button></div>
+      <div class="output"></div>
+    </div>
+    <button data-action="next">Continue</button>
+  </div>
+  <div class="poe-step poe-explain">
+    <h3>Explain</h3>
+    <p>You only see $|00\rangle$ and $|11\rangle$ - never $|01\rangle$ or $|10\rangle$. Each appears with approximately 50% probability. This is entanglement at work: the two qubits are in a superposition, but only of states where both qubits agree. There is no amplitude for the qubits to disagree. When you measure qubit 0 and find it in state $|0\rangle$, the entire system collapses to $|00\rangle$, guaranteeing qubit 1 is also $|0\rangle$. This correlation holds no matter how far apart the qubits are. It is not that one qubit "signals" the other - it is that the joint state simply has no component where they differ.</p>
+    <button data-action="complete">Complete</button>
+  </div>
+</div>
+</section>
+
+<section id="beyond-two-qubits">
+<h2>6.4 Beyond Two Qubits: Multi-Qubit Systems</h2>
+
+<p>Entanglement is not limited to pairs. Three or more qubits can be entangled in ways that have no two-qubit analog. The two most important multi-qubit entangled states are the <strong>GHZ state</strong> and the <strong>W state</strong>.</p>
+
+<h3>The GHZ state</h3>
+
+<p>The Greenberger-Horne-Zeilinger (GHZ) state for three qubits is:</p>
+
+$$|\text{GHZ}\rangle = \frac{1}{\sqrt{2}}(|000\rangle + |111\rangle)$$
+
+<p>This is the natural generalization of the Bell state $|\Phi^+\rangle$ to three qubits: all qubits are 0 or all qubits are 1, with equal probability. The GHZ state is created by the same pattern as a Bell state, extended with additional CNOT gates:</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="8">OPENQASM 3.0;
+qubit[3] q;
+bit[3] c;
+h q[0];
+cx q[0], q[1];
+cx q[0], q[2];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>You should see only $|000\rangle$ and $|111\rangle$, each at roughly 50%. The GHZ state has a striking property: if you trace out (ignore) any single qubit, the remaining two qubits are in a <em>completely mixed state</em> with no entanglement at all. The three-qubit entanglement is maximally fragile - lose one qubit and the quantum correlations vanish entirely.</p>
+
+<h3>The W state</h3>
+
+<p>The W state for three qubits is:</p>
+
+$$|W\rangle = \frac{1}{\sqrt{3}}(|001\rangle + |010\rangle + |100\rangle)$$
+
+<p>Unlike the GHZ state, the W state is <em>robust</em> against qubit loss. If you trace out one qubit, the remaining two are still partially entangled. This makes the W state useful in quantum communication protocols where qubit loss is likely.</p>
+
+<div class="callout callout-info">
+  <strong>GHZ vs. W: two types of entanglement</strong>
+  <p>A remarkable fact about three-qubit entanglement is that GHZ states and W states represent fundamentally <em>different kinds</em> of entanglement. You cannot convert one to the other using only local operations and classical communication (LOCC). In two-qubit systems, all entangled states are equivalent under LOCC (up to the degree of entanglement). In three or more qubits, the landscape of entanglement becomes much richer.</p>
+</div>
+
+<h3>Scaling up</h3>
+
+<p>The pattern for creating GHZ states extends naturally to any number of qubits. An $n$-qubit GHZ state $\frac{1}{\sqrt{2}}(|00\ldots0\rangle + |11\ldots1\rangle)$ uses one Hadamard and $n-1$ CNOT gates. In practice, creating and maintaining large entangled states is one of the central challenges of quantum computing, because entanglement is extremely sensitive to noise and decoherence (Chapter 14).</p>
+</section>
+
+<section id="multi-qubit-gates">
+<h2>6.5 Multi-Qubit Gates: Toffoli, SWAP, and Controlled Unitaries</h2>
+
+<p>The CNOT is the most common two-qubit gate, but several other multi-qubit gates appear frequently in quantum circuits.</p>
+
+<h3>The SWAP gate</h3>
+
+<p>The SWAP gate exchanges the states of two qubits: $|01\rangle \leftrightarrow |10\rangle$. Its matrix representation is:</p>
+
+$$\text{SWAP} = \begin{pmatrix} 1 & 0 & 0 & 0 \\ 0 & 0 & 1 & 0 \\ 0 & 1 & 0 & 0 \\ 0 & 0 & 0 & 1 \end{pmatrix}$$
+
+<p>The SWAP gate is important because real quantum hardware often has limited connectivity - not every qubit can directly interact with every other. SWAP gates route quantum information to where it needs to be.</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="8">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+x q[0];
+swap q[0], q[1];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>We start with $|10\rangle$ (qubit 0 is 1, qubit 1 is 0). After the SWAP, the state becomes $|01\rangle$. A useful fact: SWAP can be decomposed into three CNOT gates.</p>
+
+<h3>The controlled-Z (CZ) gate</h3>
+
+<p>The controlled-Z gate applies a Z gate to the target qubit when the control is $|1\rangle$. Its effect on basis states is simple: $|11\rangle \to -|11\rangle$, and all other basis states are unchanged.</p>
+
+$$\text{CZ} = \begin{pmatrix} 1 & 0 & 0 & 0 \\ 0 & 1 & 0 & 0 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & -1 \end{pmatrix}$$
+
+<p>A notable property: the CZ gate is symmetric in its two qubits. It does not matter which one you call the control and which you call the target. The CZ is related to the CNOT by conjugation: $\text{CZ} = (I \otimes H) \cdot \text{CNOT} \cdot (I \otimes H)$.</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="9">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+h q[0];
+h q[1];
+cz q[0], q[1];
+h q[0];
+h q[1];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>This circuit is equivalent to CNOT, demonstrating the relationship $\text{CNOT} = (I \otimes H) \cdot \text{CZ} \cdot (I \otimes H)$.</p>
+
+<h3>The Toffoli gate (CCX)</h3>
+
+<p>The Toffoli gate, also called CCX (controlled-controlled-NOT), is a three-qubit gate. It flips the target qubit only when <em>both</em> control qubits are $|1\rangle$:</p>
+
+<table class="state-table">
+  <thead>
+    <tr><th>Input</th><th>Output</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>$|000\rangle$</td><td>$|000\rangle$</td></tr>
+    <tr><td>$|010\rangle$</td><td>$|010\rangle$</td></tr>
+    <tr><td>$|100\rangle$</td><td>$|100\rangle$</td></tr>
+    <tr><td>$|110\rangle$</td><td>$|111\rangle$</td></tr>
+    <tr><td>$|111\rangle$</td><td>$|110\rangle$</td></tr>
+  </tbody>
+</table>
+
+<p>The Toffoli gate is the quantum version of the classical AND gate (when the target starts in $|0\rangle$, it ends up as the AND of the two controls). It is also universal for classical reversible computing, as we saw in Chapter 3.</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="9">OPENQASM 3.0;
+qubit[3] q;
+bit[3] c;
+x q[0];
+x q[1];
+ccx q[0], q[1], q[2];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>Both controls are $|1\rangle$, so the target flips from $|0\rangle$ to $|1\rangle$: the result is $|111\rangle$. Try changing one of the X gates to see that only both controls being 1 triggers the flip.</p>
+
+<h3>The Fredkin gate (CSWAP)</h3>
+
+<p>The Fredkin gate, or controlled-SWAP (CSWAP), swaps two target qubits only when the control qubit is $|1\rangle$. Like the Toffoli, it is universal for classical reversible computation.</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="9">OPENQASM 3.0;
+qubit[3] q;
+bit[3] c;
+x q[0];
+x q[1];
+cswap q[0], q[1], q[2];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>With q[0] = 1 (control active), the states of q[1] and q[2] are swapped: $|110\rangle \to |101\rangle$.</p>
+
+<div class="callout callout-info">
+  <strong>Gate decomposition</strong>
+  <p>In practice, hardware natively implements only a small set of gates (often single-qubit rotations plus CNOT or CZ). Gates like Toffoli and Fredkin are decomposed into sequences of these native gates. The Toffoli gate, for example, requires at least six CNOT gates in its decomposition. Minimizing gate count is a key concern in quantum circuit optimization.</p>
+</div>
+</section>
+
+<section id="universality">
+<h2>6.6 Universality: A Small Set of Gates Can Do Anything</h2>
+
+<p>One of the most important results in quantum computing is the <strong>universality theorem</strong>: a small, finite set of gates can approximate any unitary operation on any number of qubits to arbitrary precision.</p>
+
+<h3>Universal gate sets</h3>
+
+<p>A gate set is <strong>universal</strong> if any unitary operation can be approximated to arbitrary accuracy using a finite sequence of gates from the set. The most commonly cited universal gate set is:</p>
+
+$$\{H, \, T, \, \text{CNOT}\}$$
+
+<p>That is it - just three gates. With Hadamard gates, T gates, and CNOT gates, you can (in principle) perform any quantum computation.</p>
+
+<p>Why these three? The Hadamard creates superpositions and moves between the $X$ and $Z$ bases. The T gate provides a rotation by $\pi/4$ that, combined with H, can approximate any single-qubit rotation. The CNOT gate provides the two-qubit interaction needed to create entanglement. Together, they cover all the ingredients.</p>
+
+<div class="callout callout-key">
+  <strong>The power of universality</strong>
+  <p>Universality means that we do not need to design a new physical system for every quantum algorithm. A general-purpose quantum computer with these three gates can run <em>any</em> quantum algorithm, just as a classical computer with AND, OR, and NOT gates can run any classical algorithm. This is the quantum analog of classical computational universality.</p>
+</div>
+
+<h3>Other universal gate sets</h3>
+
+<p>There are many universal gate sets. Some important ones include:</p>
+
+<ul>
+  <li>$\{H, T, \text{CNOT}\}$ - the standard set</li>
+  <li>$\{H, \text{Toffoli}\}$ - using a three-qubit gate instead</li>
+  <li>$\{R_y(\theta), R_z(\theta), \text{CNOT}\}$ for arbitrary $\theta$ - continuous rotations</li>
+  <li>$\{\sqrt{X}, \text{CNOT}, R_z(\theta)\}$ - used by some hardware platforms</li>
+</ul>
+
+<p>The choice of gate set depends on what the physical hardware can natively implement. Superconducting qubits, trapped ions, and photonic systems each have different native gate sets.</p>
+
+<h3>The Solovay-Kitaev theorem</h3>
+
+<p>A natural question: how efficiently can we approximate a desired gate using gates from a finite set? The <strong>Solovay-Kitaev theorem</strong> provides a remarkably strong answer.</p>
+
+<p>Suppose you want to approximate a single-qubit gate $U$ to precision $\epsilon$ (meaning the operator distance is at most $\epsilon$). The Solovay-Kitaev theorem guarantees that you can do this using only $O(\log^c(1/\epsilon))$ gates from your universal set, where $c \approx 3.97$ (and improvements have brought this close to 1). The key insight is that this is <em>polylogarithmic</em> - doubling the precision requires only a small additive increase in the number of gates.</p>
+
+<div class="callout callout-info">
+  <strong>Practical implications</strong>
+  <p>The Solovay-Kitaev theorem means that the choice of universal gate set does not matter much for computational complexity. Switching from one universal gate set to another changes circuit depth by at most a polylogarithmic factor. This is analogous to the classical result that switching between universal classical gate sets only changes circuit size by a constant factor.</p>
+</div>
+
+<p>For fault-tolerant quantum computing (Part VI), the $\{H, T, \text{CNOT}\}$ gate set is particularly important because the Clifford gates ($H$, $S$, and $\text{CNOT}$) can be implemented with very low overhead using quantum error correction, while the $T$ gate is the expensive ingredient that requires a technique called "magic state distillation."</p>
+</section>
+
+<section id="no-cloning">
+<h2>6.7 The No-Cloning Theorem</h2>
+
+<p>In classical computing, copying information is trivial. You can duplicate a file, copy a bit, or broadcast a message to millions of recipients. In quantum mechanics, this is fundamentally impossible. The <strong>no-cloning theorem</strong> states that there is no quantum operation that can take an arbitrary unknown quantum state and produce a perfect copy of it.</p>
+
+<h3>The theorem</h3>
+
+<p>More precisely: there is no unitary operation $U$ that, for every state $|\psi\rangle$, performs:</p>
+
+$$U(|\psi\rangle \otimes |0\rangle) = |\psi\rangle \otimes |\psi\rangle$$
+
+<h3>Proof sketch</h3>
+
+<p>The proof is elegant and short. Suppose such a $U$ exists. Then for two states $|\psi\rangle$ and $|\phi\rangle$:</p>
+
+$$U(|\psi\rangle \otimes |0\rangle) = |\psi\rangle \otimes |\psi\rangle$$
+$$U(|\phi\rangle \otimes |0\rangle) = |\phi\rangle \otimes |\phi\rangle$$
+
+<p>Take the inner product of both sides. On the left:</p>
+
+$$\langle\psi|\phi\rangle \cdot \langle 0|0\rangle = \langle\psi|\phi\rangle$$
+
+<p>On the right:</p>
+
+$$\langle\psi|\phi\rangle \cdot \langle\psi|\phi\rangle = \langle\psi|\phi\rangle^2$$
+
+<p>So we need $\langle\psi|\phi\rangle = \langle\psi|\phi\rangle^2$. This equation has only two solutions: $\langle\psi|\phi\rangle = 0$ (the states are orthogonal) or $\langle\psi|\phi\rangle = 1$ (the states are identical). So our hypothetical cloner can only copy states that are either identical or orthogonal - it cannot work for arbitrary unknown states.</p>
+
+<div class="callout callout-warning">
+  <strong>What no-cloning does NOT say</strong>
+  <p>The no-cloning theorem does not prevent you from copying <em>known</em> classical information. If you know a state is $|0\rangle$, you can prepare as many copies of $|0\rangle$ as you want. The theorem only applies to <em>unknown</em> quantum states. It also does not prevent approximate cloning - you can make imperfect copies, but they will always have some distortion.</p>
+</div>
+
+<h3>Why no-cloning matters</h3>
+
+<p>The no-cloning theorem has profound consequences throughout quantum computing and quantum information:</p>
+
+<ul>
+  <li><strong>Quantum cryptography.</strong> No-cloning is the reason quantum key distribution (Chapter 8) works. An eavesdropper cannot copy the quantum states being transmitted without disturbing them, which reveals their presence. This is security guaranteed by physics, not computational assumptions.</li>
+  <li><strong>Quantum error correction.</strong> Classical error correction works by making redundant copies of data. Since we cannot copy quantum states, quantum error correction (Part VI) requires entirely different strategies - encoding information into entangled states across multiple qubits without ever copying the original state.</li>
+  <li><strong>Quantum teleportation.</strong> The no-cloning theorem explains why quantum teleportation (Chapter 7) necessarily destroys the original state. If it did not, we would have a cloning machine: teleport and keep the original.</li>
+  <li><strong>No faster-than-light communication.</strong> If cloning were possible, Alice could clone her half of an entangled pair many times, measure each clone, and determine Bob's measurement choice - enabling superluminal signaling. No-cloning prevents this.</li>
+</ul>
+
+<div class="callout callout-key">
+  <strong>No-cloning as a feature, not a bug</strong>
+  <p>At first, no-cloning seems like a limitation. But it is actually a crucial feature. It is what gives quantum information its special security properties and what makes quantum computing fundamentally different from classical computing. The inability to copy quantum states is not an engineering obstacle to overcome - it is a law of nature that enables new capabilities.</p>
+</div>
+</section>
+
+<section id="chapter-summary">
+<h2>Chapter Summary</h2>
+
+<p>This chapter introduced the concepts that make quantum computing fundamentally more powerful than classical computing:</p>
+
+<ul>
+  <li><strong>Tensor products</strong> combine qubit state spaces, creating an exponentially large space: $n$ qubits need $2^n$ amplitudes.</li>
+  <li><strong>CNOT</strong> is the fundamental two-qubit gate that creates correlations between qubits, flipping the target when the control is $|1\rangle$.</li>
+  <li><strong>Entanglement</strong> occurs when a multi-qubit state cannot be factored into individual qubit states. Entangled qubits show correlations that have no classical explanation.</li>
+  <li>The four <strong>Bell states</strong> are maximally entangled two-qubit states that serve as the basic resource for quantum protocols.</li>
+  <li><strong>Multi-qubit entanglement</strong> (GHZ and W states) exhibits richer structure than two-qubit entanglement.</li>
+  <li>The <strong>Toffoli, SWAP, CZ, and Fredkin</strong> gates extend our gate vocabulary beyond CNOT.</li>
+  <li>The gate set $\{H, T, \text{CNOT}\}$ is <strong>universal</strong> - it can approximate any quantum computation. The Solovay-Kitaev theorem ensures this approximation is efficient.</li>
+  <li>The <strong>no-cloning theorem</strong> forbids copying unknown quantum states, which is both a fundamental constraint and an enabling feature for quantum cryptography.</li>
+</ul>
+
+<p>With single-qubit gates (Chapter 5) and multi-qubit gates (this chapter), we now have the complete toolkit for quantum computation. In Part III, we will see these tools at work in the landmark quantum protocols: teleportation and cryptography.</p>
+</section>
+
+<section id="flashcards">
+<h2>Review Flashcards</h2>
+
+<div class="flashcard-deck" data-component="flashcard-deck">
+  <div class="flashcard-deck-header">Chapter 6 Review</div>
+
+  <div class="flashcard" data-card-id="ch06-tensor-product">
+    <div class="card-front">What is the tensor product and how does it relate to multi-qubit state spaces?</div>
+    <div class="card-back">The tensor product $\otimes$ combines individual qubit state spaces into a joint space. For $n$ qubits, the joint space has dimension $2^n$, requiring $2^n$ complex amplitudes to describe the state. The state $|\psi\rangle \otimes |\phi\rangle$ represents two independent qubits; entangled states cannot be written in this product form.</div>
+    <div class="flashcard-controls">
+      <button class="easy">Easy</button>
+      <button class="hard">Hard</button>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch06-cnot">
+    <div class="card-front">What does the CNOT gate do?</div>
+    <div class="card-back">The CNOT (controlled-NOT) gate has a control qubit and a target qubit. It flips the target (applies X) when the control is $|1\rangle$ and leaves the target unchanged when the control is $|0\rangle$. On basis states it computes: target $\to$ target XOR control. It is the fundamental two-qubit gate for creating entanglement.</div>
+    <div class="flashcard-controls">
+      <button class="easy">Easy</button>
+      <button class="hard">Hard</button>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch06-entanglement-def">
+    <div class="card-front">What does it mean for a multi-qubit state to be entangled?</div>
+    <div class="card-back">A multi-qubit state is entangled when it cannot be written as a tensor product of individual qubit states. Entangled qubits have correlations with no classical explanation - measuring one qubit instantaneously constrains the possible outcomes of measuring the other, regardless of distance.</div>
+    <div class="flashcard-controls">
+      <button class="easy">Easy</button>
+      <button class="hard">Hard</button>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch06-bell-states">
+    <div class="card-front">Name the four Bell states and give their formulas.</div>
+    <div class="card-back">$|\Phi^+\rangle = \frac{1}{\sqrt{2}}(|00\rangle + |11\rangle)$, $|\Phi^-\rangle = \frac{1}{\sqrt{2}}(|00\rangle - |11\rangle)$, $|\Psi^+\rangle = \frac{1}{\sqrt{2}}(|01\rangle + |10\rangle)$, $|\Psi^-\rangle = \frac{1}{\sqrt{2}}(|01\rangle - |10\rangle)$. They form a basis of maximally entangled two-qubit states.</div>
+    <div class="flashcard-controls">
+      <button class="easy">Easy</button>
+      <button class="hard">Hard</button>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch06-ghz-vs-w">
+    <div class="card-front">What is the difference between GHZ and W states?</div>
+    <div class="card-back">The GHZ state $\frac{1}{\sqrt{2}}(|000\rangle + |111\rangle)$ is maximally entangled but fragile: losing one qubit destroys all entanglement. The W state $\frac{1}{\sqrt{3}}(|001\rangle + |010\rangle + |100\rangle)$ is robust: losing one qubit still leaves partial entanglement. They represent fundamentally different classes of three-qubit entanglement.</div>
+    <div class="flashcard-controls">
+      <button class="easy">Easy</button>
+      <button class="hard">Hard</button>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch06-toffoli">
+    <div class="card-front">What is the Toffoli gate and why is it important?</div>
+    <div class="card-back">The Toffoli gate (CCX) is a three-qubit gate that flips the target qubit only when both control qubits are $|1\rangle$. It implements a reversible AND gate and is universal for classical reversible computing. Combined with the Hadamard gate, it forms a universal quantum gate set.</div>
+    <div class="flashcard-controls">
+      <button class="easy">Easy</button>
+      <button class="hard">Hard</button>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch06-universality">
+    <div class="card-front">What does it mean for a gate set to be universal, and what is the standard universal set?</div>
+    <div class="card-back">A gate set is universal if any unitary operation can be approximated to arbitrary precision using gates from the set. The standard universal set is $\{H, T, \text{CNOT}\}$. The Solovay-Kitaev theorem guarantees that approximating any gate to precision $\epsilon$ requires only $O(\log^c(1/\epsilon))$ gates from a universal set.</div>
+    <div class="flashcard-controls">
+      <button class="easy">Easy</button>
+      <button class="hard">Hard</button>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch06-no-cloning">
+    <div class="card-front">State the no-cloning theorem and give two of its consequences.</div>
+    <div class="card-back">The no-cloning theorem states that no quantum operation can perfectly copy an arbitrary unknown quantum state. Consequences: (1) Quantum cryptography is possible because eavesdroppers cannot copy transmitted quantum states without detection. (2) Quantum error correction cannot use simple redundancy and requires encoding into entangled states instead.</div>
+    <div class="flashcard-controls">
+      <button class="easy">Easy</button>
+      <button class="hard">Hard</button>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch06-exponential-space">
+    <div class="card-front">How many complex amplitudes are needed to describe an $n$-qubit state?</div>
+    <div class="card-back">$2^n$ complex amplitudes. This exponential growth is why classical computers cannot efficiently simulate quantum systems, and it is the underlying source of quantum computing's potential computational advantage.</div>
+    <div class="flashcard-controls">
+      <button class="easy">Easy</button>
+      <button class="hard">Hard</button>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch06-bell-inequality">
+    <div class="card-front">What did Bell's theorem prove about entanglement and hidden variables?</div>
+    <div class="card-back">Bell's theorem (1964) showed that any local hidden-variable theory must satisfy certain inequalities (Bell inequalities). Quantum mechanics predicts - and experiments confirm - that entangled particles violate these inequalities. This proves that entangled particles do not carry predetermined values; their correlated outcomes are genuinely quantum and cannot be explained classically.</div>
+    <div class="flashcard-controls">
+      <button class="easy">Easy</button>
+      <button class="hard">Hard</button>
+    </div>
+  </div>
+</div>
+</section>

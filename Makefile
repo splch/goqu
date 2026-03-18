@@ -65,6 +65,7 @@ clean:
 	go clean -testcache
 
 textbook:
+	go run textbook/gen/main.go
 	cp "$$(go env GOROOT)/lib/wasm/wasm_exec.js" textbook/wasm_exec.js
 	cd textbook/wasm && GOOS=js GOARCH=wasm go build -ldflags="-w -s" -o ../main.wasm .
 
