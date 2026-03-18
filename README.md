@@ -70,8 +70,7 @@ q1: ─────X──
 ## Documentation
 
 - [API Reference](https://pkg.go.dev/github.com/splch/goqu)
-- [Textbook](textbook/)
-- [Benchmarks](https://splch.github.io/goqu/dev/bench/)
+- [Textbook](https://splch.github.io/goqu/)
 
 ## Contributing
 
