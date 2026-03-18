@@ -1,0 +1,15 @@
+<div class="index-hero">
+  <h1>Goqu Quantum Computing Textbook</h1>
+  <p>An interactive introduction to quantum computing - from bits to qubits and beyond.</p>
+  <p>Powered by <a href="https://github.com/splch/goqu">Goqu</a>, a quantum computing SDK in pure Go.</p>
+</div>
+{{range .Parts}}
+<div class="part-group" id="part-{{.Number}}">
+  <h2>Part {{roman .Number}}: {{.Title}}</h2>
+  {{if .Description}}<p>{{.Description}}</p>{{end}}
+  <ul class="chapter-list">
+    {{range .Chapters}}<li><a href="chapters/{{.Slug}}.html"><span class="chapter-num">{{.Chapter}}.</span> {{.Title}}</a></li>
+    {{end}}
+  </ul>
+</div>
+{{end}}

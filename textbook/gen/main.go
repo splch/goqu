@@ -4,32 +4,53 @@
 // Usage:
 //
 //	go run textbook/gen/main.go
+//	go run textbook/gen/main.go -out /tmp/textbook
 package main
 
 import (
+	"bytes"
+	"embed"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"html/template"
+	"io/fs"
 	"os"
 	"path/filepath"
-	"strings"
 )
+
+//go:embed chapters.json
+var chaptersJSON []byte
+
+//go:embed layout.html
+var layoutHTML string
+
+//go:embed index.tmpl.html
+var indexTmplHTML string
+
+//go:embed style.css
+var styleCSS []byte
+
+//go:embed chapters
+var chaptersFS embed.FS
 
 // Chapter holds metadata for a single chapter from chapters.json.
 type Chapter struct {
-	Slug      string `json:"slug"`
-	Title     string `json:"title"`
-	Part      int    `json:"part"`
-	PartTitle string `json:"partTitle"`
-	Chapter   int    `json:"chapter"`
+	Slug            string `json:"slug"`
+	Title           string `json:"title"`
+	Part            int    `json:"part"`
+	PartTitle       string `json:"partTitle"`
+	PartDescription string `json:"partDescription,omitempty"`
+	Chapter         int    `json:"chapter"`
 }
 
 // Part groups chapters for sidebar navigation.
 type Part struct {
-	Number   int
-	Title    string
-	Chapters []ChapterNav
-	Current  bool
+	Number      int
+	Title       string
+	Description string
+	Chapters    []ChapterNav
+	Current     bool
 }
 
 // ChapterNav is a chapter reference used in navigation.
@@ -60,25 +81,44 @@ type BreadcrumbItem struct {
 	Href  string
 }
 
+var romanNumerals = [...]string{"", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"}
+
+func roman(n int) string {
+	if n > 0 && n < len(romanNumerals) {
+		return romanNumerals[n]
+	}
+	return fmt.Sprintf("%d", n)
+}
+
 func main() {
-	genDir := "textbook/gen"
-	outDir := "textbook"
+	outDir := flag.String("out", "textbook", "output directory")
+	flag.Parse()
+	if err := generate(*outDir); err != nil {
+		fmt.Fprintf(os.Stderr, "gen: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+func generate(outDir string) error {
+	if err := os.MkdirAll(outDir, 0o755); err != nil {
+		return fmt.Errorf("mkdir %s: %w", outDir, err)
+	}
 
 	// Load chapter manifest.
-	manifestData, err := os.ReadFile(filepath.Join(genDir, "chapters.json"))
-	if err != nil {
-		fatal("read chapters.json: %v", err)
-	}
 	var chapters []Chapter
-	if err := json.Unmarshal(manifestData, &chapters); err != nil {
-		fatal("parse chapters.json: %v", err)
+	if err := json.Unmarshal(chaptersJSON, &chapters); err != nil {
+		return fmt.Errorf("parse chapters.json: %w", err)
 	}
 
-	// Parse layout template.
-	layoutPath := filepath.Join(genDir, "layout.html")
-	tmpl, err := template.ParseFiles(layoutPath)
+	// Parse templates.
+	funcMap := template.FuncMap{"roman": roman}
+	layoutTmpl, err := template.New("layout").Funcs(funcMap).Parse(layoutHTML)
 	if err != nil {
-		fatal("parse layout.html: %v", err)
+		return fmt.Errorf("parse layout.html: %w", err)
+	}
+	indexTmpl, err := template.New("index").Funcs(funcMap).Parse(indexTmplHTML)
+	if err != nil {
+		return fmt.Errorf("parse index.tmpl.html: %w", err)
 	}
 
 	// Build part groupings for sidebar.
@@ -87,9 +127,11 @@ func main() {
 	for _, ch := range chapters {
 		p, ok := partsMap[ch.Part]
 		if !ok {
-			p = &Part{Number: ch.Part, Title: ch.PartTitle}
+			p = &Part{Number: ch.Part, Title: ch.PartTitle, Description: ch.PartDescription}
 			partsMap[ch.Part] = p
 			partsOrder = append(partsOrder, ch.Part)
+		} else if p.Description == "" && ch.PartDescription != "" {
+			p.Description = ch.PartDescription
 		}
 		p.Chapters = append(p.Chapters, ChapterNav{
 			Slug:    ch.Slug,
@@ -102,57 +144,46 @@ func main() {
 		allParts = append(allParts, *partsMap[n])
 	}
 
-	// Copy static assets.
-	copyFile(filepath.Join(genDir, "style.css"), filepath.Join(outDir, "style.css"))
-	copyDir(filepath.Join(genDir, "js"), filepath.Join(outDir, "js"))
+	// Write static assets.
+	if err := os.WriteFile(filepath.Join(outDir, "style.css"), styleCSS, 0o644); err != nil {
+		return fmt.Errorf("write style.css: %w", err)
+	}
 
 	// Generate index page.
-	indexContent, err := os.ReadFile(filepath.Join(genDir, "index.html"))
-	if err != nil {
-		fatal("read index.html: %v", err)
-	}
+	var indexBuf bytes.Buffer
 	indexData := PageData{
 		Title:   "Goqu Quantum Computing Textbook",
-		Content: template.HTML(indexContent),
 		Parts:   allParts,
 		IsIndex: true,
 	}
-	writeTemplate(tmpl, filepath.Join(outDir, "index.html"), indexData)
+	if err := indexTmpl.Execute(&indexBuf, indexData); err != nil {
+		return fmt.Errorf("execute index template: %w", err)
+	}
+	indexData.Content = template.HTML(indexBuf.String())
+	if err := writeTemplate(layoutTmpl, filepath.Join(outDir, "index.html"), indexData); err != nil {
+		return err
+	}
 
 	// Generate each chapter.
 	if err := os.MkdirAll(filepath.Join(outDir, "chapters"), 0o755); err != nil {
-		fatal("mkdir chapters: %v", err)
+		return fmt.Errorf("mkdir chapters: %w", err)
 	}
 
 	for i, ch := range chapters {
-		srcPath := filepath.Join(genDir, "chapters", ch.Slug+".html")
-		content, err := os.ReadFile(srcPath)
+		content, err := fs.ReadFile(chaptersFS, "chapters/"+ch.Slug+".html")
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "warn: skip %s: %v\n", ch.Slug, err)
 			continue
 		}
 
-		// Strip front-matter comment if present.
-		body := stripFrontMatter(string(content))
-
-		// Build navigation parts with current markers.
 		navParts := markCurrent(allParts, ch.Part, ch.Chapter)
 
-		// Prev/next links.
 		var prev, next *ChapterNav
 		if i > 0 {
-			prev = &ChapterNav{
-				Slug:    chapters[i-1].Slug,
-				Title:   chapters[i-1].Title,
-				Chapter: chapters[i-1].Chapter,
-			}
+			prev = &ChapterNav{Slug: chapters[i-1].Slug, Title: chapters[i-1].Title, Chapter: chapters[i-1].Chapter}
 		}
 		if i < len(chapters)-1 {
-			next = &ChapterNav{
-				Slug:    chapters[i+1].Slug,
-				Title:   chapters[i+1].Title,
-				Chapter: chapters[i+1].Chapter,
-			}
+			next = &ChapterNav{Slug: chapters[i+1].Slug, Title: chapters[i+1].Title, Chapter: chapters[i+1].Chapter}
 		}
 
 		data := PageData{
@@ -160,7 +191,7 @@ func main() {
 			Chapter:   ch.Chapter,
 			Part:      ch.Part,
 			PartTitle: ch.PartTitle,
-			Content:   template.HTML(body),
+			Content:   template.HTML(content),
 			Parts:     navParts,
 			Prev:      prev,
 			Next:      next,
@@ -171,22 +202,14 @@ func main() {
 		}
 
 		outPath := filepath.Join(outDir, "chapters", ch.Slug+".html")
-		writeTemplate(tmpl, outPath, data)
+		if err := writeTemplate(layoutTmpl, outPath, data); err != nil {
+			return err
+		}
 		fmt.Printf("generated %s\n", outPath)
 	}
 
 	fmt.Printf("done: %d chapters\n", len(chapters))
-}
-
-// stripFrontMatter removes a leading <!-- ... --> comment block.
-func stripFrontMatter(s string) string {
-	s = strings.TrimSpace(s)
-	if strings.HasPrefix(s, "<!--") {
-		if idx := strings.Index(s, "-->"); idx != -1 {
-			s = strings.TrimSpace(s[idx+3:])
-		}
-	}
-	return s
+	return nil
 }
 
 // markCurrent returns a copy of parts with Current flags set.
@@ -194,9 +217,10 @@ func markCurrent(parts []Part, partNum, chapNum int) []Part {
 	out := make([]Part, len(parts))
 	for i, p := range parts {
 		out[i] = Part{
-			Number:  p.Number,
-			Title:   p.Title,
-			Current: p.Number == partNum,
+			Number:      p.Number,
+			Title:       p.Title,
+			Description: p.Description,
+			Current:     p.Number == partNum,
 		}
 		out[i].Chapters = make([]ChapterNav, len(p.Chapters))
 		for j, ch := range p.Chapters {
@@ -211,52 +235,14 @@ func markCurrent(parts []Part, partNum, chapNum int) []Part {
 	return out
 }
 
-func writeTemplate(tmpl *template.Template, path string, data PageData) {
+func writeTemplate(tmpl *template.Template, path string, data PageData) error {
 	f, err := os.Create(path)
 	if err != nil {
-		fatal("create %s: %v", path, err)
+		return fmt.Errorf("create %s: %w", path, err)
 	}
 	defer func() { _ = f.Close() }()
 	if err := tmpl.Execute(f, data); err != nil {
-		fatal("execute template for %s: %v", path, err)
+		return fmt.Errorf("execute template for %s: %w", path, err)
 	}
-}
-
-func copyFile(src, dst string) {
-	data, err := os.ReadFile(src)
-	if err != nil {
-		fatal("read %s: %v", src, err)
-	}
-	if err := os.WriteFile(dst, data, 0o644); err != nil {
-		fatal("write %s: %v", dst, err)
-	}
-}
-
-func copyDir(src, dst string) {
-	if err := os.RemoveAll(dst); err != nil {
-		fatal("remove %s: %v", dst, err)
-	}
-	err := filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		rel, _ := filepath.Rel(src, path)
-		target := filepath.Join(dst, rel)
-		if info.IsDir() {
-			return os.MkdirAll(target, 0o755)
-		}
-		data, err := os.ReadFile(path)
-		if err != nil {
-			return err
-		}
-		return os.WriteFile(target, data, 0o644)
-	})
-	if err != nil {
-		fatal("copy dir %s -> %s: %v", src, dst, err)
-	}
-}
-
-func fatal(format string, args ...any) {
-	fmt.Fprintf(os.Stderr, "gen: "+format+"\n", args...)
-	os.Exit(1)
+	return nil
 }

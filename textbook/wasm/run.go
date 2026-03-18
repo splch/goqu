@@ -3,7 +3,6 @@
 package main
 
 import (
-	"encoding/json"
 	"syscall/js"
 
 	"github.com/splch/goqu/circuit/draw"
@@ -13,15 +12,15 @@ import (
 )
 
 type runResult struct {
-	Circuit   string `json:"circuit,omitempty"`
-	Histogram string `json:"histogram,omitempty"`
-	Bloch     string `json:"bloch,omitempty"`
-	Error     string `json:"error,omitempty"`
+	Circuit   string
+	Histogram string
+	Bloch     string
+	Error     string
 }
 
 func runQASMJS(_ js.Value, args []js.Value) any {
 	if len(args) < 2 {
-		return marshal(runResult{Error: "usage: runQASM(qasm, shots, dark?)"})
+		return marshalRun(runResult{Error: "usage: runQASM(qasm, shots, dark?)"})
 	}
 	qasm := args[0].String()
 	shots := args[1].Int()
@@ -32,7 +31,7 @@ func runQASMJS(_ js.Value, args []js.Value) any {
 
 	circ, err := parser.ParseString(qasm)
 	if err != nil {
-		return marshal(runResult{Error: err.Error()})
+		return marshalRun(runResult{Error: err.Error()})
 	}
 
 	var drawOpts []draw.SVGOption
@@ -50,7 +49,7 @@ func runQASMJS(_ js.Value, args []js.Value) any {
 
 	counts, err := sim.Run(circ, shots)
 	if err != nil {
-		return marshal(runResult{Error: err.Error()})
+		return marshalRun(runResult{Error: err.Error()})
 	}
 	r.Histogram = viz.Histogram(counts, vizOpts...)
 
@@ -62,10 +61,5 @@ func runQASMJS(_ js.Value, args []js.Value) any {
 		}
 	}
 
-	return marshal(r)
-}
-
-func marshal(v any) string {
-	b, _ := json.Marshal(v)
-	return string(b)
+	return marshalRun(r)
 }
