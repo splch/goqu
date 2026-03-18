@@ -29,7 +29,7 @@ jobs:
       - name: Build WASM
         run: |
           cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" textbook/wasm_exec.js
-          cd textbook/wasm && GOOS=js GOARCH=wasm go build -trimpath -ldflags="-w -s" -o ../main.wasm .
+          GOOS=js GOARCH=wasm go build -trimpath -ldflags="-w -s" -o textbook/main.wasm ./textbook/wasm
           wasm-opt -Oz --enable-bulk-memory -o textbook/main.wasm textbook/main.wasm
 
       - name: Deploy to GitHub Pages
