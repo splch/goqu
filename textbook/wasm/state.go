@@ -13,41 +13,41 @@ import (
 )
 
 type complexNum struct {
-	Re float64 `json:"re"`
-	Im float64 `json:"im"`
+	Re float64
+	Im float64
 }
 
 type blochVector struct {
-	X float64 `json:"x"`
-	Y float64 `json:"y"`
-	Z float64 `json:"z"`
+	X float64
+	Y float64
+	Z float64
 }
 
 type stateResult struct {
-	Amplitudes   []complexNum  `json:"amplitudes,omitempty"`
-	Probabilities []float64    `json:"probabilities,omitempty"`
-	BlochVectors []blochVector `json:"blochVectors,omitempty"`
-	Error        string        `json:"error,omitempty"`
+	Amplitudes    []complexNum
+	Probabilities []float64
+	BlochVectors  []blochVector
+	Error         string
 }
 
 type probResult struct {
-	Probabilities []float64 `json:"probabilities,omitempty"`
-	Labels        []string  `json:"labels,omitempty"`
-	Histogram     string    `json:"histogram,omitempty"`
-	Circuit       string    `json:"circuit,omitempty"`
-	Error         string    `json:"error,omitempty"`
+	Probabilities []float64
+	Labels        []string
+	Histogram     string
+	Circuit       string
+	Error         string
 }
 
 // getStateVectorJS returns the full statevector after circuit evolution (no measurement).
 func getStateVectorJS(_ js.Value, args []js.Value) any {
 	if len(args) < 1 {
-		return marshal(stateResult{Error: "usage: getStateVector(qasm)"})
+		return marshalState(stateResult{Error: "usage: getStateVector(qasm)"})
 	}
 	qasm := args[0].String()
 
 	circ, err := parser.ParseString(qasm)
 	if err != nil {
-		return marshal(stateResult{Error: err.Error()})
+		return marshalState(stateResult{Error: err.Error()})
 	}
 
 	nq := circ.NumQubits()
@@ -55,7 +55,7 @@ func getStateVectorJS(_ js.Value, args []js.Value) any {
 	defer sim.Close()
 
 	if err := sim.Evolve(circ); err != nil {
-		return marshal(stateResult{Error: err.Error()})
+		return marshalState(stateResult{Error: err.Error()})
 	}
 
 	sv := sim.StateVector()
@@ -78,20 +78,20 @@ func getStateVectorJS(_ js.Value, args []js.Value) any {
 		}
 	}
 
-	return marshal(r)
+	return marshalState(r)
 }
 
 // getProbabilitiesJS returns exact probabilities and a histogram SVG.
 func getProbabilitiesJS(_ js.Value, args []js.Value) any {
 	if len(args) < 1 {
-		return marshal(probResult{Error: "usage: getProbabilities(qasm, dark?)"})
+		return marshalProb(probResult{Error: "usage: getProbabilities(qasm, dark?)"})
 	}
 	qasm := args[0].String()
 	dark := len(args) >= 2 && args[1].Truthy()
 
 	circ, err := parser.ParseString(qasm)
 	if err != nil {
-		return marshal(probResult{Error: err.Error()})
+		return marshalProb(probResult{Error: err.Error()})
 	}
 
 	var drawOpts []draw.SVGOption
@@ -106,7 +106,7 @@ func getProbabilitiesJS(_ js.Value, args []js.Value) any {
 	defer sim.Close()
 
 	if err := sim.Evolve(circ); err != nil {
-		return marshal(probResult{Error: err.Error()})
+		return marshalProb(probResult{Error: err.Error()})
 	}
 
 	sv := sim.StateVector()
@@ -131,20 +131,18 @@ func getProbabilitiesJS(_ js.Value, args []js.Value) any {
 		Circuit:       draw.SVG(circ, drawOpts...),
 	}
 
-	return marshal(r)
+	return marshalProb(r)
 }
 
 // qubitBlochCoords computes the Bloch vector for qubit q in a multi-qubit statevector
 // by tracing out all other qubits.
 func qubitBlochCoords(sv []complex128, nq, q int) (x, y, z float64) {
 	dim := 1 << nq
-	// Compute reduced density matrix elements for qubit q.
 	var rho00, rho11 float64
 	var rho01 complex128
 
 	for i := range dim {
 		bit := (i >> (nq - 1 - q)) & 1
-		// Find the paired index (same except qubit q is flipped).
 		paired := i ^ (1 << (nq - 1 - q))
 		amp := sv[i]
 		prob := real(amp)*real(amp) + imag(amp)*imag(amp)
@@ -175,4 +173,3 @@ func formatBinary(i, nq int) string {
 	}
 	return string(s)
 }
-

@@ -1,0 +1,816 @@
+<p>
+  Machine learning has transformed nearly every corner of technology - from image recognition
+  and language translation to drug discovery and game playing. Naturally, researchers have
+  asked: can quantum computing make machine learning even more powerful? The field of
+  <strong>Quantum Machine Learning</strong> (QML) explores this question, seeking to identify
+  problems where quantum computers provide genuine advantages for learning tasks.
+</p>
+
+<p>
+  This chapter will take an honest, technically grounded tour through the landscape of QML.
+  We will start with a concise refresher on classical machine learning, then explore quantum
+  kernel methods, quantum neural networks, generative models, and reinforcement learning. We
+  will end with the most important section: a candid assessment of where QML actually helps
+  today, where it might help in the future, and where the hype outpaces the evidence. Quantum
+  computing is a powerful tool, but it is not magic - and understanding its real capabilities
+  requires the same rigor we have applied throughout this textbook.
+</p>
+
+<!-- ================================================================== -->
+
+<section id="classical-ml-refresher">
+
+<h2>24.1 Classical ML Refresher</h2>
+
+<p>
+  Before adding "quantum" to "machine learning," we need a clear picture of what classical
+  machine learning does and how it works. This section provides the essential background;
+  readers already familiar with ML may skim it.
+</p>
+
+<h3>Supervised Learning</h3>
+
+<p>
+  In <strong>supervised learning</strong>, we are given a training set of input-output pairs
+  $\{(\mathbf{x}_i, y_i)\}_{i=1}^{N}$, where $\mathbf{x}_i \in \mathbb{R}^d$ is a
+  $d$-dimensional feature vector and $y_i$ is the corresponding label (a class for
+  classification, or a real number for regression). The goal is to learn a function
+  $f: \mathbb{R}^d \to \mathcal{Y}$ that generalizes well to unseen data - that is, $f$
+  correctly predicts labels for inputs not in the training set.
+</p>
+
+<p>
+  The key question is not whether the model can memorize the training data (any sufficiently
+  large model can), but whether it can <em>generalize</em>. This tension between fitting the
+  training data (low training error) and performing well on new data (low test error) is the
+  fundamental challenge of machine learning, formalized as the bias-variance trade-off.
+</p>
+
+<h3>Neural Networks</h3>
+
+<p>
+  A <strong>neural network</strong> is a parameterized function built from layers of simple
+  operations. Each layer applies a linear transformation (matrix multiplication plus bias)
+  followed by a nonlinear activation function:
+</p>
+
+$$\mathbf{h}^{(l)} = \sigma\left( W^{(l)} \mathbf{h}^{(l-1)} + \mathbf{b}^{(l)} \right)$$
+
+<p>
+  where $W^{(l)}$ is the weight matrix, $\mathbf{b}^{(l)}$ is the bias vector, $\sigma$ is
+  a nonlinear activation function (such as ReLU or sigmoid), and $\mathbf{h}^{(l)}$ is the
+  output of layer $l$. The input $\mathbf{h}^{(0)} = \mathbf{x}$ feeds through $L$ layers to
+  produce the output $f(\mathbf{x}) = \mathbf{h}^{(L)}$.
+</p>
+
+<h3>Gradient Descent</h3>
+
+<p>
+  The parameters $\theta = \{W^{(l)}, \mathbf{b}^{(l)}\}$ are optimized by minimizing a
+  <strong>loss function</strong> $\mathcal{L}(\theta)$ that measures how poorly the model's
+  predictions match the training labels. The optimization is done by <strong>gradient
+  descent</strong>: repeatedly computing the gradient $\nabla_\theta \mathcal{L}$ and updating
+  the parameters in the direction that reduces the loss:
+</p>
+
+$$\theta \leftarrow \theta - \eta \nabla_\theta \mathcal{L}$$
+
+<p>
+  where $\eta$ is the learning rate. The gradient is computed efficiently using
+  <strong>backpropagation</strong>, an application of the chain rule that propagates error
+  signals backward through the network. Modern deep learning owes its success largely to the
+  efficiency of backpropagation combined with hardware acceleration (GPUs and TPUs) that can
+  process massive datasets in parallel.
+</p>
+
+<h3>The Kernel Trick</h3>
+
+<p>
+  An alternative to neural networks that will be central to our quantum discussion is the
+  <strong>kernel method</strong>. The idea: instead of learning a complex nonlinear function
+  directly, map the data into a high-dimensional feature space using a function
+  $\phi: \mathbb{R}^d \to \mathcal{H}$, where the data becomes linearly separable. A linear
+  classifier in this feature space corresponds to a nonlinear classifier in the original space.
+</p>
+
+<p>
+  The <strong>kernel trick</strong> avoids explicitly computing $\phi(\mathbf{x})$ by noting
+  that many algorithms only need inner products between feature vectors. If we can compute the
+  <strong>kernel function</strong> $k(\mathbf{x}, \mathbf{x}') = \langle \phi(\mathbf{x}),
+  \phi(\mathbf{x}') \rangle$ efficiently, we never need to work in the (potentially
+  infinite-dimensional) feature space directly. Support Vector Machines (SVMs) are the most
+  well-known kernel method.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    Classical machine learning optimizes parameterized functions (neural networks, kernel methods)
+    to minimize a loss function on training data while generalizing to unseen data. The kernel
+    trick is especially relevant for QML: it shows that working in a high-dimensional feature
+    space can be done implicitly through inner products, which is exactly what quantum circuits
+    enable naturally.
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="quantum-kernel-methods">
+
+<h2>24.2 Quantum Kernel Methods</h2>
+
+<p>
+  The connection between kernel methods and quantum computing is remarkably natural. A quantum
+  circuit maps classical data $\mathbf{x}$ into a quantum state $|\phi(\mathbf{x})\rangle$
+  living in an exponentially large Hilbert space - exactly the kind of high-dimensional feature
+  space that kernel methods exploit. The quantum kernel is simply the inner product between
+  these quantum states:
+</p>
+
+$$k(\mathbf{x}, \mathbf{x}') = |\langle \phi(\mathbf{x}) | \phi(\mathbf{x}') \rangle|^2$$
+
+<p>
+  This is the probability that the quantum state $|\phi(\mathbf{x}')\rangle$ passes a test
+  for being the state $|\phi(\mathbf{x})\rangle$ - a quantity that can be estimated on a
+  quantum computer using a simple circuit.
+</p>
+
+<h3>The Quantum Feature Map</h3>
+
+<p>
+  A <strong>quantum feature map</strong> is a parameterized circuit $U(\mathbf{x})$ that
+  encodes classical data into a quantum state:
+</p>
+
+$$|\phi(\mathbf{x})\rangle = U(\mathbf{x}) |0\rangle^{\otimes n}$$
+
+<p>
+  Common choices include:
+</p>
+
+<ul>
+  <li>
+    <strong>Angle encoding:</strong> Each feature $x_j$ becomes a rotation angle:
+    $U(\mathbf{x}) = \prod_j R_Y(x_j)$. This uses one qubit per feature but creates a
+    relatively simple feature space.
+  </li>
+  <li>
+    <strong>Amplitude encoding:</strong> The feature vector is encoded as the amplitudes of a
+    quantum state: $|\phi(\mathbf{x})\rangle = \sum_j x_j |j\rangle / \|\mathbf{x}\|$. This
+    uses only $\log_2(d)$ qubits for a $d$-dimensional vector, but preparing this state
+    efficiently is non-trivial.
+  </li>
+  <li>
+    <strong>IQP (Instantaneous Quantum Polynomial) encoding:</strong> Alternating layers of
+    Hadamard gates and diagonal unitaries parameterized by the data, creating feature spaces
+    that are provably hard to simulate classically.
+  </li>
+</ul>
+
+<h3>Estimating the Quantum Kernel</h3>
+
+<p>
+  To compute $k(\mathbf{x}, \mathbf{x}')$, we use the <strong>swap test</strong> or,
+  equivalently, apply $U(\mathbf{x})$ followed by $U(\mathbf{x}')^\dagger$ and measure
+  whether all qubits return to $|0\rangle$. The probability of obtaining the all-zeros outcome
+  is exactly $|\langle \phi(\mathbf{x}) | \phi(\mathbf{x}') \rangle|^2$.
+</p>
+
+<p>
+  The sandbox below demonstrates a simple quantum feature map using angle encoding on 2 qubits.
+  Two data points are encoded using $R_Y$ and $R_Z$ rotations, and the overlap between their
+  quantum states gives the kernel value. Modify the angles to see how different data points
+  produce different kernel values.
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="16">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+// Encode data point x = (0.5, 1.2)
+ry(0.5) q[0];
+rz(1.2) q[1];
+// Entangling layer
+cx q[0], q[1];
+// Adjoint: undo encoding for x' = (0.7, 1.0)
+// (If x = x', all qubits return to |0>)
+inv @ cx q[0], q[1];
+inv @ rz(1.0) q[1];
+inv @ ry(0.7) q[0];
+// Measure: P(00) estimates the kernel value
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+  The probability of measuring <code>00</code> estimates the kernel value
+  $k(\mathbf{x}, \mathbf{x}')$. When the two data points are identical, the circuit perfectly
+  uncomputes and you get <code>00</code> with certainty ($k = 1$). As the data points diverge,
+  the kernel value decreases. Try setting both data points to the same values to verify.
+</p>
+
+<h3>Quantum SVM Workflow</h3>
+
+<p>
+  The complete Quantum Support Vector Machine (QSVM) workflow is:
+</p>
+
+<ol>
+  <li>
+    Choose a quantum feature map $U(\mathbf{x})$.
+  </li>
+  <li>
+    For all pairs of training data points, estimate the kernel matrix
+    $K_{ij} = k(\mathbf{x}_i, \mathbf{x}_j)$ using the quantum computer. This requires
+    $O(N^2)$ circuit executions for $N$ training points.
+  </li>
+  <li>
+    Feed the kernel matrix into a classical SVM solver to find the optimal decision boundary.
+  </li>
+  <li>
+    For a new test point $\mathbf{x}^*$, estimate $k(\mathbf{x}_i, \mathbf{x}^*)$ for each
+    support vector $\mathbf{x}_i$ and classify using the trained SVM.
+  </li>
+</ol>
+
+<div class="callout callout-warning">
+  <strong>Common Misconception.</strong>
+  <p>
+    The potential quantum advantage in quantum kernel methods lies in the <em>expressiveness</em>
+    of the feature space, not in speeding up the SVM optimization itself (which is done
+    classically). A quantum advantage exists only if the quantum feature map creates a kernel
+    that captures data structure that no efficiently computable classical kernel can. For most
+    practical datasets studied so far, classical kernels perform comparably or better.
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="quantum-neural-networks">
+
+<h2>24.3 Quantum Neural Networks</h2>
+
+<p>
+  A <strong>quantum neural network</strong> (QNN), also called a <strong>parameterized quantum
+  circuit</strong> (PQC) or <strong>variational quantum circuit</strong>, is the quantum analog
+  of a classical neural network. The idea: build a quantum circuit with tunable gate parameters,
+  measure an observable at the output, and optimize the parameters to minimize a loss function -
+  exactly the same train-predict paradigm as classical ML.
+</p>
+
+<h3>Architecture</h3>
+
+<p>
+  A typical QNN has three stages:
+</p>
+
+<ol>
+  <li>
+    <strong>Data encoding:</strong> Classical input $\mathbf{x}$ is encoded into a quantum state
+    using a feature map $U(\mathbf{x})$, as in the kernel method.
+  </li>
+  <li>
+    <strong>Variational layers:</strong> A parameterized circuit $V(\theta)$ with trainable
+    angles $\theta = (\theta_1, \ldots, \theta_m)$ processes the encoded state. This typically
+    consists of alternating layers of single-qubit rotations ($R_Y$, $R_Z$) and entangling
+    gates (CNOT).
+  </li>
+  <li>
+    <strong>Measurement:</strong> An observable (such as $\langle Z_0 \rangle$) is measured to
+    produce the model's prediction $f(\mathbf{x}; \theta) = \langle \psi(\mathbf{x}, \theta)
+    | O | \psi(\mathbf{x}, \theta) \rangle$.
+  </li>
+</ol>
+
+<p>
+  The circuit below illustrates a simple 2-qubit QNN with one variational layer. The data is
+  encoded via $R_Y$ gates, followed by a CNOT for entanglement and trainable $R_Z$ rotations.
+</p>
+
+<div class="simulation" data-component="simulation">
+  <div class="sim-controls">
+    <label>Data $x_0$: <input type="range" data-param="x0" min="0" max="3.14" step="0.01" value="0.50"><output>0.50</output></label>
+    <label>Data $x_1$: <input type="range" data-param="x1" min="0" max="3.14" step="0.01" value="1.00"><output>1.00</output></label>
+    <label>Weight $\theta_0$: <input type="range" data-param="t0" min="0" max="6.28" step="0.01" value="0.00"><output>0.00</output></label>
+    <label>Weight $\theta_1$: <input type="range" data-param="t1" min="0" max="6.28" step="0.01" value="0.00"><output>0.00</output></label>
+  </div>
+  <pre class="sim-qasm">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+// Data encoding
+ry({x0}) q[0];
+ry({x1}) q[1];
+// Entangling layer
+cx q[0], q[1];
+// Trainable parameters
+rz({t0}) q[0];
+rz({t1}) q[1];
+// Second entangling layer
+cx q[1], q[0];
+c = measure q;</pre>
+  <div class="sim-output"></div>
+</div>
+
+<p>
+  Adjust the data inputs ($x_0$, $x_1$) to see how different data points are encoded, and the
+  weight parameters ($\theta_0$, $\theta_1$) to see how the trainable circuit transforms the
+  output distribution. In a real QNN, the weights would be optimized by a classical optimizer to
+  minimize a loss function over the training data.
+</p>
+
+<h3>Training with the Parameter-Shift Rule</h3>
+
+<p>
+  Computing gradients of quantum circuits requires a technique called the <strong>parameter-shift
+  rule</strong>. For a gate of the form $R_\alpha(\theta) = e^{-i \theta \sigma / 2}$ (where
+  $\sigma$ is a Pauli operator), the gradient of an expectation value with respect to $\theta$
+  can be computed exactly using two circuit evaluations:
+</p>
+
+$$\frac{\partial}{\partial \theta} \langle O \rangle = \frac{1}{2} \left[ \langle O \rangle_{\theta + \pi/2} - \langle O \rangle_{\theta - \pi/2} \right]$$
+
+<p>
+  This is the quantum analog of backpropagation: it provides exact gradients (not
+  approximations) using only measurements of the same circuit at shifted parameter values.
+  However, each gradient component requires two circuit evaluations, so computing the full
+  gradient of $m$ parameters requires $2m$ circuit runs - a cost that grows linearly with the
+  number of parameters.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    Quantum neural networks are parameterized quantum circuits trained by classical optimization.
+    The parameter-shift rule provides exact gradients from circuit measurements, analogous to
+    backpropagation in classical neural networks. However, each gradient evaluation requires
+    additional circuit runs, and the total training cost scales linearly with the number of
+    parameters.
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="quantum-generative-models">
+
+<h2>24.4 Quantum Generative Models</h2>
+
+<p>
+  <strong>Generative models</strong> learn the underlying probability distribution of a dataset
+  and can generate new samples that resemble the training data. Classical examples include
+  Generative Adversarial Networks (GANs), Variational Autoencoders (VAEs), and diffusion models.
+  Quantum computing offers a natural fit for generative modeling because quantum circuits
+  inherently produce probability distributions when measured.
+</p>
+
+<h3>Quantum Circuit Born Machines</h3>
+
+<p>
+  A <strong>Quantum Circuit Born Machine</strong> (QCBM) is perhaps the simplest quantum
+  generative model. A parameterized quantum circuit $V(\theta)$ acts on the initial state
+  $|0\rangle^{\otimes n}$ to produce a quantum state whose measurement statistics define the
+  model distribution:
+</p>
+
+$$p_\theta(x) = |\langle x | V(\theta) | 0 \rangle^{\otimes n}|^2$$
+
+<p>
+  The parameters $\theta$ are optimized so that $p_\theta$ matches the target distribution
+  $p_{\text{data}}$. The loss function is typically the KL divergence or the Maximum Mean
+  Discrepancy (MMD) between the model distribution and the empirical data distribution.
+</p>
+
+<p>
+  The appeal of QCBMs is that they can natively represent distributions that are hard to sample
+  from classically. A quantum circuit with polynomial depth can produce distributions that
+  require exponential classical resources to sample (this is essentially the argument behind
+  quantum computational supremacy experiments). However, whether such hard-to-sample
+  distributions arise naturally in practical machine learning tasks is an open question.
+</p>
+
+<h3>Quantum GANs</h3>
+
+<p>
+  <strong>Quantum GANs</strong> extend the adversarial training framework to the quantum
+  setting. A quantum generator circuit $G(\theta_G)$ produces quantum states, and a
+  discriminator (which can be quantum or classical) tries to distinguish generated samples
+  from real data. The generator and discriminator are trained in an adversarial loop, as in
+  classical GANs. Quantum GANs have been demonstrated on small-scale problems, but face the
+  same training stability challenges as their classical counterparts, compounded by the
+  noise and limited qubit count of near-term quantum hardware.
+</p>
+
+<h3>Quantum Boltzmann Machines</h3>
+
+<p>
+  <strong>Quantum Boltzmann Machines</strong> (QBMs) are inspired by classical Restricted
+  Boltzmann Machines but use a quantum Hamiltonian to define the model distribution. The key
+  idea is that thermal states of quantum Hamiltonians can encode correlations that classical
+  Boltzmann machines cannot efficiently represent, particularly those involving quantum
+  entanglement between visible and hidden units. However, training QBMs requires estimating
+  thermal expectation values, which is itself a computationally demanding task.
+</p>
+
+<div class="callout callout-info">
+  <strong>Note.</strong>
+  <p>
+    Quantum generative models are theoretically motivated by the fact that quantum circuits can
+    produce distributions that are hard to sample classically. However, the practical question
+    is whether the data distributions encountered in real-world applications actually require
+    quantum resources to model effectively. For most current applications, classical generative
+    models (especially diffusion models and transformers) outperform quantum approaches at
+    practical scales.
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="quantum-reinforcement-learning">
+
+<h2>24.5 Quantum Reinforcement Learning</h2>
+
+<p>
+  <strong>Reinforcement learning</strong> (RL) is the branch of ML where an agent learns to
+  make decisions by interacting with an environment, receiving rewards, and adjusting its
+  strategy (policy) to maximize cumulative reward. RL has achieved spectacular successes in
+  game playing (Go, Atari, StarCraft) and robotics. Quantum enhancements to RL come in
+  several flavors:
+</p>
+
+<h3>Quantum-Enhanced Policy Networks</h3>
+
+<p>
+  The simplest approach replaces the classical neural network that parameterizes the agent's
+  policy with a quantum neural network (PQC). The quantum circuit takes in the environment
+  state (encoded into rotation angles), processes it through variational layers, and outputs
+  measurement statistics that determine the action probabilities. The parameters are updated
+  using policy gradient methods (such as REINFORCE), with gradients computed via the
+  parameter-shift rule.
+</p>
+
+<p>
+  Initial experiments on simple RL environments (CartPole, FrozenLake) have shown that quantum
+  policy networks can match classical networks using fewer trainable parameters. However, it is
+  not yet clear whether this parameter efficiency translates to a practical advantage, since the
+  cost of each quantum circuit evaluation (including state preparation, gate application, and
+  measurement) may be much higher than the cost of a classical forward pass.
+</p>
+
+<h3>Quantum Environments</h3>
+
+<p>
+  A more natural application of quantum RL is when the <em>environment itself</em> is quantum -
+  for example, controlling a quantum system for state preparation, error correction, or
+  optimal quantum control. In these settings, the agent must interact with a quantum system
+  that cannot be efficiently simulated classically, providing a clear motivation for quantum
+  processing in the RL loop.
+</p>
+
+<h3>Grover-Enhanced Search in RL</h3>
+
+<p>
+  Some proposals use Grover's algorithm or amplitude amplification to speed up the exploration
+  phase of RL, providing quadratic speedups in searching over large action spaces. These
+  approaches are theoretically sound but require fault-tolerant quantum computers with many
+  qubits, placing them firmly in the future rather than the near term.
+</p>
+
+<div class="callout callout-warning">
+  <strong>Common Misconception.</strong>
+  <p>
+    Quantum reinforcement learning does not mean the quantum computer "learns faster" in any
+    simple sense. The quantum advantage, if it exists, comes from either (1) the expressiveness
+    of quantum policy representations in fewer parameters, (2) inherently quantum environments
+    that classical computers cannot efficiently simulate, or (3) quantum speedups in specific
+    subroutines like search. For classical environments with efficient classical simulators,
+    the case for quantum RL remains unproven.
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="honest-assessment">
+
+<h2>24.6 The Honest Assessment: Where Does QML Actually Help?</h2>
+
+<p>
+  This is the most important section of this chapter. The hype around quantum machine learning
+  has been enormous, with breathless claims about "exponential speedups" and "quantum advantage
+  for AI." A responsible treatment demands that we separate established results from speculation,
+  and genuine advantages from wishful thinking. Here is the current state of the field, as
+  honestly as we can present it.
+</p>
+
+<h3>Where Quantum Advantage Is Established (Theory)</h3>
+
+<ul>
+  <li>
+    <strong>Learning quantum systems:</strong> When the data itself comes from a quantum process
+    (quantum states, quantum channels, quantum Hamiltonians), quantum computers can learn
+    properties of that system exponentially faster than any classical approach. This is because
+    quantum data can only be fully accessed by quantum measurements, and classical descriptions
+    of quantum states are exponentially large. This is the clearest and most rigorous advantage.
+  </li>
+  <li>
+    <strong>Specific kernel separations:</strong> Theoretical constructions exist where quantum
+    kernels can classify data that no classical kernel of polynomial size can. However, these
+    constructions rely on cryptographic or algebraic hardness assumptions and use contrived
+    datasets that do not arise in practical applications.
+  </li>
+  <li>
+    <strong>Sampling complexity:</strong> Quantum circuits can sample from distributions that
+    are provably hard to sample classically (related to quantum supremacy). If a learning task
+    requires sampling from such distributions, quantum computers have an inherent advantage.
+  </li>
+</ul>
+
+<h3>The Barren Plateau Problem</h3>
+
+<p>
+  The single biggest obstacle to practical QML is the <strong>barren plateau</strong> phenomenon.
+  Discovered by McClean et al. in 2018, it shows that for random parameterized quantum circuits,
+  the gradient of the loss function vanishes exponentially with the number of qubits:
+</p>
+
+$$\text{Var}\left[\frac{\partial \mathcal{L}}{\partial \theta_k}\right] \leq O\left(\frac{1}{2^n}\right)$$
+
+<p>
+  where $n$ is the number of qubits. This means that as the system size grows, the optimization
+  landscape becomes exponentially flat and featureless - the optimizer has no gradient signal to
+  follow. This is not just a worst-case issue; it affects a wide class of circuit architectures,
+  loss functions, and noise models.
+</p>
+
+<p>
+  Worse still, recent theoretical results have revealed a fundamental dilemma: strategies that
+  provably avoid barren plateaus (such as restricting circuits to polynomial subspaces with
+  local structure) often produce circuits that are <em>classically simulable</em>. In other
+  words, the very circuits that are trainable tend to be the ones that offer no quantum
+  advantage. Circuits that could provide quantum advantage tend to be the ones that are
+  untrainable. This "barren plateau paradox" is an active area of research with no clear
+  resolution.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    The barren plateau problem is the central theoretical obstacle to scalable QML. Gradient
+    variance vanishes exponentially with qubit count for generic parameterized circuits. Current
+    evidence suggests a fundamental tension: circuits that avoid barren plateaus are often
+    classically simulable, while circuits with genuine quantum expressiveness are often
+    untrainable. This does not prove QML is useless, but it constrains the design space
+    severely.
+  </p>
+</div>
+
+<h3>Where the Evidence Is Weak or Negative</h3>
+
+<ul>
+  <li>
+    <strong>Classical data, classical tasks:</strong> For standard ML benchmarks (image
+    classification, natural language processing, tabular data), no quantum algorithm has
+    demonstrated a practical advantage over classical methods on datasets of meaningful size.
+    Classical deep learning scales to billions of parameters on massive datasets; current QML
+    is limited to tens of qubits and toy-scale problems.
+  </li>
+  <li>
+    <strong>Quantum kernel dequantization:</strong> Several quantum kernel methods proposed for
+    classical data have been "dequantized" - shown to be achievable classically with comparable
+    performance. When quantum kernels are tuned for good generalization on practical datasets,
+    they often converge to kernels that can be efficiently approximated classically.
+  </li>
+  <li>
+    <strong>Data loading bottleneck:</strong> Many QML algorithms assume efficient quantum access
+    to classical data (loading $N$ data points into quantum states in $O(\log N)$ time).
+    In practice, loading classical data into a quantum computer is expensive and can negate any
+    quantum speedup.
+  </li>
+  <li>
+    <strong>Noise:</strong> Near-term quantum hardware is noisy, and noise degrades the
+    expressiveness and trainability of quantum circuits. Error mitigation helps (as we will see
+    in Chapter 25) but introduces sampling overhead that further reduces any potential speedup.
+  </li>
+</ul>
+
+<h3>Where QML Might Help (Honest Speculation)</h3>
+
+<ul>
+  <li>
+    <strong>Quantum chemistry and materials:</strong> ML models trained on quantum simulation
+    data (molecular energies, wavefunctions, material properties) could benefit from quantum
+    feature maps that capture the structure of quantum systems more naturally than classical
+    representations.
+  </li>
+  <li>
+    <strong>Structured combinatorial problems:</strong> Problems where the data or the model has
+    inherent combinatorial or graph structure might benefit from quantum approaches, especially
+    if the structure aligns with the native connectivity of quantum hardware.
+  </li>
+  <li>
+    <strong>Fault-tolerant era:</strong> With error-corrected quantum computers and thousands of
+    logical qubits, the landscape changes dramatically. Algorithms like quantum linear algebra
+    (HHL) and quantum principal component analysis could provide genuine speedups for certain
+    ML tasks - but this is likely a decade or more away.
+  </li>
+</ul>
+
+<h3>A Summary Table</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Claim</th>
+      <th>Status</th>
+      <th>Evidence Level</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>QML learns quantum systems faster</td>
+      <td>Established</td>
+      <td>Rigorous proofs</td>
+    </tr>
+    <tr>
+      <td>Quantum kernels separate from classical</td>
+      <td>Theoretical only</td>
+      <td>Contrived datasets; not practical</td>
+    </tr>
+    <tr>
+      <td>QNNs outperform classical NNs</td>
+      <td>Unproven</td>
+      <td>Small-scale demos; no scaling evidence</td>
+    </tr>
+    <tr>
+      <td>Quantum speedup for classical ML tasks</td>
+      <td>Unlikely near-term</td>
+      <td>Data loading bottleneck; dequantization</td>
+    </tr>
+    <tr>
+      <td>Barren plateaus are avoidable at scale</td>
+      <td>Open question</td>
+      <td>Avoiding them may remove quantum advantage</td>
+    </tr>
+    <tr>
+      <td>QML for quantum chemistry data</td>
+      <td>Promising</td>
+      <td>Natural fit; early results encouraging</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout callout-info">
+  <strong>Note.</strong>
+  <p>
+    This assessment reflects the state of research through 2025. The field is evolving rapidly,
+    and future theoretical breakthroughs or hardware advances could change the picture
+    significantly. The intellectually honest position is neither hype ("quantum ML will
+    revolutionize everything") nor dismissal ("quantum ML is useless") but careful optimism
+    tempered by a clear-eyed view of current limitations.
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+
+<div class="flashcard-deck" data-component="flashcard-deck">
+  <div class="flashcard-deck-header">Chapter 24 Review</div>
+
+  <div class="flashcard" data-card-id="ch24-quantum-feature-map">
+    <div class="card-front">What is a quantum feature map, and how does it relate to classical kernel methods?</div>
+    <div class="card-back">
+      A quantum feature map $U(\mathbf{x})$ encodes classical data $\mathbf{x}$ into a quantum
+      state $|\phi(\mathbf{x})\rangle = U(\mathbf{x})|0\rangle^{\otimes n}$ in an
+      exponentially large Hilbert space. The quantum kernel is the squared overlap
+      $k(\mathbf{x}, \mathbf{x}') = |\langle \phi(\mathbf{x})|\phi(\mathbf{x}')\rangle|^2$,
+      which can be estimated on a quantum computer. This directly parallels the classical kernel
+      trick, where data is implicitly mapped to a high-dimensional feature space.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch24-quantum-kernel-advantage">
+    <div class="card-front">Where does the potential quantum advantage lie in quantum kernel methods?</div>
+    <div class="card-back">
+      The potential advantage lies in the expressiveness of the quantum feature space, not in
+      speeding up the SVM optimization (which is done classically). A quantum advantage exists
+      only if the quantum feature map creates a kernel that captures data structure that no
+      efficiently computable classical kernel can. Theoretical separations exist for contrived
+      datasets, but practical advantage on real data remains undemonstrated.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch24-parameter-shift-rule">
+    <div class="card-front">How does the parameter-shift rule compute gradients of quantum circuits?</div>
+    <div class="card-back">
+      For a gate $R_\alpha(\theta) = e^{-i\theta\sigma/2}$, the gradient is computed exactly as
+      $\frac{\partial}{\partial\theta}\langle O\rangle = \frac{1}{2}[\langle O\rangle_{\theta+\pi/2}
+      - \langle O\rangle_{\theta-\pi/2}]$. This requires evaluating the same circuit at two
+      shifted parameter values, giving exact gradients from measurements. Computing the full
+      gradient of $m$ parameters requires $2m$ circuit evaluations.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch24-barren-plateaus">
+    <div class="card-front">What is the barren plateau problem, and why is it the central obstacle to scalable QML?</div>
+    <div class="card-back">
+      Barren plateaus occur when the gradient variance of a parameterized quantum circuit
+      vanishes exponentially with qubit count: $\text{Var}[\partial\mathcal{L}/\partial\theta_k]
+      \leq O(1/2^n)$. The optimization landscape becomes exponentially flat, making gradient-based
+      training impossible. A fundamental dilemma exists: circuits that avoid barren plateaus are
+      often classically simulable, while circuits with quantum advantage suffer from vanishing
+      gradients.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch24-qcbm">
+    <div class="card-front">What is a Quantum Circuit Born Machine, and why are quantum computers natural for generative modeling?</div>
+    <div class="card-back">
+      A QCBM uses a parameterized circuit $V(\theta)$ to produce quantum states whose
+      measurement statistics define the model distribution: $p_\theta(x) = |\langle x|V(\theta)
+      |0\rangle^{\otimes n}|^2$. Quantum computers are natural for generative modeling because
+      measurement inherently produces samples from a probability distribution, and quantum
+      circuits can produce distributions that are provably hard to sample classically. However,
+      whether such hard distributions arise in practical tasks is an open question.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch24-data-loading">
+    <div class="card-front">What is the data loading bottleneck in QML, and why does it matter?</div>
+    <div class="card-back">
+      Many QML algorithms assume efficient quantum access to classical data (loading $N$ data
+      points in $O(\log N)$ time), but in practice, encoding classical data into quantum states
+      is expensive. Amplitude encoding requires complex state preparation circuits, and angle
+      encoding uses one qubit per feature. This overhead can negate any quantum speedup,
+      especially for classical datasets that fit in classical memory.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch24-qml-quantum-data">
+    <div class="card-front">For which type of data is quantum advantage in ML most clearly established?</div>
+    <div class="card-back">
+      Quantum advantage is most clearly established when the data itself comes from quantum
+      systems (quantum states, channels, or Hamiltonians). Quantum computers can learn
+      properties of quantum systems exponentially faster than classical approaches because
+      quantum data can only be fully accessed by quantum measurements, and classical descriptions
+      of quantum states are exponentially large. This is the strongest and most rigorous QML
+      advantage.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch24-qml-honest-summary">
+    <div class="card-front">Summarize the honest assessment of QML: where is it promising and where does hype exceed evidence?</div>
+    <div class="card-back">
+      Promising: learning quantum systems (proven advantage), quantum chemistry/materials data
+      (natural fit), and fault-tolerant era applications. Hype exceeds evidence: QNNs beating
+      classical NNs on practical tasks, quantum speedups for standard ML benchmarks, and
+      near-term quantum advantage for classical data. Key obstacles: barren plateaus, data
+      loading bottleneck, dequantization of proposed advantages, and noise on near-term hardware.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+</div>

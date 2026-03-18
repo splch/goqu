@@ -67,7 +67,8 @@ clean:
 textbook:
 	go run textbook/gen/main.go
 	cp "$$(go env GOROOT)/lib/wasm/wasm_exec.js" textbook/wasm_exec.js
-	cd textbook/wasm && GOOS=js GOARCH=wasm go build -ldflags="-w -s" -o ../main.wasm .
+	cd textbook/wasm && GOOS=js GOARCH=wasm go build -trimpath -ldflags="-w -s" -o ../main.wasm .
+	@command -v wasm-opt >/dev/null 2>&1 && wasm-opt -Oz --enable-bulk-memory -o textbook/main.wasm textbook/main.wasm || true
 
 textbook-serve: textbook
 	@echo "Serving textbook at http://localhost:8080"

@@ -1,0 +1,849 @@
+<p>
+  Throughout this textbook, we have encountered the fundamental problem of quantum computing:
+  qubits are fragile. Every quantum gate introduces a small error. Measurements are imperfect.
+  Environmental noise causes decoherence. In previous chapters, we studied <em>quantum error
+  correction</em> (QEC), which uses redundant encoding to protect quantum information. But
+  QEC requires substantial overhead - many physical qubits per logical qubit, complex
+  syndrome extraction circuits, and deep fault-tolerant gate constructions. Current quantum
+  hardware is years away from supporting full QEC at meaningful scale.
+</p>
+
+<p>
+  This chapter addresses a pragmatic question: what can we do <em>right now</em>, on noisy
+  hardware with tens to hundreds of qubits and no error correction, to improve the quality of
+  our quantum computations? The answer is <strong>quantum error mitigation</strong> - a family
+  of techniques that reduce the impact of noise on computed results without the overhead of
+  full error correction. Error mitigation does not fix errors at the physical level; instead,
+  it uses clever classical post-processing, noise characterization, and controlled noise
+  amplification to extract more accurate expectation values from noisy measurements. It is
+  the essential toolkit for the NISQ (Noisy Intermediate-Scale Quantum) era.
+</p>
+
+<!-- ================================================================== -->
+
+<section id="why-error-mitigation">
+
+<h2>25.1 Why Error Mitigation Matters in the NISQ Era</h2>
+
+<p>
+  The term "NISQ" was coined by John Preskill in 2018 to describe the current generation of
+  quantum processors: devices with 50-1000+ qubits that are too noisy for fault-tolerant
+  computation but large enough to explore computations that challenge classical simulation.
+  NISQ devices sit in an awkward middle ground - powerful enough to be interesting, noisy
+  enough to be frustrating.
+</p>
+
+<h3>The Noise Budget</h3>
+
+<p>
+  Consider a quantum circuit with $d$ layers of two-qubit gates, each with error rate
+  $\epsilon$. If the circuit acts on $n$ qubits, the total number of two-qubit gates is
+  roughly $O(nd)$. The probability that the entire circuit executes without any error is
+  approximately:
+</p>
+
+$$P_{\text{success}} \approx (1 - \epsilon)^{nd} \approx e^{-\epsilon n d}$$
+
+<p>
+  For current hardware with $\epsilon \approx 10^{-3}$ (0.1% two-qubit gate error),
+  a circuit on $n = 100$ qubits with $d = 100$ layers has
+  $P_{\text{success}} \approx e^{-10} \approx 0.00005$ - effectively zero. Even a modest
+  circuit with $n = 20$ qubits and $d = 50$ layers has $P_{\text{success}} \approx e^{-1}
+  \approx 0.37$. The noise budget is tight.
+</p>
+
+<p>
+  This is why algorithms like QAOA (Chapter 23) and VQE use shallow circuits with few layers.
+  But even shallow circuits accumulate errors, and the computed expectation values are biased
+  toward random (maximally mixed) values. Error mitigation aims to correct this bias.
+</p>
+
+<h3>Error Mitigation vs. Error Correction</h3>
+
+<p>
+  It is essential to understand the difference between these two approaches:
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Property</th>
+      <th>Error Mitigation</th>
+      <th>Error Correction</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Physical qubits needed</td>
+      <td>Same as unmitigated circuit</td>
+      <td>$10\times$-$1000\times$ overhead</td>
+    </tr>
+    <tr>
+      <td>What it corrects</td>
+      <td>Expectation values (statistical)</td>
+      <td>Quantum states (physical)</td>
+    </tr>
+    <tr>
+      <td>Sampling overhead</td>
+      <td>Moderate to exponential</td>
+      <td>Polynomial (once threshold met)</td>
+    </tr>
+    <tr>
+      <td>Scalability</td>
+      <td>Degrades with circuit size</td>
+      <td>Scales to arbitrary computation</td>
+    </tr>
+    <tr>
+      <td>Noise model knowledge</td>
+      <td>Often required</td>
+      <td>Not required (threshold-based)</td>
+    </tr>
+    <tr>
+      <td>Available today</td>
+      <td>Yes</td>
+      <td>Partial (small codes, limited)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>
+  Error mitigation is a stopgap, not a permanent solution. As quantum hardware improves and
+  error correction becomes practical, mitigation techniques will become less necessary. But
+  for the current era, they are indispensable - and understanding them is essential for anyone
+  running algorithms on real quantum hardware.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    Error mitigation corrects <em>expectation values</em> through classical post-processing,
+    without adding physical qubits. Error correction corrects <em>quantum states</em> at the
+    physical level, requiring significant qubit overhead. Mitigation trades sampling overhead
+    (more measurements) for accuracy, while correction trades qubit overhead (more physical
+    qubits) for protection. In the NISQ era, mitigation is the practical choice.
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="zero-noise-extrapolation">
+
+<h2>25.2 Zero-Noise Extrapolation</h2>
+
+<p>
+  <strong>Zero-Noise Extrapolation</strong> (ZNE) is the most widely used error mitigation
+  technique, prized for its simplicity and generality. The core idea is beautifully intuitive:
+  if you cannot eliminate noise, measure how the result changes as you <em>increase</em> the
+  noise, then extrapolate backward to estimate what the result would be at zero noise.
+</p>
+
+<h3>The ZNE Protocol</h3>
+
+<p>
+  ZNE proceeds in two steps:
+</p>
+
+<ol>
+  <li>
+    <strong>Noise amplification:</strong> Run the circuit at several different noise levels
+    $\lambda_1 < \lambda_2 < \cdots < \lambda_k$, where $\lambda_1 = 1$ corresponds to the
+    physical noise level and $\lambda_j > 1$ corresponds to artificially amplified noise.
+    Measure the expectation value $\langle O \rangle_{\lambda_j}$ at each noise level.
+  </li>
+  <li>
+    <strong>Extrapolation to zero noise:</strong> Fit a model (linear, polynomial, or
+    exponential) to the data points $\{(\lambda_j, \langle O \rangle_{\lambda_j})\}$ and
+    extrapolate to $\lambda = 0$ to estimate the noise-free expectation value
+    $\langle O \rangle_0$.
+  </li>
+</ol>
+
+<h3>How to Amplify Noise: Unitary Folding</h3>
+
+<p>
+  The most common method for controlled noise amplification is <strong>unitary folding</strong>.
+  The idea exploits the fact that inserting $U^\dagger U$ (a gate followed by its inverse)
+  into a circuit does not change the ideal computation (since $U^\dagger U = I$), but each
+  additional gate introduces real physical noise. To amplify noise by a factor $\lambda$:
+</p>
+
+<ul>
+  <li>
+    <strong>Global folding:</strong> Replace the circuit $U$ with $U (U^\dagger U)^k$, where
+    $k$ controls the noise amplification. Since the ideal unitary is unchanged
+    ($U \cdot I^k = U$), the noiseless result is the same, but each round of $U^\dagger U$
+    adds noise from $2n_{\text{gates}}$ additional gate operations. The noise scale factor is
+    $\lambda = 1 + 2k$ (each fold adds twice the original gate count).
+  </li>
+  <li>
+    <strong>Gate-level folding:</strong> Instead of folding the entire circuit, fold individual
+    gates: replace each gate $G$ with $G \, G^\dagger G$. This provides finer control over the
+    noise level and can achieve non-integer scale factors.
+  </li>
+</ul>
+
+<h3>Extrapolation Models</h3>
+
+<p>
+  The choice of extrapolation model affects the accuracy of ZNE:
+</p>
+
+<ul>
+  <li>
+    <strong>Linear extrapolation:</strong> Fit $\langle O \rangle_\lambda = a + b\lambda$ and
+    extrapolate to $\lambda = 0$. Simple and requires only two noise levels, but assumes noise
+    affects the expectation value linearly - a rough approximation.
+  </li>
+  <li>
+    <strong>Polynomial extrapolation:</strong> Fit a degree-$d$ polynomial to $d+1$ noise
+    levels. More flexible but can be sensitive to statistical noise in the data points.
+  </li>
+  <li>
+    <strong>Exponential extrapolation:</strong> Fit $\langle O \rangle_\lambda = a \, e^{-b\lambda} + c$.
+    Physically motivated by depolarizing noise models, where expectation values decay
+    exponentially with the noise strength. Often the most accurate model in practice.
+  </li>
+</ul>
+
+<p>
+  The simulation below demonstrates ZNE on a simple circuit. The slider controls the "noise
+  scale factor" $\lambda$, which determines how many times the circuit is folded. Watch how
+  the measurement distribution degrades as noise increases. In a real ZNE workflow, you would
+  record the expectation value at each noise level and fit a curve to extrapolate to
+  $\lambda = 0$.
+</p>
+
+<div class="simulation" data-component="simulation">
+  <div class="sim-controls">
+    <label>Noise scale $\lambda$ (via rotation error): <input type="range" data-param="noise" min="0" max="1.57" step="0.01" value="0.00"><output>0.00</output></label>
+  </div>
+  <pre class="sim-qasm">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+// Ideal circuit: create Bell state
+h q[0];
+cx q[0], q[1];
+// Simulated noise: extra rotations (increase slider to add "noise")
+rx({noise}) q[0];
+rx({noise}) q[1];
+c = measure q;</pre>
+  <div class="sim-output"></div>
+</div>
+
+<p>
+  At $\lambda = 0$ (no noise), you should see a clean Bell state: roughly 50% <code>00</code>
+  and 50% <code>11</code>. As you increase the noise parameter, the distribution spreads to
+  include <code>01</code> and <code>10</code> outcomes. In a real ZNE experiment, you would
+  measure the expectation value $\langle Z_0 Z_1 \rangle$ at each noise level (which should
+  be +1 for a perfect Bell state) and extrapolate the trend back to zero noise.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    Zero-Noise Extrapolation works by running the circuit at intentionally amplified noise
+    levels (using unitary folding), measuring the expectation value at each level, and
+    extrapolating to the zero-noise limit. It requires no knowledge of the specific noise
+    model and adds no extra qubits - only additional circuit runs. The main cost is the
+    sampling overhead needed to estimate expectation values at multiple noise levels with
+    sufficient precision.
+  </p>
+</div>
+
+<h3>Strengths and Limitations of ZNE</h3>
+
+<p>
+  ZNE's greatest strength is its simplicity and generality - it works for any circuit and any
+  observable, requires no detailed noise characterization, and can be implemented as a pure
+  classical post-processing step around the quantum computation. Its main limitations are:
+</p>
+
+<ul>
+  <li>
+    <strong>Extrapolation model uncertainty:</strong> The true relationship between noise level
+    and expectation value may not match the assumed model (linear, polynomial, exponential),
+    leading to systematic errors in the extrapolated value.
+  </li>
+  <li>
+    <strong>Statistical cost:</strong> Amplified noise levels produce noisier estimates, so
+    more shots are needed at higher $\lambda$ to maintain precision. The total number of shots
+    can grow significantly.
+  </li>
+  <li>
+    <strong>Non-scalability:</strong> As circuits get larger and noisier, the expectation values
+    at amplified noise levels approach the trivial (maximally mixed) value, making extrapolation
+    increasingly unreliable. ZNE is most effective for circuits that are only moderately noisy.
+  </li>
+</ul>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="probabilistic-error-cancellation">
+
+<h2>25.3 Probabilistic Error Cancellation</h2>
+
+<p>
+  While ZNE estimates the zero-noise result by extrapolation, <strong>Probabilistic Error
+  Cancellation</strong> (PEC) takes a more direct approach: it mathematically inverts the noise
+  channel and implements the inverse as a probabilistic mixture of noisy operations. PEC can,
+  in principle, exactly recover the noiseless expectation value - but at a cost.
+</p>
+
+<h3>The Idea: Inverting the Noise</h3>
+
+<p>
+  Suppose each noisy gate in our circuit implements the ideal gate $\mathcal{U}$ followed by a
+  noise channel $\mathcal{N}$, so the actual operation is $\mathcal{N} \circ \mathcal{U}$. If
+  we knew $\mathcal{N}$ exactly, we could apply the inverse channel $\mathcal{N}^{-1}$ to
+  recover the ideal operation. The problem: $\mathcal{N}^{-1}$ is generally not a physical
+  quantum channel (it may have negative eigenvalues), so it cannot be implemented as a single
+  quantum operation.
+</p>
+
+<p>
+  PEC resolves this by decomposing $\mathcal{N}^{-1}$ as a <strong>quasiprobability
+  distribution</strong> over physically implementable operations:
+</p>
+
+$$\mathcal{N}^{-1} = \sum_i q_i \, \mathcal{B}_i$$
+
+<p>
+  where $\{\mathcal{B}_i\}$ is a set of noisy basis operations (such as the noisy gate itself,
+  or the noisy gate preceded by Pauli gates), and $q_i$ are real coefficients that can be
+  negative. The coefficients $q_i$ form a quasiprobability distribution: they sum to 1 but
+  are not all non-negative. This is the mathematical signature of a non-physical operation being
+  decomposed into physical ones.
+</p>
+
+<h3>The PEC Protocol</h3>
+
+<ol>
+  <li>
+    <strong>Characterize the noise:</strong> Use gate set tomography or other characterization
+    techniques to determine the noise channel $\mathcal{N}$ for each gate in the circuit.
+  </li>
+  <li>
+    <strong>Compute the quasiprobability decomposition:</strong> For each noisy gate, find the
+    coefficients $q_i$ such that $\mathcal{N}^{-1} = \sum_i q_i \mathcal{B}_i$. The
+    normalization factor $C = \sum_i |q_i|$ is called the <strong>one-norm</strong> of the
+    decomposition.
+  </li>
+  <li>
+    <strong>Sample and execute:</strong> For each circuit execution, randomly replace each noisy
+    gate with one of the basis operations $\mathcal{B}_i$ sampled with probability
+    $|q_i|/C$. Record the measurement outcome and weight it by the sign
+    $\text{sgn}(q_i)$ and the normalization $C$.
+  </li>
+  <li>
+    <strong>Average:</strong> The weighted average of the measurement outcomes over many samples
+    converges to the noiseless expectation value.
+  </li>
+</ol>
+
+<h3>The Sampling Overhead</h3>
+
+<p>
+  The catch is the sampling overhead. The variance of the PEC estimator scales as $C^2$, where
+  $C = \sum_i |q_i|$ for a single gate. For a circuit with $g$ noisy gates, each with one-norm
+  $C_{\text{gate}}$, the total overhead is:
+</p>
+
+$$C_{\text{total}} = \prod_{k=1}^{g} C_k$$
+
+<p>
+  Since each $C_k \geq 1$ (with equality only for noise-free gates), the total overhead grows
+  exponentially with the number of noisy gates. To achieve the same statistical precision as a
+  noiseless computation, we need $C_{\text{total}}^2$ times as many samples. For moderately
+  noisy circuits, this overhead can be manageable (say, $C_{\text{total}} \approx 10$,
+  requiring $100\times$ more samples). For highly noisy circuits, the overhead becomes
+  prohibitive.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    Probabilistic Error Cancellation inverts the noise channel using a quasiprobability
+    decomposition over physical operations. It can exactly recover noiseless expectation values
+    (given perfect noise characterization) but requires sampling overhead that grows
+    exponentially with the number of noisy gates. The one-norm $C = \sum_i |q_i|$ quantifies
+    the cost: achieving precision $\epsilon$ requires $O(C_{\text{total}}^2/\epsilon^2)$
+    samples.
+  </p>
+</div>
+
+<h3>PEC in Practice</h3>
+
+<p>
+  PEC requires detailed knowledge of the noise model - specifically, the noise channel for each
+  gate must be characterized accurately. This is obtained through gate set tomography (GST) or
+  randomized benchmarking, which are themselves resource-intensive characterization procedures.
+  Errors in the noise model propagate into errors in the mitigated expectation value, so PEC
+  is only as good as the noise characterization.
+</p>
+
+<p>
+  Despite its exponential scaling, PEC has been demonstrated successfully on real quantum
+  hardware for small circuits. It is often combined with ZNE in hybrid approaches: PEC handles
+  the coherent (systematic) errors while ZNE handles the incoherent (stochastic) errors, or
+  PEC is applied to the most error-prone gates while ZNE is used as a global correction.
+</p>
+
+<div class="callout callout-warning">
+  <strong>Common Misconception.</strong>
+  <p>
+    PEC does not reduce noise in the quantum state - it corrects the <em>statistics</em> of the
+    measurement outcomes through weighted sampling. The quantum computer still runs the same
+    noisy circuits; the correction happens entirely in classical post-processing. This means PEC
+    cannot improve the fidelity of individual quantum states, only the accuracy of estimated
+    expectation values.
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="clifford-data-regression">
+
+<h2>25.4 Clifford Data Regression and Other Techniques</h2>
+
+<p>
+  Beyond ZNE and PEC, a growing toolkit of error mitigation techniques addresses different
+  aspects of the noise problem. We survey the most important ones here.
+</p>
+
+<h3>Clifford Data Regression (CDR)</h3>
+
+<p>
+  <strong>Clifford Data Regression</strong> takes a machine-learning approach to error
+  mitigation. The key insight: Clifford circuits (composed entirely of gates from the Clifford
+  group - H, S, CNOT, and their combinations) can be efficiently simulated classically by the
+  Gottesman-Knill theorem. This means we can compute the exact noiseless result for any
+  Clifford circuit, even one that runs on hundreds of qubits.
+</p>
+
+<p>
+  The CDR protocol exploits this:
+</p>
+
+<ol>
+  <li>
+    <strong>Generate training circuits:</strong> Create a set of "near-Clifford" circuits that
+    resemble the circuit of interest but use only (or mostly) Clifford gates. These training
+    circuits should have similar structure, depth, and gate composition to the target circuit,
+    so they experience similar noise.
+  </li>
+  <li>
+    <strong>Collect training data:</strong> Run each training circuit on the noisy quantum
+    hardware to get the noisy expectation value $\langle O \rangle_{\text{noisy}}$. Also
+    compute the exact noiseless expectation value $\langle O \rangle_{\text{ideal}}$ using a
+    classical Clifford simulator.
+  </li>
+  <li>
+    <strong>Fit a correction model:</strong> Train a regression model (typically linear:
+    $\langle O \rangle_{\text{ideal}} = a \cdot \langle O \rangle_{\text{noisy}} + b$) on the
+    training data pairs $\{(\langle O \rangle_{\text{noisy}}, \langle O \rangle_{\text{ideal}})\}$.
+  </li>
+  <li>
+    <strong>Apply the correction:</strong> Run the actual (non-Clifford) circuit of interest on
+    the noisy hardware, measure $\langle O \rangle_{\text{noisy}}$, and apply the trained
+    correction model to estimate the noiseless result.
+  </li>
+</ol>
+
+<p>
+  CDR works because the noise experienced by the training circuits is similar to the noise
+  experienced by the target circuit (since they have similar structure), so the learned
+  noise-correction relationship transfers. The method is especially effective when the target
+  circuit is "almost Clifford" - that is, most of its gates are Clifford gates, with only a
+  few non-Clifford (typically T or parameterized rotation) gates.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    Clifford Data Regression uses efficiently simulable Clifford circuits as training data to
+    learn a noise correction model. By comparing noisy quantum hardware results with exact
+    classical simulations on structurally similar Clifford circuits, CDR learns the relationship
+    between noisy and ideal expectation values and applies this correction to the circuit of
+    interest. It requires no explicit noise model - the correction is learned empirically.
+  </p>
+</div>
+
+<h3>Measurement Error Mitigation</h3>
+
+<p>
+  One of the simplest and most effective mitigation techniques addresses <strong>measurement
+  errors</strong> specifically. The idea: characterize the measurement confusion matrix $M$,
+  where $M_{ij}$ is the probability of measuring outcome $i$ when the true state is $j$. Then
+  invert this matrix to correct the measured probability distribution:
+</p>
+
+$$\mathbf{p}_{\text{ideal}} = M^{-1} \mathbf{p}_{\text{measured}}$$
+
+<p>
+  For $n$ qubits, the full confusion matrix is $2^n \times 2^n$, which is exponentially large
+  and impractical to characterize for large systems. However, if measurement errors are
+  approximately independent across qubits, the matrix factorizes as a tensor product of $n$
+  individual $2 \times 2$ confusion matrices, requiring only $O(n)$ calibration circuits.
+  This "tensored" measurement error mitigation is widely used and often provides significant
+  improvement with minimal overhead.
+</p>
+
+<h3>Symmetry Verification</h3>
+
+<p>
+  Many quantum algorithms compute states that satisfy known symmetries - for example, particle
+  number conservation in quantum chemistry, or parity conservation in certain optimization
+  problems. <strong>Symmetry verification</strong> exploits this by measuring the symmetry
+  operator and discarding (post-selecting on) measurement outcomes that violate the expected
+  symmetry. Since noise tends to break symmetries, this filtering removes many error-corrupted
+  shots and improves the quality of the remaining data.
+</p>
+
+<p>
+  The cost is a reduction in the effective number of samples (shots that fail the symmetry check
+  are discarded), which increases the statistical uncertainty of the estimate. However, for
+  circuits where the noise rate is moderate and the symmetry is well-preserved, the improvement
+  in accuracy far outweighs the loss of statistics.
+</p>
+
+<h3>Twirling and Randomized Compiling</h3>
+
+<p>
+  <strong>Randomized compiling</strong> (also called Pauli twirling) does not reduce noise but
+  converts it into a simpler form. The technique inserts random Pauli gates before and after
+  each CNOT gate (with corresponding corrections to maintain the ideal circuit unitary). The
+  effect is to convert arbitrary coherent errors into incoherent (stochastic) Pauli noise,
+  which is easier to analyze and mitigate with techniques like ZNE and PEC.
+</p>
+
+<p>
+  The intuition: coherent errors can interfere constructively and accumulate faster than
+  stochastic errors. By randomizing the error, we eliminate the worst-case coherent buildup
+  and ensure the noise behaves like a depolarizing channel, which decays predictably and is
+  well-modeled by exponential extrapolation.
+</p>
+
+<div class="callout callout-info">
+  <strong>Note.</strong>
+  <p>
+    Randomized compiling is a preprocessing step that makes other mitigation techniques work
+    better. It is routinely used in combination with ZNE and PEC on IBM, Google, and other
+    quantum hardware platforms. The overhead is minimal - it only adds single-qubit Pauli gates,
+    which are among the fastest and most accurate operations on superconducting hardware.
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+
+<section id="combining-mitigation-correction">
+
+<h2>25.5 Combining Mitigation with Correction</h2>
+
+<p>
+  Error mitigation and error correction are not mutually exclusive - they are complementary
+  tools that can be combined to push the boundaries of what noisy quantum hardware can achieve.
+  As quantum devices improve and small error-correcting codes become practical, hybrid
+  strategies that use both approaches simultaneously will become increasingly important.
+</p>
+
+<h3>Mitigation on Logical Qubits</h3>
+
+<p>
+  Even with error correction, logical error rates are not zero. A distance-$d$ surface code
+  has a logical error rate per round that scales as $(p/p_{\text{th}})^{(d+1)/2}$, where $p$
+  is the physical error rate and $p_{\text{th}}$ is the threshold. For moderate code distances
+  and physical error rates just below threshold, the logical error rate can still be
+  substantial. Error mitigation techniques (ZNE, PEC) can be applied at the <em>logical
+  level</em> to further reduce the effective logical error rate without increasing the code
+  distance (and thus the qubit count).
+</p>
+
+<h3>The Mitigation-Correction Spectrum</h3>
+
+<p>
+  In practice, the choice between mitigation and correction (and the blend of the two) depends
+  on the specific computation and available resources:
+</p>
+
+<ul>
+  <li>
+    <strong>Short circuits, few qubits:</strong> Error mitigation alone may suffice. ZNE and
+    measurement error mitigation can bring expectation values close to the ideal result with
+    modest sampling overhead.
+  </li>
+  <li>
+    <strong>Medium circuits:</strong> Combine randomized compiling (to simplify the noise) with
+    ZNE or PEC. Symmetry verification can further improve results for structured problems.
+  </li>
+  <li>
+    <strong>Long circuits, many qubits:</strong> Error correction becomes necessary. But
+    mitigation applied on top of correction can reduce the required code distance, saving
+    physical qubits.
+  </li>
+  <li>
+    <strong>Fault-tolerant era:</strong> Full error correction with high-distance codes. Error
+    mitigation may still be useful for reducing the overhead of magic state distillation or
+    for running circuits just beyond the code's protection capability.
+  </li>
+</ul>
+
+<h3>Recent Milestones</h3>
+
+<p>
+  The practical importance of error mitigation was dramatically demonstrated in 2023, when
+  IBM used a combination of ZNE, PEC, and twirling to execute a 127-qubit circuit with up to
+  60 layers of CNOT gates on their Eagle processor - far beyond what would be meaningful
+  without mitigation. The mitigated expectation values matched exact classical simulation
+  (computed with a tensor-network simulator at enormous classical cost) to within statistical
+  error. This was a landmark result, showing that error mitigation can extend the useful reach
+  of noisy hardware by a significant margin.
+</p>
+
+<p>
+  However, it is important to note that the sampling overhead was substantial (millions of
+  circuit executions) and the classical post-processing required detailed noise
+  characterization. As circuits grow larger, this overhead grows, and at some point, error
+  correction becomes the more efficient approach. The crossover point depends on the hardware
+  error rate, the circuit structure, and the precision required.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    Error mitigation and error correction are complementary, not competing approaches. In the
+    near term, mitigation is the practical choice for NISQ devices. In the medium term, hybrid
+    strategies combining partial correction with mitigation will extend the reach of both.
+    In the long term, fault-tolerant error correction will be the primary approach, with
+    mitigation playing a supporting role for reducing overhead.
+  </p>
+</div>
+
+<h3>A Practitioner's Decision Tree</h3>
+
+<p>
+  When running a quantum algorithm on real hardware, the following decision tree provides a
+  practical guide:
+</p>
+
+<ol>
+  <li>
+    <strong>Always apply measurement error mitigation.</strong> It is cheap, effective, and
+    improves virtually every computation.
+  </li>
+  <li>
+    <strong>Use randomized compiling</strong> to convert coherent errors into stochastic Pauli
+    noise. This makes subsequent mitigation techniques more effective.
+  </li>
+  <li>
+    <strong>If the circuit has known symmetries,</strong> apply symmetry verification to
+    discard error-corrupted shots.
+  </li>
+  <li>
+    <strong>Apply ZNE</strong> as a general-purpose correction. Use exponential extrapolation
+    with 3-5 noise scale factors for best results.
+  </li>
+  <li>
+    <strong>If high accuracy is needed and noise characterization is available,</strong> use
+    PEC or CDR for the most critical parts of the circuit.
+  </li>
+  <li>
+    <strong>If the circuit exceeds the mitigation budget,</strong> consider reducing circuit
+    depth (fewer QAOA layers, shallower ansatz) or using error correction for the most
+    noise-sensitive subcircuits.
+  </li>
+</ol>
+
+<div class="callout callout-info">
+  <strong>Note.</strong>
+  <p>
+    Software frameworks for error mitigation are mature and freely available. Mitiq (from
+    Unitary Fund), Qiskit's built-in mitigation tools, and Cirq's error mitigation modules
+    all provide production-ready implementations of ZNE, PEC, CDR, and measurement error
+    mitigation. Using these tools is now standard practice for any serious quantum computation
+    on real hardware.
+  </p>
+</div>
+
+<h3>The Sandbox: ZNE in Action</h3>
+
+<p>
+  The exercise below asks you to construct a circuit and observe the effect of noise. While
+  our simulator does not model realistic noise, the exercise illustrates the principle of ZNE:
+  adding extra (identity-equivalent) gates to a circuit increases the "noise exposure" without
+  changing the ideal result. In a real experiment, you would measure the expectation value at
+  each fold level and extrapolate.
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="16">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+// Ideal circuit: create |+-> state
+h q[0];
+x q[1];
+h q[1];
+// Fold 1: U-dagger U (identity in ideal case)
+// Unfold the circuit then redo it
+inv @ h q[1];
+inv @ x q[1];
+inv @ h q[0];
+h q[0];
+x q[1];
+h q[1];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+  In the simulator (which is noiseless), the folded circuit produces the same result as the
+  unfolded circuit - confirming that unitary folding is an identity operation in the ideal case.
+  On real noisy hardware, each additional fold would degrade the result, providing the data
+  points needed for zero-noise extrapolation.
+</p>
+
+</section>
+
+<!-- ================================================================== -->
+
+<div class="flashcard-deck" data-component="flashcard-deck">
+  <div class="flashcard-deck-header">Chapter 25 Review</div>
+
+  <div class="flashcard" data-card-id="ch25-mitigation-vs-correction">
+    <div class="card-front">What is the fundamental difference between quantum error mitigation and quantum error correction?</div>
+    <div class="card-back">
+      Error mitigation corrects <em>expectation values</em> through classical post-processing,
+      requiring no extra qubits but introducing sampling overhead. Error correction protects
+      <em>quantum states</em> at the physical level by encoding logical qubits into many
+      physical qubits. Mitigation trades measurement overhead for accuracy; correction trades
+      qubit overhead for protection. Mitigation degrades with circuit size; correction scales
+      to arbitrary computations once the error threshold is met.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch25-zne-protocol">
+    <div class="card-front">Describe the two steps of Zero-Noise Extrapolation (ZNE).</div>
+    <div class="card-back">
+      Step 1: Run the circuit at several intentionally amplified noise levels (using unitary
+      folding or gate-level folding) and measure the expectation value at each level.
+      Step 2: Fit a model (linear, polynomial, or exponential) to the measured values as a
+      function of noise scale factor, and extrapolate to the zero-noise limit ($\lambda = 0$).
+      The extrapolated value estimates the noiseless expectation value.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch25-unitary-folding">
+    <div class="card-front">What is unitary folding, and why does it amplify noise without changing the ideal computation?</div>
+    <div class="card-back">
+      Unitary folding inserts pairs $U^\dagger U$ (gate and its inverse) into the circuit.
+      Since $U^\dagger U = I$, the ideal computation is unchanged, but each additional gate
+      introduces physical noise. Global folding replaces $U$ with $U(U^\dagger U)^k$, giving
+      noise scale factor $\lambda = 1 + 2k$. Gate-level folding replaces individual gates
+      $G$ with $G G^\dagger G$ for finer control.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch25-pec-quasiprobability">
+    <div class="card-front">How does Probabilistic Error Cancellation (PEC) use quasiprobability distributions to cancel noise?</div>
+    <div class="card-back">
+      PEC decomposes the inverse noise channel $\mathcal{N}^{-1}$ as a quasiprobability mixture
+      of physical operations: $\mathcal{N}^{-1} = \sum_i q_i \mathcal{B}_i$, where the
+      coefficients $q_i$ sum to 1 but can be negative. Each circuit execution randomly samples
+      an operation $\mathcal{B}_i$ with probability $|q_i|/C$ and weights the result by
+      $\text{sgn}(q_i) \cdot C$. The weighted average converges to the noiseless expectation
+      value, with sampling overhead $C^2 = (\sum_i |q_i|)^2$.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch25-pec-overhead">
+    <div class="card-front">What determines the sampling overhead of PEC, and how does it scale with circuit size?</div>
+    <div class="card-back">
+      The sampling overhead is $C_{\text{total}}^2$ where $C_{\text{total}} = \prod_{k=1}^g C_k$
+      is the product of one-norms across all $g$ noisy gates. Since each $C_k \geq 1$, the
+      total overhead grows exponentially with the number of noisy gates. For a circuit with
+      $g$ gates each having one-norm $C$, the overhead is $C^{2g}$. This exponential scaling
+      limits PEC to moderately noisy circuits with relatively few gates.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch25-cdr-method">
+    <div class="card-front">How does Clifford Data Regression (CDR) work, and why are Clifford circuits used for training?</div>
+    <div class="card-back">
+      CDR generates training circuits using mostly Clifford gates, which can be efficiently
+      simulated classically (Gottesman-Knill theorem). Each training circuit is run on both the
+      noisy hardware (giving noisy values) and a classical simulator (giving exact ideal values).
+      A regression model (typically linear) is fitted to these pairs, then applied to correct the
+      noisy output of the target (non-Clifford) circuit. Clifford circuits are used because they
+      provide cheap, exact classical reference values while experiencing similar noise to the
+      target circuit.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch25-measurement-mitigation">
+    <div class="card-front">What is measurement error mitigation, and when does the tensored approximation apply?</div>
+    <div class="card-back">
+      Measurement error mitigation characterizes the measurement confusion matrix $M$ (where
+      $M_{ij}$ = probability of measuring $i$ when the true state is $j$) and inverts it to
+      correct the measured distribution: $\mathbf{p}_{\text{ideal}} = M^{-1} \mathbf{p}_{\text{measured}}$.
+      The full $2^n \times 2^n$ matrix is impractical, but if measurement errors are
+      approximately independent across qubits, it factorizes as a tensor product of $n$
+      individual $2 \times 2$ matrices, requiring only $O(n)$ calibration circuits.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch25-combining-strategies">
+    <div class="card-front">How do error mitigation and error correction complement each other?</div>
+    <div class="card-back">
+      They are complementary, not competing. Near-term: mitigation alone for NISQ circuits.
+      Medium-term: partial correction (small codes) combined with mitigation to reduce effective
+      logical error rates without increasing code distance. Long-term: full fault-tolerant
+      correction as the primary approach, with mitigation reducing overhead (e.g., for magic
+      state distillation). The practical decision depends on circuit depth, qubit count,
+      available hardware error rates, and required precision.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+</div>

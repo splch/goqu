@@ -1,10 +1,3 @@
-<!--
-title: What Is Computation?
-part: 1
-partTitle: The World of Classical Computing
-chapter: 1
--->
-
 <p>
   Every time you send a text message, stream a song, or check tomorrow's weather, you are
   relying on computation. But what <em>is</em> computation, exactly? Strip away the glowing
@@ -15,6 +8,11 @@ chapter: 1
   textbook - are there problems so hard that no classical computer can solve them efficiently?
 </p>
 
+<p>
+  No prior knowledge is assumed. If you know what a number is, you have everything you need
+  to begin.
+</p>
+
 <!-- ================================================================== -->
 <section id="bits">
 <h2>1.1 Bits: The Atoms of Information</h2>
@@ -23,85 +21,234 @@ chapter: 1
   Imagine you are in a dark room with a single light switch. The switch can be in one of two
   positions: <strong>off</strong> or <strong>on</strong>. That single choice - off or on,
   no or yes, false or true, 0 or 1 - is the fundamental unit of information. We call it a
-  <strong>bit</strong>, short for <em>binary digit</em>.
+  <strong>bit</strong>, short for <em>binary digit</em>, a term coined by the mathematician
+  John Tukey in 1947.
 </p>
 
 <div class="callout callout-key">
-  <strong>Key Idea.</strong>
-  A <em>bit</em> is the smallest possible piece of information. It represents a single
-  choice between two alternatives, which we label 0 and 1.
+  <strong>Key Concept.</strong>
+  <p>
+    A <em>bit</em> is the smallest possible piece of information. It represents a single
+    choice between two alternatives, which we conventionally label 0 and 1.
+  </p>
 </div>
 
 <p>
   One bit is not very expressive on its own. With a single bit you can say "yes" or "no,"
   but not much else. The power of bits comes from <em>combining</em> them. With two bits you
   can represent four distinct values: 00, 01, 10, and 11. With three bits you get eight
-  values: 000, 001, 010, 011, 100, 101, 110, 111. The pattern is precise: $n$ bits can
-  represent $2^n$ different values. Eight bits make a <strong>byte</strong>, giving you
-  $2^8 = 256$ possible values - enough to encode every letter in the English alphabet
-  (uppercase and lowercase), the digits 0 through 9, punctuation marks, and still have room
-  to spare.
+  values: 000, 001, 010, 011, 100, 101, 110, 111. The pattern is precise:
+</p>
+
+$$n \text{ bits can represent } 2^n \text{ different values.}$$
+
+<p>
+  Eight bits make a <strong>byte</strong>, giving $2^8 = 256$ possible values - enough to
+  encode every letter in the English alphabet (uppercase and lowercase), the digits 0
+  through 9, punctuation marks, and still have room to spare.
 </p>
 
 <h3>Binary and Decimal</h3>
 
 <p>
-  In everyday life we use the <em>decimal</em> (base-10) number system. The number 42 means
-  $4 \times 10^1 + 2 \times 10^0$. The <em>binary</em> (base-2) system works exactly the
-  same way, but each digit position represents a power of 2 instead of a power of 10. The
-  binary number 101010 means:
+  In everyday life we use the <em>decimal</em> (base-10) number system. Each digit position
+  represents a power of 10. The number 42 means $4 \times 10^1 + 2 \times 10^0$. The
+  <em>binary</em> (base-2) system works exactly the same way, but each position represents
+  a power of 2 instead of a power of 10. The binary number 101010 means:
 </p>
 
 $$1 \times 2^5 + 0 \times 2^4 + 1 \times 2^3 + 0 \times 2^2 + 1 \times 2^1 + 0 \times 2^0 = 32 + 8 + 2 = 42$$
 
 <p>
-  So the decimal number 42 and the binary number 101010 represent the same quantity - they are
-  just written in different bases. Every number you know from daily life has a binary
-  equivalent, and converting between the two is purely mechanical.
+  So the decimal number 42 and the binary number 101010 represent the same quantity - they
+  are just written in different bases. Every non-negative integer has a binary equivalent,
+  and converting between the two is purely mechanical.
+</p>
+
+<p>
+  To convert from decimal to binary, you can repeatedly divide by 2 and collect the
+  remainders. For example, to convert 13:
+</p>
+
+<ul>
+  <li>$13 \div 2 = 6$ remainder <strong>1</strong></li>
+  <li>$6 \div 2 = 3$ remainder <strong>0</strong></li>
+  <li>$3 \div 2 = 1$ remainder <strong>1</strong></li>
+  <li>$1 \div 2 = 0$ remainder <strong>1</strong></li>
+</ul>
+
+<p>
+  Reading the remainders from bottom to top gives $1101_2 = 13_{10}$.
 </p>
 
 <h3>Encoding Everything as Bits</h3>
 
 <p>
   Numbers are an obvious fit for binary, but bits can encode <em>anything</em> once we agree
-  on a scheme. Text? Assign each character a number (the letter "A" is 65, "B" is 66, and so
-  on in the ASCII standard). Colors? Store how much red, green, and blue light to mix -
-  each as a number between 0 and 255. Sound? Sample the air pressure thousands of times per
-  second and record each sample as a number. Images, video, your location on a map - all of
-  it reduces to long sequences of zeros and ones.
+  on a scheme:
+</p>
+
+<ul>
+  <li>
+    <strong>Text.</strong> Assign each character a number. In the ASCII standard, the letter
+    "A" is 65 (which is $1000001_2$), "B" is 66, and so on. The modern Unicode standard
+    extends this idea to cover over 150,000 characters from virtually every writing system
+    on Earth.
+  </li>
+  <li>
+    <strong>Images.</strong> Divide the image into tiny dots called <em>pixels</em>. Store
+    each pixel as three numbers representing how much red, green, and blue light to mix -
+    each between 0 and 255 (one byte per color channel). A 12-megapixel photo thus requires
+    about 36 million bytes (36 MB) before compression.
+  </li>
+  <li>
+    <strong>Sound.</strong> Sample the air pressure thousands of times per second (CD audio
+    uses 44,100 samples per second) and record each sample as a number. The rapid sequence
+    of numbers faithfully reconstructs the sound wave when played back.
+  </li>
+</ul>
+
+<p>
+  Images, video, your location on a map, the state of a chess game - all of it reduces to
+  long sequences of zeros and ones.
 </p>
 
 <div class="callout callout-info">
   <strong>Note.</strong>
-  The idea that any information can be represented as bits is not just an engineering
-  convenience - it is a deep insight that traces back to Claude Shannon's 1948 paper
-  <em>A Mathematical Theory of Communication</em>, which founded the field of information
-  theory. We will return to Shannon's ideas in Chapter 2.
+  <p>
+    The idea that any information can be represented as bits is not just an engineering
+    convenience - it is a deep insight that traces back to Claude Shannon's 1948 paper
+    <em>A Mathematical Theory of Communication</em>, which founded the field of information
+    theory. We will return to Shannon's ideas in Chapter 2.
+  </p>
 </div>
 
 <p>
   Try the converter below to build intuition for how decimal and binary relate to each other.
   Type a decimal number and see its binary form, or type a binary string and see the decimal
-  value.
+  value. The colored boxes show each bit's place value.
 </p>
 
-<div class="widget" data-component="binary-converter" id="binary-converter-widget">
+<div class="widget" id="binary-converter-widget">
   <div class="widget-header">Binary-Decimal Converter</div>
   <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-start;">
     <div>
-      <label for="decimal-input" style="display: block; font-size: 0.85rem; margin-bottom: 0.25rem; font-weight: 500;">Decimal</label>
-      <input type="text" id="decimal-input" placeholder="e.g. 42" maxlength="10" style="width: 10rem;" aria-label="Decimal number">
+      <label for="bc-decimal-input" style="display: block; font-size: 0.85rem; margin-bottom: 0.25rem; font-weight: 500;">Decimal</label>
+      <input type="text" id="bc-decimal-input" placeholder="e.g. 42" maxlength="10"
+             style="width: 10rem; font-family: var(--font-mono); font-size: 0.95rem; padding: 0.35rem 0.5rem; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-code-bg); color: var(--color-text);"
+             aria-label="Decimal number">
     </div>
     <div style="display: flex; align-items: flex-end; padding-bottom: 0.3rem; font-size: 1.2rem; color: var(--color-text-muted);">
       <span aria-hidden="true">&harr;</span>
     </div>
     <div>
-      <label for="binary-input" style="display: block; font-size: 0.85rem; margin-bottom: 0.25rem; font-weight: 500;">Binary</label>
-      <input type="text" id="binary-input" placeholder="e.g. 101010" maxlength="32" style="width: 14rem;" aria-label="Binary number">
+      <label for="bc-binary-input" style="display: block; font-size: 0.85rem; margin-bottom: 0.25rem; font-weight: 500;">Binary</label>
+      <input type="text" id="bc-binary-input" placeholder="e.g. 101010" maxlength="32"
+             style="width: 14rem; font-family: var(--font-mono); font-size: 0.95rem; padding: 0.35rem 0.5rem; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-code-bg); color: var(--color-text);"
+             aria-label="Binary number">
     </div>
   </div>
-  <div class="widget-output" id="converter-output" aria-live="polite" style="min-height: 1.5rem;"></div>
-  <div id="bit-visualization" style="display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.75rem;"></div>
+  <div id="bc-output" aria-live="polite" style="min-height: 1.5rem; margin-top: 0.5rem; font-size: 0.9rem; color: var(--color-text-muted);"></div>
+  <div id="bc-bit-viz" style="display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.75rem;"></div>
+</div>
+<script>
+(function() {
+  "use strict";
+  var decInput = document.getElementById("bc-decimal-input");
+  var binInput = document.getElementById("bc-binary-input");
+  var output   = document.getElementById("bc-output");
+  var bitViz   = document.getElementById("bc-bit-viz");
+
+  function renderBitBoxes(binary) {
+    bitViz.innerHTML = "";
+    if (!binary) return;
+    // Pad to at least 8 bits for visual clarity
+    while (binary.length < 8) binary = "0" + binary;
+    for (var i = 0; i < binary.length; i++) {
+      var placeVal = Math.pow(2, binary.length - 1 - i);
+      var isOne = binary[i] === "1";
+      var wrapper = document.createElement("span");
+      wrapper.style.cssText = "display:inline-flex;flex-direction:column;align-items:center;";
+      var box = document.createElement("span");
+      box.textContent = binary[i];
+      box.style.cssText = "display:inline-flex;align-items:center;justify-content:center;" +
+        "width:2.2rem;height:2.2rem;border-radius:var(--radius);font-family:var(--font-mono);" +
+        "font-size:1rem;font-weight:700;border:2px solid " +
+        (isOne ? "var(--color-accent)" : "var(--color-border)") + ";" +
+        (isOne
+          ? "background:var(--color-accent);color:#fff;"
+          : "background:var(--color-code-bg);color:var(--color-text-muted);");
+      var label = document.createElement("span");
+      label.textContent = placeVal;
+      label.style.cssText = "display:block;font-size:0.6rem;color:var(--color-text-muted);text-align:center;margin-top:0.15rem;font-family:var(--font-mono);";
+      wrapper.appendChild(box);
+      wrapper.appendChild(label);
+      bitViz.appendChild(wrapper);
+    }
+  }
+
+  if (!decInput || !binInput) return;
+
+  decInput.addEventListener("input", function() {
+    var val = decInput.value.replace(/[^0-9]/g, "");
+    decInput.value = val;
+    if (val === "") {
+      binInput.value = "";
+      output.textContent = "";
+      renderBitBoxes("");
+      return;
+    }
+    var num = parseInt(val, 10);
+    if (isNaN(num) || num < 0) {
+      output.textContent = "Enter a non-negative integer.";
+      binInput.value = "";
+      renderBitBoxes("");
+      return;
+    }
+    if (num > 4294967295) {
+      output.textContent = "Maximum value is 4,294,967,295 (32 bits).";
+      binInput.value = "";
+      renderBitBoxes("");
+      return;
+    }
+    var bin = num.toString(2);
+    binInput.value = bin;
+    output.textContent = val + " in decimal = " + bin + " in binary (" + bin.length + " bits)";
+    renderBitBoxes(bin);
+  });
+
+  binInput.addEventListener("input", function() {
+    var val = binInput.value.replace(/[^01]/g, "");
+    binInput.value = val;
+    if (val === "") {
+      decInput.value = "";
+      output.textContent = "";
+      renderBitBoxes("");
+      return;
+    }
+    if (val.length > 32) {
+      output.textContent = "Maximum 32 bits.";
+      decInput.value = "";
+      renderBitBoxes("");
+      return;
+    }
+    var num = parseInt(val, 2);
+    decInput.value = num;
+    output.textContent = val + " in binary = " + num + " in decimal (" + val.length + " bits)";
+    renderBitBoxes(val);
+  });
+})();
+</script>
+
+<div class="callout callout-warning">
+  <strong>Common Misconception.</strong>
+  <p>
+    People sometimes think that because computers use binary internally, binary is somehow
+    more "fundamental" than decimal. It is not - both are notational choices. Binary is
+    convenient for hardware (it maps naturally to on/off switches), but the underlying
+    mathematics does not depend on the base. What <em>is</em> fundamental is the concept
+    of a bit as a unit of information.
+  </p>
 </div>
 
 </section>
@@ -141,7 +288,7 @@ $$1 \times 2^5 + 0 \times 2^4 + 1 \times 2^3 + 0 \times 2^2 + 1 \times 2^1 + 0 \
 <p>
   The <strong>AND</strong> gate takes two input bits and outputs 1 only when
   <em>both</em> inputs are 1. If either input is 0, the output is 0. In everyday language,
-  "I will go to the park if it is sunny AND I have free time" - both conditions must be true.
+  "I will go to the park if it is sunny AND I have free time" - both conditions must hold.
   We write $A \land B$.
 </p>
 
@@ -198,43 +345,54 @@ $$1 \times 2^5 + 0 \times 2^4 + 1 \times 2^3 + 0 \times 2^2 + 1 \times 2^1 + 0 \
 </table>
 
 <div class="callout callout-key">
-  <strong>Key Idea.</strong>
-  AND, OR, NOT, and XOR are the fundamental logic gates. Any computation - from adding
-  two numbers to rendering a video game - can be expressed as a combination of these gates.
+  <strong>Key Concept.</strong>
+  <p>
+    AND, OR, NOT, and XOR are the fundamental logic gates. Any computation - from adding
+    two numbers to rendering a video game - can be expressed as a combination of these gates.
+  </p>
 </div>
 
 <h3>Boolean Algebra</h3>
 
 <p>
   Just as ordinary algebra lets you manipulate equations with $+$ and $\times$, Boolean
-  algebra lets you manipulate logical expressions with AND, OR, and NOT. A few useful
-  identities:
+  algebra lets you manipulate logical expressions with AND, OR, and NOT. The field was
+  invented by George Boole in his 1854 work <em>The Laws of Thought</em>, nearly a century
+  before electronic computers existed. Here are a few of the most useful identities:
 </p>
 
 <ul>
   <li><strong>Identity:</strong> $A \land 1 = A$ and $A \lor 0 = A$</li>
   <li><strong>Null:</strong> $A \land 0 = 0$ and $A \lor 1 = 1$</li>
   <li><strong>Complement:</strong> $A \land \overline{A} = 0$ and $A \lor \overline{A} = 1$</li>
+  <li><strong>Idempotence:</strong> $A \land A = A$ and $A \lor A = A$</li>
+  <li><strong>Commutativity:</strong> $A \land B = B \land A$ and $A \lor B = B \lor A$</li>
+  <li><strong>Associativity:</strong> $(A \land B) \land C = A \land (B \land C)$</li>
+  <li><strong>Distributivity:</strong> $A \land (B \lor C) = (A \land B) \lor (A \land C)$</li>
   <li><strong>De Morgan's laws:</strong> $\overline{A \land B} = \overline{A} \lor \overline{B}$ and $\overline{A \lor B} = \overline{A} \land \overline{B}$</li>
 </ul>
 
 <p>
-  De Morgan's laws are especially important. They tell us we can always swap ANDs for ORs
-  (and vice versa) as long as we also flip the inputs and the output. This flexibility means
-  we can build any logical function from just NAND gates (NOT-AND) or just NOR gates
-  (NOT-OR) - a fact that greatly simplifies hardware manufacturing.
+  De Morgan's laws deserve special attention. They tell us we can always swap ANDs for ORs
+  (and vice versa) as long as we also negate the inputs and the output. This flexibility has
+  a remarkable consequence: we can build <em>any</em> logical function from just NAND gates
+  (NOT-AND) or just NOR gates (NOT-OR). A NAND gate outputs 0 only when both inputs are 1;
+  its truth table is the exact complement of AND. The fact that NAND alone is
+  <em>functionally complete</em> - capable of expressing any Boolean function - greatly
+  simplifies chip manufacturing, since factories only need to mass-produce one type of gate.
 </p>
 
 <p>
   Use the interactive truth table below to explore how different gate types behave. Select
-  a gate and watch how the output column changes for every combination of inputs.
+  a gate from the dropdown and watch how the output column changes for every combination of
+  inputs.
 </p>
 
-<div class="widget" data-component="truth-table-builder" id="truth-table-widget">
+<div class="widget" id="truth-table-widget">
   <div class="widget-header">Interactive Truth Table Explorer</div>
   <div style="margin-bottom: 0.75rem;">
-    <label for="gate-select" style="font-size: 0.85rem; font-weight: 500; margin-right: 0.5rem;">Gate:</label>
-    <select id="gate-select" style="font-family: var(--font-mono); font-size: 0.85rem; padding: 0.3rem 0.5rem; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-code-bg); color: var(--color-text);">
+    <label for="tt-gate-select" style="font-size: 0.85rem; font-weight: 500; margin-right: 0.5rem;">Gate:</label>
+    <select id="tt-gate-select" style="font-family: var(--font-mono); font-size: 0.85rem; padding: 0.3rem 0.5rem; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-code-bg); color: var(--color-text);">
       <option value="AND">AND</option>
       <option value="OR">OR</option>
       <option value="XOR">XOR</option>
@@ -243,15 +401,87 @@ $$1 \times 2^5 + 0 \times 2^4 + 1 \times 2^3 + 0 \times 2^2 + 1 \times 2^1 + 0 \
       <option value="XNOR">XNOR</option>
     </select>
   </div>
-  <table id="truth-table-output" style="width: auto; min-width: 16rem;">
+  <table id="tt-table" style="width: auto; min-width: 16rem;">
     <thead>
-      <tr><th>$A$</th><th>$B$</th><th id="gate-output-header">$A \text{ AND } B$</th></tr>
+      <tr><th>$A$</th><th>$B$</th><th id="tt-header">$A \text{ AND } B$</th></tr>
     </thead>
-    <tbody id="truth-table-body">
+    <tbody id="tt-body">
     </tbody>
   </table>
-  <div class="widget-output" id="gate-expression" aria-live="polite" style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--color-text-muted);"></div>
+  <div id="tt-formula" style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--color-text-muted);" aria-live="polite"></div>
+  <div id="tt-description" style="margin-top: 0.25rem; font-size: 0.85rem; color: var(--color-text-muted);" aria-live="polite"></div>
 </div>
+<script>
+(function() {
+  "use strict";
+  var select  = document.getElementById("tt-gate-select");
+  var header  = document.getElementById("tt-header");
+  var body    = document.getElementById("tt-body");
+  var formula = document.getElementById("tt-formula");
+  var desc    = document.getElementById("tt-description");
+
+  if (!select || !body) return;
+
+  var gates = {
+    AND:  { fn: function(a,b){return a&b;},     tex: "A \\land B",      label: "AND",  desc: "Output is 1 only when both inputs are 1." },
+    OR:   { fn: function(a,b){return a|b;},      tex: "A \\lor B",       label: "OR",   desc: "Output is 1 when at least one input is 1." },
+    XOR:  { fn: function(a,b){return a^b;},      tex: "A \\oplus B",     label: "XOR",  desc: "Output is 1 when inputs differ." },
+    NAND: { fn: function(a,b){return (a&b)^1;},  tex: "\\overline{A \\land B}", label: "NAND", desc: "Output is 0 only when both inputs are 1. (NOT of AND)" },
+    NOR:  { fn: function(a,b){return (a|b)^1;},  tex: "\\overline{A \\lor B}",  label: "NOR",  desc: "Output is 1 only when both inputs are 0. (NOT of OR)" },
+    XNOR: { fn: function(a,b){return (a^b)^1;},  tex: "\\overline{A \\oplus B}", label: "XNOR", desc: "Output is 1 when inputs are the same. (NOT of XOR)" }
+  };
+
+  var rows = [[0,0],[0,1],[1,0],[1,1]];
+
+  function render() {
+    var g = gates[select.value];
+    if (!g) return;
+
+    header.textContent = "$A \\text{ " + g.label + " } B$";
+    body.innerHTML = "";
+
+    for (var i = 0; i < rows.length; i++) {
+      var a = rows[i][0], b = rows[i][1];
+      var r = g.fn(a, b);
+      var tr = document.createElement("tr");
+      var tdA = document.createElement("td"); tdA.textContent = a;
+      var tdB = document.createElement("td"); tdB.textContent = b;
+      var tdR = document.createElement("td");
+      tdR.textContent = r;
+      tdR.style.fontWeight = "700";
+      tdR.style.color = r ? "var(--color-success)" : "var(--color-text-muted)";
+      tr.appendChild(tdA);
+      tr.appendChild(tdB);
+      tr.appendChild(tdR);
+      body.appendChild(tr);
+    }
+
+    formula.textContent = "Boolean expression: $" + g.tex + "$";
+    desc.textContent = g.desc;
+
+    // Re-render KaTeX in the widget
+    if (typeof renderMathInElement === "function") {
+      var widget = document.getElementById("truth-table-widget");
+      renderMathInElement(widget, {
+        delimiters: [
+          {left: "$$", right: "$$", display: true},
+          {left: "$", right: "$", display: false}
+        ],
+        throwOnError: false
+      });
+    }
+  }
+
+  select.addEventListener("change", render);
+
+  // Initial render after KaTeX loads
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", function() { setTimeout(render, 100); });
+  } else {
+    setTimeout(render, 100);
+  }
+})();
+</script>
 
 </section>
 
@@ -262,8 +492,9 @@ $$1 \times 2^5 + 0 \times 2^4 + 1 \times 2^3 + 0 \times 2^2 + 1 \times 2^1 + 0 \
 <p>
   A single logic gate is like a single word - useful, but limited. The real expressive power
   comes from <em>combining</em> gates into <strong>circuits</strong>, just as words combine
-  into sentences and paragraphs. Let us build up from the simplest useful circuit to
-  something that can genuinely add numbers.
+  into sentences and paragraphs. In this section we will build up from the simplest useful
+  circuit to something that can genuinely add numbers, illustrating the powerful principle of
+  <em>composition</em>.
 </p>
 
 <h3>The Half Adder</h3>
@@ -286,103 +517,117 @@ $$1 \times 2^5 + 0 \times 2^4 + 1 \times 2^3 + 0 \times 2^2 + 1 \times 2^1 + 0 \
 </table>
 
 <p>
-  Notice two things. First, the sum bit $S$ follows the XOR pattern: it is 1 when the
-  inputs differ. Second, the carry bit $C$ follows the AND pattern: it is 1 only when both
-  inputs are 1. So:
+  Look at the pattern carefully. The sum bit $S$ is 1 precisely when the inputs differ -
+  that is the XOR pattern. The carry bit $C$ is 1 only when both inputs are 1 - that is the
+  AND pattern. So:
 </p>
 
-$$S = A \oplus B \qquad C = A \land B$$
+$$S = A \oplus B \qquad\qquad C = A \land B$$
 
 <p>
-  This tiny two-gate circuit is called a <strong>half adder</strong>. It adds two bits and
-  tells you the single-digit result (the sum) and whether there is a carry.
+  This tiny two-gate circuit is called a <strong>half adder</strong>. With nothing more than
+  an XOR gate and an AND gate, we have a device that adds two bits and tells us the sum and
+  carry. It is called "half" because it handles only two inputs; it cannot accommodate a
+  carry coming in from a previous column.
 </p>
 
 <div style="background: var(--color-code-bg); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 1rem; margin: 1rem 0; font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.8; overflow-x: auto;">
-<pre style="margin: 0; background: none; border: none; padding: 0;">
-  A ----+--[ XOR ]---- S  (sum)
-        |
-  B --+-+--[ AND ]---- C  (carry)
-      | |
-      +-+
-</pre>
+<pre style="margin: 0; background: none; border: none; padding: 0;">  A -----+---[ XOR ]---- S  (sum)
+         |
+  B ---+-+---[ AND ]---- C  (carry)
+       | |
+       +-+</pre>
 </div>
-
-<p>
-  But a half adder has a limitation: it only handles two inputs. When adding multi-digit
-  binary numbers column by column (just like you do in long addition), each column after the
-  first might also receive a carry from the previous column. We need a circuit that can add
-  <em>three</em> bits.
-</p>
 
 <h3>The Full Adder</h3>
 
 <p>
-  A <strong>full adder</strong> takes three inputs - $A$, $B$, and $C_{in}$ (the carry
-  from the previous column) - and produces a sum bit $S$ and a carry-out bit $C_{out}$. You
-  can build it from two half adders and an OR gate:
+  When adding multi-digit binary numbers column by column (just as you do in long addition),
+  each column after the first might also receive a carry from the previous column. We need
+  a circuit that adds <em>three</em> bits: $A$, $B$, and a carry-in $C_{in}$.
+</p>
+
+<p>
+  A <strong>full adder</strong> accomplishes this using two half adders and an OR gate:
 </p>
 
 <ol>
   <li>First half adder: compute $A \oplus B$ (partial sum) and $A \land B$ (first carry candidate).</li>
-  <li>Second half adder: add $C_{in}$ to the partial sum from step 1, producing the final sum $S$ and a second carry candidate.</li>
-  <li>OR gate: the carry-out is 1 if <em>either</em> carry candidate is 1.</li>
+  <li>Second half adder: add $C_{in}$ to the partial sum, producing the final $S$ and a second carry candidate.</li>
+  <li>OR gate: the carry-out $C_{out}$ is 1 if <em>either</em> carry candidate is 1.</li>
 </ol>
 
 $$S = A \oplus B \oplus C_{in}$$
-$$C_{out} = (A \land B) \lor ((A \oplus B) \land C_{in})$$
+$$C_{out} = (A \land B) \lor \bigl((A \oplus B) \land C_{in}\bigr)$$
 
 <div style="background: var(--color-code-bg); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 1rem; margin: 1rem 0; font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.8; overflow-x: auto;">
-<pre style="margin: 0; background: none; border: none; padding: 0;">
-          +-------+
-  A ------| Half  |--- partial sum --+-------+
-  B ------| Adder |--- carry1       -+       |
-          +-------+                  |       |
-                                     |  +-------+
-  C_in ------------------------------|--| Half  |--- S
-                                     |  | Adder |--- carry2
-                                     |  +-------+
-                                     |       |
-                              carry1-+--[ OR ]---- C_out
-                                        carry2
-</pre>
+<pre style="margin: 0; background: none; border: none; padding: 0;">           +--------+
+  A -------| Half   |--- partial sum --+--------+
+  B -------| Adder  |--- carry1        |        |
+           +--------+                  | +--------+
+                                       +-| Half   |--- S
+  C_in ---------------------------------| Adder  |--- carry2
+                                        +--------+
+                                  carry1 --[ OR ]---- C_out
+                                  carry2 --+</pre>
 </div>
 
-<h3>Ripple-Carry Adder</h3>
+<h3>Scaling Up: The Ripple-Carry Adder</h3>
 
 <p>
-  Now chain several full adders together, with each carry-out feeding into the next column's
+  Chain several full adders together, with each carry-out feeding into the next column's
   carry-in, and you have a <strong>ripple-carry adder</strong> - a circuit that adds
-  multi-bit binary numbers. An 8-bit adder uses 8 full adders in a chain. A 64-bit adder
-  (the kind inside your laptop's processor) uses 64. The principle is identical to how you
-  learned to add multi-digit numbers in school, carrying from one column to the next.
+  multi-bit binary numbers. An 8-bit adder uses 8 full adders in a row. A 64-bit adder
+  (the kind inside your laptop's processor) uses 64. The carry signal "ripples" through
+  the chain from the least significant bit to the most significant, exactly like carrying
+  digits in pencil-and-paper addition.
 </p>
 
 <div class="callout callout-key">
-  <strong>Key Idea.</strong>
-  Complex operations like addition are built by connecting simple logic gates in
-  well-defined patterns. This principle of <em>composition</em> - building complex behavior
-  from simple parts - is one of the most powerful ideas in all of computing.
+  <strong>Key Concept.</strong>
+  <p>
+    Complex operations are built by connecting simple logic gates in well-defined patterns.
+    This principle of <em>composition</em> - building complex behavior from simple,
+    well-understood parts - is one of the most powerful ideas in all of computing.
+  </p>
 </div>
 
 <h3>Beyond Adders</h3>
 
 <p>
-  The same approach scales to every arithmetic and logical operation a computer needs.
-  Subtraction can be performed with adders (using a trick called <em>two's complement</em>).
-  Multiplication is repeated addition. Comparison of two numbers is done by subtracting them
-  and checking whether the result is zero. Circuits called <strong>multiplexers</strong>
-  select between different data paths, acting like railroad switches for information. A
-  <strong>decoder</strong> takes a binary number and activates exactly one of many output
-  lines - perfect for addressing memory locations.
+  The same compositional approach applies to every arithmetic and logical operation a
+  computer needs. Subtraction uses adders with a trick called <em>two's complement</em>.
+  Multiplication is implemented through combinations of shifts and additions.
+  <strong>Multiplexers</strong> select between different data paths, acting like railroad
+  switches for information. <strong>Decoders</strong> take a binary address and activate
+  exactly one of many output lines - perfect for selecting a memory location.
 </p>
 
 <p>
   Every one of these circuits is, at bottom, just a carefully arranged collection of AND,
   OR, NOT, and XOR gates. There is nothing magical happening inside a computer chip - only
-  billions of these simple gates working in concert, flipping bits according to their fixed
-  rules.
+  billions of these simple gates working in concert, flipping bits according to their
+  fixed rules.
 </p>
+
+<h3>The Fan-Out Principle</h3>
+
+<p>
+  One property of classical bits that is easy to take for granted: <em>they can be copied
+  freely</em>. If you need the value of bit $A$ in two different parts of a circuit, you
+  simply split the wire - a technique called <strong>fan-out</strong>. This seems so obvious
+  that it barely deserves mention.
+</p>
+
+<div class="callout callout-info">
+  <strong>Note.</strong>
+  <p>
+    We mention fan-out now because in the quantum world, this innocent ability disappears
+    entirely. The <em>no-cloning theorem</em> of quantum mechanics says that an unknown
+    quantum state cannot be copied. This fundamental constraint will shape everything about
+    quantum circuit design when we reach Part II of this textbook.
+  </p>
+</div>
 
 </section>
 
@@ -401,27 +646,30 @@ $$C_{out} = (A \land B) \lor ((A \oplus B) \land C_{in})$$
 
 <p>
   Between the raw logic gates and the apps on your phone lies a tower of
-  <strong>abstraction layers</strong>:
+  <strong>abstraction layers</strong>, each hiding the complexity of the layers beneath:
 </p>
 
 <ol>
   <li>
-    <strong>Transistors.</strong> Microscopic electronic switches - the physical
-    implementation of our abstract 0s and 1s. Modern chips contain billions of them, each
-    smaller than a virus.
+    <strong>Transistors.</strong> Microscopic electronic switches that physically implement
+    our abstract 0s and 1s. A transistor is either conducting (on, representing 1) or not
+    (off, representing 0). The Intel 4004, the first commercial microprocessor released in
+    1971, contained about 2,300 transistors. Modern processors contain tens of billions -
+    Apple's M2 chip, for instance, has roughly 20 billion transistors, each just a few
+    nanometers across.
   </li>
   <li>
-    <strong>Logic gates.</strong> Transistors wired together to perform AND, OR, NOT, and so
-    on.
+    <strong>Logic gates.</strong> Transistors wired together to perform AND, OR, NOT, and
+    other operations, as we discussed in the previous section.
   </li>
   <li>
-    <strong>Functional units.</strong> Gates assembled into adders, multipliers, comparators,
-    and memory cells.
+    <strong>Functional units.</strong> Gates assembled into adders, multipliers,
+    comparators, and memory cells - the building blocks of a processor.
   </li>
   <li>
-    <strong>Processor (CPU).</strong> Functional units organized around a central loop:
-    <em>fetch</em> an instruction from memory, <em>decode</em> what it means,
-    <em>execute</em> it, and repeat.
+    <strong>Processor (CPU).</strong> Functional units organized around a central control
+    loop that executes instructions one after another (or, in modern designs, many at once
+    through pipelining and parallelism).
   </li>
   <li>
     <strong>Operating system.</strong> Software that manages hardware resources and provides
@@ -429,16 +677,16 @@ $$C_{out} = (A \land B) \lor ((A \oplus B) \land C_{in})$$
   </li>
   <li>
     <strong>Applications.</strong> The programs you actually interact with - web browsers,
-    games, messaging apps.
+    games, messaging apps, scientific simulations.
   </li>
 </ol>
 
 <p>
-  Each layer hides the complexity of the layers beneath it. When you write a text message,
-  you do not think about transistors. When an operating system schedules tasks, it does not
-  think about individual logic gates. This principle of <em>abstraction</em> is what makes
-  it possible for humans to build systems of staggering complexity without drowning in
-  details.
+  Each layer provides a clean interface to the layer above while hiding enormous internal
+  complexity. When you write a text message, you do not think about transistors. When an
+  operating system schedules tasks, it does not think about individual logic gates. This
+  principle of <em>abstraction</em> is what makes it possible for humans to build systems
+  of staggering complexity without drowning in details.
 </p>
 
 <h3>The Stored-Program Concept</h3>
@@ -447,54 +695,99 @@ $$C_{out} = (A \land B) \lor ((A \oplus B) \land C_{in})$$
   The great intellectual leap that created modern computing was the realization that
   <em>instructions</em> and <em>data</em> are both just sequences of bits and can be stored
   in the same memory. This is the <strong>stored-program concept</strong>, articulated by
-  John von Neumann in his famous 1945 draft report on the EDVAC computer (though the idea
-  had many contributors, including Alan Turing and the builders of the earlier ENIAC).
+  John von Neumann in his 1945 draft report on the EDVAC computer (though the idea had
+  many contributors, including Alan Turing, J. Presper Eckert, and John Mauchly).
+</p>
+
+<p>
+  Before this insight, "programming" a machine like the ENIAC meant physically rearranging
+  cables and switches - a process that could take days. With the stored-program concept,
+  changing what the computer does is as simple as loading different bits into memory.
 </p>
 
 <div class="callout callout-key">
-  <strong>Key Idea.</strong>
-  In a stored-program computer, both the instructions (the program) and the data live in
-  the same memory. This means a computer can modify its own program, load new programs
-  without rewiring, and treat programs as data to be analyzed and transformed.
+  <strong>Key Concept.</strong>
+  <p>
+    In a stored-program computer, both the instructions (the program) and the data live in
+    the same memory. This means a computer can load new programs without rewiring, modify
+    its own program at runtime, and even treat programs as data to be analyzed and
+    transformed.
+  </p>
 </div>
 
+<h3>The Fetch-Decode-Execute Cycle</h3>
+
 <p>
-  The processor runs a deceptively simple loop, over and over, billions of times per second:
+  At its heart, a processor runs a deceptively simple loop, over and over, billions of times
+  per second:
 </p>
 
 <ol>
-  <li><strong>Fetch</strong> the next instruction from memory (the address is tracked by a special register called the <em>program counter</em>).</li>
-  <li><strong>Decode</strong> the instruction to figure out what operation to perform and which data to use.</li>
-  <li><strong>Execute</strong> the operation - perhaps adding two numbers, comparing values, or jumping to a different instruction.</li>
-  <li><strong>Store</strong> the result back into a register or memory, and advance the program counter.</li>
+  <li><strong>Fetch:</strong> read the next instruction from memory. A special register called the <em>program counter</em> tracks which instruction comes next.</li>
+  <li><strong>Decode:</strong> interpret the instruction to determine what operation to perform and which data to use.</li>
+  <li><strong>Execute:</strong> carry out the operation - perhaps adding two numbers, comparing values, or jumping to a different instruction address.</li>
+  <li><strong>Store:</strong> write the result back to a register or memory, and advance the program counter.</li>
 </ol>
 
 <p>
   That is it. Every computation your computer has ever performed - every web page rendered,
-  every email sent, every video decoded - is the result of this fetch-decode-execute cycle
-  running at extraordinary speed.
+  every email sent, every video decoded - is the result of this cycle running at
+  extraordinary speed. A modern processor can complete billions of these cycles per second,
+  with a clock speed typically measured in gigahertz (GHz), where 1 GHz means one billion
+  cycles per second.
 </p>
 
-<h3>Memory and the Speed Hierarchy</h3>
+<h3>Moore's Law and Physical Limits</h3>
 
 <p>
-  A processor is only as fast as its ability to feed data to its circuits. Modern computers
-  use a <em>memory hierarchy</em> to balance speed and cost:
+  In 1965, Gordon Moore observed that the number of transistors on a chip roughly doubled
+  every two years - a trend that became known as <strong>Moore's Law</strong>. For decades,
+  this exponential growth delivered ever-faster, ever-cheaper computers. From the Intel
+  4004's 2,300 transistors in 1971 to modern chips with tens of billions, the trajectory
+  was breathtaking.
+</p>
+
+<p>
+  But Moore's Law describes an economic and engineering trend, not a law of physics, and it
+  is running into fundamental physical barriers. As transistors shrink to just a few
+  nanometers - approaching the scale of individual atoms - several problems arise:
 </p>
 
 <ul>
-  <li><strong>Registers</strong> - a tiny number of storage slots right inside the processor, blindingly fast but very few (typically 16 to 32 in a modern CPU).</li>
-  <li><strong>Cache</strong> - a small, fast memory sitting close to the processor, acting as a staging area for frequently used data.</li>
-  <li><strong>Main memory (RAM)</strong> - gigabytes of storage, fast enough for most tasks but slower than cache.</li>
-  <li><strong>Storage (SSD/HDD)</strong> - terabytes of persistent storage, thousands of times slower than RAM but retaining data when the power is off.</li>
+  <li>
+    <strong>Heat.</strong> Every time a gate switches, it dissipates a small amount of
+    energy. Billions of switches per second on a tiny chip generate significant heat.
+    Landauer's principle, from the thermodynamics of computation, establishes a theoretical
+    minimum energy of $k_B T \ln 2$ (about $2.85 \times 10^{-21}$ joules at room
+    temperature) for each irreversible bit operation - and real gates dissipate far more
+    than this minimum.
+  </li>
+  <li>
+    <strong>Quantum effects.</strong> At the nanometer scale, electrons can
+    <em>tunnel</em> through barriers that should be impenetrable according to classical
+    physics, causing bits to flip unpredictably.
+  </li>
+  <li>
+    <strong>Manufacturing precision.</strong> Etching features just a few atoms wide
+    requires extraordinary precision and increasingly expensive fabrication facilities.
+  </li>
 </ul>
 
+<div class="callout callout-info">
+  <strong>Note.</strong>
+  <p>
+    The heat problem and Landauer's principle will be explored thoroughly in Chapter 3, on
+    reversible computing. There we will see that the energy cost of computation is
+    intimately connected to whether information is destroyed during the process - a
+    connection that leads directly to the quantum computing paradigm.
+  </p>
+</div>
+
 <p>
-  The processor tries to keep the data it needs most in the fastest layers. When it must
-  reach down to a slower layer, the resulting delay is called a <em>cache miss</em>.
-  Understanding this hierarchy is important for writing efficient programs, but for our
-  purposes the key takeaway is that all of these layers ultimately store bits - and those
-  bits are all manipulated by the same kinds of logic gates we discussed earlier.
+  These physical limits suggest that simply making classical computers faster will
+  eventually reach a ceiling. If we want to keep solving harder problems, we may need
+  a fundamentally different approach to computation itself. That is precisely the
+  motivation for quantum computing.
 </p>
 
 </section>
@@ -505,152 +798,249 @@ $$C_{out} = (A \land B) \lor ((A \oplus B) \land C_{in})$$
 
 <p>
   We now know that a computer is, at its core, a machine that flips bits according to rules
-  at tremendous speed. Modern processors perform billions of operations per second. With that
-  kind of raw power, is there any problem a computer cannot solve? The perhaps surprising
-  answer is: <em>yes, many</em>. And understanding <em>why</em> is the thread that will
-  eventually lead us to quantum computing.
+  at tremendous speed. Modern processors perform billions of operations per second. With
+  that kind of raw power, is there any problem a computer cannot handle? The perhaps
+  surprising answer is: <em>yes, many</em>. And understanding <em>why</em> is the thread
+  that will eventually lead us to quantum computing.
 </p>
 
-<h3>Measuring Difficulty: Time Complexity</h3>
+<h3>Algorithms and Running Time</h3>
 
 <p>
-  Computer scientists measure the difficulty of a problem not by how long a specific program
-  takes on a specific machine, but by how the required time <em>grows</em> as the input gets
-  larger. This is called <strong>time complexity</strong>, and we express it using
-  <em>big-O notation</em>.
-</p>
-
-<p>
-  Suppose you have a list of $n$ names and need to find a particular one. If the list is
-  unsorted, you might have to check every name, one by one - the time grows in proportion to
-  $n$. We say this has $O(n)$ time complexity (read as "order n" or "linear time"). If you
-  double the list size, the work roughly doubles - not ideal, but manageable.
+  An <strong>algorithm</strong> is a precise, step-by-step procedure for solving a problem.
+  A recipe is an algorithm for cooking; long division is an algorithm for dividing numbers.
+  Computer scientists care not just about <em>whether</em> an algorithm works, but about
+  <em>how long</em> it takes as the input grows larger. We express this growth rate using
+  <strong>big-O notation</strong>.
 </p>
 
 <p>
-  Now suppose the list is sorted alphabetically. You can use <em>binary search</em>: open
-  the list to the middle, check whether your target comes before or after, and eliminate half
-  the list in one step. Repeat, and you find the name in about $\log_2 n$ steps. That is
-  $O(\log n)$ time - astonishingly efficient. A sorted phone book with a million names
-  requires only about 20 comparisons.
+  Suppose you have a list of $n$ names and need to find a particular one:
+</p>
+
+<ul>
+  <li>
+    <strong>Unsorted list:</strong> You might have to check every name one by one. In the
+    worst case, the target is at the very end (or not there at all), requiring $n$
+    comparisons. We say this takes $O(n)$ time - "linear time." If you double the list,
+    the work roughly doubles.
+  </li>
+  <li>
+    <strong>Sorted list:</strong> You can use <em>binary search</em>: open to the middle,
+    check whether your target comes before or after, and eliminate half the remaining names.
+    Repeat, and you find the answer in about $\log_2 n$ steps. That is $O(\log n)$ time -
+    extraordinarily efficient. A sorted phone book with a million entries requires only
+    about 20 comparisons.
+  </li>
+</ul>
+
+<p>
+  The gap between $O(n)$ and $O(\log n)$ is significant, but both are considered
+  <em>efficient</em>. The real trouble begins when growth rates become much steeper.
 </p>
 
 <h3>Easy Problems: The Class P</h3>
 
 <p>
-  Many important problems can be solved in <em>polynomial time</em> - meaning the number of
-  steps grows as some fixed power of the input size, like $O(n)$, $O(n^2)$, or $O(n^3)$.
-  These problems form the complexity class called <strong>P</strong> (for "polynomial").
-  Sorting a list, finding the shortest route on a map, multiplying two numbers, searching a
-  database - all are in P. For problems in P, bigger inputs mean more work, but the growth
-  is tame enough that computers can handle impressively large instances.
+  Many important problems can be solved in <em>polynomial time</em> - meaning the number
+  of steps grows as some fixed power of the input size, such as $O(n)$, $O(n^2)$, or
+  $O(n^3)$. These problems form the complexity class called <strong>P</strong> (for
+  "polynomial time"). Examples include:
+</p>
+
+<ul>
+  <li>Sorting a list of numbers ($O(n \log n)$ with efficient algorithms like mergesort)</li>
+  <li>Finding the shortest path in a network ($O(n^2)$ with Dijkstra's algorithm)</li>
+  <li>Multiplying two large numbers</li>
+  <li>Determining whether a number is prime (proven to be in P in 2002 by Agrawal, Kayal, and Saxena)</li>
+</ul>
+
+<p>
+  For problems in P, bigger inputs mean more work, but the growth is tame enough that
+  computers can handle impressively large instances within practical time limits.
 </p>
 
 <div class="callout callout-key">
-  <strong>Key Idea.</strong>
-  The class <strong>P</strong> contains problems solvable in polynomial time - problems
-  where the work grows manageably as the input gets bigger. These are the problems we
-  consider "efficiently solvable" by classical computers.
+  <strong>Key Concept.</strong>
+  <p>
+    The class <strong>P</strong> contains problems solvable in polynomial time - problems
+    where the computational work grows manageably as the input gets bigger. These are the
+    problems we consider "efficiently solvable" by classical computers.
+  </p>
 </div>
 
-<h3>Hard Problems: The Class NP</h3>
+<h3>Hard to Solve, Easy to Verify: The Class NP</h3>
 
 <p>
-  Now consider a different kind of problem: a jigsaw puzzle. Putting it together might take a
-  long time, but if someone hands you a completed puzzle, you can <em>verify</em> it is
-  correct almost instantly - just check that all pieces fit. Many important problems share
-  this property: hard to solve, but easy to check.
+  Now consider a different kind of problem. Imagine someone hands you a jigsaw puzzle with
+  10,000 pieces. Assembling it from scratch might take days. But if someone hands you a
+  <em>completed</em> puzzle, you can verify it is correct almost instantly - just check that
+  all pieces fit and the picture is complete. Many important problems share this asymmetry:
+  hard to solve, but easy to check.
 </p>
 
 <p>
-  The class <strong>NP</strong> (nondeterministic polynomial) contains all problems where a
-  proposed solution can be <em>verified</em> in polynomial time, even if <em>finding</em>
-  that solution might take much longer. Every problem in P is automatically in NP (if you can
-  solve it quickly, you can certainly verify a solution quickly), but NP also contains
-  problems for which no fast solving algorithm is known.
+  The class <strong>NP</strong> (nondeterministic polynomial time) contains all problems
+  where a proposed solution can be <em>verified</em> in polynomial time, even if
+  <em>finding</em> that solution might take much longer. Every problem in P is
+  automatically in NP (if you can solve it quickly, you can certainly verify quickly), but
+  NP also contains problems for which no fast solving algorithm is known.
 </p>
+
+<p>
+  Some famous NP problems:
+</p>
+
+<ul>
+  <li>
+    <strong>The traveling salesperson problem:</strong> Given a list of cities and the
+    distances between them, find the shortest route that visits every city exactly once and
+    returns to the starting point. Verifying a proposed route is easy (just add up the
+    distances), but finding the optimal route appears to require checking a vast number of
+    possibilities.
+  </li>
+  <li>
+    <strong>Boolean satisfiability (SAT):</strong> Given a Boolean formula, is there an
+    assignment of true/false values to its variables that makes the whole formula true?
+    Checking a proposed assignment is straightforward, but finding one can be enormously
+    difficult.
+  </li>
+  <li>
+    <strong>Graph coloring:</strong> Can you color the nodes of a network with $k$ colors
+    so that no two connected nodes share the same color?
+  </li>
+</ul>
 
 <h3>The P vs NP Question</h3>
 
 <p>
-  The biggest open question in computer science is: <strong>does P equal NP?</strong> In
-  other words, if a solution to a problem can be quickly <em>verified</em>, does that
-  guarantee it can also be quickly <em>found</em>? Almost all computer scientists believe the
-  answer is no - P does not equal NP - but no one has been able to prove it. There is even a
-  million-dollar prize from the Clay Mathematics Institute for a proof either way.
+  Here we arrive at the most important open question in computer science, and one of the
+  seven Millennium Prize Problems identified by the Clay Mathematics Institute, each
+  carrying a one-million-dollar prize:
 </p>
+
+<p style="text-align: center; font-size: 1.1rem; font-weight: 600; margin: 1.5rem 0;">
+  Does P equal NP?
+</p>
+
+<p>
+  In plain language: if a solution to a problem can be quickly <em>verified</em>, does that
+  guarantee it can also be quickly <em>found</em>? Is the ability to recognize a correct
+  answer just as powerful as the ability to discover one?
+</p>
+
+<p>
+  Almost all computer scientists believe the answer is <strong>no</strong> - P does not
+  equal NP - but despite decades of effort, no one has been able to prove it. The question
+  was formally posed by Stephen Cook and Leonid Levin independently in 1971, and it remains
+  open more than fifty years later.
+</p>
+
+<div class="callout callout-warning">
+  <strong>Common Misconception.</strong>
+  <p>
+    NP does <em>not</em> stand for "non-polynomial." It stands for "nondeterministic
+    polynomial time," referring to a theoretical model of computation (the nondeterministic
+    Turing machine) that can verify solutions in polynomial time. Many problems in NP -
+    including all problems in P - <em>can</em> be solved in polynomial time.
+  </p>
+</div>
 
 <h3>Exponential Walls</h3>
 
 <p>
-  Why does this matter? Consider the problem of factoring large numbers. Given the number
-  15, you can quickly find that $15 = 3 \times 5$. But given a number with hundreds of
-  digits (the product of two large primes), the best known classical algorithms take time
-  that grows <em>exponentially</em> - roughly $O(2^{n^{1/3}})$ for an $n$-digit number.
-  This exponential growth creates an impenetrable wall: factoring a 600-digit number could
-  take longer than the age of the universe on today's fastest supercomputers.
-</p>
-
-<p>
-  This difficulty is not just academic. The security of much of the internet relies on the
-  assumption that factoring large numbers is hard. Your bank transactions, encrypted emails,
-  and secure web connections all depend on it.
-</p>
-
-<div class="callout callout-info">
-  <strong>Note.</strong>
-  Here is where quantum computing enters the story. In 1994, Peter Shor discovered a quantum
-  algorithm that can factor large numbers in polynomial time - an exponential speedup over
-  the best known classical algorithm. We will build up to understanding Shor's algorithm
-  in Chapter 11. First, we need to understand what makes quantum computation different from
-  everything we have discussed so far, and that journey begins in Part II.
-</div>
-
-<h3>A Landscape of Complexity</h3>
-
-<p>
-  Time complexity paints a rich landscape. Here is a simplified map of how some growth rates
-  compare for an input of size $n$:
+  Why does computational complexity matter? Because the difference between polynomial and
+  exponential growth is not a matter of degree - it is a difference in kind. Consider this
+  comparison:
 </p>
 
 <table>
   <thead>
-    <tr><th>Growth Rate</th><th>Name</th><th>$n = 10$</th><th>$n = 100$</th><th>$n = 1{,}000$</th></tr>
+    <tr><th>Growth Rate</th><th>Name</th><th>$n = 10$</th><th>$n = 50$</th><th>$n = 100$</th></tr>
   </thead>
   <tbody>
-    <tr><td>$O(\log n)$</td><td>Logarithmic</td><td>~3</td><td>~7</td><td>~10</td></tr>
-    <tr><td>$O(n)$</td><td>Linear</td><td>10</td><td>100</td><td>1,000</td></tr>
-    <tr><td>$O(n \log n)$</td><td>Log-linear</td><td>~33</td><td>~664</td><td>~10,000</td></tr>
-    <tr><td>$O(n^2)$</td><td>Quadratic</td><td>100</td><td>10,000</td><td>1,000,000</td></tr>
-    <tr><td>$O(2^n)$</td><td>Exponential</td><td>1,024</td><td>$\approx 10^{30}$</td><td>$\approx 10^{301}$</td></tr>
+    <tr><td>$O(\log n)$</td><td>Logarithmic</td><td>~3</td><td>~6</td><td>~7</td></tr>
+    <tr><td>$O(n)$</td><td>Linear</td><td>10</td><td>50</td><td>100</td></tr>
+    <tr><td>$O(n^2)$</td><td>Quadratic</td><td>100</td><td>2,500</td><td>10,000</td></tr>
+    <tr><td>$O(n^3)$</td><td>Cubic</td><td>1,000</td><td>125,000</td><td>1,000,000</td></tr>
+    <tr><td>$O(2^n)$</td><td>Exponential</td><td>1,024</td><td>$\approx 10^{15}$</td><td>$\approx 10^{30}$</td></tr>
   </tbody>
 </table>
 
 <p>
-  The jump from polynomial to exponential is dramatic. For $n = 100$, an $O(n^2)$ algorithm
-  does ten thousand operations - trivial for a modern computer. An $O(2^n)$ algorithm would
-  require roughly $10^{30}$ operations - more than the number of grains of sand on Earth,
-  more than the number of seconds since the Big Bang, multiplied together. No amount of
-  engineering can overcome exponential growth through brute force alone. We need
-  fundamentally new ideas.
+  For $n = 100$, a quadratic algorithm does 10,000 operations - trivial for a modern
+  computer. An exponential algorithm requires approximately $10^{30}$ operations. Even a
+  computer performing a trillion ($10^{12}$) operations per second would need roughly
+  $10^{18}$ seconds - more than 30 billion years, over twice the current age of the
+  universe. No amount of engineering can overcome exponential growth through brute force.
+</p>
+
+<h3>The Factoring Problem</h3>
+
+<p>
+  One problem of particular importance sits in an intriguing position: <strong>integer
+  factorization</strong>. Given the number 15, you can quickly see that $15 = 3 \times 5$.
+  But given a number with hundreds of digits - the product of two large primes - the best
+  known classical algorithms take time that grows sub-exponentially but still
+  super-polynomially, roughly $O\!\left(e^{n^{1/3}}\right)$ for an $n$-digit number using
+  the general number field sieve. For a 600-digit number, this could take longer than the
+  age of the universe on today's fastest supercomputers.
 </p>
 
 <p>
-  Quantum computing is exactly that: a fundamentally new model of computation based on the
-  laws of quantum mechanics. In the chapters ahead, we will see how quantum computers
-  exploit phenomena like <em>superposition</em> and <em>entanglement</em> to solve certain
-  problems that are intractable for classical machines. But before we can appreciate what
-  makes quantum computing revolutionary, we needed to understand what classical computation
-  is, what it can do, and where it hits a wall.
+  Interestingly, factoring is not known to be NP-complete (the hardest problems in NP). It
+  sits in a gray zone - clearly in NP (given proposed factors, you can verify by
+  multiplying), but possibly not as hard as the NP-complete problems. This subtle position
+  is part of what makes factoring so fascinating from both a theoretical and practical
+  standpoint.
 </p>
 
 <p>
-  That understanding is now in your hands. You know that all information reduces to bits;
-  that bits are transformed by logic gates; that gates compose into circuits which compose
-  into full computers; and that even these extraordinary machines have fundamental
-  limitations. With this foundation firmly laid, we are ready to explore the mathematics of
-  information in Chapter 2, and then the surprising world of reversible computing in
-  Chapter 3 - which will be our bridge into the quantum realm.
+  The difficulty of factoring is not just academic. The RSA cryptosystem, which secures much
+  of the internet's communication - your bank transactions, encrypted emails, and secure web
+  connections - relies on the assumption that factoring large numbers is computationally
+  infeasible.
+</p>
+
+<div class="callout callout-info">
+  <strong>Note.</strong>
+  <p>
+    Here is where quantum computing enters the story. In 1994, mathematician Peter Shor
+    discovered a quantum algorithm that can factor large integers in polynomial time - an
+    exponential speedup over the best known classical method. This single result
+    demonstrated that quantum computers are not merely a curiosity but a potential
+    revolution in what is computationally possible. We will build up to understanding Shor's
+    algorithm in Chapter 11. First, we need to understand what makes quantum computation
+    different from everything we have discussed so far.
+  </p>
+</div>
+
+<h3>Looking Ahead</h3>
+
+<p>
+  As we will discover in the coming chapters, quantum computing challenges several of the
+  classical assumptions we have built up here:
+</p>
+
+<ul>
+  <li>Classical bits are always 0 or 1. Quantum bits (<em>qubits</em>) can exist in <strong>superpositions</strong> of both states simultaneously.</li>
+  <li>Classical bits can be freely copied (fan-out). Qubits cannot, due to the <strong>no-cloning theorem</strong>.</li>
+  <li>Classical gates can be irreversible (AND destroys information about its inputs). Quantum gates must be <strong>reversible</strong>.</li>
+  <li>Classical computation is deterministic. Quantum computation is fundamentally <strong>probabilistic</strong>, governed by the mathematics of complex amplitudes.</li>
+</ul>
+
+<p>
+  Each of these differences will turn out to be not a limitation but a source of
+  computational power that has no classical analog.
+</p>
+
+<p>
+  You now know that all information reduces to bits; that bits are transformed by logic
+  gates; that gates compose into circuits, which compose into full computers; and that even
+  these extraordinary machines have fundamental limitations when facing exponentially hard
+  problems. With this foundation firmly in place, we are ready to explore the mathematics
+  of information in Chapter 2, and then the world of reversible computing in Chapter 3 -
+  which will be our bridge into the quantum realm.
 </p>
 
 </section>
@@ -660,70 +1050,70 @@ $$C_{out} = (A \land B) \lor ((A \oplus B) \land C_{in})$$
 <h2>Chapter 1 Review</h2>
 
 <div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Review Cards</div>
+  <div class="flashcard-deck-header">Chapter 1 Review</div>
 
   <div class="flashcard" data-card-id="ch01-bit-definition">
-    <div class="card-front">What is a bit, and why is it called the "atom of information"?</div>
+    <div class="card-front">What is a bit, and why is it considered the fundamental unit of information?</div>
     <div class="card-back">
-      A bit (binary digit) is the smallest possible unit of information, representing a single choice between two alternatives: 0 or 1. It is the "atom" of information because all data - numbers, text, images, sound - can be broken down into sequences of bits, but a bit itself cannot be subdivided further.
+      A bit (binary digit) is the smallest possible unit of information, representing a single choice between two alternatives: 0 or 1. It is fundamental because all data - numbers, text, images, sound - can be encoded as sequences of bits, but a single bit cannot be subdivided into anything simpler while still carrying information.
       <div class="flashcard-controls">
-        <button class="hard">Hard</button>
         <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
       </div>
     </div>
   </div>
 
-  <div class="flashcard" data-card-id="ch01-n-bits">
+  <div class="flashcard" data-card-id="ch01-n-bits-values">
     <div class="card-front">How many distinct values can $n$ bits represent?</div>
     <div class="card-back">
-      $2^n$ distinct values. For example, 1 bit gives 2 values, 8 bits give 256 values, and 10 bits give 1,024 values.
+      $2^n$ distinct values. For example, 1 bit gives 2 values, 8 bits (one byte) give 256 values, and 10 bits give 1,024 values. Each additional bit doubles the number of possible values.
       <div class="flashcard-controls">
-        <button class="hard">Hard</button>
         <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
       </div>
     </div>
   </div>
 
-  <div class="flashcard" data-card-id="ch01-and-gate">
-    <div class="card-front">When does an AND gate output 1?</div>
+  <div class="flashcard" data-card-id="ch01-xor-vs-or">
+    <div class="card-front">How does XOR differ from OR?</div>
     <div class="card-back">
-      An AND gate outputs 1 only when <em>both</em> of its inputs are 1. If either input is 0, the output is 0.
+      OR outputs 1 when <em>at least one</em> input is 1, including when both are 1. XOR (exclusive or) outputs 1 only when the inputs are <em>different</em> - it outputs 0 when both inputs are the same. In short: OR is inclusive, XOR is exclusive.
       <div class="flashcard-controls">
-        <button class="hard">Hard</button>
         <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
       </div>
     </div>
   </div>
 
-  <div class="flashcard" data-card-id="ch01-xor-gate">
-    <div class="card-front">How does an XOR gate differ from an OR gate?</div>
+  <div class="flashcard" data-card-id="ch01-de-morgan">
+    <div class="card-front">State De Morgan's laws.</div>
     <div class="card-back">
-      OR outputs 1 if <em>at least one</em> input is 1 (including when both are 1). XOR outputs 1 only when the inputs are <em>different</em> - it gives 0 when both inputs are the same. In short: OR is inclusive, XOR is exclusive.
+      $\overline{A \land B} = \overline{A} \lor \overline{B}$ (the complement of AND equals the OR of complements) and $\overline{A \lor B} = \overline{A} \land \overline{B}$ (the complement of OR equals the AND of complements). These laws let us convert between AND and OR by negating inputs and outputs.
       <div class="flashcard-controls">
-        <button class="hard">Hard</button>
         <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
       </div>
     </div>
   </div>
 
   <div class="flashcard" data-card-id="ch01-half-adder">
-    <div class="card-front">What two gates make up a half adder, and what does it compute?</div>
+    <div class="card-front">What two gates make up a half adder, and what does each compute?</div>
     <div class="card-back">
-      A half adder uses an XOR gate and an AND gate. The XOR gate produces the <em>sum bit</em> ($S = A \oplus B$), and the AND gate produces the <em>carry bit</em> ($C = A \land B$). It adds two single-bit numbers.
+      A half adder uses an XOR gate for the sum bit ($S = A \oplus B$) and an AND gate for the carry bit ($C = A \land B$). It adds two single-bit numbers and outputs a one-bit sum and a one-bit carry.
       <div class="flashcard-controls">
-        <button class="hard">Hard</button>
         <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
       </div>
     </div>
   </div>
 
   <div class="flashcard" data-card-id="ch01-stored-program">
-    <div class="card-front">What is the stored-program concept, and why is it important?</div>
+    <div class="card-front">What is the stored-program concept?</div>
     <div class="card-back">
-      The stored-program concept is the idea that both instructions (the program) and data are stored as bits in the same memory. This allows a computer to load and run different programs without being physically rewired, and even to treat programs themselves as data to be analyzed or modified.
+      The idea that both instructions (the program) and data are stored as bits in the same memory. This allows a computer to load and run different programs without physical rewiring, and to treat programs themselves as data that can be analyzed, modified, or generated by other programs.
       <div class="flashcard-controls">
-        <button class="hard">Hard</button>
         <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
       </div>
     </div>
   </div>
@@ -731,199 +1121,47 @@ $$C_{out} = (A \land B) \lor ((A \oplus B) \land C_{in})$$
   <div class="flashcard" data-card-id="ch01-class-p">
     <div class="card-front">What is the complexity class P?</div>
     <div class="card-back">
-      P is the set of decision problems solvable in <em>polynomial time</em> - meaning the number of computational steps grows as a polynomial function of the input size (e.g., $O(n)$, $O(n^2)$, $O(n^3)$). Problems in P are considered "efficiently solvable" by classical computers.
+      P is the set of decision problems solvable in <em>polynomial time</em> - meaning the computational steps grow as a polynomial function of the input size (e.g., $O(n)$, $O(n^2)$, $O(n^3)$). Problems in P are considered "efficiently solvable" by classical computers. Examples include sorting, shortest-path finding, and primality testing.
       <div class="flashcard-controls">
-        <button class="hard">Hard</button>
         <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
       </div>
     </div>
   </div>
 
   <div class="flashcard" data-card-id="ch01-p-vs-np">
-    <div class="card-front">What is the P vs NP question?</div>
+    <div class="card-front">What is the P vs NP question, and why does it matter?</div>
     <div class="card-back">
-      The P vs NP question asks whether every problem whose solution can be <em>verified</em> in polynomial time (class NP) can also be <em>solved</em> in polynomial time (class P). Most computer scientists believe P does not equal NP, but this has never been proven. It is one of the most important open problems in mathematics.
+      The P vs NP question asks: if a solution to a problem can be quickly <em>verified</em> (class NP), can it also be quickly <em>found</em> (class P)? Most experts believe P does not equal NP, but no proof exists. It matters because a proof either way would fundamentally reshape our understanding of what computers can and cannot do efficiently. It is one of the Clay Mathematics Institute's million-dollar Millennium Prize Problems.
       <div class="flashcard-controls">
-        <button class="hard">Hard</button>
         <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
       </div>
     </div>
   </div>
 
-  <div class="flashcard" data-card-id="ch01-exponential-growth">
+  <div class="flashcard" data-card-id="ch01-exponential-wall">
     <div class="card-front">Why is exponential time complexity ($O(2^n)$) considered intractable?</div>
     <div class="card-back">
-      Because the number of steps doubles every time $n$ increases by 1, the required work explodes far beyond what any computer can handle for even moderately large inputs. For $n = 100$, $2^n \approx 10^{30}$ - more operations than could be completed in the lifetime of the universe.
+      Because the number of steps doubles with each unit increase in $n$, the work explodes beyond what any computer can handle for moderate inputs. For $n = 100$, an exponential algorithm needs roughly $10^{30}$ operations - a computer doing a trillion operations per second would require over 30 billion years. No engineering improvement can overcome this kind of growth.
       <div class="flashcard-controls">
-        <button class="hard">Hard</button>
         <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
       </div>
     </div>
   </div>
 
-  <div class="flashcard" data-card-id="ch01-quantum-motivation">
-    <div class="card-front">How does the hardness of factoring connect to quantum computing?</div>
+  <div class="flashcard" data-card-id="ch01-shor-factoring">
+    <div class="card-front">What is the significance of Shor's algorithm for the relationship between classical and quantum computing?</div>
     <div class="card-back">
-      Factoring large numbers is believed to be intractable for classical computers (no known polynomial-time algorithm exists). In 1994, Peter Shor showed that a quantum computer could factor large numbers in polynomial time - an exponential speedup. This demonstrated that quantum computers can solve certain problems fundamentally faster than any known classical approach.
+      Peter Shor showed in 1994 that a quantum computer can factor large integers in polynomial time, while the best known classical algorithms require sub-exponential (super-polynomial) time. This demonstrated that quantum computers can solve certain problems exponentially faster than any known classical approach, and it threatens the RSA cryptosystem that secures much of the internet.
       <div class="flashcard-controls">
-        <button class="hard">Hard</button>
         <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
       </div>
     </div>
   </div>
+
 </div>
 
 </section>
-
-<!-- ================================================================== -->
-<!-- Inline scripts for JS-only widgets -->
-<script>
-(function() {
-  // --- Binary-Decimal Converter ---
-  var decInput = document.getElementById('decimal-input');
-  var binInput = document.getElementById('binary-input');
-  var output = document.getElementById('converter-output');
-  var bitViz = document.getElementById('bit-visualization');
-
-  function renderBitBoxes(binary) {
-    bitViz.innerHTML = '';
-    if (!binary) return;
-    for (var i = 0; i < binary.length; i++) {
-      var box = document.createElement('span');
-      box.textContent = binary[i];
-      box.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;' +
-        'width:2rem;height:2rem;border-radius:var(--radius);font-family:var(--font-mono);' +
-        'font-size:0.9rem;font-weight:600;border:1px solid var(--color-border);' +
-        (binary[i] === '1'
-          ? 'background:var(--color-accent);color:#fff;'
-          : 'background:var(--color-code-bg);color:var(--color-text-muted);');
-      var label = document.createElement('span');
-      label.textContent = Math.pow(2, binary.length - 1 - i);
-      label.style.cssText = 'display:block;font-size:0.65rem;color:var(--color-text-muted);text-align:center;margin-top:0.15rem;';
-      var wrapper = document.createElement('span');
-      wrapper.style.cssText = 'display:inline-flex;flex-direction:column;align-items:center;';
-      wrapper.appendChild(box);
-      wrapper.appendChild(label);
-      bitViz.appendChild(wrapper);
-    }
-  }
-
-  if (decInput && binInput) {
-    decInput.addEventListener('input', function() {
-      var val = decInput.value.replace(/[^0-9]/g, '');
-      decInput.value = val;
-      if (val === '') {
-        binInput.value = '';
-        output.textContent = '';
-        renderBitBoxes('');
-        return;
-      }
-      var num = parseInt(val, 10);
-      if (isNaN(num) || num < 0) {
-        output.textContent = 'Enter a non-negative integer.';
-        binInput.value = '';
-        renderBitBoxes('');
-        return;
-      }
-      if (num > 4294967295) {
-        output.textContent = 'Maximum value is 4,294,967,295 (32 bits).';
-        binInput.value = '';
-        renderBitBoxes('');
-        return;
-      }
-      var bin = num.toString(2);
-      binInput.value = bin;
-      output.textContent = val + ' in decimal = ' + bin + ' in binary (' + bin.length + ' bits)';
-      renderBitBoxes(bin);
-    });
-
-    binInput.addEventListener('input', function() {
-      var val = binInput.value.replace(/[^01]/g, '');
-      binInput.value = val;
-      if (val === '') {
-        decInput.value = '';
-        output.textContent = '';
-        renderBitBoxes('');
-        return;
-      }
-      if (val.length > 32) {
-        output.textContent = 'Maximum 32 bits.';
-        decInput.value = '';
-        renderBitBoxes('');
-        return;
-      }
-      var num = parseInt(val, 2);
-      decInput.value = num;
-      output.textContent = val + ' in binary = ' + num + ' in decimal (' + val.length + ' bits)';
-      renderBitBoxes(val);
-    });
-  }
-
-  // --- Truth Table Explorer ---
-  var gateSelect = document.getElementById('gate-select');
-  var tableBody = document.getElementById('truth-table-body');
-  var gateHeader = document.getElementById('gate-output-header');
-  var gateExpr = document.getElementById('gate-expression');
-
-  var gates = {
-    AND:  { fn: function(a, b) { return a & b; },  symbol: '\\land',  label: 'AND',  desc: 'Output is 1 only when both inputs are 1.' },
-    OR:   { fn: function(a, b) { return a | b; },   symbol: '\\lor',   label: 'OR',   desc: 'Output is 1 when at least one input is 1.' },
-    XOR:  { fn: function(a, b) { return a ^ b; },   symbol: '\\oplus', label: 'XOR',  desc: 'Output is 1 when inputs are different.' },
-    NAND: { fn: function(a, b) { return (a & b) ^ 1; }, symbol: '\\barwedge', label: 'NAND', desc: 'Output is 0 only when both inputs are 1. (NOT-AND)' },
-    NOR:  { fn: function(a, b) { return (a | b) ^ 1; }, symbol: '\\downarrow', label: 'NOR',  desc: 'Output is 1 only when both inputs are 0. (NOT-OR)' },
-    XNOR: { fn: function(a, b) { return (a ^ b) ^ 1; }, symbol: '\\odot', label: 'XNOR', desc: 'Output is 1 when inputs are the same. (NOT-XOR)' }
-  };
-
-  var inputs = [[0,0],[0,1],[1,0],[1,1]];
-
-  function renderTruthTable() {
-    var gateName = gateSelect.value;
-    var gate = gates[gateName];
-    if (!gate) return;
-
-    gateHeader.textContent = '$A \\text{ ' + gate.label + ' } B$';
-    tableBody.innerHTML = '';
-
-    for (var i = 0; i < inputs.length; i++) {
-      var a = inputs[i][0], b = inputs[i][1];
-      var result = gate.fn(a, b);
-      var row = document.createElement('tr');
-      var tdA = document.createElement('td'); tdA.textContent = a;
-      var tdB = document.createElement('td'); tdB.textContent = b;
-      var tdR = document.createElement('td');
-      tdR.textContent = result;
-      tdR.style.fontWeight = '600';
-      tdR.style.color = result ? 'var(--color-success)' : 'var(--color-text-muted)';
-      row.appendChild(tdA);
-      row.appendChild(tdB);
-      row.appendChild(tdR);
-      tableBody.appendChild(row);
-    }
-
-    gateExpr.textContent = gate.desc;
-
-    // Re-render KaTeX for the header
-    if (typeof renderMathInElement !== 'undefined') {
-      renderMathInElement(gateHeader, {
-        delimiters: [
-          {left: "$$", right: "$$", display: true},
-          {left: "$", right: "$", display: false}
-        ],
-        throwOnError: false
-      });
-    }
-  }
-
-  if (gateSelect && tableBody) {
-    gateSelect.addEventListener('change', renderTruthTable);
-    // Initial render after KaTeX loads
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(renderTruthTable, 100);
-      });
-    } else {
-      setTimeout(renderTruthTable, 100);
-    }
-  }
-})();
-</script>

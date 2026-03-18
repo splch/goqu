@@ -1,0 +1,911 @@
+<p>
+  The internet you use every day transmits classical bits - zeros and ones copied,
+  routed, and amplified through a global web of fiber optics and radio links. A
+  <strong>quantum internet</strong> would do something fundamentally different: it would
+  distribute <em>quantum states</em> - and in particular, <em>entanglement</em> - between
+  distant nodes, enabling applications that are provably impossible with classical
+  communication alone. These applications range from unconditionally secure key distribution
+  (which we met in earlier chapters) to distributed quantum computing, blind quantum
+  computation, and quantum-enhanced sensor networks.
+</p>
+
+<p>
+  Building a quantum internet is one of the grand challenges of 21st-century physics and
+  engineering. In this chapter we will map out the landscape: what entanglement provides as
+  a networking resource, the stages of development toward a full quantum internet, the
+  physical technologies that carry qubits over long distances, the protocols that extend
+  entanglement beyond direct transmission range, and the current state of real-world
+  deployments.
+</p>
+
+<div class="callout callout-info">
+  <strong>Prerequisites.</strong>
+  <p>
+    You should be comfortable with entanglement (Chapter 6), Bell states (Chapter 6),
+    quantum teleportation (Chapter 7), and the basics of quantum key distribution
+    (Chapter 8). Familiarity with CNOT gates and measurement in the Bell basis will
+    be essential.
+  </p>
+</div>
+
+<!-- ================================================================== -->
+<section id="entanglement-resource">
+<h2>34.1 Entanglement as a Resource for Networking</h2>
+
+<p>
+  Classical networking is built on one primitive: sending a bit from A to B. Quantum
+  networking adds a second, qualitatively different primitive: <strong>sharing an entangled
+  pair</strong> between A and B. Once Alice and Bob share an EPR pair
+  $|\Phi^+\rangle = \frac{1}{\sqrt{2}}(|00\rangle + |11\rangle)$, they possess a resource
+  that enables tasks no amount of classical communication can achieve.
+</p>
+
+<h3>What Entanglement Enables</h3>
+
+<p>
+  Shared entanglement, combined with classical communication and local quantum operations,
+  unlocks a suite of powerful protocols:
+</p>
+
+<ul>
+  <li>
+    <strong>Quantum teleportation.</strong> Alice can transmit an arbitrary qubit state to
+    Bob by consuming one shared EPR pair and sending two classical bits. No quantum channel
+    is needed at the moment of transfer - only pre-shared entanglement and a classical
+    channel.
+  </li>
+  <li>
+    <strong>Superdense coding.</strong> Alice can transmit two classical bits to Bob by
+    sending only one qubit, provided they share an EPR pair. This doubles the classical
+    capacity of a quantum channel.
+  </li>
+  <li>
+    <strong>Quantum key distribution.</strong> Entanglement-based QKD (the E91 protocol)
+    derives its security from Bell inequality violations, providing device-independent
+    guarantees that the key is secret.
+  </li>
+  <li>
+    <strong>Distributed quantum computation.</strong> Entanglement allows separate quantum
+    processors to perform joint computations, effectively creating a larger virtual quantum
+    computer from smaller networked nodes.
+  </li>
+  <li>
+    <strong>Blind quantum computation.</strong> A client with minimal quantum resources
+    can delegate a computation to a remote quantum server without revealing the input,
+    output, or algorithm.
+  </li>
+  <li>
+    <strong>Quantum sensor networks.</strong> Entanglement shared across a network of
+    sensors enables measurements with precision beyond what independent sensors can
+    achieve (see Chapter 36).
+  </li>
+</ul>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    Entanglement is a <em>consumable resource</em>. Each use of teleportation, superdense
+    coding, or entanglement-based QKD consumes one EPR pair. A quantum internet must
+    therefore continuously generate, distribute, and replenish entanglement between nodes.
+  </p>
+</div>
+
+<h3>Entanglement as a Unit of Currency</h3>
+
+<p>
+  Just as classical networks measure capacity in bits per second, a quantum network's
+  capacity is measured in <strong>ebits per second</strong> - the rate at which it can
+  distribute entangled pairs. One ebit is one maximally entangled pair shared between two
+  parties. The quality of these pairs matters too: real-world entanglement is never perfect,
+  and the <em>fidelity</em> of the shared state relative to a perfect Bell state determines
+  how useful each ebit is.
+</p>
+
+<p>
+  A pair with fidelity $F = \langle \Phi^+ | \rho | \Phi^+ \rangle$ close to 1 is nearly
+  perfect. Pairs with $F < 0.5$ are useless for most protocols - they carry no more
+  quantum correlation than a separable state. The art of quantum networking lies in
+  generating high-fidelity entanglement at high rates over long distances.
+</p>
+
+<h3>No-Cloning and the Networking Challenge</h3>
+
+<p>
+  Classical networks amplify signals with repeaters that copy and retransmit bits. The
+  <strong>no-cloning theorem</strong> forbids this for quantum states: you cannot copy an
+  unknown qubit. This single fact makes quantum networking fundamentally harder than
+  classical networking. Photons carrying quantum information are lost in fiber at a rate
+  of roughly 0.2 dB/km at telecom wavelengths (1550 nm), and you cannot simply amplify
+  the signal. After about 100 km, the probability of a photon surviving is below 1%.
+  Extending entanglement beyond this range requires entirely new approaches - quantum
+  repeaters - which we will explore in Section 34.4.
+</p>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="stages">
+<h2>34.2 Stages of the Quantum Internet (Wehner Framework)</h2>
+
+<p>
+  In 2018, Stephanie Wehner, David Elkouss, and Ronald Hanson published a landmark paper
+  in <em>Science</em> proposing a roadmap for the quantum internet organized into six
+  stages of increasing capability. Each stage unlocks new applications and requires
+  progressively more sophisticated hardware. This framework has become the standard
+  reference for gauging progress toward a quantum internet.
+</p>
+
+<h3>Stage 1: Trusted-Repeater Networks</h3>
+
+<p>
+  At the lowest stage, quantum signals (typically single photons encoding QKD key bits)
+  are transmitted between adjacent nodes, but the intermediate relay nodes are
+  <em>trusted</em> - they must decrypt and re-encrypt the key material classically. This
+  is not a true quantum network in the purest sense because the relay nodes see the key
+  in the clear, but it provides enhanced security over purely classical infrastructure
+  as long as the relay nodes are physically secured.
+</p>
+
+<p>
+  <strong>Applications:</strong> QKD with trusted relays. This is the stage at which most
+  deployed QKD networks currently operate, including China's Beijing-Shanghai backbone and
+  the CN-QCN network spanning over 10,000 km with 145 fiber backbone nodes across 80 cities.
+</p>
+
+<h3>Stage 2: Prepare-and-Measure Networks</h3>
+
+<p>
+  Nodes can prepare quantum states and send them to other nodes for measurement, but there
+  is no entanglement generation or quantum memory. End-to-end quantum communication is
+  possible over short distances without trusting intermediate nodes.
+</p>
+
+<p>
+  <strong>Applications:</strong> End-to-end QKD (BB84-style) without trusted relays over
+  metropolitan distances, quantum random number generation, and simple quantum coin
+  flipping protocols.
+</p>
+
+<h3>Stage 3: Entanglement-Distribution Networks</h3>
+
+<p>
+  This is the first stage where entanglement is explicitly generated and distributed
+  between end nodes. Nodes can create EPR pairs with their neighbors and, through
+  entanglement swapping at intermediate nodes, extend entanglement to non-adjacent
+  parties. However, the nodes have limited or no quantum memory - entanglement must be
+  used immediately or it is lost.
+</p>
+
+<p>
+  <strong>Applications:</strong> Device-independent QKD, entanglement-based QKD (E91),
+  and certifiable randomness generation.
+</p>
+
+<h3>Stage 4: Quantum-Memory Networks</h3>
+
+<p>
+  Nodes possess quantum memories that can store entangled qubits for a meaningful
+  duration. This enables protocols that require entanglement to be available on demand
+  rather than consumed immediately. Quantum memories allow entanglement purification
+  (distilling high-fidelity pairs from multiple noisy ones) and more complex multi-party
+  protocols.
+</p>
+
+<p>
+  <strong>Applications:</strong> Quantum teleportation on demand, blind quantum computation,
+  and the beginning of distributed quantum computing with small numbers of qubits.
+</p>
+
+<h3>Stage 5: Few-Qubit Fault-Tolerant Networks</h3>
+
+<p>
+  Each node is a small quantum computer with error correction, capable of performing local
+  quantum operations on a handful of logical qubits. The network can execute multi-round
+  quantum protocols with high reliability.
+</p>
+
+<p>
+  <strong>Applications:</strong> Clock synchronization beyond classical limits, distributed
+  quantum sensing, leader election, and Byzantine agreement protocols with quantum
+  advantages.
+</p>
+
+<h3>Stage 6: Quantum Computing Networks</h3>
+
+<p>
+  The full quantum internet: every node is a fault-tolerant quantum computer, and the
+  network can distribute large entangled states across many nodes. Arbitrary distributed
+  quantum computations can be performed.
+</p>
+
+<p>
+  <strong>Applications:</strong> All of the above, plus full distributed quantum computing,
+  quantum cloud computing with verifiable delegation, and applications not yet imagined -
+  just as the classical internet enabled applications (social media, streaming, cloud
+  computing) that its inventors never foresaw.
+</p>
+
+<table class="state-table">
+  <thead>
+    <tr><th>Stage</th><th>Name</th><th>Key Capability</th><th>Example Application</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>Trusted Repeater</td>
+      <td>Point-to-point QKD with trusted relays</td>
+      <td>Metropolitan/backbone QKD</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>Prepare and Measure</td>
+      <td>End-to-end qubit transmission (no entanglement)</td>
+      <td>BB84 QKD, QRNG</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>Entanglement Distribution</td>
+      <td>EPR pair sharing between end nodes</td>
+      <td>E91 QKD, device-independent QKD</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>Quantum Memory</td>
+      <td>Store-and-forward quantum states</td>
+      <td>Teleportation, blind computation</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>Few-Qubit Fault-Tolerant</td>
+      <td>Error-corrected local processing</td>
+      <td>Clock synchronization, distributed sensing</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td>Quantum Computing</td>
+      <td>Full distributed quantum computation</td>
+      <td>Quantum cloud computing</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout callout-info">
+  <strong>Where are we now?</strong>
+  <p>
+    As of 2025, most deployed quantum networks operate at Stage 1 (trusted-repeater QKD).
+    Laboratory demonstrations have reached aspects of Stages 2 and 3. The transition to
+    Stage 3 and beyond - where entanglement is distributed without trusted nodes - is the
+    central challenge driving current research.
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="physical-implementations">
+<h2>34.3 Physical Implementations (Fiber, Satellite, Hybrid)</h2>
+
+<p>
+  A quantum internet must physically transmit qubits - typically encoded in photons -
+  between nodes. Three main physical channels are under development, each with distinct
+  advantages and limitations.
+</p>
+
+<h3>Optical Fiber</h3>
+
+<p>
+  Standard telecommunications fiber at 1550 nm wavelength offers the lowest loss
+  (approximately 0.2 dB/km) and can leverage existing fiber infrastructure. However,
+  loss is exponential: after 100 km, only about 1% of photons survive; after 300 km, the
+  fraction drops to roughly $10^{-6}$. This exponential attenuation is the fundamental
+  bottleneck.
+</p>
+
+<p>
+  Despite this limitation, fiber is the workhorse of current QKD deployments. Metropolitan
+  networks spanning tens of kilometers achieve key rates of kilobits per second or higher.
+  China's Beijing-Shanghai QKD backbone uses fiber links of up to 100 km between trusted
+  relay nodes. European networks like the Madrid quantum network and the Cambridge quantum
+  network use dark fiber (dedicated, unshared fiber) for higher performance.
+</p>
+
+<h3>Free-Space and Satellite Links</h3>
+
+<p>
+  For intercontinental distances, sending photons through optical fiber is impractical due
+  to exponential loss. Free-space transmission through the atmosphere, and especially via
+  satellite, offers an alternative. In vacuum (or near-vacuum in low Earth orbit),
+  photon loss follows an inverse-square law rather than exponential decay, making
+  long-distance links feasible.
+</p>
+
+<p>
+  China's Micius satellite (launched 2016) demonstrated the viability of satellite QKD,
+  achieving entanglement distribution over 1,200 km and enabling the first intercontinental
+  quantum-secured video call between Beijing and Vienna in 2017. By 2020, an integrated
+  satellite-ground network spanning 4,600 km was operational. In 2024, the smaller Jinan-1
+  microsatellite demonstrated real-time QKD with ground stations across China and in
+  Stellenbosch, South Africa - a distance of approximately 12,900 km.
+</p>
+
+<div class="callout callout-info">
+  <strong>Satellite QKD: day vs. night.</strong>
+  <p>
+    Early satellite QKD worked only at night to avoid background photon noise from sunlight.
+    Recent advances in narrow spectral filtering and fast temporal gating are enabling
+    daytime satellite QKD, a critical step toward operational 24/7 quantum links.
+  </p>
+</div>
+
+<h3>Hybrid Architectures</h3>
+
+<p>
+  The most practical near-term architecture combines fiber for metropolitan-area links
+  (up to roughly 100 km) with satellite links for intercity and intercontinental
+  connections. Ground stations convert between the telecom-wavelength photons used in
+  fiber and the near-infrared photons optimal for free-space transmission.
+</p>
+
+<p>
+  A key engineering challenge is the <strong>wavelength interface</strong>. Many quantum
+  memory platforms (trapped ions, NV centers, atomic ensembles) operate at visible or
+  near-infrared wavelengths that suffer high loss in fiber. Quantum frequency conversion -
+  coherently shifting a photon's wavelength without destroying its quantum state - bridges
+  this gap and is an active area of research.
+</p>
+
+<h3>Physical Qubit Platforms for Network Nodes</h3>
+
+<p>
+  The nodes of a quantum network need more than photon sources and detectors; they need
+  matter qubits that can interface with photons. Leading platforms include:
+</p>
+
+<ul>
+  <li>
+    <strong>Nitrogen-vacancy (NV) centers in diamond.</strong> These solid-state defects
+    have long-lived electron spin qubits that can be entangled with emitted photons.
+    The Delft group demonstrated the first loophole-free Bell test (2015) and multi-node
+    entanglement (2021) using NV centers.
+  </li>
+  <li>
+    <strong>Trapped ions.</strong> Ions confined in electromagnetic traps offer excellent
+    coherence times and high-fidelity gates. Photons emitted during ion transitions
+    carry entanglement that can be distributed over fiber.
+  </li>
+  <li>
+    <strong>Atomic ensembles.</strong> Clouds of cold atoms can collectively emit single
+    photons entangled with the ensemble's internal state, providing a natural quantum
+    memory with built-in light-matter coupling.
+  </li>
+  <li>
+    <strong>Quantum dots.</strong> Semiconductor quantum dots can emit indistinguishable
+    single photons at high rates and are compatible with chip-scale integration.
+  </li>
+</ul>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="protocols">
+<h2>34.4 Quantum Network Protocols (Entanglement Swapping, Purification)</h2>
+
+<p>
+  The no-cloning theorem means we cannot amplify quantum signals classically. To extend
+  entanglement beyond the range of direct photon transmission, quantum networks employ
+  two key protocols: <strong>entanglement swapping</strong> and <strong>entanglement
+  purification</strong>. Together, these form the backbone of quantum repeater architectures.
+</p>
+
+<h3>Entanglement Swapping</h3>
+
+<p>
+  Suppose Alice shares an EPR pair with a relay node Charlie, and Charlie shares a
+  separate EPR pair with Bob. Neither Alice nor Bob are entangled with each other -
+  yet. Charlie can create entanglement between Alice and Bob by performing a
+  <strong>Bell-state measurement</strong> (BSM) on his two qubits (one from each pair).
+  This projects Alice's and Bob's qubits into an entangled state, even though they
+  never interacted directly.
+</p>
+
+<p>
+  The protocol works as follows:
+</p>
+
+<ol>
+  <li>
+    Alice and Charlie share the Bell state $|\Phi^+\rangle_{AC}$. Charlie and Bob share
+    $|\Phi^+\rangle_{CB}$.
+  </li>
+  <li>
+    Charlie performs a Bell-state measurement on his two qubits (one from each pair).
+    This measurement has four possible outcomes, corresponding to the four Bell states.
+  </li>
+  <li>
+    Charlie sends his two-bit measurement result to Bob over a classical channel.
+  </li>
+  <li>
+    Depending on the result, Bob applies a local correction (one of $I$, $X$, $Z$, or
+    $XZ$) to his qubit. After correction, Alice and Bob share the state $|\Phi^+\rangle_{AB}$.
+  </li>
+</ol>
+
+<p>
+  The net effect: entanglement has been "swapped" from the two short-range pairs to a
+  single long-range pair. By chaining multiple swaps through a series of relay nodes,
+  entanglement can be extended across arbitrarily long distances - this is the principle
+  behind a <strong>quantum repeater</strong>.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    Entanglement swapping is teleportation of entanglement itself. Charlie teleports his
+    half of the Alice-Charlie entanglement onto Bob's qubit, using the Charlie-Bob
+    entanglement as the resource.
+  </p>
+</div>
+
+<h3>Entanglement Swapping Circuit</h3>
+
+<p>
+  The Bell-state measurement at the heart of entanglement swapping consists of a CNOT gate
+  followed by a Hadamard gate, then measurement of both qubits. In the circuit below, we
+  simulate the full entanglement swapping protocol on four qubits. Qubits 0 and 1 form
+  the Alice-Charlie pair; qubits 2 and 3 form the Charlie-Bob pair. Charlie performs the
+  BSM on qubits 1 and 2, projecting qubits 0 and 3 into an entangled state.
+</p>
+
+<p>
+  Run the circuit and observe the correlations between qubit 0 (Alice) and qubit 3 (Bob).
+  Despite never interacting directly, they become perfectly correlated - a hallmark of
+  entanglement swapping.
+</p>
+
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="18">OPENQASM 3.0;
+qubit[4] q;
+bit[4] c;
+
+// Create EPR pair 1: Alice (q0) - Charlie-left (q1)
+h q[0];
+cx q[0], q[1];
+
+// Create EPR pair 2: Charlie-right (q2) - Bob (q3)
+h q[2];
+cx q[2], q[3];
+
+// Charlie's Bell-state measurement on q1, q2
+cx q[1], q[2];
+h q[1];
+
+// Measure all qubits
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
+<p>
+  Examine the measurement results carefully. You will notice that qubits 0 and 3 (Alice
+  and Bob) are always correlated: whenever qubit 0 is 0, qubit 3 is 0, and whenever qubit
+  0 is 1, qubit 3 is 1 (possibly with a correction depending on qubits 1 and 2). The four
+  possible outcomes of Charlie's BSM (qubits 1 and 2) each occur with equal probability of
+  25%, and for each outcome, Alice and Bob's qubits are in a definite Bell state. In a real
+  network, Bob would apply a Pauli correction conditioned on Charlie's classical message to
+  always obtain $|\Phi^+\rangle$.
+</p>
+
+<h3>Entanglement Purification</h3>
+
+<p>
+  Real entangled pairs are never perfect. Noise in the quantum channel, imperfect sources,
+  and decoherence in quantum memories all reduce the fidelity of distributed pairs. If a
+  protocol requires fidelity above some threshold (e.g., $F > 0.9$ for useful QKD),
+  low-fidelity pairs must be improved.
+</p>
+
+<p>
+  <strong>Entanglement purification</strong> (also called entanglement distillation) is the
+  process of converting multiple low-fidelity pairs into fewer high-fidelity pairs using
+  only local operations and classical communication (LOCC). The basic idea:
+</p>
+
+<ol>
+  <li>
+    Alice and Bob share two noisy EPR pairs, each with fidelity $F$ where $0.5 < F < 1$.
+  </li>
+  <li>
+    Both Alice and Bob apply CNOT gates locally (using one pair as control and the other
+    as target).
+  </li>
+  <li>
+    Both measure their target qubits and compare results over a classical channel.
+  </li>
+  <li>
+    If their measurement results agree, the remaining pair has higher fidelity than the
+    originals. If they disagree, the remaining pair is discarded.
+  </li>
+</ol>
+
+<p>
+  By repeating this process iteratively, fidelity can be boosted arbitrarily close to 1 at
+  the cost of consuming more pairs. The trade-off between the number of consumed pairs and
+  the output fidelity is governed by the <em>purification yield</em>.
+</p>
+
+<h3>Quantum Repeater Architecture</h3>
+
+<p>
+  A <strong>quantum repeater</strong> combines entanglement swapping and purification to
+  distribute high-fidelity entanglement over long distances. The basic architecture divides
+  a long link into shorter segments:
+</p>
+
+<ol>
+  <li>
+    Generate entanglement over each short segment (e.g., 50-100 km of fiber).
+  </li>
+  <li>
+    Purify the entanglement in each segment to achieve sufficient fidelity.
+  </li>
+  <li>
+    Perform entanglement swapping at each intermediate node to extend entanglement
+    across segments.
+  </li>
+  <li>
+    Optionally purify again after swapping to compensate for the fidelity loss
+    introduced by imperfect BSMs.
+  </li>
+</ol>
+
+<p>
+  Three generations of quantum repeater designs have been proposed:
+</p>
+
+<ul>
+  <li>
+    <strong>First generation:</strong> Heralded entanglement generation with quantum
+    memories and nested purification. Requires long-lived memories but only simple
+    operations.
+  </li>
+  <li>
+    <strong>Second generation:</strong> Uses quantum error correction at each repeater
+    node to protect stored qubits, reducing memory time requirements.
+  </li>
+  <li>
+    <strong>Third generation:</strong> Fully error-corrected repeaters that encode
+    logical qubits and perform fault-tolerant operations. These can achieve rates that
+    scale polynomially (rather than exponentially) with distance.
+  </li>
+</ul>
+
+<div class="callout callout-warning">
+  <strong>Common Misconception.</strong>
+  <p>
+    A quantum repeater is <em>not</em> a quantum amplifier. It does not copy or boost
+    quantum signals. Instead, it creates fresh entanglement in short segments and then
+    stitches these segments together through entanglement swapping. The quantum information
+    is never "in transit" through the repeater - it is teleported from segment to segment.
+  </p>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="standards-deployments">
+<h2>34.5 Standards and Current Deployments</h2>
+
+<p>
+  The transition from laboratory demonstrations to operational quantum networks requires
+  standardization, interoperability, and engineering at scale. Significant progress has
+  been made on all three fronts.
+</p>
+
+<h3>Standardization Efforts</h3>
+
+<p>
+  Several organizations are working to define standards for quantum networking:
+</p>
+
+<ul>
+  <li>
+    <strong>IETF (Internet Engineering Task Force):</strong> Published RFC 9340 in 2023,
+    "Architectural Principles for a Quantum Internet," establishing the conceptual
+    framework for integrating quantum communication into internet architecture.
+  </li>
+  <li>
+    <strong>ITU-T (International Telecommunication Union):</strong> Study Group 13 has
+    published recommendations on QKD network architecture, key management, and
+    interoperability requirements.
+  </li>
+  <li>
+    <strong>ETSI (European Telecommunications Standards Institute):</strong> The
+    Industry Specification Group on QKD (ISG-QKD) has published standards covering
+    QKD module interfaces, key delivery APIs, and security proofs.
+  </li>
+  <li>
+    <strong>IEEE:</strong> Working groups on quantum networking are developing standards
+    for quantum-classical network integration.
+  </li>
+</ul>
+
+<h3>Major Deployments</h3>
+
+<p>
+  <strong>China.</strong> The most extensive quantum network deployment in the world. The
+  CN-QCN (China Quantum Communication Network) is a carrier-grade QKD network spanning
+  over 10,000 km, incorporating 145 fiber backbone nodes and 20 metropolitan networks
+  covering 17 provinces and 80 cities. The network integrates the Beijing-Shanghai
+  backbone (2,000 km, operational since 2017) with satellite links through Micius and
+  the newer Jinan-1 microsatellite, which demonstrated intercontinental QKD with South
+  Africa in 2024.
+</p>
+
+<p>
+  <strong>Europe.</strong> The EuroQCI (European Quantum Communication Infrastructure)
+  initiative aims to build a pan-European quantum communication network. National networks
+  in the Netherlands (QuTech), UK (UKQN), Spain, and Austria serve as testbeds. The
+  Delft group demonstrated a three-node quantum network using NV centers in 2021,
+  representing one of the first entanglement-based (Stage 3) network demonstrations.
+</p>
+
+<p>
+  <strong>United States.</strong> The DOE (Department of Energy) has established quantum
+  network testbeds at national laboratories, including Argonne, Brookhaven, Fermilab,
+  and Oak Ridge. The Chicago-area quantum network connects Argonne and the University of
+  Chicago via a 124-mile fiber loop. Private companies including Toshiba and Qubitekk
+  have deployed metropolitan QKD systems.
+</p>
+
+<p>
+  <strong>Other.</strong> South Korea, Japan, Singapore, and Canada all have active QKD
+  network programs. South Korea's SK Telecom operates a commercial QKD link. Japan's
+  NICT has run the Tokyo QKD Network since 2010.
+</p>
+
+<div class="callout callout-key">
+  <strong>Key Concept.</strong>
+  <p>
+    Current deployments are almost exclusively at Wehner Stage 1 (trusted-repeater QKD).
+    The leap to Stage 3 and beyond - entanglement distribution without trusted relays -
+    requires quantum repeaters, which remain in the laboratory phase as of 2025.
+  </p>
+</div>
+
+<h3>Challenges Ahead</h3>
+
+<p>
+  Several major challenges remain on the path to a full quantum internet:
+</p>
+
+<ul>
+  <li>
+    <strong>Quantum memory coherence times.</strong> Current quantum memories decohere
+    in milliseconds to seconds, but repeater protocols may require storage times of
+    seconds to minutes for long-distance links.
+  </li>
+  <li>
+    <strong>Entanglement generation rates.</strong> The rate at which entangled pairs
+    can be generated and distributed is limited by photon loss, detector efficiency,
+    and source brightness.
+  </li>
+  <li>
+    <strong>Wavelength conversion efficiency.</strong> Converting between matter-qubit
+    emission wavelengths and telecom wavelengths with high fidelity and efficiency
+    remains an open engineering challenge.
+  </li>
+  <li>
+    <strong>Scalability.</strong> Moving from three-node laboratory networks to
+    city-scale and intercontinental entanglement-based networks requires orders of
+    magnitude improvement in all metrics simultaneously.
+  </li>
+  <li>
+    <strong>Integration with classical infrastructure.</strong> Quantum signals must
+    coexist with classical traffic on shared fiber, requiring careful management of
+    noise from classical channels.
+  </li>
+</ul>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="poe-ftl">
+<h2>Can Entanglement Enable Faster-Than-Light Communication?</h2>
+
+<div class="poe" data-component="poe">
+  <div class="poe-progress">
+    <div class="poe-progress-step active">Predict</div>
+    <div class="poe-progress-step">Observe</div>
+    <div class="poe-progress-step">Explain</div>
+  </div>
+  <div class="poe-step poe-predict active">
+    <h3>Predict</h3>
+    <p>
+      Alice and Bob share an EPR pair $|\Phi^+\rangle = \frac{1}{\sqrt{2}}(|00\rangle + |11\rangle)$.
+      Alice measures her qubit and instantly, no matter the distance, Bob's qubit collapses to a
+      definite state that is perfectly correlated with Alice's result. Can Alice use this
+      mechanism to send a message to Bob faster than light? Write your prediction and
+      reasoning below.
+    </p>
+    <textarea rows="3" placeholder="Write your prediction here..."></textarea>
+    <button data-action="next">Submit Prediction</button>
+  </div>
+  <div class="poe-step poe-observe">
+    <h3>Observe</h3>
+    <p>
+      Run the circuit below many times. Alice measures qubit 0 and Bob measures qubit 1.
+      Look at Bob's measurement results <em>alone</em> (ignore Alice's results for now).
+      What distribution does Bob see?
+    </p>
+    <div class="sandbox" data-component="sandbox" data-shots="1024" data-autorun>
+      <textarea class="code" rows="8">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+// Create EPR pair
+h q[0];
+cx q[0], q[1];
+// Both measure
+c = measure q;</textarea>
+      <div class="sandbox-controls">
+        <button data-action="run">Run Again</button>
+      </div>
+      <div class="output"></div>
+    </div>
+    <button data-action="next">Continue to Explanation</button>
+  </div>
+  <div class="poe-step poe-explain">
+    <h3>Explain</h3>
+    <p>
+      <strong>No, entanglement cannot be used for faster-than-light communication.</strong>
+      This is the <strong>no-communication theorem</strong>, a rigorous consequence of
+      quantum mechanics.
+    </p>
+    <p>
+      The key insight is that when Bob looks at his measurement results <em>alone</em>
+      (without knowing Alice's results), he sees a perfectly random 50/50 distribution of
+      0s and 1s - regardless of what Alice does. Alice's measurement does instantly
+      determine the <em>correlation</em> between their results, but correlation is only
+      visible when they compare results, which requires classical communication (limited
+      to the speed of light).
+    </p>
+    <p>
+      Formally, the reduced density matrix of Bob's qubit is $\rho_B = \frac{1}{2}I$
+      regardless of whether Alice has measured, what basis she measured in, or what result
+      she obtained. Bob's local statistics are completely independent of Alice's actions.
+      Entanglement enables remarkable protocols (teleportation, QKD, superdense coding),
+      but every one of them requires a classical channel to complete - and that classical
+      channel respects the speed of light.
+    </p>
+    <button data-action="complete">Complete</button>
+  </div>
+</div>
+
+</section>
+
+<!-- ================================================================== -->
+<section id="flashcards">
+<h2>Review Flashcards</h2>
+
+<div class="flashcard-deck" data-component="flashcard-deck">
+  <div class="flashcard-deck-header">Chapter 34 Review</div>
+
+  <div class="flashcard" data-card-id="ch34-ebit-definition">
+    <div class="card-front">What is an ebit, and how is it used as a networking metric?</div>
+    <div class="card-back">
+      An ebit is one maximally entangled pair (e.g., a Bell state) shared between two
+      parties. Quantum network capacity is measured in ebits per second - the rate at which
+      entangled pairs can be distributed. Each use of teleportation or entanglement-based
+      QKD consumes one ebit.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch34-wehner-stages">
+    <div class="card-front">Name the six stages of the quantum internet in the Wehner-Elkouss-Hanson framework.</div>
+    <div class="card-back">
+      (1) Trusted-Repeater Networks, (2) Prepare-and-Measure Networks,
+      (3) Entanglement-Distribution Networks, (4) Quantum-Memory Networks,
+      (5) Few-Qubit Fault-Tolerant Networks, (6) Quantum Computing Networks. Each stage
+      unlocks progressively more powerful applications, from basic QKD to full distributed
+      quantum computation.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch34-no-cloning-networking">
+    <div class="card-front">Why does the no-cloning theorem make quantum networking fundamentally harder than classical networking?</div>
+    <div class="card-back">
+      Classical networks amplify signals by copying and retransmitting bits. The no-cloning
+      theorem forbids copying unknown quantum states, so quantum signals cannot be amplified.
+      Photon loss in fiber is exponential (~0.2 dB/km at 1550 nm), and without amplification,
+      direct transmission is limited to roughly 100 km.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch34-entanglement-swapping">
+    <div class="card-front">Explain entanglement swapping in one sentence.</div>
+    <div class="card-back">
+      A relay node (Charlie) performs a Bell-state measurement on one qubit from each of
+      two separate EPR pairs (Alice-Charlie and Charlie-Bob), which projects the remaining
+      qubits (Alice's and Bob's) into an entangled state, even though they never directly
+      interacted. This is equivalent to teleporting entanglement.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch34-purification-purpose">
+    <div class="card-front">What is entanglement purification and why is it needed?</div>
+    <div class="card-back">
+      Entanglement purification converts multiple low-fidelity entangled pairs into fewer
+      high-fidelity pairs using local operations and classical communication (LOCC). It is
+      needed because real-world entanglement is degraded by channel noise, imperfect sources,
+      and decoherence. Protocols require fidelity above certain thresholds to be useful.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch34-fiber-vs-satellite">
+    <div class="card-front">Why are satellite links preferred over fiber for intercontinental quantum communication?</div>
+    <div class="card-back">
+      Fiber loss is exponential (~0.2 dB/km), making direct transmission impractical beyond
+      a few hundred km. Satellite free-space links suffer only inverse-square-law loss,
+      which is far more favorable for long distances. China's Micius demonstrated
+      entanglement distribution over 1,200 km via satellite.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch34-no-ftl">
+    <div class="card-front">Can entanglement be used for faster-than-light communication? Why or why not?</div>
+    <div class="card-back">
+      No. The no-communication theorem proves that Bob's local measurement statistics are
+      independent of anything Alice does to her qubit. Bob always sees a random 50/50
+      outcome; correlations only become visible when results are compared via a classical
+      channel (limited to light speed). Entanglement enables remarkable protocols but all
+      require classical communication to complete.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard" data-card-id="ch34-quantum-repeater">
+    <div class="card-front">How does a quantum repeater differ from a classical repeater?</div>
+    <div class="card-back">
+      A classical repeater copies and retransmits signals. A quantum repeater cannot copy
+      (no-cloning). Instead, it generates entanglement in short segments, purifies the
+      pairs, and uses entanglement swapping to stitch segments together. The quantum
+      information is teleported from segment to segment, never physically traversing
+      the full distance.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+</section>

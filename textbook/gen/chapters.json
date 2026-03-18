@@ -4,6 +4,7 @@
     "title": "What Is Computation?",
     "part": 1,
     "partTitle": "The World of Classical Computing",
+    "partDescription": "No prerequisites. Establishes the classical foundation that makes quantum computing meaningful.",
     "chapter": 1
   },
   {
@@ -25,6 +26,7 @@
     "title": "The First Qubit",
     "part": 2,
     "partTitle": "Entering the Quantum World",
+    "partDescription": "Introduces quantum mechanics through the lens of computation. Math introduced just-in-time.",
     "chapter": 4
   },
   {
@@ -46,6 +48,7 @@
     "title": "Quantum Teleportation and Communication",
     "part": 3,
     "partTitle": "Quantum Protocols",
+    "partDescription": "The power of qubits and entanglement through landmark protocols.",
     "chapter": 7
   },
   {
@@ -59,28 +62,29 @@
     "slug": "09-oracles",
     "title": "Oracles and Quantum Parallelism",
     "part": 4,
-    "partTitle": "Quantum Algorithms: The First Wave",
+    "partTitle": "Quantum Algorithms - The First Wave",
+    "partDescription": "The canonical algorithm progression, each building on the last.",
     "chapter": 9
   },
   {
     "slug": "10-qft",
     "title": "The Quantum Fourier Transform",
     "part": 4,
-    "partTitle": "Quantum Algorithms: The First Wave",
+    "partTitle": "Quantum Algorithms - The First Wave",
     "chapter": 10
   },
   {
     "slug": "11-shor",
     "title": "Shor's Algorithm",
     "part": 4,
-    "partTitle": "Quantum Algorithms: The First Wave",
+    "partTitle": "Quantum Algorithms - The First Wave",
     "chapter": 11
   },
   {
     "slug": "12-grover",
     "title": "Grover's Algorithm",
     "part": 4,
-    "partTitle": "Quantum Algorithms: The First Wave",
+    "partTitle": "Quantum Algorithms - The First Wave",
     "chapter": 12
   },
   {
@@ -88,6 +92,7 @@
     "title": "How to Build a Quantum Computer",
     "part": 5,
     "partTitle": "Real Quantum Hardware",
+    "partDescription": "Transitions from theory to practice with real quantum devices.",
     "chapter": 13
   },
   {
@@ -109,6 +114,7 @@
     "title": "Classical Error Correction Refresher",
     "part": 6,
     "partTitle": "Quantum Error Correction",
+    "partDescription": "The critical technology enabling fault-tolerant quantum computing.",
     "chapter": 16
   },
   {
@@ -144,6 +150,7 @@
     "title": "The Variational Quantum Computing Paradigm",
     "part": 7,
     "partTitle": "Variational and Near-Term Algorithms",
+    "partDescription": "Practical algorithms for today's quantum hardware.",
     "chapter": 21
   },
   {
@@ -179,6 +186,7 @@
     "title": "Quantum States and Measurements, Revisited",
     "part": 8,
     "partTitle": "Quantum Information Theory",
+    "partDescription": "The mathematical foundations of quantum information.",
     "chapter": 26
   },
   {
@@ -207,6 +215,7 @@
     "title": "Quantum Computational Complexity",
     "part": 9,
     "partTitle": "Quantum Complexity and Computation Theory",
+    "partDescription": "For readers interested in the theoretical computer science of quantum.",
     "chapter": 30
   },
   {
@@ -221,6 +230,7 @@
     "title": "Why Quantum Simulation Matters",
     "part": 10,
     "partTitle": "Quantum Simulation",
+    "partDescription": "The application Feynman envisioned - simulating nature with quantum machines.",
     "chapter": 32
   },
   {
@@ -235,6 +245,7 @@
     "title": "The Quantum Internet",
     "part": 11,
     "partTitle": "Quantum Networking, Cryptography, and Sensing",
+    "partDescription": "The broader quantum technology ecosystem beyond computing.",
     "chapter": 34
   },
   {
@@ -256,6 +267,7 @@
     "title": "Topological Quantum Computing",
     "part": 12,
     "partTitle": "Frontiers and the Future",
+    "partDescription": "Current research, open problems, and how to join the field.",
     "chapter": 37
   },
   {
