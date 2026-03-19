@@ -17,9 +17,9 @@
 
 <div class="callout callout-info">
   <strong>Prerequisites.</strong>
-  <p>Familiarity with quantum circuits (Chapters 5-6), variational algorithms (Chapter 24),
-  and a general awareness of machine learning concepts (training, neural networks,
-  optimization) will be helpful. No deep ML expertise is required.</p>
+  <p>Familiarity with quantum circuits (Chapters 5-6), variational algorithms (Chapters 21-23),
+  quantum machine learning (Chapter 24), and a general awareness of machine learning concepts
+  (training, neural networks, optimization) will be helpful. No deep ML expertise is required.</p>
 </div>
 
 <!-- ================================================================== -->
@@ -262,15 +262,17 @@ c[0] = measure q[0];</textarea>
 <p>
   The results are striking. On Google's Sycamore processor, AlphaQubit made
   <strong>6% fewer errors</strong> than tensor network decoders and <strong>30% fewer
-  errors</strong> than correlated matching. On the newer Willow processor, AlphaQubit
-  achieved a scaling factor of 2.14x - meaning that for each step up in code distance
-  (from distance 3 to 5 to 7), the logical error rate dropped exponentially.
+  errors</strong> than correlated matching. Separately, Google's Willow processor
+  achieved a scaling factor of 2.14x using correlated matching - meaning that for each
+  step up in code distance (from distance 3 to 5 to 7), the logical error rate dropped
+  exponentially. Combining neural-network decoders with newer hardware promises even
+  greater gains.
 </p>
 
 <p>
-  By 2025, Google integrated AlphaQubit into custom ASIC controllers, addressing the
-  original limitation that neural network inference was too slow for real-time decoding
-  in superconducting processors.
+  By 2025, Google developed AQ2-RT, a compact version of AlphaQubit running on
+  Trillium TPU accelerators, addressing the original limitation that neural network
+  inference was too slow for real-time decoding in superconducting processors.
 </p>
 
 <h3>Other AI Applications in Quantum Computing</h3>
@@ -368,7 +370,7 @@ c[0] = measure q[0];</textarea>
 <hr />
 
 <!-- ================================================================== -->
-<section id="ch38-review">
+<section id="review">
 <h2>Chapter 38 Review</h2>
 
 <div class="flashcard-deck" data-component="flashcard-deck">

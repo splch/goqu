@@ -146,11 +146,13 @@ c = measure q;</textarea>
 </div>
 
 <p>
-  The output should read <code>111</code> with 100% probability, confirming that the error
-  on <code>q[1]</code> has been corrected and the original encoded state recovered. Try
-  removing the error line (<code>x q[1];</code>) to verify the no-error case also works.
-  You can also move the error to <code>q[0]</code> or <code>q[2]</code> - any single-bit
-  flip will be corrected.
+  The corrected logical bit is in <code>q[0]</code>, which should read <code>1</code>
+  with 100% probability. The other two qubits contain syndrome information (not the
+  original encoded values), so the full output will be <code>100</code> for no error,
+  <code>110</code> for error on <code>q[1]</code>, etc. The key point is that
+  <code>q[0]</code> always recovers the correct logical value. Try moving the error
+  to <code>q[0]</code> or <code>q[2]</code> - any single-bit flip is corrected in
+  <code>q[0]</code>.
 </p>
 
 <div class="callout callout-info">
@@ -779,6 +781,9 @@ $$H(p) = -p \log_2 p - (1-p) \log_2(1-p)$$
 
 <!-- ================================================================== -->
 
+<section id="review">
+<h2>Chapter 16 Review</h2>
+
 <div class="flashcard-deck" data-component="flashcard-deck">
   <div class="flashcard-deck-header">Chapter 16 Review</div>
 
@@ -900,3 +905,4 @@ $$H(p) = -p \log_2 p - (1-p) \log_2(1-p)$$
     </div>
   </div>
 </div>
+</section>

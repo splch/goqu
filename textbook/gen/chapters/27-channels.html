@@ -368,12 +368,12 @@ The <strong>phase-flip channel</strong> applies a $Z$ gate with probability $p$:
 $$\mathcal{E}_{\text{pf}}(\rho) = (1-p)\rho + p Z\rho Z$$
 
 <p>
-In the computational basis, this has the same form as the dephasing channel. However, the
-phase-flip is often discussed alongside the bit-flip as dual noise models: the bit-flip
-errors in the $Z$ basis while the phase-flip errors in the $X$ basis. Their combination
-gives the <strong>depolarizing channel</strong> when combined with the bit-phase-flip
-(applying $Y = iXZ$). Understanding these three types of errors separately - $X$, $Z$, and
-$Y$ - is the starting point for quantum error correction theory.
+This is mathematically identical to the dephasing channel above - they are two names for
+the same map. The term "phase-flip" emphasizes its role as the $Z$-error analog of the
+bit-flip ($X$-error) channel. The bit-flip errors in the $Z$ basis while the phase-flip
+errors in the $X$ basis. Combining all three Pauli errors ($X$, $Z$, and $Y = iXZ$) with
+equal probability gives the <strong>depolarizing channel</strong>. Understanding these three
+error types separately is the starting point for quantum error correction theory.
 </p>
 
 <h3>Summary Table</h3>
@@ -793,6 +793,9 @@ channel mixes $|+\rangle$ and $|-\rangle$, destroying coherence in the $X$ basis
 
 <!-- ================================================================== -->
 
+<section id="review">
+<h2>Chapter 27 Review</h2>
+
 <div class="flashcard-deck" data-component="flashcard-deck">
   <div class="flashcard-deck-header">Chapter 27 Review</div>
 
@@ -885,3 +888,4 @@ channel mixes $|+\rangle$ and $|-\rangle$, destroying coherence in the $X$ basis
   </div>
 
 </div>
+</section>

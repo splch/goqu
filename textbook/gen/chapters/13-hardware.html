@@ -90,7 +90,8 @@
   arbitrary precision. As we learned in earlier chapters, a common universal gate set consists
   of arbitrary single-qubit rotations plus a two-qubit entangling gate such as CNOT. In
   practice, different hardware platforms implement different native gate sets - for instance,
-  IBM systems use the ECR (echoed cross-resonance) gate as their native two-qubit gate, while
+  IBM's Eagle-generation systems use the ECR (echoed cross-resonance) gate as their native
+  two-qubit gate, while newer Heron processors use CZ. Meanwhile,
   trapped-ion systems typically implement the M&oslash;lmer-S&oslash;rensen or XX gate. Compilers decompose
   abstract circuits into whichever native gates the hardware provides.
 </p>
@@ -245,8 +246,8 @@
   </thead>
   <tbody>
     <tr><td>Qubit count</td><td>50-1,200 (current generation)</td></tr>
-    <tr><td>$T_1$ coherence</td><td>50-300 $\mu$s</td></tr>
-    <tr><td>$T_2$ coherence</td><td>50-200 $\mu$s</td></tr>
+    <tr><td>$T_1$ coherence</td><td>50-200 $\mu$s</td></tr>
+    <tr><td>$T_2$ coherence</td><td>50-200 $\mu$s (up to $2T_1$)</td></tr>
     <tr><td>Single-qubit gate time</td><td>20-50 ns</td></tr>
     <tr><td>Two-qubit gate time</td><td>50-100 ns</td></tr>
     <tr><td>Single-qubit gate fidelity</td><td>99.9-99.97%</td></tr>
@@ -391,9 +392,10 @@ c = measure q;</textarea>
 
 <p>
   <strong>Quantinuum H2 (2023-2025):</strong> Uses $^{171}\text{Yb}^+$ ions in a QCCD trap.
-  Launched with 32 qubits in May 2023 and upgraded to 56 qubits in June 2024. Two-qubit
-  gate fidelities of 99.9% (the first commercially available system to reach "three nines"),
-  and a record quantum volume of $2^{25}$ (33,554,432) achieved in September 2025.
+  Launched with 32 qubits in May 2023. In April 2024, achieved two-qubit gate fidelities
+  of 99.9% on H1-1 (the first commercially available system to reach "three nines").
+  Upgraded to 56 qubits in June 2024, and achieved a record quantum volume of $2^{25}$
+  (33,554,432) in September 2025.
   All-to-all connectivity means any qubit can interact with any other without routing
   overhead.
 </p>

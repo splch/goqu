@@ -167,10 +167,10 @@ $$U(H_C, \gamma) = e^{-i \gamma H_C}$$
   commute with each other), so the exponential factors cleanly:
 </p>
 
-$$U(H_C, \gamma) = \prod_{(i,j) \in E} e^{-i \gamma (I - Z_i Z_j)/2} = \prod_{(i,j) \in E} e^{i \gamma Z_i Z_j / 2}$$
+$$U(H_C, \gamma) = \prod_{(i,j) \in E} e^{-i \gamma (I - Z_i Z_j)/2} = \prod_{(i,j) \in E} e^{-i \gamma Z_i Z_j / 2}$$
 
 <p>
-  up to a global phase. Each factor $e^{i \gamma Z_i Z_j / 2}$ is implemented by an
+  up to a global phase. Each factor $e^{-i \gamma Z_i Z_j / 2}$ is implemented by an
   $R_{ZZ}(\gamma)$ gate - a two-qubit gate that applies a relative phase depending on whether
   qubits $i$ and $j$ agree or disagree. In QASM, this is written as
   <code>rzz(gamma) q[i], q[j];</code>. The problem unitary stamps the cost function into the
@@ -879,6 +879,9 @@ async function runQAOAWidget() {
 
 <!-- ================================================================== -->
 
+<section id="review">
+<h2>Chapter 23 Review</h2>
+
 <div class="flashcard-deck" data-component="flashcard-deck">
   <div class="flashcard-deck-header">Chapter 23 Review</div>
 
@@ -1005,3 +1008,4 @@ async function runQAOAWidget() {
   </div>
 
 </div>
+</section>
