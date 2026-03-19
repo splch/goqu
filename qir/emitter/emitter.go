@@ -703,4 +703,3 @@ func countMeasurements(c *ir.Circuit) int {
 	})
 	return count
 }
-

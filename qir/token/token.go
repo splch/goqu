@@ -19,10 +19,10 @@ const (
 	STRING_LIT // "string"
 
 	// Punctuation.
-	LPAREN  // (
-	RPAREN  // )
-	LBRACE  // {
-	RBRACE  // }
+	LPAREN   // (
+	RPAREN   // )
+	LBRACE   // {
+	RBRACE   // }
 	LBRACKET // [
 	RBRACKET // ]
 	COMMA    // ,

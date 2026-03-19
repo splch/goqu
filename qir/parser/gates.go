@@ -4,9 +4,9 @@ import "github.com/splch/goqu/circuit/gate"
 
 // gateFactory constructs a goqu gate from QIR parameters.
 type gateFactory struct {
-	fixedGate  gate.Gate             // non-nil for fixed (unparameterized) gates
+	fixedGate  gate.Gate               // non-nil for fixed (unparameterized) gates
 	paramGate1 func(float64) gate.Gate // non-nil for single-parameter gates
-	nQubits    int                    // number of qubits this gate acts on
+	nQubits    int                     // number of qubits this gate acts on
 }
 
 // reverseMap maps QIR intrinsic function names to goqu gate factories.

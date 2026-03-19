@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -50,7 +51,7 @@ func ParseString(source string, opts ...Option) (*ir.Circuit, error) {
 
 // ParseFile parses QIR LLVM IR from a file.
 func ParseFile(path string, opts ...Option) (*ir.Circuit, error) {
-	data, err := os.ReadFile(path)
+	data, err := os.ReadFile(filepath.Clean(path)) // #nosec G304 -- caller controls path
 	if err != nil {
 		return nil, fmt.Errorf("qir/parser: %w", err)
 	}
@@ -68,10 +69,7 @@ type parser struct {
 
 func (p *parser) parse(source string) (*ir.Circuit, error) {
 	// Extract circuit info from the LLVM IR by scanning for key patterns.
-	ops, err := p.extractOperations(source)
-	if err != nil {
-		return nil, err
-	}
+	ops := p.extractOperations(source)
 
 	name := p.circName
 	if p.cfg.name != "" {
@@ -84,7 +82,7 @@ func (p *parser) parse(source string) (*ir.Circuit, error) {
 // extractOperations does a line-by-line parse of the QIR LLVM IR to extract
 // quantum operations. This approach is simpler and more robust than full
 // LLVM IR parsing since QIR follows rigid conventions.
-func (p *parser) extractOperations(source string) ([]ir.Operation, error) {
+func (p *parser) extractOperations(source string) []ir.Operation {
 	var ops []ir.Operation
 
 	lines := strings.Split(source, "\n")
@@ -141,7 +139,7 @@ func (p *parser) extractOperations(source string) ([]ir.Operation, error) {
 		}
 	}
 
-	return ops, nil
+	return ops
 }
 
 // parseDefine extracts the function name from a define line.
@@ -189,8 +187,8 @@ func (p *parser) parseGateCall(fnName, argStr string) (*ir.Operation, error) {
 
 	// Handle reset: __quantum__qis__reset__body.
 	if fnName == "__quantum__qis__reset__body" {
-		qubits, err := extractQubitIndices(argStr)
-		if err != nil || len(qubits) == 0 {
+		qubits := extractQubitIndices(argStr)
+		if len(qubits) == 0 {
 			return nil, fmt.Errorf("cannot parse reset args")
 		}
 		return &ir.Operation{Gate: gate.Reset, Qubits: qubits[:1]}, nil
@@ -308,9 +306,8 @@ func extractPtrIndex(s string) int {
 }
 
 // extractQubitIndices extracts qubit indices from a parenthesized argument string.
-func extractQubitIndices(argStr string) ([]int, error) {
-	args := extractCallArgs(argStr)
-	return extractQubitIndicesFromArgs(args), nil
+func extractQubitIndices(argStr string) []int {
+	return extractQubitIndicesFromArgs(extractCallArgs(argStr))
 }
 
 // extractQubitIndicesFromArgs extracts qubit indices from already-split args.

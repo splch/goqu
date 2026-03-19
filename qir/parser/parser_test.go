@@ -317,16 +317,17 @@ func TestRoundTrip(t *testing.T) {
 		parsOp := parsedOps[i]
 
 		// Compare gate names.
-		if origOp.Gate == nil && parsOp.Gate == nil {
+		switch {
+		case origOp.Gate == nil && parsOp.Gate == nil:
 			// Both measurements.
 			if len(origOp.Clbits) != len(parsOp.Clbits) {
 				t.Errorf("op %d: clbit count mismatch", i)
 			}
-		} else if origOp.Gate != nil && parsOp.Gate != nil {
+		case origOp.Gate != nil && parsOp.Gate != nil:
 			if origOp.Gate.Name() != parsOp.Gate.Name() {
 				t.Errorf("op %d: gate name got %q, want %q", i, parsOp.Gate.Name(), origOp.Gate.Name())
 			}
-		} else {
+		default:
 			t.Errorf("op %d: gate nil mismatch", i)
 		}
 
