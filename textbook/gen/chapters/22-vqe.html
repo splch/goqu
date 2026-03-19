@@ -864,6 +864,7 @@ $$\text{Var}\left[\frac{\partial C}{\partial \theta_k}\right] \leq \frac{1}{2^n 
 
 <!-- ================================================================== -->
 
+<section id="vqe-interactive">
 <h3>Interactive: VQE Energy Landscape</h3>
 <p>
   Before running the optimizer, explore the energy landscape by sweeping a single
@@ -981,7 +982,7 @@ async function runVQEWidget() {
   out.innerHTML = '<p style="color:var(--color-text-muted)">Optimizing (this may take a moment)...</p>';
   await new Promise(function(r) { setTimeout(r, 0); });
   try {
-    var ham = "-1.05*II+0.39*ZI+-0.39*IZ+-0.01*ZZ+0.18*XX";
+    var ham = "-1.05*II+0.39*ZI+-0.39*IZ+-0.01*ZZ+0.18*XX+0.18*YY";
     var r = JSON.parse(window.runVQE(ham, ans, 2, layers, 100, isDark()));
     if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
     var html = (r.circuitSVG||'');
@@ -996,6 +997,7 @@ async function runVQEWidget() {
   } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
 }
 </script>
+</section>
 
 <!-- ================================================================== -->
 

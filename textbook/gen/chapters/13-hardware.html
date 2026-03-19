@@ -91,7 +91,7 @@
   of arbitrary single-qubit rotations plus a two-qubit entangling gate such as CNOT. In
   practice, different hardware platforms implement different native gate sets - for instance,
   IBM systems use the ECR (echoed cross-resonance) gate as their native two-qubit gate, while
-  trapped-ion systems typically implement the Molmer-Sorensen or XX gate. Compilers decompose
+  trapped-ion systems typically implement the M&oslash;lmer-S&oslash;rensen or XX gate. Compilers decompose
   abstract circuits into whichever native gates the hardware provides.
 </p>
 
@@ -218,10 +218,11 @@
 <h3>Leading Processors</h3>
 
 <p>
-  <strong>IBM Heron (2023):</strong> 133 qubits in a heavy-hex lattice with tunable couplers,
-  achieving median two-qubit gate fidelities above 99.5%. Heron marked an architectural shift
-  from fixed-frequency transmons to tunable designs. IBM's roadmap targets 100,000+ qubits
-  by decade's end through modular multi-chip architectures.
+  <strong>IBM Heron (2023-2024):</strong> The original Heron processor has 133 qubits; Heron r2
+  (2024) increased to 156 qubits in a heavy-hex lattice, achieving median two-qubit gate
+  fidelities above 99.5%. Heron uses fixed-frequency transmons with tunable couplers, allowing
+  interaction strength between qubits to be adjusted on demand. IBM's roadmap targets 100,000+
+  qubits by decade's end through modular multi-chip architectures.
 </p>
 
 <p>
@@ -229,8 +230,8 @@
   demonstrated a landmark error-correction result: increasing the surface code distance from 3
   to 5 to 7 reduced the logical error rate at each step, achieving exponential suppression of
   errors with scale. This was the first conclusive demonstration of the scaling behavior that
-  fault-tolerant quantum computing requires. Willow also achieved $T_1$ times exceeding
-  100 microseconds.
+  fault-tolerant quantum computing requires. Willow achieved $T_1$ times averaging
+  approximately 68 microseconds (with some qubits exceeding 100 microseconds).
 </p>
 
 <h3>Performance Summary</h3>
@@ -360,7 +361,7 @@ c = measure q;</textarea>
 
 <p>
   <strong>Two-qubit entangling gates</strong> use laser beams to couple two ions through their
-  shared motional modes. The most common scheme is the <strong>Molmer-Sorensen gate</strong>,
+  shared motional modes. The most common scheme is the <strong>M&oslash;lmer-S&oslash;rensen gate</strong>,
   which uses bichromatic laser fields (two frequencies symmetrically detuned from the qubit
   transition) to create a state-dependent force on the ions. The resulting XX interaction
   generates maximal entanglement. Two-qubit gate fidelities have reached 99.5-99.9% in
@@ -389,10 +390,12 @@ c = measure q;</textarea>
 <h3>Leading Systems</h3>
 
 <p>
-  <strong>Quantinuum H2 (2023-2024):</strong> Uses $^{171}\text{Yb}^+$ ions in a QCCD trap
-  with 56 qubits, two-qubit gate fidelities of 99.8%, and record quantum volume of 65,536
-  ($2^{16}$). All-to-all connectivity means any qubit can interact with any other without
-  routing overhead.
+  <strong>Quantinuum H2 (2023-2025):</strong> Uses $^{171}\text{Yb}^+$ ions in a QCCD trap.
+  Launched with 32 qubits in May 2023 and upgraded to 56 qubits in June 2024. Two-qubit
+  gate fidelities of 99.9% (the first commercially available system to reach "three nines"),
+  and a record quantum volume of $2^{25}$ (33,554,432) achieved in September 2025.
+  All-to-all connectivity means any qubit can interact with any other without routing
+  overhead.
 </p>
 
 <p>

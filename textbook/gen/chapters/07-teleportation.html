@@ -137,9 +137,9 @@ c[2] = measure q[2];</textarea>
 <p>Quantum teleportation is not just a communication protocol. It is a fundamental primitive in quantum computing and quantum networking:</p>
 
 <ul>
-  <li><strong>Quantum error correction</strong> (Part VI of this book) uses teleportation-like circuits to move quantum information between encoded blocks without exposing it to noise.</li>
+  <li><strong>Quantum error correction</strong> (Part VI) uses teleportation-like circuits to move quantum information between encoded blocks without exposing it to noise.</li>
   <li><strong>Gate teleportation</strong> is a technique where a quantum gate is applied to a qubit by teleporting it through a specially prepared entangled state. This allows "offline" preparation of difficult gates and is a key ingredient in fault-tolerant quantum computing.</li>
-  <li><strong>Quantum networks</strong> use teleportation to transmit qubits between distant nodes. Since photons (the natural carriers for long-distance communication) are easily lost, teleportation with entanglement swapping allows quantum information to traverse networks without requiring a single photon to travel the full distance.</li>
+  <li><strong>Quantum networks</strong> (Chapter 34) use teleportation to transmit qubits between distant nodes. Since photons (the natural carriers for long-distance communication) are easily lost, teleportation with entanglement swapping allows quantum information to traverse networks without requiring a single photon to travel the full distance.</li>
 </ul>
 
 <h3>Predict, Observe, Explain: Can we send information faster than light?</h3>
@@ -448,27 +448,27 @@ $$a \oplus b = x \wedge y$$
 <p>Now suppose Alice and Bob share an entangled Bell pair $|\Phi^+\rangle = \frac{1}{\sqrt{2}}(|00\rangle + |11\rangle)$. They use the following strategy:</p>
 
 <ul>
-  <li><strong>Alice:</strong> If $x = 0$, measure in the standard basis ($Z$ basis). If $x = 1$, measure in a basis rotated by $\pi/4$ (apply $R_y(-\pi/4)$ then measure in $Z$).</li>
-  <li><strong>Bob:</strong> If $y = 0$, measure in a basis rotated by $\pi/8$ (apply $R_y(-\pi/8)$ then measure). If $y = 1$, measure in a basis rotated by $-\pi/8$ (apply $R_y(\pi/8)$ then measure).</li>
+  <li><strong>Alice:</strong> If $x = 0$, measure in the standard basis ($Z$ basis). If $x = 1$, measure in a basis rotated by $\pi/2$ on the Bloch sphere (apply $R_y(-\pi/2)$ then measure in $Z$).</li>
+  <li><strong>Bob:</strong> If $y = 0$, measure in a basis rotated by $\pi/4$ (apply $R_y(-\pi/4)$ then measure). If $y = 1$, measure in a basis rotated by $-\pi/4$ (apply $R_y(\pi/4)$ then measure).</li>
 </ul>
 
-<p>The idea is geometrical. Picture the measurement bases as directions on a circle. Alice has two directions (angles 0 and $\pi/4$) and Bob has two directions ($\pi/8$ and $-\pi/8$). For each input pair, the angle between their chosen measurement bases determines the correlation:</p>
+<p>The idea is geometrical. Picture the measurement bases as directions on the Bloch sphere. Alice has two directions (angles $0$ and $\pi/2$) and Bob has two directions ($\pi/4$ and $-\pi/4$). For each input pair, the angle between their chosen measurement bases determines the correlation:</p>
 
 <table>
   <thead>
     <tr><th>Inputs $(x, y)$</th><th>Alice's angle</th><th>Bob's angle</th><th>Angle between</th><th>Want</th></tr>
   </thead>
   <tbody>
-    <tr><td>$(0, 0)$</td><td>$0$</td><td>$\pi/8$</td><td>$\pi/8$</td><td>Same</td></tr>
-    <tr><td>$(0, 1)$</td><td>$0$</td><td>$-\pi/8$</td><td>$\pi/8$</td><td>Same</td></tr>
-    <tr><td>$(1, 0)$</td><td>$\pi/4$</td><td>$\pi/8$</td><td>$\pi/8$</td><td>Same</td></tr>
-    <tr><td>$(1, 1)$</td><td>$\pi/4$</td><td>$-\pi/8$</td><td>$3\pi/8$</td><td>Different</td></tr>
+    <tr><td>$(0, 0)$</td><td>$0$</td><td>$\pi/4$</td><td>$\pi/4$</td><td>Same</td></tr>
+    <tr><td>$(0, 1)$</td><td>$0$</td><td>$-\pi/4$</td><td>$\pi/4$</td><td>Same</td></tr>
+    <tr><td>$(1, 0)$</td><td>$\pi/2$</td><td>$\pi/4$</td><td>$\pi/4$</td><td>Same</td></tr>
+    <tr><td>$(1, 1)$</td><td>$\pi/2$</td><td>$-\pi/4$</td><td>$3\pi/4$</td><td>Different</td></tr>
   </tbody>
 </table>
 
-<p>When the angle between the measurement bases is $\theta$, the probability of getting matching outcomes from the Bell state is $\cos^2(\theta/2)$. For the three "same" cases, the angle is $\pi/8$, giving correlation $\cos^2(\pi/16)$... but wait, the way the Ry rotation works on a Bell state, the relevant parameter is the full angle between basis vectors.</p>
+<p>When Alice and Bob share the Bell state $|\Phi^+\rangle$ and measure along axes separated by an angle $\theta$ on the Bloch sphere, the probability of obtaining matching outcomes is $\cos^2(\theta/2)$. For the three "same" cases, the Bloch sphere angle between their measurement bases is $\pi/4$, giving a matching probability of $\cos^2(\pi/8) \approx 85.4\%$. For the "different" case $(1,1)$, the angle is $3\pi/4$, giving a matching probability of $\cos^2(3\pi/8) \approx 14.6\%$ - meaning the <em>different</em> outcomes appear with probability $\sin^2(3\pi/8) = \cos^2(\pi/8) \approx 85.4\%$.</p>
 
-<p>Working through the quantum mechanics (or using the fact that Bell state correlations go as $\cos^2$ of half the angle between measurement axes on the Bloch sphere), the win probability for each case is $\cos^2(\pi/8)$. Crucially, this is the <em>same</em> value for all four input pairs - the angles are cleverly arranged so that the three "matching" cases and the one "different" case all have the same $\pi/8$ effective angle.</p>
+<p>Crucially, all four input cases yield the <em>same</em> win probability of $\cos^2(\pi/8)$. The angles are arranged so that the three cases requiring matching outputs and the one case requiring different outputs all benefit equally from the quantum correlations.</p>
 
 <p>The quantum strategy wins with probability:</p>
 
@@ -483,7 +483,7 @@ $$p_{\text{win}} = \cos^2\!\left(\frac{\pi}{8}\right) \approx 0.8536$$
 
 <h3>Sandbox: the quantum CHSH strategy</h3>
 
-<p>Below is a circuit implementing the quantum strategy for the input case $x = 0, y = 0$. Alice measures in the standard basis and Bob rotates by $\pi/8$. They should mostly output matching bits and win this round:</p>
+<p>Below is a circuit implementing the quantum strategy for the input case $x = 0, y = 0$. Alice measures in the standard basis and Bob rotates by $\pi/4$ on the Bloch sphere. They should mostly output matching bits and win this round:</p>
 
 <div class="sandbox" data-component="sandbox" data-shots="1024">
   <textarea class="code" rows="13">OPENQASM 3.0;
@@ -496,8 +496,8 @@ cx q[0], q[1];
 
 // Alice: x=0, measure in Z basis (no rotation)
 
-// Bob: y=0, rotate by -pi/8
-ry(-pi/8) q[1];
+// Bob: y=0, rotate by -pi/4
+ry(-pi/4) q[1];
 
 c = measure q;</textarea>
   <div class="sandbox-controls">
@@ -520,11 +520,11 @@ bit[2] c;
 h q[0];
 cx q[0], q[1];
 
-// Alice: x=1, rotate by -pi/4
-ry(-pi/4) q[0];
+// Alice: x=1, rotate by -pi/2
+ry(-pi/2) q[0];
 
-// Bob: y=1, rotate by pi/8
-ry(pi/8) q[1];
+// Bob: y=1, rotate by pi/4
+ry(pi/4) q[1];
 
 c = measure q;</textarea>
   <div class="sandbox-controls">
@@ -536,7 +536,7 @@ c = measure q;</textarea>
 
 <p>Here the <em>different</em> outcomes ($|01\rangle$ and $|10\rangle$) should again appear about 85% of the time. The quantum strategy manages to win approximately 85% in <em>all four</em> input cases, not just three out of four.</p>
 
-<p>Try the other two cases yourself by setting $(x, y) = (0, 1)$ and $(1, 0)$. For $(x=0, y=1)$: no rotation on Alice, $R_y(\pi/8)$ on Bob. For $(x=1, y=0)$: $R_y(-\pi/4)$ on Alice, $R_y(-\pi/8)$ on Bob. In both cases, matching outputs should dominate.</p>
+<p>Try the other two cases yourself by setting $(x, y) = (0, 1)$ and $(1, 0)$. For $(x=0, y=1)$: no rotation on Alice, $R_y(\pi/4)$ on Bob. For $(x=1, y=0)$: $R_y(-\pi/2)$ on Alice, $R_y(-\pi/4)$ on Bob. In both cases, matching outputs should dominate.</p>
 
 <h3>Why not better than $2\sqrt{2}$?</h3>
 
@@ -586,7 +586,7 @@ $$a \oplus b \oplus c = x \vee y \vee z$$
 
 <div class="callout callout-key">
   <strong>No classical strategy can win all four cases</strong>
-  <p>The system of equations has no solution, so any deterministic strategy must fail on at least one of the four input triples. The best possible classical success rate is 3 out of 4, or <strong>75%</strong>. (For instance, always output 0 wins the first three cases but fails the last.)</p>
+  <p>The system of equations has no solution, so any deterministic strategy must fail on at least one of the four input triples. The best possible classical success rate is 3 out of 4, or <strong>75%</strong>. (For instance, if all three players always output 1, then $a \oplus b \oplus c = 1$, which matches $x \vee y \vee z = 1$ for the three cases where at least one input is 1, but fails the $(0,0,0)$ case where the required output XOR is 0.)</p>
 </div>
 
 <h3>The quantum strategy: 100% win rate</h3>
@@ -745,7 +745,7 @@ c = measure q;</textarea>
   <li><strong>The GHZ game</strong> provides an even starker demonstration: no classical strategy can win every round, but the GHZ state gives a 100% win rate, ruling out local hidden variables with a single perfect experiment.</li>
 </ul>
 
-<p>These protocols form the conceptual foundation of quantum communication. In the next chapter, we will see how entanglement and quantum measurement lead to practical applications in cryptography - specifically, quantum key distribution protocols that offer security guaranteed by the laws of physics.</p>
+<p>These protocols form the conceptual foundation of quantum communication. In Chapter 8, we will see how entanglement and quantum measurement lead to practical applications in cryptography - specifically, quantum key distribution protocols that offer security guaranteed by the laws of physics.</p>
 </section>
 
 <!-- ================================================================== -->

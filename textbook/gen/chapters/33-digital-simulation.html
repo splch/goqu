@@ -111,8 +111,10 @@ $$H = \sum_{j=1}^{m} H_j$$
 
 <p>
   The Trotter-Suzuki decomposition is the simplest and most widely used method for Hamiltonian
-  simulation. It is named after Hale Trotter (1959) and Masuo Suzuki (1976), who developed the
-  mathematical theory of product formulas for operator exponentials.
+  simulation. It is named after Hale Trotter (1959) and Masuo Suzuki (1976, 1990), who developed
+  the mathematical theory of product formulas for operator exponentials. Suzuki's 1976 work
+  generalized the Trotter product formula, while his 1990 paper introduced the recursive fractal
+  decomposition that yields higher-order formulas.
 </p>
 
 <h3>First-Order Trotter Formula</h3>
@@ -565,11 +567,13 @@ $$H = \sum_{j=1}^{m} \alpha_j U_j, \quad \alpha_j > 0$$
   <strong>Historical Note.</strong>
   <p>
     The quest for optimal Hamiltonian simulation has a rich history. Lloyd (1996) gave the first
-    efficient simulation using Trotterization. Berry, Ahokas, Cleve, and Sanders (2007) achieved
-    sublinear scaling in $1/\epsilon$ using Taylor series truncation. Berry, Childs, Cleve,
-    Kothari, and Somma (2015) achieved near-optimal scaling using a truncated Taylor series with
-    LCU. Low and Chuang (2017, 2019) achieved the optimal $O(t + \log(1/\epsilon))$ scaling
-    using QSP and qubitization, closing a line of research spanning two decades.
+    efficient simulation using Trotterization. Berry, Ahokas, Cleve, and Sanders (2007) improved
+    the scaling with simulation time, achieving sublinear dependence on $1/\epsilon$ through
+    higher-order product formulas and multi-product methods. Berry, Childs, Cleve, Kothari, and
+    Somma (2015) achieved logarithmic scaling in $1/\epsilon$ using a truncated Taylor series
+    with LCU - the first method with this near-optimal precision dependence. Low and Chuang
+    (2017, 2019) achieved the optimal $O(t + \log(1/\epsilon))$ scaling using QSP and
+    qubitization, closing a line of research spanning two decades.
   </p>
 </div>
 
@@ -911,6 +915,7 @@ $$H = -t \sum_{\langle i,j \rangle, \sigma} c_{i\sigma}^\dagger c_{j\sigma} + U 
 </section>
 
 <!-- ================================================================== -->
+<section id="review-and-interactive">
 
 <h3>Interactive: Hamiltonian Expectation Value</h3>
 <p>
@@ -1056,3 +1061,5 @@ rzz({t}) q[0], q[1];</pre>
     </div>
   </div>
 </div>
+
+</section>
