@@ -590,11 +590,14 @@ c[1] = measure q[2];</textarea>
 </div>
 
 <p>
-  The sandbox above implements a simplified quantum walk on a small graph. The coin qubit
-  <code>q[0]</code> is flipped by Hadamard gates, and the position qubits <code>q[1..2]</code>
-  are conditionally updated. Run it multiple times and observe the probability distribution over
-  positions - unlike a classical random walk, the distribution is not symmetric around the
-  starting position, a hallmark of quantum interference.
+  The sandbox above illustrates the coin-flip-then-conditional-shift structure of a discrete-time
+  quantum walk. The coin qubit <code>q[0]</code> is flipped by Hadamard gates, and the position
+  qubits <code>q[1..2]</code> are conditionally updated. Note: this circuit demonstrates the
+  structure schematically. A full quantum walk on a 4-node cycle would require more sophisticated
+  position-conditional shift operations (e.g., controlled increment/decrement modulo 4 on the
+  position register). Run it multiple times and observe the probability distribution over
+  positions - unlike a classical random walk, quantum interference produces a non-uniform
+  distribution, a hallmark of quantum walks.
 </p>
 
 <div class="callout callout-info">
@@ -902,6 +905,9 @@ $$U_\Phi = e^{i\phi_0 Z} \prod_{k=1}^{d} \left( W \cdot e^{i\phi_k Z} \right)$$
 
 <!-- ================================================================== -->
 
+<section id="review">
+<h2>Chapter 31 Review</h2>
+
 <div class="flashcard-deck" data-component="flashcard-deck">
   <div class="flashcard-deck-header">Chapter 31 Review</div>
 
@@ -1025,6 +1031,7 @@ $$U_\Phi = e^{i\phi_0 Z} \prod_{k=1}^{d} \left( W \cdot e^{i\phi_k Z} \right)$$
     </div>
   </div>
 </div>
+</section>
 
     </article>
 

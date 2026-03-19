@@ -571,12 +571,12 @@ The <strong>phase-flip channel</strong> applies a $Z$ gate with probability $p$:
 $$\mathcal{E}_{\text{pf}}(\rho) = (1-p)\rho + p Z\rho Z$$
 
 <p>
-In the computational basis, this has the same form as the dephasing channel. However, the
-phase-flip is often discussed alongside the bit-flip as dual noise models: the bit-flip
-errors in the $Z$ basis while the phase-flip errors in the $X$ basis. Their combination
-gives the <strong>depolarizing channel</strong> when combined with the bit-phase-flip
-(applying $Y = iXZ$). Understanding these three types of errors separately - $X$, $Z$, and
-$Y$ - is the starting point for quantum error correction theory.
+This is mathematically identical to the dephasing channel above - they are two names for
+the same map. The term "phase-flip" emphasizes its role as the $Z$-error analog of the
+bit-flip ($X$-error) channel. The bit-flip errors in the $Z$ basis while the phase-flip
+errors in the $X$ basis. Combining all three Pauli errors ($X$, $Z$, and $Y = iXZ$) with
+equal probability gives the <strong>depolarizing channel</strong>. Understanding these three
+error types separately is the starting point for quantum error correction theory.
 </p>
 
 <h3>Summary Table</h3>
@@ -612,7 +612,7 @@ larger system followed by discarding (tracing out) part of that system.
 <strong>Stinespring Dilation Theorem.</strong> For every quantum channel
 $\mathcal{E}: \mathcal{L}(\mathcal{H}_A) \to \mathcal{L}(\mathcal{H}_B)$, there exists
 an environment (ancilla) system $E$ with initial pure state $|0\rangle_E$ and a unitary
-$U$ on $B \otimes E$ such that:
+$U$ on $A \otimes E$ such that:
 $$\mathcal{E}(\rho) = \text{Tr}_E\!\left(U(\rho \otimes |0\rangle\langle 0|_E)U^\dagger\right)$$
 This is called the <strong>Stinespring dilation</strong> or <strong>unitary dilation</strong>
 of the channel.
@@ -996,6 +996,9 @@ channel mixes $|+\rangle$ and $|-\rangle$, destroying coherence in the $X$ basis
 
 <!-- ================================================================== -->
 
+<section id="review">
+<h2>Chapter 27 Review</h2>
+
 <div class="flashcard-deck" data-component="flashcard-deck">
   <div class="flashcard-deck-header">Chapter 27 Review</div>
 
@@ -1088,6 +1091,7 @@ channel mixes $|+\rangle$ and $|-\rangle$, destroying coherence in the $X$ basis
   </div>
 
 </div>
+</section>
 
     </article>
 

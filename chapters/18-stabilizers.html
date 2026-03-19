@@ -531,7 +531,7 @@ $$\bar{X}_j \bar{Z}_j = -\bar{Z}_j \bar{X}_j, \quad [\bar{X}_j, \bar{Z}_\ell] = 
 <ul>
   <li>$g_4 = IIIZZZZ$: qubit 3 has $I$, so $[g_4, X_3] = 0$ - syndrome bit is $+1$.</li>
   <li>$g_5 = IZZIIZZ$: qubit 3 has $Z$, and $ZX = -XZ$, so syndrome bit is $-1$.</li>
-  <li>$g_6 = ZIZIZIO$: qubit 3 has $Z$, so syndrome bit is $-1$.</li>
+  <li>$g_6 = ZIZIZIZ$: qubit 3 has $Z$, so syndrome bit is $-1$.</li>
 </ul>
 
 <p>
@@ -577,8 +577,7 @@ $$g_1 = XZZXI, \quad g_2 = IXZZX, \quad g_3 = XIXZZ, \quad g_4 = ZXIXZ$$
 <h3>Sandbox: The 3-Qubit Bit-Flip Code</h3>
 
 <p>
-  The simplest stabilizer code is the $[[3,1,1]]$ bit-flip repetition code, which protects
-  against a single $X$ error (but not $Z$ errors). It encodes $|0\rangle \to |000\rangle$
+  The simplest stabilizer code is the $[[3,1,1]]$ bit-flip repetition code (it can correct any single $X$ error, but has distance 1 against general Pauli errors since it cannot detect $Z$ errors). It encodes $|0\rangle \to |000\rangle$
   and $|1\rangle \to |111\rangle$. The stabilizer generators are $g_1 = ZZI$ and $g_2 = IZZ$.
   In the sandbox below, we encode a qubit, introduce a deliberate bit-flip error on the
   first qubit, measure the syndrome, and correct it. Try modifying which qubit gets the error.

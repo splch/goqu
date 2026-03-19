@@ -257,9 +257,8 @@ $$P(|1\rangle, t) = P(|1\rangle, 0) \, e^{-t/T_1}$$
 
 <p>
   For modern superconducting transmon qubits, $T_1$ values typically range from 50 to
-  several hundred microseconds. State-of-the-art devices have achieved median $T_1$ values
-  exceeding 400 microseconds, with individual qubits occasionally reaching over 600
-  microseconds. Trapped-ion qubits enjoy much longer $T_1$ times - often seconds or more -
+  200 microseconds on production processors. In optimized research devices, individual
+  qubits have reached several hundred microseconds. Trapped-ion qubits enjoy much longer $T_1$ times - often seconds or more -
   because their energy levels are more isolated from the environment. However, even
   trapped-ion qubits are not immune: collisions with background gas molecules and stray
   electric fields eventually cause decay.
@@ -408,7 +407,7 @@ $$T_2 \leq 2\,T_1$$
     </tr>
     <tr>
       <td>$T_2$ dephasing</td>
-      <td>50-1000 microseconds</td>
+      <td>50-500 microseconds</td>
       <td>Phase fluctuations from noise</td>
     </tr>
     <tr>
@@ -883,7 +882,7 @@ c = measure q;</textarea>
 
 <!-- ================================================================== -->
 <section id="interactive-noise-explorer">
-<h2>14.3.5 Interactive: Explore Noise Channels</h2>
+<h2>14.4 Interactive: Explore Noise Channels</h2>
 
 <p>
   Now you can see noise in action. The simulator below runs a Bell state circuit through
@@ -989,7 +988,7 @@ $$r_x = \text{Tr}(\rho X), \quad r_y = \text{Tr}(\rho Y), \quad r_z = \text{Tr}(
 </ol>
 
 <p>
-  The resources required scale as $O(16^n)$ - doubly exponential growth that makes QPT
+  The resources required scale as $O(16^n)$ - exponential growth that makes QPT
   infeasible beyond 2-3 qubits. Moreover, QPT is sensitive to state preparation and
   measurement (SPAM) errors: if your preparation or measurement is imperfect, those errors
   contaminate the process reconstruction. For these reasons, experimentalists have developed
@@ -1086,7 +1085,7 @@ $$\text{QV} = 2^m$$
   Quantum volume captures the interplay between number of qubits, gate fidelity, qubit
   connectivity, and compiler efficiency. A device with QV $= 2^m$ can roughly be trusted
   to correctly execute circuits on $m$ qubits with depth $m$. Leading devices have achieved
-  quantum volumes ranging from $2^5 = 32$ to $2^{20}$ and beyond, with ion-trap systems
+  quantum volumes ranging from $2^5 = 32$ to $2^{25}$ and beyond, with ion-trap systems
   from Quantinuum achieving some of the highest published values.
 </p>
 

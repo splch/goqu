@@ -403,10 +403,12 @@ c[1] = measure q[1];</textarea>
   The known relationships are:
 </p>
 
-$$\mathsf{NP} \subseteq \mathsf{QMA} \subseteq \mathsf{QMA(2)} \subseteq \cdots \subseteq \mathsf{PSPACE}$$
+$$\mathsf{NP} \subseteq \mathsf{QMA} \subseteq \mathsf{QIP} = \mathsf{PSPACE}$$
 
 <p>
-  where QMA(2) allows two unentangled quantum witnesses. Whether $\mathsf{NP} = \mathsf{QMA}$
+  The variant QMA(2), which allows two unentangled quantum witnesses, satisfies
+  $\mathsf{QMA} \subseteq \mathsf{QMA(2)} \subseteq \mathsf{NEXP}$, but whether QMA(2) is
+  contained in PSPACE is an open question. Whether $\mathsf{NP} = \mathsf{QMA}$
   is a major open question. If they are equal, it would mean that quantum witnesses are no more
   powerful than classical ones for verification - a surprising conclusion that most researchers
   consider unlikely.
@@ -556,10 +558,10 @@ $$\mathsf{NP} \subseteq \mathsf{QMA} \subseteq \mathsf{QMA(2)} \subseteq \cdots 
   Here is the full hierarchy of quantum complexity classes, from weakest to strongest:
 </p>
 
-$$\mathsf{BQP} \subseteq \mathsf{QMA} \subseteq \mathsf{QMA(2)} \subseteq \mathsf{QCMA} \subseteq \mathsf{QIP(2)} \subseteq \mathsf{QIP} = \mathsf{PSPACE}$$
+$$\mathsf{BQP} \subseteq \mathsf{QCMA} \subseteq \mathsf{QMA} \subseteq \mathsf{QIP(2)} \subseteq \mathsf{QIP} = \mathsf{PSPACE}$$
 
 <p>
-  Wait - actually, let us be more precise about what is known and what is conjectured. The
+  Let us distinguish carefully between established and conjectured containments. The
   established containments are:
 </p>
 
@@ -647,8 +649,8 @@ $$\mathsf{BQP} \subseteq \mathsf{QMA} \subseteq \mathsf{QIP} = \mathsf{QIP(3)} =
   Second, Willow performed a random circuit sampling benchmark in under 5 minutes that Google
   estimated would take the fastest classical supercomputers approximately $10^{25}$ years - a
   gap so vast that even aggressive improvements in classical algorithms seem unlikely to close it.
-  The improved qubit coherence times (approaching 100 microseconds, a 5x improvement over
-  Sycamore) and lower error rates make the classical simulation challenge dramatically harder.
+  The improved qubit coherence times (averaging approximately 68 microseconds, a 5x improvement
+  over Sycamore) and lower error rates make the classical simulation challenge dramatically harder.
 </p>
 
 <h3>Other Quantum Advantage Experiments</h3>
@@ -784,7 +786,7 @@ $$\text{BQP} \not\subseteq \mathsf{NP} \quad \text{and} \quad \mathsf{NP} \not\s
 <h3>The No-Cloning Theorem and Its Consequences</h3>
 
 <p>
-  The no-cloning theorem (Chapter 16) states that an arbitrary unknown quantum state cannot be
+  The no-cloning theorem (Chapter 6) states that an arbitrary unknown quantum state cannot be
   perfectly copied. This fundamental constraint limits quantum algorithms in several ways:
 </p>
 
@@ -860,12 +862,12 @@ $$\text{BQP} \not\subseteq \mathsf{NP} \quad \text{and} \quad \mathsf{NP} \not\s
   proven, but all are widely conjectured):
 </p>
 
-$$\mathsf{P} \subsetneq \mathsf{BPP} \subsetneq \mathsf{BQP}$$
+$$\mathsf{P} = \mathsf{BPP} \subsetneq \mathsf{BQP}$$
 $$\mathsf{BQP} \not\subseteq \mathsf{NP}, \quad \mathsf{NP} \not\subseteq \mathsf{BQP}$$
 $$\mathsf{NP} \subseteq \mathsf{QMA} \subseteq \mathsf{QIP} = \mathsf{PSPACE}$$
 
 <p>
-  Quantum computers are more powerful than classical computers (BQP properly contains BPP), but
+  Quantum computers are more powerful than classical computers (BQP properly contains P = BPP), but
   they are not all-powerful (BQP does not contain NP). They occupy a specific, well-defined niche
   in the complexity landscape - one that happens to include some problems of extraordinary
   practical importance (factoring, quantum simulation) while excluding others (NP-complete
@@ -875,6 +877,9 @@ $$\mathsf{NP} \subseteq \mathsf{QMA} \subseteq \mathsf{QIP} = \mathsf{PSPACE}$$
 </section>
 
 <!-- ================================================================== -->
+
+<section id="review">
+<h2>Chapter 30 Review</h2>
 
 <div class="flashcard-deck" data-component="flashcard-deck">
   <div class="flashcard-deck-header">Chapter 30 Review</div>
@@ -995,6 +1000,7 @@ $$\mathsf{NP} \subseteq \mathsf{QMA} \subseteq \mathsf{QIP} = \mathsf{PSPACE}$$
     </div>
   </div>
 </div>
+</section>
 
     </article>
 

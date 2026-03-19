@@ -696,7 +696,7 @@ equivalent to SSA.</li>
 "Subadditivity" and "strong subadditivity" sound similar but are very different in depth.
 Subadditivity ($S(AB) \leq S(A) + S(B)$) follows easily from the non-negativity of mutual
 information. Strong subadditivity ($S(ABC) + S(C) \leq S(AC) + S(BC)$) is far more powerful
-and far harder to prove. It took 25 years from when the conjecture was first posed (Lanford
+and far harder to prove. It took 5 years from when the conjecture was first posed (Lanford
 and Robinson, 1968) to when it was proved (Lieb and Ruskai, 1973). No simple proof is known
 even today.
 </p>
@@ -903,9 +903,10 @@ Observations connecting purity to entropy:
 <ul>
 <li>At <strong>zero noise</strong>, the state is pure $|0\rangle$ with purity 1.0 and entropy
 $S = 0$. The ideal and noisy histograms agree - outcome 0 with certainty.</li>
-<li>Under <strong>depolarizing</strong> noise at strength $p$, the purity is
-$(1-p)^2 + p^2/3$ for a qubit. At $p = 0.5$, purity reaches approximately 0.5 and the
-entropy approaches 1 bit.</li>
+<li>Under <strong>depolarizing</strong> noise at strength $p$ (replacement probability), the purity is
+$(1 + 3(1-p)^2)/4$ for a qubit starting in a pure state. At $p = 0.5$, purity is
+approximately 0.69; at $p = 1$ (fully depolarizing), purity reaches the minimum of
+$1/2$ and the entropy reaches 1 bit.</li>
 <li>Under <strong>amplitude damping</strong>, the state is already $|0\rangle$ (the ground
 state), so the channel has minimal effect - the purity stays near 1.0. Try modifying the
 circuit to start in $|1\rangle$ (add an $X$ gate before measurement) to see amplitude
@@ -918,6 +919,9 @@ phase damping destroys coherence and increases entropy.</li>
 </section>
 
 <!-- ================================================================== -->
+
+<section id="review">
+<h2>Chapter 28 Review</h2>
 
 <div class="flashcard-deck" data-component="flashcard-deck">
   <div class="flashcard-deck-header">Chapter 28 Review</div>
@@ -1011,6 +1015,7 @@ phase damping destroys coherence and increases entropy.</li>
   </div>
 
 </div>
+</section>
 
     </article>
 

@@ -589,7 +589,7 @@ c = measure q;</textarea>
 <h3>Error Mitigation</h3>
 
 <p>
-  Before full error correction (Chapter 16), several mitigation techniques help:
+  Before full quantum error correction (Chapters 17-20), several mitigation techniques help:
   <strong>measurement error mitigation</strong> (characterize and invert the confusion matrix),
   <strong>zero-noise extrapolation</strong> (run at amplified noise levels, extrapolate to zero),
   <strong>probabilistic error cancellation</strong> (represent ideal circuit as combination of
@@ -611,7 +611,7 @@ c = measure q;</textarea>
 <h3>Gate Decomposition</h3>
 
 <p>
-  Real processors implement only a small native gate set. IBM Heron uses {SX, RZ, CZ, ECR}.
+  Real processors implement only a small native gate set. IBM Heron uses {SX, RZ, CZ}.
   Any other gate must be decomposed. The Hadamard decomposes as $H = RZ(\pi/2) \cdot SX \cdot RZ(\pi/2)$.
   A Toffoli requires ~6 CNOTs plus single-qubit gates:
 </p>
@@ -889,7 +889,7 @@ c = measure q;</textarea>
 <p>
   IBM operates the largest public quantum fleet: 156-qubit Heron r2/r3, the newer 120-qubit
   Nighthawk optimized for lower errors, and a roadmap including the 1,386-qubit Kookaburra
-  multi-chip processor. Native gates: {SX, RZ, CZ, ECR}. Qiskit 2.2 is the primary SDK.
+  multi-chip processor. Native gates: {SX, RZ, CZ}. Qiskit 2.2 is the primary SDK.
   Free tier provides simulator and small processor access.
 </p>
 
@@ -927,7 +927,7 @@ c = measure q;</textarea>
   <tbody>
     <tr><td>SDK</td><td>Qiskit</td><td>Braket SDK</td><td>QDK / Q#</td><td>Cirq</td></tr>
     <tr><td>Hardware</td><td>IBM only (SC)</td><td>Multi-vendor</td><td>Multi-vendor</td><td>Google only (SC)</td></tr>
-    <tr><td>Max qubits</td><td>156</td><td>Varies</td><td>36 (Forte)</td><td>72 (Sycamore)</td></tr>
+    <tr><td>Max qubits</td><td>156</td><td>Varies</td><td>36 (Forte)</td><td>105 (Willow)</td></tr>
     <tr><td>Connectivity</td><td>Heavy-hex</td><td>Varies</td><td>All-to-all (ions)</td><td>Grid</td></tr>
     <tr><td>Free tier</td><td>Yes</td><td>Simulator only</td><td>Credits</td><td>Research</td></tr>
   </tbody>
@@ -1143,6 +1143,9 @@ c = measure q;</textarea>
 
 <!-- ================================================================== -->
 
+<section id="review">
+<h2>Chapter 15 Review</h2>
+
 <div class="flashcard-deck" data-component="flashcard-deck">
   <div class="flashcard-deck-header">Chapter 15 Review</div>
 
@@ -1234,6 +1237,7 @@ c = measure q;</textarea>
     </div>
   </div>
 </div>
+</section>
 
     </article>
 
