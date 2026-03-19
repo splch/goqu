@@ -295,7 +295,7 @@ func TestKAK_ThreeCNOT_KnownGates(t *testing.T) {
 }
 
 func TestKAK_DiagonalCP_SmallAngle(t *testing.T) {
-	// CP with very small angle — tests numerical stability near identity.
+	// CP with very small angle - tests numerical stability near identity.
 	m := gate.CP(0.001).Matrix()
 	ops := KAK(m, 0, 1)
 	cx := countCNOTs(ops)

@@ -26,7 +26,7 @@ func CommuteThroughCNOT(c *ir.Circuit, _ target.Target) (*ir.Circuit, error) {
 			a := ops[i]
 			b := ops[i+1]
 
-			// Only Case: single-qubit gate followed by CNOT — push gate forward.
+			// Only Case: single-qubit gate followed by CNOT - push gate forward.
 			if a.Gate == nil || a.Gate.Qubits() != 1 || b.Gate == nil || !isCNOT(b.Gate) {
 				continue
 			}

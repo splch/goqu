@@ -642,8 +642,11 @@ $$\text{CZ} = \begin{pmatrix} 1 & 0 & 0 & 0 \\ 0 & 1 & 0 & 0 \\ 0 & 0 & 1 & 0 \\
   </thead>
   <tbody>
     <tr><td>$|000\rangle$</td><td>$|000\rangle$</td></tr>
+    <tr><td>$|001\rangle$</td><td>$|001\rangle$</td></tr>
     <tr><td>$|010\rangle$</td><td>$|010\rangle$</td></tr>
+    <tr><td>$|011\rangle$</td><td>$|011\rangle$</td></tr>
     <tr><td>$|100\rangle$</td><td>$|100\rangle$</td></tr>
+    <tr><td>$|101\rangle$</td><td>$|101\rangle$</td></tr>
     <tr><td>$|110\rangle$</td><td>$|111\rangle$</td></tr>
     <tr><td>$|111\rangle$</td><td>$|110\rangle$</td></tr>
   </tbody>
@@ -982,99 +985,109 @@ c = measure q;</textarea>
 </section>
 
 <!-- ============================================================ -->
-<section id="flashcards">
-<h2>Review Flashcards</h2>
+<section id="review">
+<h2>Chapter 6 Review</h2>
 
 <div class="flashcard-deck" data-component="flashcard-deck">
   <div class="flashcard-deck-header">Chapter 6 Review</div>
 
   <div class="flashcard" data-card-id="ch06-tensor-product">
     <div class="card-front">What is the tensor product and how does it build multi-qubit state spaces?</div>
-    <div class="card-back">The tensor product $\otimes$ combines individual qubit state spaces into a joint space. For $n$ qubits, the joint space has dimension $2^n$, requiring $2^n$ complex amplitudes. A state $|\psi\rangle \otimes |\phi\rangle$ represents two independent qubits; entangled states cannot be written in this product form.</div>
-    <div class="flashcard-controls">
-      <button class="easy">Easy</button>
-      <button class="hard">Hard</button>
+    <div class="card-back">The tensor product $\otimes$ combines individual qubit state spaces into a joint space. For $n$ qubits, the joint space has dimension $2^n$, requiring $2^n$ complex amplitudes. A state $|\psi\rangle \otimes |\phi\rangle$ represents two independent qubits; entangled states cannot be written in this product form.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
     </div>
   </div>
 
   <div class="flashcard" data-card-id="ch06-cnot">
     <div class="card-front">What does the CNOT gate do, and why is it fundamental?</div>
-    <div class="card-back">CNOT has a control qubit and a target qubit. It flips the target (applies X) when the control is $|1\rangle$, and leaves it unchanged when the control is $|0\rangle$. On basis states, it computes target $\to$ target XOR control. It is the primary two-qubit gate for creating entanglement, and together with single-qubit gates it forms a universal gate set.</div>
-    <div class="flashcard-controls">
-      <button class="easy">Easy</button>
-      <button class="hard">Hard</button>
+    <div class="card-back">CNOT has a control qubit and a target qubit. It flips the target (applies X) when the control is $|1\rangle$, and leaves it unchanged when the control is $|0\rangle$. On basis states, it computes target $\to$ target XOR control. It is the primary two-qubit gate for creating entanglement, and together with single-qubit gates it forms a universal gate set.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
     </div>
   </div>
 
   <div class="flashcard" data-card-id="ch06-entanglement-def">
     <div class="card-front">What does it mean for a multi-qubit state to be entangled?</div>
-    <div class="card-back">A multi-qubit state is entangled when it cannot be written as a tensor product of individual qubit states. Entangled qubits have correlations with no classical explanation - measuring one qubit instantaneously constrains the outcomes of measuring the other, regardless of distance. The simplest example is $|\Phi^+\rangle = \frac{1}{\sqrt{2}}(|00\rangle + |11\rangle)$.</div>
-    <div class="flashcard-controls">
-      <button class="easy">Easy</button>
-      <button class="hard">Hard</button>
+    <div class="card-back">A multi-qubit state is entangled when it cannot be written as a tensor product of individual qubit states. Entangled qubits have correlations with no classical explanation - measuring one qubit instantaneously constrains the outcomes of measuring the other, regardless of distance. The simplest example is $|\Phi^+\rangle = \frac{1}{\sqrt{2}}(|00\rangle + |11\rangle)$.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
     </div>
   </div>
 
   <div class="flashcard" data-card-id="ch06-bell-states">
     <div class="card-front">Name the four Bell states and give their formulas.</div>
-    <div class="card-back">$|\Phi^+\rangle = \frac{1}{\sqrt{2}}(|00\rangle + |11\rangle)$, $|\Phi^-\rangle = \frac{1}{\sqrt{2}}(|00\rangle - |11\rangle)$, $|\Psi^+\rangle = \frac{1}{\sqrt{2}}(|01\rangle + |10\rangle)$, $|\Psi^-\rangle = \frac{1}{\sqrt{2}}(|01\rangle - |10\rangle)$. They form a complete orthonormal basis of maximally entangled two-qubit states. Each is created by H then CNOT on one of the four computational basis inputs.</div>
-    <div class="flashcard-controls">
-      <button class="easy">Easy</button>
-      <button class="hard">Hard</button>
+    <div class="card-back">$|\Phi^+\rangle = \frac{1}{\sqrt{2}}(|00\rangle + |11\rangle)$, $|\Phi^-\rangle = \frac{1}{\sqrt{2}}(|00\rangle - |11\rangle)$, $|\Psi^+\rangle = \frac{1}{\sqrt{2}}(|01\rangle + |10\rangle)$, $|\Psi^-\rangle = \frac{1}{\sqrt{2}}(|01\rangle - |10\rangle)$. They form a complete orthonormal basis of maximally entangled two-qubit states. Each is created by H then CNOT on one of the four computational basis inputs.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
     </div>
   </div>
 
   <div class="flashcard" data-card-id="ch06-bell-circuit">
     <div class="card-front">What is the Bell circuit, and how does it create entanglement step by step?</div>
-    <div class="card-back">Start with $|00\rangle$. Apply H to qubit 0: $\frac{1}{\sqrt{2}}(|0\rangle + |1\rangle)|0\rangle = \frac{1}{\sqrt{2}}(|00\rangle + |10\rangle)$. Then CNOT (control 0, target 1): $|00\rangle$ is unchanged, $|10\rangle$ becomes $|11\rangle$, giving $\frac{1}{\sqrt{2}}(|00\rangle + |11\rangle) = |\Phi^+\rangle$. The CNOT on a superposition creates entanglement.</div>
-    <div class="flashcard-controls">
-      <button class="easy">Easy</button>
-      <button class="hard">Hard</button>
+    <div class="card-back">Start with $|00\rangle$. Apply H to qubit 0: $\frac{1}{\sqrt{2}}(|0\rangle + |1\rangle)|0\rangle = \frac{1}{\sqrt{2}}(|00\rangle + |10\rangle)$. Then CNOT (control 0, target 1): $|00\rangle$ is unchanged, $|10\rangle$ becomes $|11\rangle$, giving $\frac{1}{\sqrt{2}}(|00\rangle + |11\rangle) = |\Phi^+\rangle$. The CNOT on a superposition creates entanglement.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
     </div>
   </div>
 
   <div class="flashcard" data-card-id="ch06-ghz-vs-w">
     <div class="card-front">What is the difference between GHZ and W states?</div>
-    <div class="card-back">GHZ: $\frac{1}{\sqrt{2}}(|000\rangle + |111\rangle)$ - maximally entangled but fragile; losing one qubit destroys all entanglement. W: $\frac{1}{\sqrt{3}}(|001\rangle + |010\rangle + |100\rangle)$ - robust; losing one qubit leaves partial entanglement. They represent fundamentally different entanglement classes that cannot be interconverted by local operations.</div>
-    <div class="flashcard-controls">
-      <button class="easy">Easy</button>
-      <button class="hard">Hard</button>
+    <div class="card-back">GHZ: $\frac{1}{\sqrt{2}}(|000\rangle + |111\rangle)$ - maximally entangled but fragile; losing one qubit destroys all entanglement. W: $\frac{1}{\sqrt{3}}(|001\rangle + |010\rangle + |100\rangle)$ - robust; losing one qubit leaves partial entanglement. They represent fundamentally different entanglement classes that cannot be interconverted by local operations.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
     </div>
   </div>
 
   <div class="flashcard" data-card-id="ch06-toffoli">
     <div class="card-front">What is the Toffoli gate and why is it important?</div>
-    <div class="card-back">The Toffoli gate (CCX) is a three-qubit gate that flips the target only when both control qubits are $|1\rangle$. It implements a reversible AND gate and is universal for classical reversible computing. Combined with the Hadamard gate, $\{H, \text{Toffoli}\}$ forms a universal quantum gate set.</div>
-    <div class="flashcard-controls">
-      <button class="easy">Easy</button>
-      <button class="hard">Hard</button>
+    <div class="card-back">The Toffoli gate (CCX) is a three-qubit gate that flips the target only when both control qubits are $|1\rangle$. It implements a reversible AND gate and is universal for classical reversible computing. Combined with the Hadamard gate, $\{H, \text{Toffoli}\}$ forms a universal quantum gate set.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
     </div>
   </div>
 
   <div class="flashcard" data-card-id="ch06-universality">
     <div class="card-front">What does it mean for a gate set to be universal, and what is the standard universal set?</div>
-    <div class="card-back">A gate set is universal if any unitary operation can be approximated to arbitrary precision using gates from the set. The standard universal set is $\{H, T, \text{CNOT}\}$. The Solovay-Kitaev theorem guarantees that approximating any gate to precision $\epsilon$ requires only $O(\log^c(1/\epsilon))$ gates, where $c$ is a small constant.</div>
-    <div class="flashcard-controls">
-      <button class="easy">Easy</button>
-      <button class="hard">Hard</button>
+    <div class="card-back">A gate set is universal if any unitary operation can be approximated to arbitrary precision using gates from the set. The standard universal set is $\{H, T, \text{CNOT}\}$. The Solovay-Kitaev theorem guarantees that approximating any gate to precision $\epsilon$ requires only $O(\log^c(1/\epsilon))$ gates, where $c$ is a small constant.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
     </div>
   </div>
 
   <div class="flashcard" data-card-id="ch06-no-cloning">
     <div class="card-front">State the no-cloning theorem and outline its proof.</div>
-    <div class="card-back">No quantum operation can perfectly copy an arbitrary unknown state. Proof: assume a unitary $U$ clones any state. For states $|\psi\rangle, |\phi\rangle$, taking inner products gives $\langle\psi|\phi\rangle = \langle\psi|\phi\rangle^2$, which is satisfied only when $\langle\psi|\phi\rangle = 0$ or $1$. So $U$ can only clone orthogonal or identical states, not arbitrary ones.</div>
-    <div class="flashcard-controls">
-      <button class="easy">Easy</button>
-      <button class="hard">Hard</button>
+    <div class="card-back">No quantum operation can perfectly copy an arbitrary unknown state. Proof: assume a unitary $U$ clones any state. For states $|\psi\rangle, |\phi\rangle$, taking inner products gives $\langle\psi|\phi\rangle = \langle\psi|\phi\rangle^2$, which is satisfied only when $\langle\psi|\phi\rangle = 0$ or $1$. So $U$ can only clone orthogonal or identical states, not arbitrary ones.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
     </div>
   </div>
 
   <div class="flashcard" data-card-id="ch06-exponential-space">
     <div class="card-front">How does the state space grow with the number of qubits, and why does this matter?</div>
-    <div class="card-back">$n$ qubits require $2^n$ complex amplitudes. This exponential growth means classical computers cannot efficiently simulate quantum systems (50 qubits need petabytes of memory). It is the source of quantum computing's potential advantage, but measurement collapses the state to one basis outcome, so algorithm design must concentrate useful information in observable amplitudes.</div>
-    <div class="flashcard-controls">
-      <button class="easy">Easy</button>
-      <button class="hard">Hard</button>
+    <div class="card-back">$n$ qubits require $2^n$ complex amplitudes. This exponential growth means classical computers cannot efficiently simulate quantum systems (50 qubits need petabytes of memory). It is the source of quantum computing's potential advantage, but measurement collapses the state to one basis outcome, so algorithm design must concentrate useful information in observable amplitudes.
+      <div class="flashcard-controls">
+        <button class="easy">Easy</button>
+        <button class="hard">Hard</button>
+      </div>
     </div>
   </div>
 </div>

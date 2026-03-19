@@ -52,7 +52,7 @@ type ExecuteRequest struct {
 }
 
 // ExecuteResponse is the output of the controller execution service.
-// Mirrors ExecuteControllerJobResponse — returns a list of execution IDs.
+// Mirrors ExecuteControllerJobResponse - returns a list of execution IDs.
 // Real proto field: job_execution_ids (repeated string).
 type ExecuteResponse struct {
 	JobExecutionIDs []string

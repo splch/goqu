@@ -222,7 +222,7 @@ func (l *lexer) skipBlockComment() {
 		}
 		l.advance()
 	}
-	// Unterminated block comment — consume rest.
+	// Unterminated block comment - consume rest.
 	l.pos = len(l.input)
 }
 

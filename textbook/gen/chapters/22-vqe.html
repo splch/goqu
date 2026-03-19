@@ -267,9 +267,10 @@ $$a_p \mapsto \frac{1}{2}(X_p + iY_p) \otimes Z_{p-1} \otimes Z_{p-2} \otimes \c
 $$H_{\text{H}_2} = c_0\, I \otimes I + c_1\, Z \otimes I + c_2\, I \otimes Z + c_3\, Z \otimes Z + c_4\, X \otimes X + c_5\, Y \otimes Y$$
 
 <p>
-  At the equilibrium bond length of $0.735$ angstroms, the coefficients are approximately
-  $c_0 \approx -0.81$, $c_1 \approx 0.17$, $c_2 \approx -0.17$, $c_3 \approx 0.17$,
-  $c_4 \approx 0.04$, and $c_5 \approx 0.04$ (all in Hartree). This six-term Hamiltonian
+  At the equilibrium bond length of $0.735$ angstroms and using a minimal STO-3G basis with
+  parity mapping and two-qubit tapering, the coefficients are approximately
+  $c_0 \approx -1.05$, $c_1 \approx 0.39$, $c_2 \approx -0.39$, $c_3 \approx -0.01$,
+  $c_4 \approx 0.18$, and $c_5 \approx 0.18$ (all in Hartree). This six-term Hamiltonian
   can be measured with just three measurement settings (grouping commuting terms), making
   H$_2$ an ideal test case for VQE.
 </p>
@@ -864,6 +865,7 @@ $$\text{Var}\left[\frac{\partial C}{\partial \theta_k}\right] \leq \frac{1}{2^n 
 
 <!-- ================================================================== -->
 
+<section id="vqe-interactive">
 <h3>Interactive: VQE Energy Landscape</h3>
 <p>
   Before running the optimizer, explore the energy landscape by sweeping a single
@@ -981,7 +983,7 @@ async function runVQEWidget() {
   out.innerHTML = '<p style="color:var(--color-text-muted)">Optimizing (this may take a moment)...</p>';
   await new Promise(function(r) { setTimeout(r, 0); });
   try {
-    var ham = "-1.05*II+0.39*ZI+-0.39*IZ+-0.01*ZZ+0.18*XX";
+    var ham = "-1.05*II+0.39*ZI+-0.39*IZ+-0.01*ZZ+0.18*XX+0.18*YY";
     var r = JSON.parse(window.runVQE(ham, ans, 2, layers, 100, isDark()));
     if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
     var html = (r.circuitSVG||'');
@@ -996,8 +998,12 @@ async function runVQEWidget() {
   } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
 }
 </script>
+</section>
 
 <!-- ================================================================== -->
+
+<section id="review">
+<h2>Chapter 22 Review</h2>
 
 <div class="flashcard-deck" data-component="flashcard-deck">
   <div class="flashcard-deck-header">Chapter 22 Review</div>
@@ -1128,3 +1134,4 @@ async function runVQEWidget() {
     </div>
   </div>
 </div>
+</section>

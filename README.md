@@ -11,7 +11,7 @@
 [![codecov](https://codecov.io/gh/splch/goqu/graph/badge.svg?token=9HJMWRRJ01)](https://codecov.io/gh/splch/goqu)
 [![Go Report Card](https://goreportcard.com/badge/github.com/splch/goqu)](https://goreportcard.com/report/github.com/splch/goqu)
 
-A quantum computing SDK in pure Go — build, simulate, transpile, and run quantum circuits with zero external dependencies.
+A quantum computing SDK in pure Go - build, simulate, transpile, and run quantum circuits with zero external dependencies.
 
 ```go
 package main
@@ -74,7 +74,7 @@ q1: ─────X──
 
 ## Contributing
 
-Contributions welcome — open an issue or submit a PR. Run `make test` before submitting.
+Contributions welcome - open an issue or submit a PR. Run `make test` before submitting.
 
 ## License
 

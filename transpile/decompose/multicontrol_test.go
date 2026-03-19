@@ -75,7 +75,7 @@ func TestDecomposeSingleControlledH(t *testing.T) {
 		}
 		// Must not return another generic ControlledGate (infinite loop indicator).
 		if _, ok := op.Gate.(gate.ControlledGate); ok {
-			t.Errorf("decomposition returned a ControlledGate %s — would cause infinite recursion", op.Gate.Name())
+			t.Errorf("decomposition returned a ControlledGate %s - would cause infinite recursion", op.Gate.Name())
 		}
 	}
 	t.Logf("C1-H decomposed into %d primitive ops", len(ops))

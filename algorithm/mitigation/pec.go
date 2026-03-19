@@ -81,7 +81,7 @@ func RunPEC(ctx context.Context, cfg PECConfig) (*PECResult, error) {
 
 		ch := cfg.NoiseModel.Lookup(name, op.Qubits)
 		if ch == nil {
-			// No noise on this gate — identity decomposition.
+			// No noise on this gate - identity decomposition.
 			continue
 		}
 

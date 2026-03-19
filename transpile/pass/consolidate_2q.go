@@ -138,7 +138,7 @@ func findBlocks(ops []ir.Operation) []block2q {
 			blk1 := active[q1]
 
 			if blk0 != nil && blk0 == blk1 && blk0.q0 == q0 && blk0.q1 == q1 {
-				// Same active block on this pair — extend.
+				// Same active block on this pair - extend.
 				blk0.opIndices = append(blk0.opIndices, i)
 				continue
 			}

@@ -206,7 +206,7 @@ func gf2Solve(equations []int, n int) int {
 	s := 0
 	for col := range n {
 		if pivotCols[col] == -1 {
-			// Free variable — set it to 1 and propagate.
+			// Free variable - set it to 1 and propagate.
 			s |= 1 << col
 			for otherCol := range n {
 				if pivotCols[otherCol] >= 0 {

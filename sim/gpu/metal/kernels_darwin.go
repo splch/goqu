@@ -130,7 +130,7 @@ func dispatchGate2(s *Sim, q0, q1 int, m []complex128) error {
 	if q0 < q1 {
 		// CPU convention: row 1 = q1 set, row 2 = q0 set.
 		// Metal convention: a[1] = lower qubit (q0) set, a[2] = higher qubit (q1) set.
-		// When q0 < q1, rows 1 and 2 are swapped — permute the matrix.
+		// When q0 < q1, rows 1 and 2 are swapped - permute the matrix.
 		m = permuteMatrix2Q(m)
 		return metalGate2Q(s, q0, q1, m)
 	}

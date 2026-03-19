@@ -13,7 +13,7 @@ MetalSim* MetalCreate(int numQubits, char** errOut);
 void MetalDestroy(MetalSim* sim);
 
 // MetalStatePtr returns a pointer to the float32 state vector in shared memory.
-// Layout: 2*numAmps floats (pairs of real, imag) — i.e., complex64.
+// Layout: 2*numAmps floats (pairs of real, imag) - i.e., complex64.
 float* MetalStatePtr(MetalSim* sim);
 
 // MetalNumAmps returns 2^numQubits.

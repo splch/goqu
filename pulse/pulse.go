@@ -36,7 +36,7 @@ func (p Port) Name() string { return p.name }
 func (p Port) Dt() float64 { return p.dt }
 
 // Frame represents a software reference clock attached to a port.
-// Frames are stateless value types — phase and frequency changes
+// Frames are stateless value types - phase and frequency changes
 // are expressed as [SetPhase], [ShiftPhase], [SetFrequency], and
 // [ShiftFrequency] instructions.
 type Frame struct {

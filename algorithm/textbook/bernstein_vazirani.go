@@ -63,7 +63,7 @@ func BernsteinVazirani(ctx context.Context, cfg BVConfig) (*BVResult, error) {
 		b.H(q)
 	}
 
-	// Step 3: Oracle — for each bit i set in secret, CNOT(i, ancilla).
+	// Step 3: Oracle - for each bit i set in secret, CNOT(i, ancilla).
 	for i := range n {
 		if cfg.Secret&(1<<i) != 0 {
 			b.CNOT(i, n)

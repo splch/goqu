@@ -19,7 +19,7 @@ type Backend struct {
 	client *httpClient
 	device string // "H1-1", "H1-2", "H2-1", "H1-1E", "H2-1E", "H1-1SC", etc.
 	tgt    target.Target
-	jobs   sync.Map // jobID → jobMeta; entries are never evicted — recreate Backend for long-lived use
+	jobs   sync.Map // jobID → jobMeta; entries are never evicted - recreate Backend for long-lived use
 	logger *slog.Logger
 }
 

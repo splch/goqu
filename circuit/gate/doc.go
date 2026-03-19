@@ -41,7 +41,7 @@
 //
 // [Reset] resets a qubit to |0>. [Delay] idles a qubit for a duration.
 // [Barrier] prevents gate reordering across it during transpilation.
-// These have no matrix representation — simulators handle them directly.
+// These have no matrix representation - simulators handle them directly.
 //
 // # Matrix convention
 //

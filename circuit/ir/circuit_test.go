@@ -148,7 +148,7 @@ func TestDepth_Sequential(t *testing.T) {
 }
 
 func TestDepth_OutOfBoundsQubits(t *testing.T) {
-	// Op referencing qubit >= numQubits — should not panic.
+	// Op referencing qubit >= numQubits - should not panic.
 	ops := []Operation{
 		{Gate: gate.H, Qubits: []int{5}},
 	}

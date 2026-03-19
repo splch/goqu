@@ -80,7 +80,7 @@ func Run(ctx context.Context, cfg Config) (*Result, error) {
 	}
 	b.Compose(cfg.RHS, sysMap)
 
-	// Step 2: QPE forward — Hadamard on phase register.
+	// Step 2: QPE forward - Hadamard on phase register.
 	for q := range nPhase {
 		b.H(phaseStart + q)
 	}

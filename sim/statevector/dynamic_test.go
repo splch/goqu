@@ -162,7 +162,7 @@ func TestDynamicTeleportation(t *testing.T) {
 
 // TestDynamicNonDynamicFastPath ensures non-dynamic circuits use the fast evolve-then-sample path.
 func TestDynamicNonDynamicFastPath(t *testing.T) {
-	// Simple Bell state — not dynamic.
+	// Simple Bell state - not dynamic.
 	c, err := builder.New("bell", 2).WithClbits(2).
 		H(0).
 		CNOT(0, 1).

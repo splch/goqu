@@ -9,7 +9,7 @@
 #endif
 
 // ---------------------------------------------------------------------------
-// Shader source (embedded) — 1Q and 2Q gate kernels using float2 (complex64).
+// Shader source (embedded) - 1Q and 2Q gate kernels using float2 (complex64).
 // ---------------------------------------------------------------------------
 
 static const char *kShaderSource =
@@ -113,7 +113,7 @@ typedef struct {
 } Gate2QParams;
 
 // ---------------------------------------------------------------------------
-// MetalSim — opaque handle holding all Metal state.
+// MetalSim - opaque handle holding all Metal state.
 // ---------------------------------------------------------------------------
 
 struct MetalSim {

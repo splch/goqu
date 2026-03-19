@@ -2,7 +2,7 @@
 // Prometheus metrics for all goqu operations.
 //
 // This is a separate Go module with external dependencies. Core goqu packages
-// never import it — applications opt in by attaching the hooks to context:
+// never import it - applications opt in by attaching the hooks to context:
 //
 //	hooks := prombridge.NewHooks(prometheus.DefaultRegisterer)
 //	ctx = observe.WithHooks(ctx, hooks)

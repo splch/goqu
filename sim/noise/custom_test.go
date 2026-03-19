@@ -58,7 +58,7 @@ func TestCustom_NotTracePreserving(t *testing.T) {
 	// A channel where sum E_k† E_k != I
 	_, err := Custom("bad", 1, [][]complex128{
 		{1, 0, 0, 1}, // I
-		{1, 0, 0, 1}, // I again — sum = 2*I, not I
+		{1, 0, 0, 1}, // I again - sum = 2*I, not I
 	})
 	if err == nil {
 		t.Error("expected error for non-TP channel")
@@ -66,7 +66,7 @@ func TestCustom_NotTracePreserving(t *testing.T) {
 }
 
 func TestCustom_ScaledDown(t *testing.T) {
-	// sqrt(0.5)*I, sqrt(0.5)*X — this IS trace-preserving
+	// sqrt(0.5)*I, sqrt(0.5)*X - this IS trace-preserving
 	s := complex(math.Sqrt(0.5), 0)
 	ch, err := Custom("half_flip", 1, [][]complex128{
 		{s, 0, 0, s}, // sqrt(0.5)*I
@@ -108,7 +108,7 @@ func TestCustom_DefensiveCopy(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// Mutate original — channel should be unaffected
+	// Mutate original - channel should be unaffected
 	op[0] = 42
 	if ch.Kraus()[0][0] != 1 {
 		t.Error("Custom should defensively copy Kraus operators")

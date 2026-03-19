@@ -79,11 +79,11 @@ func convertOp(op ir.Operation) ([]nativeOp, error) {
 	params := op.Gate.Params()
 
 	switch {
-	// Identity — skip (no-op on hardware).
+	// Identity - skip (no-op on hardware).
 	case name == "I":
 		return nil, nil
 
-	// Barrier and delay — skip (not physical gates).
+	// Barrier and delay - skip (not physical gates).
 	case name == "barrier", name == "delay":
 		return nil, nil
 
@@ -160,7 +160,7 @@ func convertOp(op ir.Operation) ([]nativeOp, error) {
 		ctrl, tgt := op.Qubits[0], op.Qubits[1]
 		return []nativeOp{
 			{kind: "phasedxz", qubits: []int{tgt}, x: 1.0, z: 1.0, a: 0.0}, // H
-			{kind: "cz", qubits: []int{ctrl, tgt}, exp: 1.0},                 // CZ
+			{kind: "cz", qubits: []int{ctrl, tgt}, exp: 1.0},               // CZ
 			{kind: "phasedxz", qubits: []int{tgt}, x: 1.0, z: 1.0, a: 0.0}, // H
 		}, nil
 
@@ -170,10 +170,10 @@ func convertOp(op ir.Operation) ([]nativeOp, error) {
 		ctrl, tgt := op.Qubits[0], op.Qubits[1]
 		return []nativeOp{
 			{kind: "phasedxz", qubits: []int{tgt}, x: 0.0, z: -0.5, a: 0.0}, // Sdg
-			{kind: "phasedxz", qubits: []int{tgt}, x: 1.0, z: 1.0, a: 0.0},   // H
-			{kind: "cz", qubits: []int{ctrl, tgt}, exp: 1.0},                   // CZ
-			{kind: "phasedxz", qubits: []int{tgt}, x: 1.0, z: 1.0, a: 0.0},   // H
-			{kind: "phasedxz", qubits: []int{tgt}, x: 0.0, z: 0.5, a: 0.0},   // S
+			{kind: "phasedxz", qubits: []int{tgt}, x: 1.0, z: 1.0, a: 0.0},  // H
+			{kind: "cz", qubits: []int{ctrl, tgt}, exp: 1.0},                // CZ
+			{kind: "phasedxz", qubits: []int{tgt}, x: 1.0, z: 1.0, a: 0.0},  // H
+			{kind: "phasedxz", qubits: []int{tgt}, x: 0.0, z: 0.5, a: 0.0},  // S
 		}, nil
 
 	// SWAP: decompose to 3x CNOT -> each CNOT decomposes to H+CZ+H
@@ -194,7 +194,7 @@ func convertOp(op ir.Operation) ([]nativeOp, error) {
 			{kind: "phasedxz", qubits: []int{q1}, x: 1.0, z: 1.0, a: 0.0},
 		}, nil
 
-	// Reset — not supported on Google hardware.
+	// Reset - not supported on Google hardware.
 	case name == "reset":
 		return nil, fmt.Errorf("google: reset gate is not supported")
 

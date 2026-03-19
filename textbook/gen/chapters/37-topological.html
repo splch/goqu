@@ -107,7 +107,7 @@ $$\text{Non-abelian: } |\psi\rangle \xrightarrow{\text{braid}} U_{\text{braid}}|
   and most studied model of topological quantum error correction. It provides a concrete
   example of how topology protects quantum information, and it forms the foundation for
   many practical error-correcting codes used today (including the surface code from
-  Chapter 13).
+  Chapter 19).
 </p>
 
 <h3>The Setup</h3>
@@ -178,16 +178,17 @@ $$\text{Non-abelian: } |\psi\rangle \xrightarrow{\text{braid}} U_{\text{braid}}|
 qubit[6] q;  // q[0..3] = data, q[4] = star ancilla, q[5] = plaquette ancilla
 bit[2] c;
 
-// Prepare code state (all |0>, trivially in code space)
+// Data qubits start in |0000> (eigenstate of Z-stabilizer only)
+// The star measurement projects into a +1 or -1 eigenspace of X0X1X2X3
 
-// Measure star stabilizer: X on data qubits around vertex
-// Star = X0 X1 X2 X3 -> use CNOT with ancilla in |+>
+// Measure star stabilizer: X0 X1 X2 X3
+// Use ancilla in |+>, CNOT to data, H, measure
 h q[4];
 cx q[4], q[0]; cx q[4], q[1]; cx q[4], q[2]; cx q[4], q[3];
 h q[4];
 c[0] = measure q[4];
 
-// Measure plaquette stabilizer: Z on data qubits around face
+// Measure plaquette stabilizer: Z0 Z1 Z2 Z3
 cx q[0], q[5]; cx q[1], q[5]; cx q[2], q[5]; cx q[3], q[5];
 c[1] = measure q[5];</textarea>
   <div class="sandbox-controls">
@@ -198,9 +199,13 @@ c[1] = measure q[5];</textarea>
 </div>
 
 <p>
-  With no errors, both stabilizer measurements return 0 (indicating $+1$ eigenvalue).
+  The $|0000\rangle$ state is a $+1$ eigenstate of the plaquette stabilizer $Z_0 Z_1 Z_2 Z_3$,
+  so c[1] always returns 0. However, it is <em>not</em> an eigenstate of the star stabilizer
+  $X_0 X_1 X_2 X_3$, so c[0] returns 0 or 1 with equal probability - the measurement
+  itself projects the data qubits into a stabilizer eigenstate. Once both measurements
+  have been performed, the data qubits occupy the code space.
   Try adding <code>x q[0];</code> before the stabilizer measurements to introduce a
-  bit-flip error, and observe how the syndrome changes.
+  bit-flip error, and observe how the plaquette syndrome (c[1]) changes.
 </p>
 
 </section>
@@ -333,7 +338,7 @@ $$\tau \times \tau = \mathbf{1} + \tau$$
   The basic qubit design is called a <strong>tetron</strong>: four Majorana zero modes
   arranged in a specific geometry, encoding one logical qubit. In July 2025, Microsoft
   reported that prototype tetron devices could distinguish between two fundamental
-  measurement types tied to MZM behavior, with lifetimes differing by three orders of
+  measurement types tied to MZM behavior, with parity switching times differing by three orders of
   magnitude - approximately 14.5 microseconds for X-type and 12.4 milliseconds for
   Z-type measurements.
 </p>
@@ -371,7 +376,7 @@ $$\tau \times \tau = \mathbf{1} + \tau$$
 <hr />
 
 <!-- ================================================================== -->
-<section id="ch37-review">
+<section id="review">
 <h2>Chapter 37 Review</h2>
 
 <div class="flashcard-deck" data-component="flashcard-deck">

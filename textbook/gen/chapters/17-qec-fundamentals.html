@@ -298,9 +298,8 @@ syndrome[1] = measure q[4];</textarea>
     The 3-qubit bit-flip code encodes one logical qubit into three physical qubits using the
     mapping $\lvert 0_L \rangle = \lvert 000 \rangle$, $\lvert 1_L \rangle = \lvert 111 \rangle$.
     It corrects any single $X$ error by measuring two-qubit parities (syndromes) without
-    disturbing the encoded state. This is a $[\![3,1,1]\!]$ code - it uses 3 physical qubits
-    to encode 1 logical qubit, but its distance is only 1 against general errors (it cannot
-    correct phase flips).
+    disturbing the encoded state. This is a $[\![3,1,3]\!]$ code against bit-flip errors
+    (though only distance 1 against general Pauli errors, since it cannot detect phase flips).
   </p>
 </div>
 
@@ -834,7 +833,7 @@ $$C_2^\perp \subseteq C_1$$
 <p>
   Given such a pair, the CSS code $\text{CSS}(C_1, C_2)$ encodes $k = k_1 + k_2 - n$
   logical qubits into $n$ physical qubits, where $C_1$ is an $[n, k_1, d_1]$ code and
-  $C_2$ is an $[n, k_2, d_2]$ code. The code distance is $d = \min(d_1, d_2^\perp)$,
+  $C_2$ is an $[n, k_2, d_2]$ code. The code distance satisfies $d \geq \min(d_1, d_2^\perp)$,
   where $d_2^\perp$ is the distance of $C_2^\perp$.
 </p>
 
@@ -929,8 +928,10 @@ $$\lvert x + C_2^\perp \rangle = \frac{1}{\sqrt{\lvert C_2^\perp \rvert}} \sum_{
   <li>
     <strong>Transversal gates:</strong> CSS codes naturally support transversal
     implementations of certain logical gates (gates applied independently to each physical
-    qubit), which are inherently fault-tolerant. The Steane code supports transversal $H$,
-    CNOT, and $T$ gates (the last via magic state distillation).
+    qubit), which are inherently fault-tolerant. The Steane code supports transversal $H$
+    and CNOT gates. The $T$ gate can be implemented fault-tolerantly via magic state
+    distillation, though not transversally - consistent with the Eastin-Knill theorem
+    that no code admits a transversal universal gate set.
   </li>
   <li>
     <strong>Foundation for modern codes:</strong> Many important code families are CSS codes,

@@ -666,7 +666,7 @@ func (p *parser) parseIf() error {
 			return nil
 		}
 
-		// No else — use legacy per-op conditioning for backward compat.
+		// No else - use legacy per-op conditioning for backward compat.
 		condPtr := &ir.Condition{Clbit: cond.Clbit, Value: cond.Value, Register: cond.Register}
 		for i := range ifBody {
 			ifBody[i].Condition = condPtr
@@ -675,7 +675,7 @@ func (p *parser) parseIf() error {
 		return nil
 	}
 
-	// Single statement — legacy per-op conditioning.
+	// Single statement - legacy per-op conditioning.
 	condPtr := &ir.Condition{Clbit: cond.Clbit, Value: cond.Value, Register: cond.Register}
 	opsBefore := len(p.ops)
 	if err := p.parseStatement(); err != nil {
@@ -1165,7 +1165,7 @@ func (p *parser) resolveGate(name string, params []float64) (gate.Gate, error) {
 
 	// Check user-defined gates.
 	if gd, ok := p.gates[name]; ok {
-		// User-defined gate — we don't expand it, just create an opaque reference.
+		// User-defined gate - we don't expand it, just create an opaque reference.
 		return opaqueGate{name: name, n: len(gd.qubits), params: params}, nil
 	}
 

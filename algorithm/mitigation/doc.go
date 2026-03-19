@@ -45,7 +45,7 @@
 // # Digital Dynamical Decoupling (DD)
 //
 // DD inserts identity-equivalent pulse sequences (XX or XY4) into idle qubit
-// periods. This is a pure circuit transform — no executor or noise model needed:
+// periods. This is a pure circuit transform - no executor or noise model needed:
 //
 //	ddCirc, err := mitigation.InsertDD(mitigation.DDConfig{
 //	    Circuit:  circ,

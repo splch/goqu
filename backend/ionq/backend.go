@@ -20,7 +20,7 @@ type Backend struct {
 	client *httpClient
 	device string // "simulator", "qpu.aria-1", "qpu.forte-1", etc.
 	tgt    target.Target
-	jobs   sync.Map // jobID → jobMeta; entries are never evicted — recreate Backend for long-lived use
+	jobs   sync.Map // jobID → jobMeta; entries are never evicted - recreate Backend for long-lived use
 	logger *slog.Logger
 }
 

@@ -31,12 +31,12 @@ type namedPass struct {
 //
 // The pipeline follows the industry-standard quantum compilation flow:
 //
-//  1. INIT        — decompose >2Q gates so SABRE can route all 2Q interactions
-//  2. PRE-ROUTE   — cancel/merge to shrink the circuit before routing (fewer SWAPs)
-//  3. ROUTE       — SABRE qubit routing (insert SWAPs for connectivity)
-//  4. TRANSLATE   — decompose to target basis + fix gate direction
-//  5. OPTIMIZE    — iterative cancel/merge/commute/consolidate until fixed-point
-//  6. VALIDATE    — verify basis, connectivity, and depth constraints
+//  1. INIT        - decompose >2Q gates so SABRE can route all 2Q interactions
+//  2. PRE-ROUTE   - cancel/merge to shrink the circuit before routing (fewer SWAPs)
+//  3. ROUTE       - SABRE qubit routing (insert SWAPs for connectivity)
+//  4. TRANSLATE   - decompose to target basis + fix gate direction
+//  5. OPTIMIZE    - iterative cancel/merge/commute/consolidate until fixed-point
+//  6. VALIDATE    - verify basis, connectivity, and depth constraints
 func passesForLevel(level Level) []namedPass {
 	switch level {
 	case LevelNone:

@@ -1,5 +1,5 @@
 <p>
-  In Chapter 33 we met the foundational quantum key distribution protocols - BB84 and E91 -
+  In Chapter 8 we met the foundational quantum key distribution protocols - BB84 and E91 -
   which allow two parties to establish a shared secret key with security guaranteed by the
   laws of physics. But the world of quantum cryptography extends far beyond key distribution.
   This chapter explores four frontiers: <strong>device-independent cryptography</strong>,
@@ -314,7 +314,7 @@ c = measure q;</textarea>
 <div class="callout callout-info">
   <strong>Commercial QRNG.</strong>
   <p>
-    Several companies (ID Quantique, Quantis, KETS Quantum Security) sell commercial
+    Several companies (ID Quantique, Toshiba, KETS Quantum Security) sell commercial
     QRNG devices that produce random bits at rates of hundreds of megabits per second.
     These typically use photonic implementations: a single photon hitting a beam splitter
     and being detected on one of two paths. While commercial devices generally use
@@ -366,7 +366,7 @@ c = measure q;</pre>
 </p>
 
 <p>
-  The urgency is real. Shor's algorithm (Chapter 29) can factor integers and compute
+  The urgency is real. Shor's algorithm (Chapter 11) can factor integers and compute
   discrete logarithms in polynomial time on a quantum computer, breaking RSA, DSA,
   Diffie-Hellman, and elliptic-curve cryptography - the foundations of nearly all current
   public-key infrastructure. Although large-scale fault-tolerant quantum computers do not
@@ -605,7 +605,7 @@ c = measure q;</pre>
 
 <p>
   This is not a theoretical concern. Intelligence agencies are widely believed to be
-  stockpiling encrypted traffic today. NIST's IR 8547 (2024) recommends that organizations
+  stockpiling encrypted traffic today. NIST's draft IR 8547 (2024) recommends that organizations
   begin transitioning to PQC immediately, with a target of deprecating vulnerable algorithms
   by 2030 and disallowing them by 2035.
 </p>
@@ -692,7 +692,7 @@ c = measure q;</pre>
 <div class="callout callout-info">
   <strong>QKD and PQC: complementary, not competing.</strong>
   <p>
-    Quantum key distribution provides information-theoretic security (Chapter 33) but
+    Quantum key distribution provides information-theoretic security (Chapter 8) but
     requires dedicated quantum hardware and channels. PQC provides computational security
     but works on existing classical infrastructure. A defense-in-depth strategy uses both:
     PQC for general-purpose communication, and QKD for the most sensitive links where the
@@ -703,8 +703,8 @@ c = measure q;</pre>
 </section>
 
 <!-- ================================================================== -->
-<section id="flashcards">
-<h2>Review Flashcards</h2>
+<section id="review">
+<h2>Chapter 35 Review</h2>
 
 <div class="flashcard-deck" data-component="flashcard-deck">
   <div class="flashcard-deck-header">Chapter 35 Review</div>

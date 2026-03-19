@@ -178,7 +178,7 @@ func TestArbitrary(t *testing.T) {
 		}
 	}
 
-	// Verify defensive copy — mutating original doesn't affect waveform.
+	// Verify defensive copy - mutating original doesn't affect waveform.
 	original[0] = 999
 	samples2 := w.Sample(dt)
 	if samples2[0] != 1 {
@@ -194,7 +194,7 @@ func TestArbitraryResample(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Sample at 2x dt — should get 2 samples via nearest-neighbor.
+	// Sample at 2x dt - should get 2 samples via nearest-neighbor.
 	samples := w.Sample(2e-9)
 	if len(samples) != 2 {
 		t.Fatalf("len(samples) = %d, want 2", len(samples))

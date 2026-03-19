@@ -105,7 +105,7 @@ func TestAffineFit_Exact(t *testing.T) {
 }
 
 func TestIsCliffordGate(t *testing.T) {
-	// Test via CDR — a circuit with only Clifford gates should
+	// Test via CDR - a circuit with only Clifford gates should
 	// produce training circuits identical to the original.
 	ops := []ir.Operation{
 		{Gate: gate.H, Qubits: []int{0}},
@@ -141,7 +141,7 @@ func TestIsCliffordGate(t *testing.T) {
 }
 
 func TestNearestClifford_TToS(t *testing.T) {
-	// Build circuit with T, run CDR — verify it doesn't error.
+	// Build circuit with T, run CDR - verify it doesn't error.
 	ops := []ir.Operation{
 		{Gate: gate.T, Qubits: []int{0}},
 	}

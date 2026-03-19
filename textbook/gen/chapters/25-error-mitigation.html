@@ -767,10 +767,34 @@ c = measure q;</textarea>
 
 <!-- ================================================================== -->
 
-<h3>Interactive: Dynamical Decoupling</h3>
+<h3>Dynamical Decoupling</h3>
+
 <p>
-  Dynamical decoupling inserts rapid pulse sequences during idle periods to average out
-  low-frequency noise. Compare the original circuit with the DD-protected version.
+  <strong>Dynamical decoupling</strong> (DD) suppresses low-frequency noise by inserting
+  rapid pulse sequences during idle periods in a circuit. The key idea is that if an
+  unwanted interaction accumulates a phase error during idle time, a carefully timed
+  sequence of pulses can refocus (cancel) that error - much like a spin echo in NMR.
+</p>
+
+<p>
+  Common DD sequences include:
+</p>
+
+<ul>
+  <li><strong>XX (Hahn echo):</strong> A single $X$ pulse at the midpoint of an idle
+  period refocuses static $Z$ errors, producing a "spin echo."</li>
+  <li><strong>XY4:</strong> Alternates $X$ and $Y$ pulses ($X$-$Y$-$X$-$Y$) at quarter
+  intervals, suppressing both $Z$ and off-axis errors. More robust than XX for
+  realistic noise.</li>
+  <li><strong>CPMG:</strong> Multiple equally spaced $X$ pulses, extending the Hahn echo
+  to filter out a wider range of noise frequencies.</li>
+</ul>
+
+<p>
+  DD is one of the simplest and most broadly applicable mitigation techniques. It requires
+  no additional qubits and only modest pulse overhead, making it a default strategy on most
+  quantum computing platforms. The widget below shows how DD pulses are inserted into a
+  circuit's idle slots.
 </p>
 <div class="widget" id="dd-widget">
   <div class="widget-header">Dynamical Decoupling</div>
@@ -837,6 +861,9 @@ async function runTwirlWidget() {
 </script>
 
 <!-- ================================================================== -->
+
+<section id="review">
+<h2>Chapter 25 Review</h2>
 
 <div class="flashcard-deck" data-component="flashcard-deck">
   <div class="flashcard-deck-header">Chapter 25 Review</div>
@@ -968,3 +995,4 @@ async function runTwirlWidget() {
   </div>
 
 </div>
+</section>
