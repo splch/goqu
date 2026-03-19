@@ -871,7 +871,7 @@ func TestStatePrep_Normalized(t *testing.T) {
 }
 
 func TestEvolve_DelayIsNoOp(t *testing.T) {
-	// H(0) then Delay then nothing else — state should be |+>.
+	// H(0) then Delay then nothing else - state should be |+>.
 	c, err := builder.New("hdelay", 1).
 		H(0).
 		Delay(0, 100, gate.UnitNs).

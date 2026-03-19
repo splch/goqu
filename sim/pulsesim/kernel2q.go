@@ -8,7 +8,7 @@ import "math"
 //	control=|0>: U_target = R(+theta, phi)
 //	control=|1>: U_target = R(-theta, phi)
 //
-// This produces ZX-like entanglement — the dominant physics of echoed CR gates.
+// This produces ZX-like entanglement - the dominant physics of echoed CR gates.
 func (s *Sim) applyCRStep(control, target int, theta, phi float64) {
 	// U_0: standard drive unitary at (theta, phi)
 	cosH0 := math.Cos(theta / 2)

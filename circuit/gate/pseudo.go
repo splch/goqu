@@ -3,7 +3,7 @@ package gate
 import "fmt"
 
 // Reset is a pseudo-gate that resets a qubit to |0⟩.
-// It has no matrix representation — simulators handle it directly.
+// It has no matrix representation - simulators handle it directly.
 var Reset Gate = resetGate{}
 
 type resetGate struct{}
@@ -25,7 +25,7 @@ const (
 )
 
 // Delay returns a delay pseudo-gate that idles a qubit for the given duration.
-// It has no matrix representation — simulators skip it (or apply decoherence
+// It has no matrix representation - simulators skip it (or apply decoherence
 // noise in noisy simulation). The unit should be one of the Unit* constants.
 func Delay(duration float64, unit string) Gate {
 	return delayGate{duration: duration, unit: unit}
@@ -66,7 +66,7 @@ func (g delayGate) Seconds() float64 {
 }
 
 // Barrier returns a barrier pseudo-gate spanning n qubits. Barriers have no
-// matrix representation — they prevent gate reordering across them during
+// matrix representation - they prevent gate reordering across them during
 // transpilation. Simulators skip them.
 func Barrier(n int) Gate {
 	return barrierGate{n: n}

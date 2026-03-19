@@ -153,7 +153,7 @@ func TestDAGPredCountBugFix(t *testing.T) {
 	if d.predCount[2] != 1 {
 		t.Errorf("op 2 predCount = %d, want 1", d.predCount[2])
 	}
-	// op 3: one predecessor (op 2 on q0) — NOT 3 like old code would produce
+	// op 3: one predecessor (op 2 on q0) - NOT 3 like old code would produce
 	if d.predCount[3] != 1 {
 		t.Errorf("op 3 predCount = %d, want 1", d.predCount[3])
 	}

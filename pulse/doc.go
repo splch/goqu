@@ -13,7 +13,7 @@
 //
 // Timing uses float64 seconds (not time.Duration) for sub-nanosecond
 // precision required by quantum hardware. Frames are stateless value
-// types — phase and frequency changes are expressed as instructions.
+// types - phase and frequency changes are expressed as instructions.
 //
 // Standard waveform shapes are provided in the [waveform] sub-package.
 // IonQ custom pulse envelopes use a separate model; see the

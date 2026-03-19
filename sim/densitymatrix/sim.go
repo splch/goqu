@@ -465,7 +465,7 @@ func decomposeGeneralControlledForDensity(u gate.Gate, controls []int, target in
 
 	var ops []ir.Operation
 
-	// C(tgt) = Rz((γ-α)/2) — applied first in circuit time
+	// C(tgt) = Rz((γ-α)/2) - applied first in circuit time
 	if !dNearZero(gamma - alpha) {
 		ops = append(ops, ir.Operation{Gate: gate.RZ((gamma - alpha) / 2), Qubits: []int{target}})
 	}

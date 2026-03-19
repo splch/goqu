@@ -319,7 +319,7 @@ func (s *Sim) kernel2qISWAP(q0, q1 int) {
 	}
 }
 
-// kernel2qSycamore: FSim(pi/2, pi/6) — iSWAP on |01>↔|10> plus phase on |11>.
+// kernel2qSycamore: FSim(pi/2, pi/6) - iSWAP on |01>↔|10> plus phase on |11>.
 func (s *Sim) kernel2qSycamore(q0, q1 int) {
 	mask0, mask1, lo, hi := blockStride2(q0, q1)
 	n := len(s.state)

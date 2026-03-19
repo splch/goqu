@@ -59,7 +59,7 @@ type Diagonal2Q interface {
 }
 
 // ControlDiagonal2Q is optionally implemented by 2-qubit controlled gates
-// whose matrix is diag(1, 1, d10, d11) — identity on the |0x> subspace.
+// whose matrix is diag(1, 1, d10, d11) - identity on the |0x> subspace.
 // Examples: CP, CRZ. The simulator only multiplies the |1x> amplitudes.
 type ControlDiagonal2Q interface {
 	// ControlDiagonal returns the two non-trivial diagonal elements [d10, d11].

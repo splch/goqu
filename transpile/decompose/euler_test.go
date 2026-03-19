@@ -557,7 +557,7 @@ func TestEulerZXZ_Decompose_FixedGates(t *testing.T) {
 }
 
 func TestEulerZYZ_NearDiagonalMatrix(t *testing.T) {
-	// RZ(0.001) is nearly diagonal — tests the numerical stability of EulerZYZ.
+	// RZ(0.001) is nearly diagonal - tests the numerical stability of EulerZYZ.
 	m := gate.RZ(0.001).Matrix()
 	assertEulerZYZ(t, "RZ(0.001)", m, 1e-7)
 }

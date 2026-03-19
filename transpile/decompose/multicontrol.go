@@ -84,7 +84,7 @@ func decomposeSingleControlled(u gate.Gate, control, target int) []ir.Operation 
 
 	var ops []ir.Operation
 
-	// C(tgt) = Rz((γ-α)/2) — applied first in circuit time
+	// C(tgt) = Rz((γ-α)/2) - applied first in circuit time
 	if !nearZero(gamma - alpha) {
 		ops = append(ops, ir.Operation{Gate: gate.RZ((gamma - alpha) / 2), Qubits: []int{target}})
 	}
@@ -193,7 +193,7 @@ func decomposeGeneralControlled(u gate.Gate, controls []int, target int) []ir.Op
 
 	var ops []ir.Operation
 
-	// C(tgt) = Rz((γ-α)/2) — applied first in circuit time
+	// C(tgt) = Rz((γ-α)/2) - applied first in circuit time
 	if !nearZero(gamma - alpha) {
 		ops = append(ops, ir.Operation{Gate: gate.RZ((gamma - alpha) / 2), Qubits: []int{target}})
 	}

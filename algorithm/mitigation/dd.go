@@ -26,7 +26,7 @@ type DDConfig struct {
 }
 
 // InsertDD returns a new circuit with dynamical decoupling sequences inserted
-// into idle qubit periods. This is a pure circuit transform — no executor or
+// into idle qubit periods. This is a pure circuit transform - no executor or
 // noise model is needed.
 func InsertDD(cfg DDConfig) (*ir.Circuit, error) {
 	if cfg.Circuit == nil {

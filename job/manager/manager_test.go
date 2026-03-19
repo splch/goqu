@@ -159,7 +159,7 @@ func TestConcurrencyLimit(t *testing.T) {
 		mock.WithStatusSequence(backend.StateCompleted),
 	))
 
-	// Submit 4 jobs concurrently — only 2 should run at a time.
+	// Submit 4 jobs concurrently - only 2 should run at a time.
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 

@@ -132,7 +132,7 @@ var (
 
 	// T is the T gate (pi/8 gate / fourth-root of Z). It applies a pi/4
 	// (45-degree) phase: |0> -> |0>, |1> -> exp(i*pi/4)|1>. The T gate is
-	// essential for universal quantum computation — the Clifford+T gate set
+	// essential for universal quantum computation - the Clifford+T gate set
 	// can approximate any unitary to arbitrary precision (Solovay-Kitaev).
 	// Inverse: [Tdg]. T^2 = S, T^4 = Z.
 	//

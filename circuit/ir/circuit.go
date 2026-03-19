@@ -51,7 +51,7 @@ func (c *Circuit) Ops() []Operation {
 // NumOps returns the number of operations in the circuit.
 func (c *Circuit) NumOps() int { return len(c.ops) }
 
-// Op returns the i-th operation. It does not copy — callers must not modify
+// Op returns the i-th operation. It does not copy - callers must not modify
 // the returned value's slices or pointer fields.
 func (c *Circuit) Op(i int) Operation { return c.ops[i] }
 

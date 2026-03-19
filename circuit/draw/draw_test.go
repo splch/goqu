@@ -262,7 +262,7 @@ func TestWithMaxLabelWidth_One(t *testing.T) {
 }
 
 func TestEmptyQubitsOp(t *testing.T) {
-	// Op with nil qubits — should not panic.
+	// Op with nil qubits - should not panic.
 	c := ir.New("noop", 1, 0, []ir.Operation{{Gate: gate.H, Qubits: nil}}, nil)
 	got := String(c)
 	// Just verify no panic, output can be anything.
