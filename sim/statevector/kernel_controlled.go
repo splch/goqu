@@ -16,6 +16,9 @@ func (s *Sim) dispatchControlled(cg gate.ControlledGate, qubits []int) {
 	switch cg.Inner().Qubits() {
 	case 1:
 		m := cg.Inner().Matrix()
+		if m == nil {
+			return // opaque gate with no matrix - treat as identity
+		}
 		if s.numQubits >= 17 {
 			s.applyControlledGate1Parallel(controls, targets[0], m)
 		} else {
@@ -23,6 +26,9 @@ func (s *Sim) dispatchControlled(cg gate.ControlledGate, qubits []int) {
 		}
 	case 2:
 		m := cg.Inner().Matrix()
+		if m == nil {
+			return // opaque gate with no matrix - treat as identity
+		}
 		if s.numQubits >= 17 {
 			s.applyControlledGate2Parallel(controls, targets[0], targets[1], m)
 		} else {

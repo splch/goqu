@@ -155,7 +155,11 @@ func readClassicalValue(clbits []int, indices []int) int {
 func (s *Sim) applyOp(op ir.Operation) error {
 	switch op.Gate.Qubits() {
 	case 1:
-		s.applyGate1(op.Qubits[0], op.Gate.Matrix())
+		m := op.Gate.Matrix()
+		if m == nil {
+			return fmt.Errorf("gate %q has no matrix representation", op.Gate.Name())
+		}
+		s.applyGate1(op.Qubits[0], m)
 	case 2:
 		s.dispatchGate2(op.Gate, op.Qubits[0], op.Qubits[1])
 	case 3:

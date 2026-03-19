@@ -36,6 +36,9 @@ func (s *Sim) dispatchGate3(g gate.Gate, q0, q1, q2 int) {
 
 	// Generic fallback.
 	m := g.Matrix()
+	if m == nil {
+		return // opaque gate with no matrix - treat as identity
+	}
 	if parallel {
 		s.kernel3qGenericParallel(q0, q1, q2, m)
 	} else {

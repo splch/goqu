@@ -103,6 +103,9 @@ func (s *Sim) dispatchGate2(g gate.Gate, q0, q1 int) {
 
 	// Generic fallback.
 	m := g.Matrix()
+	if m == nil {
+		return // opaque gate with no matrix - treat as identity
+	}
 	if parallel {
 		s.kernel2qGenericParallel(q0, q1, m)
 	} else {

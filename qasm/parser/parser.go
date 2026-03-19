@@ -68,6 +68,9 @@ type parser struct {
 
 	// Gate definitions: name → gatedef.
 	gates map[string]*gatedef
+
+	// Parameter substitution for gate body expansion.
+	paramValues map[string]float64
 }
 
 type gatedef struct {
@@ -372,6 +375,61 @@ func (p *parser) parseGateDecl() error {
 		qubits: qubits,
 		body:   bodyTokens,
 	}
+	return nil
+}
+
+// expandGateCall inlines a user-defined gate by re-parsing its body tokens
+// with qubit and parameter substitutions.
+func (p *parser) expandGateCall(name string, gd *gatedef, params []float64, qubits []int) error {
+	if len(params) != len(gd.params) {
+		return fmt.Errorf("gate %s requires %d parameters, got %d", name, len(gd.params), len(params))
+	}
+	if len(qubits) != len(gd.qubits) {
+		return fmt.Errorf("gate %s requires %d qubit arguments, got %d", name, len(gd.qubits), len(qubits))
+	}
+
+	// Empty body - identity gate, nothing to emit.
+	if len(gd.body) == 0 {
+		return nil
+	}
+
+	// Build sub-parser to expand body tokens.
+	bodyTokens := make([]token.Token, len(gd.body)+1)
+	copy(bodyTokens, gd.body)
+	bodyTokens[len(gd.body)] = token.Token{Type: token.EOF}
+
+	sub := &parser{
+		tokens:    bodyTokens,
+		cfg:       p.cfg,
+		gates:     p.gates,
+		qregs:     make(map[string]register),
+		cregs:     p.cregs,
+		numQubits: p.numQubits,
+		numClbits: p.numClbits,
+		metadata:  make(map[string]string),
+	}
+
+	// Map gate qubit parameter names to actual qubit indices.
+	for i, qname := range gd.qubits {
+		sub.qregs[qname] = register{start: qubits[i], size: 1}
+	}
+
+	// Map gate parameter names to actual values.
+	if len(gd.params) > 0 {
+		sub.paramValues = make(map[string]float64, len(gd.params))
+		for i, pname := range gd.params {
+			sub.paramValues[pname] = params[i]
+		}
+	}
+
+	// Parse the body.
+	for sub.peek() != token.EOF {
+		if err := sub.parseStatement(); err != nil {
+			return fmt.Errorf("in gate %s: %w", name, err)
+		}
+	}
+
+	p.ops = append(p.ops, sub.ops...)
 	return nil
 }
 
@@ -991,6 +1049,14 @@ func (p *parser) parseGateCall() error {
 		return err
 	}
 
+	// Expand user-defined gate bodies inline when no modifiers are applied.
+	totalModControls := ctrlCount + negctrlCount
+	if totalModControls == 0 && invCount == 0 && !hasPow {
+		if gd, ok := p.gates[gateName]; ok {
+			return p.expandGateCall(gateName, gd, params, qubits)
+		}
+	}
+
 	g, err := p.resolveGate(gateName, params)
 	if err != nil {
 		if p.cfg.strict {
@@ -1387,6 +1453,13 @@ func (p *parser) parsePrimary() (float64, error) {
 		_, err = p.expect(token.RPAREN)
 		return v, err
 	case token.IDENT:
+		// Check gate parameter substitution before function dispatch.
+		if p.paramValues != nil {
+			if v, ok := p.paramValues[t.Literal]; ok {
+				p.advance()
+				return v, nil
+			}
+		}
 		// Built-in functions: sin, cos, tan, sqrt, exp, log, arccos, etc.
 		p.advance()
 		fname := t.Literal

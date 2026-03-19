@@ -140,12 +140,15 @@ c = measure q;
 	if err != nil {
 		t.Fatal(err)
 	}
-	// mygate (opaque) + 2 measurements = 3 ops
-	if len(c.Ops()) != 3 {
-		t.Errorf("len(Ops) = %d, want 3", len(c.Ops()))
+	// mygate expands to h + cx, plus 2 measurements = 4 ops
+	if len(c.Ops()) != 4 {
+		t.Errorf("len(Ops) = %d, want 4", len(c.Ops()))
 	}
-	if c.Ops()[0].Gate.Name() != "mygate" {
-		t.Errorf("Ops[0].Gate.Name() = %q, want mygate", c.Ops()[0].Gate.Name())
+	if c.Ops()[0].Gate.Name() != "H" {
+		t.Errorf("Ops[0].Gate.Name() = %q, want H", c.Ops()[0].Gate.Name())
+	}
+	if c.Ops()[1].Gate.Name() != "CNOT" {
+		t.Errorf("Ops[1].Gate.Name() = %q, want CNOT", c.Ops()[1].Gate.Name())
 	}
 }
 
