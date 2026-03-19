@@ -54,7 +54,7 @@ Requires Go 1.24+.
 | Error Mitigation | ZNE, readout correction, Pauli twirling, dynamical decoupling, PEC, CDR, TREX |
 | Hardware Backends | IBM, IonQ, Google, Amazon Braket, Quantinuum, Rigetti |
 | Transpilation | SABRE routing, 4 optimization levels, decomposition, gate cancellation, verification |
-| Interop | OpenQASM 2/3 parser + emitter, Quil emitter |
+| Interop | OpenQASM 2/3 parser + emitter, QIR emitter + parser (LLVM IR), Quil emitter |
 | Visualization | Text, SVG, LaTeX circuits; histograms; Bloch spheres; state city plots |
 | Pulse Programming | OpenPulse model, waveforms, defcal |
 | Noise Modeling | Kraus operators, device noise models, depolarizing/amplitude-damping channels |
