@@ -385,6 +385,9 @@ article th {
   align-items: flex-start;
 }
 
+/* Responsive SVGs: scale down to fit container on all screen sizes. */
+article svg { max-width: 100%; height: auto; }
+
 .sandbox .output svg { max-width: 100%; height: auto; }
 
 .sandbox .output .error {

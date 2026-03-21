@@ -76,8 +76,8 @@ func FprintSVG(w io.Writer, c *ir.Circuit, opts ...SVGOption) error {
 	var sb strings.Builder
 
 	// SVG header.
-	fmt.Fprintf(&sb, `<svg xmlns="http://www.w3.org/2000/svg" width="%.0f" height="%.0f" font-family="%s" font-size="%.0f">`,
-		totalWidth, totalHeight, sty.FontFamily, sty.FontSize)
+	fmt.Fprintf(&sb, `<svg xmlns="http://www.w3.org/2000/svg" width="%.0f" height="%.0f" viewBox="0 0 %.0f %.0f" font-family="%s" font-size="%.0f">`,
+		totalWidth, totalHeight, totalWidth, totalHeight, sty.FontFamily, sty.FontSize)
 	sb.WriteString("\n")
 
 	// Background.
