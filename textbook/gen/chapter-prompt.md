@@ -227,6 +227,49 @@ For classical-only chapters (1, 2, 16) that need interactive elements without QA
 - Place the `<script>` at the end of the chapter fragment
 - Keep widget code self-contained (no external dependencies)
 
+### 7. Inline SVG Diagrams (for static visuals)
+
+For non-interactive diagrams (circuit schematics, flowcharts, architecture diagrams), use
+hand-coded inline SVG instead of ASCII art `<pre>` blocks. Inline SVGs are responsive, support
+dark mode via CSS variables, and render crisply at any screen size.
+
+```html
+<svg viewBox="0 0 400 120" role="img" aria-labelledby="diagram-title"
+     style="display:block;max-width:400px;margin:1rem auto;font-family:var(--font-mono);font-size:13px;">
+  <title id="diagram-title">Accessible description of the diagram</title>
+  <defs>
+    <!-- Define reusable gate/block shapes once -->
+    <g id="my-gate">
+      <rect x="-40" y="-20" width="80" height="40" rx="4"
+            fill="var(--color-gate-1q)" stroke="var(--color-text)" stroke-width="1.5"/>
+    </g>
+  </defs>
+  <!-- Group wires together to share stroke attributes -->
+  <g stroke="var(--color-text)" stroke-width="1.5">
+    <line x1="30" y1="60" x2="160" y2="60"/>
+    <line x1="240" y1="60" x2="370" y2="60"/>
+  </g>
+  <!-- Reuse defined shapes with <use> -->
+  <use href="#my-gate" x="200" y="60"/>
+  <text x="200" y="65" fill="var(--color-text)" text-anchor="middle"
+        dominant-baseline="middle">GATE</text>
+  <!-- Group labels to share fill -->
+  <g fill="var(--color-text)" dominant-baseline="middle">
+    <text x="25" y="65" text-anchor="end">IN</text>
+    <text x="375" y="65">OUT</text>
+  </g>
+</svg>
+```
+
+Guidelines:
+- **Always include `viewBox`** and set `max-width` in the style to the diagram's natural pixel width. This ensures the diagram scales down on small screens without overflow.
+- **Use `<defs>` + `<use>`** for any shape that repeats (gate boxes, sub-circuit blocks). Define the shape once centered at the origin, then place it with `x`/`y` on `<use>`.
+- **Use `<symbol>`** instead of `<g>` inside `<defs>` when the reusable component needs its own `viewBox` (e.g., a sub-circuit block with different aspect ratio).
+- **Group with `<g>`** to share common attributes (`stroke`, `fill`, `font-size`) and reduce repetition.
+- **Use CSS variables** for all colors: `var(--color-text)`, `var(--color-text-muted)`, `var(--color-gate-1q)`, `var(--color-gate-2q)`, `var(--color-measure)`, `var(--color-border)`, `var(--color-code-bg)`. This ensures diagrams respect dark mode automatically.
+- **Add `role="img"` and `aria-labelledby`** pointing to a `<title>` element for accessibility.
+- **Never use `<pre>` for visual diagrams.** ASCII art is not responsive or accessible. Convert existing ASCII diagrams to inline SVG.
+
 ---
 
 ## QASM Gate Reference
