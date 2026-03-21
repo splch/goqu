@@ -281,13 +281,40 @@ func TestIBMEagleHasConnectivity(t *testing.T) {
 }
 
 func TestConstrainedTargetsConnected(t *testing.T) {
-	targets := []Target{IBMEagle, IBMBrisbane, IBMSherbrooke}
+	targets := []Target{IBMEagle, IBMBrisbane, IBMSherbrooke, GoogleSycamore, GoogleWillow, RigettiAnkaa}
 	for _, tgt := range targets {
 		t.Run(tgt.Name, func(t *testing.T) {
 			if err := tgt.ValidateConnectivity(); err != nil {
 				t.Error(err)
 			}
 		})
+	}
+}
+
+func TestGoogleSycamoreConnectivity(t *testing.T) {
+	if GoogleSycamore.Connectivity == nil {
+		t.Fatal("GoogleSycamore should have constrained connectivity")
+	}
+	if len(GoogleSycamore.Connectivity) != 86 {
+		t.Errorf("GoogleSycamore.Connectivity has %d edges, want 86", len(GoogleSycamore.Connectivity))
+	}
+}
+
+func TestGoogleWillowConnectivity(t *testing.T) {
+	if GoogleWillow.Connectivity == nil {
+		t.Fatal("GoogleWillow should have constrained connectivity")
+	}
+	if len(GoogleWillow.Connectivity) != 182 {
+		t.Errorf("GoogleWillow.Connectivity has %d edges, want 182", len(GoogleWillow.Connectivity))
+	}
+}
+
+func TestRigettiAnkaaConnectivity(t *testing.T) {
+	if RigettiAnkaa.Connectivity == nil {
+		t.Fatal("RigettiAnkaa should have constrained connectivity")
+	}
+	if len(RigettiAnkaa.Connectivity) != 149 {
+		t.Errorf("RigettiAnkaa.Connectivity has %d edges, want 149", len(RigettiAnkaa.Connectivity))
 	}
 }
 
