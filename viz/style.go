@@ -70,12 +70,12 @@ func DarkStyle() *Style {
 	}
 }
 
-// svgHeader returns the opening SVG tag with dimensions and background.
+// svgHeader returns the opening SVG tag with dimensions, viewBox, and background.
 func svgHeader(w, h float64, sty *Style) string {
 	return fmt.Sprintf(
-		`<svg xmlns="http://www.w3.org/2000/svg" width="%.0f" height="%.0f" font-family="%s" font-size="%.0f">`+"\n"+
+		`<svg xmlns="http://www.w3.org/2000/svg" width="%.0f" height="%.0f" viewBox="0 0 %.0f %.0f" font-family="%s" font-size="%.0f">`+"\n"+
 			`<rect width="100%%" height="100%%" fill="%s"/>`+"\n",
-		w, h, sty.FontFamily, sty.FontSize, sty.BackgroundColor)
+		w, h, w, h, sty.FontFamily, sty.FontSize, sty.BackgroundColor)
 }
 
 // svgFooter returns the closing SVG tag.

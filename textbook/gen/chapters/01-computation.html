@@ -531,13 +531,34 @@ $$S = A \oplus B \qquad\qquad C = A \land B$$
   carry coming in from a previous column.
 </p>
 
-<div style="background: var(--color-code-bg); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 1rem; margin: 1rem 0; font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.8; overflow-x: auto;">
-<pre style="margin: 0; background: none; border: none; padding: 0;">  A -----+---[ XOR ]---- S  (sum)
-         |
-  B ---+-+---[ AND ]---- C  (carry)
-       | |
-       +-+</pre>
-</div>
+<svg viewBox="0 0 460 120" role="img" aria-labelledby="ha-title"
+     style="display:block;max-width:460px;margin:1rem auto;font-family:var(--font-mono);font-size:13px;">
+  <title id="ha-title">Half adder circuit: inputs A and B pass through XOR and AND gates to produce sum and carry outputs</title>
+  <!-- Wires -->
+  <g stroke="var(--color-text)" stroke-width="1.5" fill="none">
+    <line x1="30" y1="30" x2="160" y2="30"/>
+    <line x1="30" y1="90" x2="160" y2="90"/>
+    <line x1="100" y1="30" x2="100" y2="90"/>
+    <line x1="240" y1="30" x2="350" y2="30"/>
+    <line x1="240" y1="90" x2="350" y2="90"/>
+  </g>
+  <!-- Branch dots -->
+  <circle cx="100" cy="30" r="3" fill="var(--color-text)"/>
+  <circle cx="100" cy="90" r="3" fill="var(--color-text)"/>
+  <!-- XOR gate -->
+  <rect x="160" y="10" width="80" height="40" rx="4" fill="var(--color-gate-1q)" stroke="var(--color-text)" stroke-width="1.5"/>
+  <text x="200" y="30" fill="var(--color-text)" text-anchor="middle" dominant-baseline="middle">XOR</text>
+  <!-- AND gate -->
+  <rect x="160" y="70" width="80" height="40" rx="4" fill="var(--color-gate-1q)" stroke="var(--color-text)" stroke-width="1.5"/>
+  <text x="200" y="90" fill="var(--color-text)" text-anchor="middle" dominant-baseline="middle">AND</text>
+  <!-- Labels -->
+  <g fill="var(--color-text)">
+    <text x="25" y="34" text-anchor="end" dominant-baseline="middle">A</text>
+    <text x="25" y="94" text-anchor="end" dominant-baseline="middle">B</text>
+    <text x="355" y="34" dominant-baseline="middle">S (sum)</text>
+    <text x="355" y="94" dominant-baseline="middle">C (carry)</text>
+  </g>
+</svg>
 
 <h3>The Full Adder</h3>
 
@@ -560,17 +581,57 @@ $$S = A \oplus B \qquad\qquad C = A \land B$$
 $$S = A \oplus B \oplus C_{in}$$
 $$C_{out} = (A \land B) \lor \bigl((A \oplus B) \land C_{in}\bigr)$$
 
-<div style="background: var(--color-code-bg); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 1rem; margin: 1rem 0; font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.8; overflow-x: auto;">
-<pre style="margin: 0; background: none; border: none; padding: 0;">           +--------+
-  A -------| Half   |--- partial sum --+--------+
-  B -------| Adder  |--- carry1        |        |
-           +--------+                  | +--------+
-                                       +-| Half   |--- S
-  C_in ---------------------------------| Adder  |--- carry2
-                                        +--------+
-                                  carry1 --[ OR ]---- C_out
-                                  carry2 --+</pre>
-</div>
+<svg viewBox="0 0 590 200" role="img" aria-labelledby="fa-title"
+     style="display:block;max-width:590px;margin:1rem auto;font-family:var(--font-mono);font-size:12px;">
+  <title id="fa-title">Full adder circuit: two half adder blocks and an OR gate combine inputs A, B, and carry-in to produce sum and carry-out</title>
+  <!--
+    HA1: (85,10) 90x60   edges: L85 R175 T10 B70
+    HA2: (310,75) 90x60  edges: L310 R400 T75 B135
+    OR:  (435,150) 60x36 edges: L435 R495 T150 B186
+    Routing: carry1 at x=220 (45px from HA1, 90px from HA2)
+             psum   at x=245 (70px from HA1, 65px from HA2)
+             carry2 at x=418 (18px from HA2, 17px from OR)
+  -->
+  <!-- Wires -->
+  <g stroke="var(--color-text)" stroke-width="1.5" fill="none">
+    <line x1="35" y1="30" x2="85" y2="30"/>
+    <line x1="35" y1="50" x2="85" y2="50"/>
+    <line x1="35" y1="115" x2="310" y2="115"/>
+    <polyline points="175,30 245,30 245,95 310,95"/>
+    <polyline points="175,50 220,50 220,162 435,162"/>
+    <line x1="400" y1="95" x2="535" y2="95"/>
+    <polyline points="400,115 418,115 418,174 435,174"/>
+    <line x1="495" y1="168" x2="535" y2="168"/>
+  </g>
+  <!-- Half Adder 1 -->
+  <rect x="85" y="10" width="90" height="60" rx="4" fill="var(--color-gate-2q)" stroke="var(--color-text)" stroke-width="1.5"/>
+  <text x="130" y="33" fill="var(--color-text)" text-anchor="middle" dominant-baseline="middle" font-size="11">Half</text>
+  <text x="130" y="49" fill="var(--color-text)" text-anchor="middle" dominant-baseline="middle" font-size="11">Adder</text>
+  <!-- Half Adder 2 -->
+  <rect x="310" y="75" width="90" height="60" rx="4" fill="var(--color-gate-2q)" stroke="var(--color-text)" stroke-width="1.5"/>
+  <text x="355" y="98" fill="var(--color-text)" text-anchor="middle" dominant-baseline="middle" font-size="11">Half</text>
+  <text x="355" y="114" fill="var(--color-text)" text-anchor="middle" dominant-baseline="middle" font-size="11">Adder</text>
+  <!-- OR gate -->
+  <rect x="435" y="150" width="60" height="36" rx="4" fill="var(--color-measure)" stroke="var(--color-text)" stroke-width="1.5"/>
+  <text x="465" y="168" fill="var(--color-text)" text-anchor="middle" dominant-baseline="middle">OR</text>
+  <!-- Input labels -->
+  <g fill="var(--color-text)">
+    <text x="30" y="30" text-anchor="end" dominant-baseline="middle">A</text>
+    <text x="30" y="50" text-anchor="end" dominant-baseline="middle">B</text>
+    <text x="30" y="115" text-anchor="end" dominant-baseline="middle">C_in</text>
+  </g>
+  <!-- Output labels -->
+  <g fill="var(--color-text)">
+    <text x="540" y="95" dominant-baseline="middle">S</text>
+    <text x="540" y="168" dominant-baseline="middle">C_out</text>
+  </g>
+  <!-- Wire annotations -->
+  <g fill="var(--color-text-muted)" font-size="10">
+    <text x="210" y="22" text-anchor="middle">partial sum</text>
+    <text x="217" y="106" text-anchor="end">carry1</text>
+    <text x="415" y="145" text-anchor="end">carry2</text>
+  </g>
+</svg>
 
 <h3>Scaling Up: The Ripple-Carry Adder</h3>
 
