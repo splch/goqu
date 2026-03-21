@@ -1,4 +1,4 @@
-.PHONY: test test-race test-all lint vet fuzz bench bench-gpu-cuda test-gpu-cuda coverage clean hooks textbook textbook-serve textbook-clean
+.PHONY: test test-race test-all lint vet fuzz bench bench-gpu-cuda test-gpu-cuda coverage clean hooks textbook textbook-pdf textbook-serve textbook-clean
 
 test:
 	go test -count=1 -timeout=5m ./...
@@ -70,9 +70,12 @@ textbook:
 	cd textbook/wasm && GOOS=js GOARCH=wasm go build -trimpath -ldflags="-w -s" -o ../main.wasm .
 	@command -v wasm-opt >/dev/null 2>&1 && wasm-opt -Oz --enable-bulk-memory -o textbook/main.wasm textbook/main.wasm || true
 
+textbook-pdf: textbook
+	cd textbook && npm install --silent && node gen-pdf.mjs
+
 textbook-serve: textbook
 	@echo "Serving textbook at http://localhost:8080"
 	python3 -m http.server 8080 -d textbook
 
 textbook-clean:
-	rm -f textbook/main.wasm textbook/wasm_exec.js
+	rm -f index.html style.css textbook/main.wasm textbook/wasm_exec.js textbook/chapters/*
