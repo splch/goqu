@@ -450,9 +450,7 @@ func marshalTargetInfo(r targetInfoResult) string {
 	return b.String()
 }
 
-// ---------------------------------------------------------------------------
 // Pauli expectation value marshalers
-// ---------------------------------------------------------------------------
 
 func marshalExpectation(r expectationResult) string {
 	var b strings.Builder
@@ -538,9 +536,7 @@ func marshalGradient(r gradientResult) string {
 	return b.String()
 }
 
-// ---------------------------------------------------------------------------
 // QAOA marshaler
-// ---------------------------------------------------------------------------
 
 func marshalQAOA(r qaoaResult) string {
 	var b strings.Builder
@@ -576,9 +572,7 @@ func marshalQAOA(r qaoaResult) string {
 	return b.String()
 }
 
-// ---------------------------------------------------------------------------
 // VQE marshaler
-// ---------------------------------------------------------------------------
 
 func marshalVQE(r vqeResult) string {
 	var b strings.Builder
@@ -604,9 +598,7 @@ func marshalVQE(r vqeResult) string {
 	return b.String()
 }
 
-// ---------------------------------------------------------------------------
 // Mitigation marshalers
-// ---------------------------------------------------------------------------
 
 func marshalZNE(r zneResult) string {
 	var b strings.Builder
@@ -672,9 +664,7 @@ func marshalTwirl(r twirlResult) string {
 	return b.String()
 }
 
-// ---------------------------------------------------------------------------
 // Algorithm marshalers
-// ---------------------------------------------------------------------------
 
 func marshalAlgorithm(r algorithmResult) string {
 	var b strings.Builder
@@ -757,9 +747,7 @@ func marshalAnsatz(r ansatzResult) string {
 	return b.String()
 }
 
-// ---------------------------------------------------------------------------
 // Trotter marshaler
-// ---------------------------------------------------------------------------
 
 func marshalTrotter(r trotterResult) string {
 	var b strings.Builder

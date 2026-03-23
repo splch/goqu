@@ -114,20 +114,110 @@
   explore this circuit by sweeping a single parameter while holding the others fixed.
 </p>
 
-<div class="simulation" data-component="simulation">
-  <div class="sim-controls">
-    <label>$\theta_0$: <input type="range" data-param="theta0" min="0" max="6.283" step="0.01" value="0"><output>0.00</output></label>
-    <label>$\theta_1$: <input type="range" data-param="theta1" min="0" max="6.283" step="0.01" value="1.57"><output>1.57</output></label>
-    <label>$\theta_2$: <input type="range" data-param="theta2" min="0" max="6.283" step="0.01" value="0"><output>0.00</output></label>
+<!-- Visualization 1: Variational Loop Walkthrough -->
+<div class="animated-walkthrough" data-component="animated-walkthrough">
+  <div class="walkthrough-progress"></div>
+
+  <div class="walkthrough-stage active" data-stage="0">
+    <div class="walkthrough-narration">
+      <h4>Step 1: Prepare Parameterized State</h4>
+      <p>Apply a parameterized circuit $U(\vec{\theta})$ to the initial state $|00\rangle$. The circuit contains rotation gates with adjustable angles that define the quantum state we prepare.</p>
+    </div>
+    <div class="walkthrough-qasm">
+OPENQASM 3.0;
+include "stdgates.inc";
+qubit[2] q;
+bit[2] c;
+ry(1.0) q[0];
+ry(0.5) q[1];
+cx q[0], q[1];
+ry(0.3) q[0];
+c = measure q;
+    </div>
+    <div class="walkthrough-output"></div>
   </div>
-  <pre class="sim-qasm">OPENQASM 3.0;
+
+  <div class="walkthrough-stage" data-stage="1">
+    <div class="walkthrough-narration">
+      <h4>Step 2: Measure Observable</h4>
+      <p>Estimate $\langle H \rangle = \langle \psi(\vec{\theta}) | H | \psi(\vec{\theta}) \rangle$ by running the circuit many times. Each shot returns a bitstring; the expectation value is the average of the corresponding eigenvalues. Current parameters give $\langle ZZ \rangle \approx 0.42$.</p>
+    </div>
+    <div class="walkthrough-qasm">
+OPENQASM 3.0;
+include "stdgates.inc";
+qubit[2] q;
+bit[2] c;
+ry(1.0) q[0];
+ry(0.5) q[1];
+cx q[0], q[1];
+ry(0.3) q[0];
+c = measure q;
+    </div>
+    <div class="walkthrough-output"></div>
+  </div>
+
+  <div class="walkthrough-stage" data-stage="2">
+    <div class="walkthrough-narration">
+      <h4>Step 3: Classical Optimizer Updates Parameters</h4>
+      <p>The classical optimizer computes gradients (via parameter shift rule) and proposes new angles: $\theta_0: 1.0 \to 1.57$, $\theta_1: 0.5 \to 0.8$, $\theta_2: 0.3 \to 0.6$. The optimizer moves downhill in parameter space.</p>
+    </div>
+    <div class="walkthrough-qasm">
+OPENQASM 3.0;
+include "stdgates.inc";
+qubit[2] q;
+bit[2] c;
+ry(1.57) q[0];
+ry(0.8) q[1];
+cx q[0], q[1];
+ry(0.6) q[0];
+c = measure q;
+    </div>
+    <div class="walkthrough-output"></div>
+  </div>
+
+  <div class="walkthrough-stage" data-stage="3">
+    <div class="walkthrough-narration">
+      <h4>Step 4: Repeat Until Convergence</h4>
+      <p>After several iterations, the parameters converge to values that minimize $\langle H \rangle$. The quantum-classical loop has found the ground state energy. Final parameters: $\theta_0 = \pi$, $\theta_1 = \pi/2$, $\theta_2 = 0$.</p>
+    </div>
+    <div class="walkthrough-qasm">
+OPENQASM 3.0;
+include "stdgates.inc";
+qubit[2] q;
+bit[2] c;
+ry(3.14159) q[0];
+ry(1.5708) q[1];
+cx q[0], q[1];
+c = measure q;
+    </div>
+    <div class="walkthrough-output"></div>
+  </div>
+
+  <div class="walkthrough-controls">
+    <button data-action="prev" disabled>Previous</button>
+    <button data-action="next">Next</button>
+    <button data-action="auto">Auto-play</button>
+  </div>
+</div>
+
+<!-- Visualization 2: Parameterized Circuit Simulation -->
+<div class="simulation" data-component="simulation" data-bloch>
+  <div class="sim-qasm" hidden>
+OPENQASM 3.0;
+include "stdgates.inc";
 qubit[2] q;
 bit[2] c;
 ry({theta0}) q[0];
 ry({theta1}) q[1];
 cx q[0], q[1];
 ry({theta2}) q[0];
-c = measure q;</pre>
+c = measure q;
+  </div>
+  <div class="sim-controls">
+    <label>$\theta_0$: <input type="range" data-param="theta0" min="0" max="6.28" step="0.05" value="1.0"><output>1.00</output></label>
+    <label>$\theta_1$: <input type="range" data-param="theta1" min="0" max="6.28" step="0.05" value="0.5"><output>0.50</output></label>
+    <label>$\theta_2$: <input type="range" data-param="theta2" min="0" max="6.28" step="0.05" value="0.3"><output>0.30</output></label>
+  </div>
   <div class="sim-output"></div>
 </div>
 
@@ -349,43 +439,6 @@ $$|\psi_{\text{UCCSD}}\rangle = e^{T - T^\dagger} |\phi_0\rangle$$
   quantum algorithms. Each ansatz has a different structure, parameter count, and
   expressibility. The circuit depth and parameter count grow with layers.
 </p>
-<div class="widget" id="ansatz-widget">
-  <div class="widget-header">Parameterized Ansatz Builder</div>
-  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
-    <label>Ansatz: <select id="ans-type">
-      <option value="real_amplitudes">RealAmplitudes</option>
-      <option value="efficient_su2">EfficientSU2</option>
-      <option value="basic_entangler">BasicEntangler</option>
-      <option value="strongly_entangling">StronglyEntangling</option>
-    </select></label>
-    <label>Qubits: <select id="ans-qubits"><option>2</option><option selected>3</option><option>4</option></select></label>
-    <label>Layers: <select id="ans-layers"><option>1</option><option selected>2</option><option>3</option></select></label>
-    <label>Entanglement: <select id="ans-ent"><option value="linear" selected>Linear</option><option value="full">Full</option><option value="circular">Circular</option></select></label>
-    <button onclick="runAnsatz()">Build</button>
-  </div>
-  <div class="widget-output" id="ansatz-output"></div>
-</div>
-<script>
-async function runAnsatz() {
-  await ensureWasm();
-  var out = document.getElementById('ansatz-output');
-  out.innerHTML = '<p style="color:var(--color-text-muted)">Building...</p>';
-  await new Promise(r => setTimeout(r, 0));
-  try {
-    var name = document.getElementById('ans-type').value;
-    var nq = parseInt(document.getElementById('ans-qubits').value);
-    var layers = parseInt(document.getElementById('ans-layers').value);
-    var ent = document.getElementById('ans-ent').value;
-    var r = JSON.parse(window.buildAnsatz(name, nq, layers, ent, isDark()));
-    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
-    var html = (r.circuitSVG||'');
-    html += '<div class="sim-stats"><span>Parameters: ' + r.numParams + '</span><span>Depth: ' + r.depth + '</span></div>';
-    if (r.qasmCode) html += '<details><summary>Generated QASM</summary><pre>' + esc(r.qasmCode) + '</pre></details>';
-    out.innerHTML = html;
-  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
-}
-</script>
-
 </section>
 
 <!-- ================================================================== -->
@@ -638,21 +691,6 @@ $$\frac{\partial C}{\partial \theta} = \frac{C(\theta + \pi/2) - C(\theta - \pi/
   core operation of a variational algorithm.
 </p>
 
-<div class="simulation" data-component="simulation">
-  <div class="sim-controls">
-    <label>$\theta_0$: <input type="range" data-param="theta0" min="0" max="6.283" step="0.01" value="0"><output>0.00</output></label>
-    <label>$\theta_1$ (fixed): <input type="range" data-param="theta1" min="0" max="6.283" step="0.01" value="0.78"><output>0.78</output></label>
-  </div>
-  <pre class="sim-qasm">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-ry({theta0}) q[0];
-ry({theta1}) q[1];
-cx q[0], q[1];
-c = measure q;</pre>
-  <div class="sim-output"></div>
-</div>
-
 <p>
   As you sweep $\theta_0$ from $0$ to $2\pi$, notice that the probability distribution
   oscillates smoothly. The minima and maxima of the energy correspond to zeros of the
@@ -661,258 +699,304 @@ c = measure q;</pre>
   direction is downhill by evaluating the circuit at $\theta_0 \pm \pi/2$.
 </p>
 
+<!-- Visualization 3: 1D Energy Landscape Simulation -->
 <h3>Interactive: Parameter Energy Landscape</h3>
 <p>
   Visualize how the cost function $\langle ZZ \rangle$ varies as a single parameter sweeps
   from $0$ to $2\pi$. The sinusoidal shape confirms the parameter shift rule prediction.
 </p>
-<div class="widget" id="sweep1d-widget">
-  <div class="widget-header">1D Parameter Sweep</div>
-  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
-    <label>Observable: <input type="text" id="sweep1d-pauli" value="ZZ" style="width:5rem;"></label>
-    <label>Parameter: <input type="text" id="sweep1d-param" value="theta" style="width:5rem;"></label>
-    <label>Points: <select id="sweep1d-count"><option>25</option><option selected>50</option><option>100</option></select></label>
-    <button onclick="runSweep1D()">Sweep</button>
-  </div>
-  <label style="display:block;margin-bottom:0.75rem;">QASM template:
-    <textarea id="sweep1d-qasm" rows="5" style="width:100%;font-family:monospace;font-size:0.85rem;">OPENQASM 3.0;
+
+<div class="simulation" data-component="simulation" data-expectation data-pauli="ZZ">
+  <div class="sim-qasm" hidden>
+OPENQASM 3.0;
+include "stdgates.inc";
 qubit[2] q;
 ry({theta}) q[0];
-ry(0.78) q[1];
-cx q[0], q[1];</textarea>
-  </label>
-  <div class="widget-output" id="sweep1d-output"></div>
+ry(0.5) q[1];
+cx q[0], q[1];
+  </div>
+  <div class="sim-controls">
+    <label>$\theta$: <input type="range" data-param="theta" min="0" max="6.28" step="0.05" value="0"><output>0.00</output></label>
+  </div>
+  <div class="sim-output"></div>
 </div>
-<script>
-async function runSweep1D() {
-  await ensureWasm();
-  var out = document.getElementById('sweep1d-output');
-  out.innerHTML = '<p style="color:var(--color-text-muted)">Sweeping...</p>';
-  await new Promise(function(r) { setTimeout(r, 0); });
-  try {
-    var qasm = document.getElementById('sweep1d-qasm').value;
-    var pauliStr = document.getElementById('sweep1d-pauli').value;
-    var paramName = document.getElementById('sweep1d-param').value;
-    var count = parseInt(document.getElementById('sweep1d-count').value);
-    var r = JSON.parse(window.sweepExpectation(qasm, pauliStr, paramName, 0, 6.283185307, count, isDark()));
-    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
-    var pv = r.paramValues, ev = r.expectations;
-    // Find min/max for scaling
-    var eMin = ev[0], eMax = ev[0];
-    for (var i = 1; i < ev.length; i++) { if (ev[i] < eMin) eMin = ev[i]; if (ev[i] > eMax) eMax = ev[i]; }
-    var eRange = eMax - eMin || 1;
-    // SVG dimensions
-    var W = 400, H = 200, pad = 40, pR = 10, pT = 15, pB = 30;
-    var plotW = W - pad - pR, plotH = H - pT - pB;
-    var fg = isDark() ? '#e0e0e0' : '#333', grid = isDark() ? '#444' : '#ccc', line = isDark() ? '#6ea8fe' : '#0d6efd';
-    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;max-width:400px;display:block;">';
-    // Grid lines and labels
-    svg += '<line x1="' + pad + '" y1="' + pT + '" x2="' + pad + '" y2="' + (pT + plotH) + '" stroke="' + fg + '" stroke-width="1"/>';
-    svg += '<line x1="' + pad + '" y1="' + (pT + plotH) + '" x2="' + (pad + plotW) + '" y2="' + (pT + plotH) + '" stroke="' + fg + '" stroke-width="1"/>';
-    // Y-axis labels
-    for (var t = 0; t <= 4; t++) {
-      var yVal = eMax - (t / 4) * eRange;
-      var yPos = pT + (t / 4) * plotH;
-      svg += '<line x1="' + (pad - 3) + '" y1="' + yPos + '" x2="' + (pad + plotW) + '" y2="' + yPos + '" stroke="' + grid + '" stroke-width="0.5"/>';
-      svg += '<text x="' + (pad - 5) + '" y="' + (yPos + 3) + '" text-anchor="end" fill="' + fg + '" font-size="9">' + yVal.toFixed(2) + '</text>';
-    }
-    // X-axis labels
-    var xLabels = [{v: 0, l: '0'}, {v: Math.PI, l: '\u03c0'}, {v: 2 * Math.PI, l: '2\u03c0'}];
-    for (var k = 0; k < xLabels.length; k++) {
-      var xPos = pad + (xLabels[k].v / 6.283185307) * plotW;
-      svg += '<text x="' + xPos + '" y="' + (pT + plotH + 15) + '" text-anchor="middle" fill="' + fg + '" font-size="9">' + xLabels[k].l + '</text>';
-    }
-    // Axis titles
-    svg += '<text x="' + (pad + plotW / 2) + '" y="' + (H - 2) + '" text-anchor="middle" fill="' + fg + '" font-size="10">' + esc(paramName) + '</text>';
-    svg += '<text x="12" y="' + (pT + plotH / 2) + '" text-anchor="middle" fill="' + fg + '" font-size="10" transform="rotate(-90,12,' + (pT + plotH / 2) + ')">&lt;' + esc(pauliStr) + '&gt;</text>';
-    // Data polyline
-    var pts = '';
-    for (var i = 0; i < pv.length; i++) {
-      var x = pad + (pv[i] / 6.283185307) * plotW;
-      var y = pT + ((eMax - ev[i]) / eRange) * plotH;
-      pts += (i === 0 ? '' : ' ') + x.toFixed(1) + ',' + y.toFixed(1);
-    }
-    svg += '<polyline points="' + pts + '" fill="none" stroke="' + line + '" stroke-width="2"/>';
-    svg += '</svg>';
-    // Find minimum
-    var minIdx = 0;
-    for (var i = 1; i < ev.length; i++) { if (ev[i] < ev[minIdx]) minIdx = i; }
-    svg += '<div class="sim-stats"><span>Min energy: ' + ev[minIdx].toFixed(4) + '</span><span>at ' + esc(paramName) + ' = ' + pv[minIdx].toFixed(3) + '</span></div>';
-    out.innerHTML = svg;
-  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
-}
-</script>
 
+<!-- Visualization 4: 2D Energy Landscape Simulation -->
 <h3>Interactive: 2D Energy Landscape</h3>
 <p>
-  Explore the full two-parameter energy landscape. The heatmap reveals local minima,
-  saddle points, and the global minimum (marked with x). This is the terrain that a
-  classical optimizer must navigate.
+  Explore the full two-parameter energy landscape. Adjust both parameters to find the minimum
+  of $\langle ZZ \rangle$. The circuit uses $R_y(\theta_0)$ on qubit 0 and $R_y(\theta_1)$
+  on qubit 1 with a CNOT entangler.
 </p>
-<div class="widget" id="sweep2d-widget">
-  <div class="widget-header">2D Energy Landscape</div>
-  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
-    <label>Observable: <input type="text" id="sweep2d-pauli" value="ZZ" style="width:5rem;"></label>
-    <label>Grid: <select id="sweep2d-grid"><option>10</option><option selected>20</option><option>25</option></select></label>
-    <button onclick="runSweep2D()">Compute</button>
-  </div>
-  <label style="display:block;margin-bottom:0.75rem;">QASM template:
-    <textarea id="sweep2d-qasm" rows="5" style="width:100%;font-family:monospace;font-size:0.85rem;">OPENQASM 3.0;
+
+<div class="simulation" data-component="simulation" data-expectation data-pauli="ZZ">
+  <div class="sim-qasm" hidden>
+OPENQASM 3.0;
+include "stdgates.inc";
 qubit[2] q;
 ry({theta0}) q[0];
 ry({theta1}) q[1];
-cx q[0], q[1];</textarea>
-  </label>
-  <div class="widget-output" id="sweep2d-output"></div>
+cx q[0], q[1];
+  </div>
+  <div class="sim-controls">
+    <label>$\theta_0$: <input type="range" data-param="theta0" min="0" max="6.28" step="0.05" value="0"><output>0.00</output></label>
+    <label>$\theta_1$: <input type="range" data-param="theta1" min="0" max="6.28" step="0.05" value="0"><output>0.00</output></label>
+  </div>
+  <div class="sim-output"></div>
 </div>
-<script>
-async function runSweep2D() {
-  await ensureWasm();
-  var out = document.getElementById('sweep2d-output');
-  out.innerHTML = '<p style="color:var(--color-text-muted)">Computing landscape...</p>';
-  await new Promise(function(r) { setTimeout(r, 0); });
-  try {
-    var qasm = document.getElementById('sweep2d-qasm').value;
-    var pauliStr = document.getElementById('sweep2d-pauli').value;
-    var gridSize = parseInt(document.getElementById('sweep2d-grid').value);
-    var r = JSON.parse(window.sweep2D(qasm, pauliStr, 'theta0', 0, 6.283185307, 'theta1', 0, 6.283185307, gridSize, isDark()));
-    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
-    var energies = r.energies, p1 = r.param1Values, p2 = r.param2Values;
-    var n = energies.length;
-    // Find global min/max across all cells
-    var eMin = energies[0][0], eMax = energies[0][0];
-    for (var i = 0; i < n; i++) for (var j = 0; j < energies[i].length; j++) {
-      if (energies[i][j] < eMin) eMin = energies[i][j];
-      if (energies[i][j] > eMax) eMax = energies[i][j];
-    }
-    var eRange = eMax - eMin || 1;
-    // SVG heatmap
-    var W = 400, H = 360, pad = 50, pR = 60, pT = 15, pB = 35;
-    var plotW = W - pad - pR, plotH = H - pT - pB;
-    var cellW = plotW / n, cellH = plotH / n;
-    var fg = isDark() ? '#e0e0e0' : '#333';
-    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;max-width:400px;display:block;">';
-    // Heatmap cells: rows = theta0 (y-axis), cols = theta1 (x-axis)
-    for (var i = 0; i < n; i++) {
-      for (var j = 0; j < energies[i].length; j++) {
-        var t = (energies[i][j] - eMin) / eRange; // 0 = min (blue), 1 = max (red)
-        var cr = Math.round(36 + 219 * t);
-        var cg = Math.round(36 + 80 * (1 - Math.abs(t - 0.5) * 2));
-        var cb = Math.round(255 - 219 * t);
-        var x = pad + j * cellW;
-        var y = pT + i * cellH;
-        svg += '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + (cellW + 0.5).toFixed(1) + '" height="' + (cellH + 0.5).toFixed(1) + '" fill="rgb(' + cr + ',' + cg + ',' + cb + ')"/>';
-      }
-    }
-    // Mark minimum with x
-    var minI = 0, minJ = 0;
-    for (var i = 0; i < n; i++) for (var j = 0; j < energies[i].length; j++) {
-      if (energies[i][j] < energies[minI][minJ]) { minI = i; minJ = j; }
-    }
-    var mx = pad + (minJ + 0.5) * cellW, my = pT + (minI + 0.5) * cellH;
-    svg += '<text x="' + mx.toFixed(1) + '" y="' + (my + 4).toFixed(1) + '" text-anchor="middle" fill="white" font-size="14" font-weight="bold" stroke="black" stroke-width="0.5">x</text>';
-    // Axes
-    svg += '<line x1="' + pad + '" y1="' + pT + '" x2="' + pad + '" y2="' + (pT + plotH) + '" stroke="' + fg + '" stroke-width="1"/>';
-    svg += '<line x1="' + pad + '" y1="' + (pT + plotH) + '" x2="' + (pad + plotW) + '" y2="' + (pT + plotH) + '" stroke="' + fg + '" stroke-width="1"/>';
-    // X-axis labels (theta1)
-    var xLabels = [{v: 0, l: '0'}, {v: Math.PI, l: '\u03c0'}, {v: 2 * Math.PI, l: '2\u03c0'}];
-    for (var k = 0; k < xLabels.length; k++) {
-      var xPos = pad + (xLabels[k].v / 6.283185307) * plotW;
-      svg += '<text x="' + xPos + '" y="' + (pT + plotH + 15) + '" text-anchor="middle" fill="' + fg + '" font-size="9">' + xLabels[k].l + '</text>';
-    }
-    // Y-axis labels (theta0)
-    var yLabels = [{v: 0, l: '0'}, {v: Math.PI, l: '\u03c0'}, {v: 2 * Math.PI, l: '2\u03c0'}];
-    for (var k = 0; k < yLabels.length; k++) {
-      var yPos = pT + (yLabels[k].v / 6.283185307) * plotH;
-      svg += '<text x="' + (pad - 5) + '" y="' + (yPos + 3) + '" text-anchor="end" fill="' + fg + '" font-size="9">' + yLabels[k].l + '</text>';
-    }
-    // Axis titles
-    svg += '<text x="' + (pad + plotW / 2) + '" y="' + (H - 5) + '" text-anchor="middle" fill="' + fg + '" font-size="10">\u03b8\u2081</text>';
-    svg += '<text x="12" y="' + (pT + plotH / 2) + '" text-anchor="middle" fill="' + fg + '" font-size="10" transform="rotate(-90,12,' + (pT + plotH / 2) + ')">\u03b8\u2080</text>';
-    // Color bar legend
-    var barX = pad + plotW + 10, barW = 12, barH = plotH;
-    for (var s = 0; s < barH; s++) {
-      var t = s / barH; // top = 0 (min/blue), bottom = 1 (max/red)
-      var cr = Math.round(36 + 219 * t);
-      var cg = Math.round(36 + 80 * (1 - Math.abs(t - 0.5) * 2));
-      var cb = Math.round(255 - 219 * t);
-      svg += '<rect x="' + barX + '" y="' + (pT + s) + '" width="' + barW + '" height="1.5" fill="rgb(' + cr + ',' + cg + ',' + cb + ')"/>';
-    }
-    svg += '<text x="' + (barX + barW + 3) + '" y="' + (pT + 8) + '" fill="' + fg + '" font-size="8">' + eMin.toFixed(2) + '</text>';
-    svg += '<text x="' + (barX + barW + 3) + '" y="' + (pT + barH) + '" fill="' + fg + '" font-size="8">' + eMax.toFixed(2) + '</text>';
-    svg += '</svg>';
-    svg += '<div class="sim-stats"><span>Min energy: ' + r.minEnergy.toFixed(4) + '</span><span>at \u03b8\u2080 = ' + r.minParam1.toFixed(3) + ', \u03b8\u2081 = ' + r.minParam2.toFixed(3) + '</span></div>';
-    out.innerHTML = svg;
-  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
-}
-</script>
 
-<h3>Interactive: Gradient Computation</h3>
+<!-- Visualization 5: Ansatz Gallery Widget -->
+<h3>Interactive: Ansatz Gallery</h3>
+<p>
+  Explore different parameterized circuit architectures (ansatze) used in variational
+  quantum algorithms. Each ansatz has a different structure, parameter count, and
+  expressibility. The circuit depth and parameter count grow with layers.
+</p>
+
+<div class="widget" id="widget-ansatz-gallery">
+  <div class="widget-header">Ansatz Gallery</div>
+  <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label style="font-family:var(--font-mono);font-size:0.85rem;">Ansatz:
+      <select id="ansatz-type" style="font-family:var(--font-mono);font-size:0.85rem;padding:0.2rem 0.4rem;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-surface);color:var(--color-text);">
+        <option value="hea">Hardware-Efficient</option>
+        <option value="uccsd">UCCSD (Chemistry)</option>
+        <option value="qaoa">QAOA</option>
+      </select>
+    </label>
+    <label style="font-family:var(--font-mono);font-size:0.85rem;">Qubits:
+      <select id="ansatz-qubits" style="font-family:var(--font-mono);font-size:0.85rem;padding:0.2rem 0.4rem;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-surface);color:var(--color-text);">
+        <option value="2">2</option>
+        <option value="4" selected>4</option>
+        <option value="6">6</option>
+      </select>
+    </label>
+    <label style="font-family:var(--font-mono);font-size:0.85rem;">Layers:
+      <select id="ansatz-layers" style="font-family:var(--font-mono);font-size:0.85rem;padding:0.2rem 0.4rem;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-surface);color:var(--color-text);">
+        <option value="1">1</option>
+        <option value="2" selected>2</option>
+        <option value="3">3</option>
+      </select>
+    </label>
+  </div>
+  <div id="ansatz-output" class="widget-output"></div>
+  <script>
+  (function(){
+    var typeSel = document.getElementById("ansatz-type");
+    var qubitsSel = document.getElementById("ansatz-qubits");
+    var layersSel = document.getElementById("ansatz-layers");
+    var output = document.getElementById("ansatz-output");
+
+    var descriptions = {
+      hea: {
+        name: "Hardware-Efficient Ansatz (HEA)",
+        desc: "Each layer applies Ry and Rz rotations to every qubit, followed by a ladder of CNOTs. Maximally hardware-compatible but not physics-informed.",
+        layerStructure: function(n) { return "Ry(th) + Rz(th) on each qubit, then CNOT chain q[0]->q[1]->...->q[n-1]"; },
+        params: function(n, L) { return 2 * n * L; },
+        depth: function(n, L) { return (2 + (n-1)) * L; },
+        pros: "Native gates, shallow depth, hardware-compatible",
+        cons: "No problem structure, prone to barren plateaus at high depth"
+      },
+      uccsd: {
+        name: "UCCSD (Unitary Coupled Cluster)",
+        desc: "Motivated by quantum chemistry: applies single and double excitation operators to a reference state. Respects particle number and spin symmetry.",
+        layerStructure: function(n) { return "Single excitations (Ry rotations) + double excitations (2-qubit rotations with CNOT ladders)"; },
+        params: function(n, L) { return Math.round((n*(n-1)/2 + n*(n-1)*(n-2)*(n-3)/24) * L); },
+        depth: function(n, L) { return Math.round((4*n + 8*n*n) * L); },
+        pros: "Physically motivated, respects symmetries, systematically improvable",
+        cons: "Very deep circuits, expensive Trotterization"
+      },
+      qaoa: {
+        name: "QAOA Ansatz",
+        desc: "Alternating layers of problem unitary exp(-i*gamma*H_C) and mixer unitary exp(-i*beta*H_M). Designed for combinatorial optimization.",
+        layerStructure: function(n) { return "Problem layer: RZZ(gamma) on all edges, Mixer layer: RX(beta) on all qubits"; },
+        params: function(n, L) { return 2 * L; }, // gamma and beta per layer
+        depth: function(n, L) { return (n*(n-1)/2 + n) * L; },
+        pros: "Problem-tailored, few parameters per layer, theoretical guarantees",
+        cons: "Landscape can have many local minima, depth needed grows with problem size"
+      }
+    };
+
+    function update() {
+      var type = typeSel.value;
+      var n = parseInt(qubitsSel.value);
+      var L = parseInt(layersSel.value);
+      var info = descriptions[type];
+
+      var params = info.params(n, L);
+      var depth = info.depth(n, L);
+
+      var container = document.createElement("div");
+
+      var title = document.createElement("div");
+      title.style.cssText = "font-weight:600;font-size:1rem;color:var(--color-accent);margin-bottom:0.5rem;";
+      title.textContent = info.name;
+      container.appendChild(title);
+
+      var desc = document.createElement("p");
+      desc.style.cssText = "font-size:0.9rem;margin-bottom:0.75rem;";
+      desc.textContent = info.desc;
+      container.appendChild(desc);
+
+      var table = document.createElement("table");
+      table.style.cssText = "width:100%;font-size:0.85rem;margin-bottom:0.75rem;";
+      table.insertAdjacentHTML("beforeend",
+        "<tbody>" +
+        "<tr><td style='font-weight:600;'>Layer structure</td><td>" + info.layerStructure(n) + "</td></tr>" +
+        "<tr><td style='font-weight:600;'>Parameters</td><td>" + params + " (" + n + " qubits x " + L + " layers)</td></tr>" +
+        "<tr><td style='font-weight:600;'>Circuit depth (approx)</td><td>" + depth + " gates</td></tr>" +
+        "<tr style='color:var(--color-success);'><td style='font-weight:600;'>Advantages</td><td>" + info.pros + "</td></tr>" +
+        "<tr style='color:var(--color-error);'><td style='font-weight:600;'>Disadvantages</td><td>" + info.cons + "</td></tr>" +
+        "</tbody>"
+      );
+      container.appendChild(table);
+
+      output.textContent = "";
+      output.appendChild(container);
+    }
+
+    typeSel.addEventListener("change", update);
+    qubitsSel.addEventListener("change", update);
+    layersSel.addEventListener("change", update);
+    update();
+  })();
+  </script>
+</div>
+
+<!-- Visualization 6: Parameter Shift Rule Widget -->
+<h3>Interactive: Parameter Shift Rule</h3>
 <p>
   Compare the parameter shift rule (exact) with finite differences (approximate).
   Enter parameter values and compute the gradient vector for the $\langle ZZ \rangle$
   cost function.
 </p>
-<div class="widget" id="gradient-widget">
-  <div class="widget-header">Gradient Calculator</div>
-  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
-    <label>Observable: <input type="text" id="grad-pauli" value="ZZ" style="width:5rem;"></label>
-    <label>Parameters: <input type="text" id="grad-names" value="theta0,theta1" style="width:9rem;"></label>
-    <label>Method: <select id="grad-method">
-      <option value="parameter_shift" selected>Parameter Shift</option>
-      <option value="finite_difference">Finite Difference</option>
-    </select></label>
-    <button onclick="runGradient()">Compute Gradient</button>
-  </div>
-  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
-    <label>$\theta_0$: <input type="number" id="grad-val0" value="1.0" step="0.1" style="width:5rem;"></label>
-    <label>$\theta_1$: <input type="number" id="grad-val1" value="0.5" step="0.1" style="width:5rem;"></label>
-  </div>
-  <label style="display:block;margin-bottom:0.75rem;">QASM template:
-    <textarea id="grad-qasm" rows="5" style="width:100%;font-family:monospace;font-size:0.85rem;">OPENQASM 3.0;
-qubit[2] q;
-ry({theta0}) q[0];
-ry({theta1}) q[1];
-cx q[0], q[1];</textarea>
-  </label>
-  <div class="widget-output" id="gradient-output"></div>
-</div>
-<script>
-async function runGradient() {
-  await ensureWasm();
-  var out = document.getElementById('gradient-output');
-  out.innerHTML = '<p style="color:var(--color-text-muted)">Computing gradient...</p>';
-  await new Promise(function(r) { setTimeout(r, 0); });
-  try {
-    var qasm = document.getElementById('grad-qasm').value;
-    var pauliStr = document.getElementById('grad-pauli').value;
-    var paramNames = document.getElementById('grad-names').value;
-    var method = document.getElementById('grad-method').value;
-    var val0 = parseFloat(document.getElementById('grad-val0').value);
-    var val1 = parseFloat(document.getElementById('grad-val1').value);
-    var paramValues = val0 + ',' + val1;
-    var r = JSON.parse(window.computeGradient(qasm, pauliStr, paramNames, paramValues, method, isDark()));
-    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
-    var names = paramNames.split(',');
-    var methodLabel = method === 'parameter_shift' ? 'Parameter Shift Rule (exact)' : 'Finite Difference (approximate)';
-    var html = '<div class="sim-stats"><span>Method: ' + esc(methodLabel) + '</span></div>';
-    html += '<table class="state-table"><tr><th>Parameter</th><th>Value</th><th>\u2202C/\u2202\u03b8</th></tr>';
-    var vals = [val0, val1];
-    for (var i = 0; i < r.gradients.length; i++) {
-      html += '<tr><td>' + esc(names[i].trim()) + '</td><td>' + vals[i].toFixed(3) + '</td><td>' + r.gradients[i].toFixed(6) + '</td></tr>';
-    }
-    html += '</table>';
-    // Compute gradient magnitude
-    var mag = 0;
-    for (var i = 0; i < r.gradients.length; i++) mag += r.gradients[i] * r.gradients[i];
-    mag = Math.sqrt(mag);
-    html += '<div class="sim-stats"><span>||\u2207C|| = ' + mag.toFixed(6) + '</span></div>';
-    out.innerHTML = html;
-    renderMath(out);
-  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
-}
-</script>
 
+<div class="widget" id="widget-param-shift">
+  <div class="widget-header">Parameter Shift Rule Demonstration</div>
+  <p style="margin-bottom:0.75rem;font-size:0.9rem;">The cost function $C(\theta) = \langle ZZ \rangle$ is sinusoidal. The parameter shift rule computes the exact gradient as $\frac{C(\theta + \pi/2) - C(\theta - \pi/2)}{2}$. Adjust $\theta$ to see the gradient at any point.</p>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label style="font-family:var(--font-mono);font-size:0.9rem;">$\theta$: <input type="range" id="psr-theta" min="0" max="6.28" step="0.05" value="1.0" style="width:12rem;accent-color:var(--color-accent);"><output id="psr-tval">1.00</output></label>
+  </div>
+  <div style="display:flex;justify-content:center;">
+    <canvas id="psr-canvas" width="480" height="240" style="border:1px solid var(--color-border);border-radius:var(--radius);max-width:100%;"></canvas>
+  </div>
+  <div id="psr-info" class="widget-output" style="margin-top:0.5rem;text-align:center;"></div>
+  <script>
+  (function(){
+    var canvas = document.getElementById("psr-canvas");
+    var ctx = canvas.getContext("2d");
+    var slider = document.getElementById("psr-theta");
+    var tOut = document.getElementById("psr-tval");
+    var infoEl = document.getElementById("psr-info");
+    var W = canvas.width, H = canvas.height;
+    var pad = {l:50, r:20, t:20, b:30};
+    var dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+    // C(theta) ~ cos(theta) for a simple Ry circuit measuring ZZ
+    function cost(theta) { return Math.cos(theta); }
+    function gradient(theta) { return -Math.sin(theta); }
+
+    function draw() {
+      var theta = parseFloat(slider.value);
+      tOut.textContent = theta.toFixed(2);
+
+      var gw = W - pad.l - pad.r, gh = H - pad.t - pad.b;
+      ctx.fillStyle = dark ? "#262626" : "#fff";
+      ctx.fillRect(0,0,W,H);
+
+      // Axes
+      ctx.strokeStyle = dark ? "#555" : "#ccc";
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(pad.l, pad.t); ctx.lineTo(pad.l, H-pad.b); ctx.lineTo(W-pad.r, H-pad.b); ctx.stroke();
+
+      // Draw cost function curve
+      ctx.beginPath();
+      ctx.strokeStyle = dark ? "#6A9BD2" : "#4C72B0";
+      ctx.lineWidth = 2;
+      for (var i = 0; i <= 200; i++) {
+        var t = i / 200 * 2 * Math.PI;
+        var c = cost(t);
+        var x = pad.l + (t / (2*Math.PI)) * gw;
+        var y = pad.t + (1 - c) / 2 * gh;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      // Current point
+      var cx = pad.l + (theta / (2*Math.PI)) * gw;
+      var cy = pad.t + (1 - cost(theta)) / 2 * gh;
+      ctx.beginPath(); ctx.arc(cx, cy, 6, 0, 2*Math.PI);
+      ctx.fillStyle = dark ? "#E07070" : "#C44E52";
+      ctx.fill();
+
+      // Parameter shift points
+      var tPlus = theta + Math.PI/2;
+      var tMinus = theta - Math.PI/2;
+      var cPlus = cost(tPlus);
+      var cMinus = cost(tMinus);
+
+      // Plus point
+      if (tPlus <= 2*Math.PI) {
+        var px = pad.l + (tPlus / (2*Math.PI)) * gw;
+        var py = pad.t + (1 - cPlus) / 2 * gh;
+        ctx.beginPath(); ctx.arc(px, py, 5, 0, 2*Math.PI);
+        ctx.fillStyle = "#22c55e";
+        ctx.fill();
+        // Label
+        ctx.fillStyle = dark ? "#999" : "#666";
+        ctx.font = "9px system-ui";
+        ctx.textAlign = "center";
+        ctx.fillText("+pi/2", px, py - 10);
+      }
+
+      // Minus point
+      if (tMinus >= 0) {
+        var mx = pad.l + (tMinus / (2*Math.PI)) * gw;
+        var my = pad.t + (1 - cMinus) / 2 * gh;
+        ctx.beginPath(); ctx.arc(mx, my, 5, 0, 2*Math.PI);
+        ctx.fillStyle = "#f59e0b";
+        ctx.fill();
+        ctx.fillStyle = dark ? "#999" : "#666";
+        ctx.font = "9px system-ui";
+        ctx.textAlign = "center";
+        ctx.fillText("-pi/2", mx, my - 10);
+      }
+
+      // Tangent line (gradient)
+      var grad = gradient(theta);
+      var lineLen = 40;
+      ctx.beginPath();
+      ctx.moveTo(cx - lineLen, cy + lineLen * grad * (gw / (2*Math.PI)) / (gh/2));
+      ctx.lineTo(cx + lineLen, cy - lineLen * grad * (gw / (2*Math.PI)) / (gh/2));
+      ctx.strokeStyle = dark ? "#E07070" : "#C44E52";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4,3]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Labels
+      ctx.fillStyle = dark ? "#999" : "#666";
+      ctx.font = "10px system-ui";
+      ctx.textAlign = "center";
+      ctx.fillText("0", pad.l, H-pad.b+15);
+      ctx.fillText("pi", pad.l + gw/2, H-pad.b+15);
+      ctx.fillText("2pi", pad.l + gw, H-pad.b+15);
+      ctx.textAlign = "right";
+      ctx.fillText("+1", pad.l-5, pad.t+8);
+      ctx.fillText("-1", pad.l-5, H-pad.b);
+      ctx.fillText("0", pad.l-5, pad.t + gh/2 + 4);
+
+      // Info
+      var psr = (cPlus - cMinus) / 2;
+      infoEl.textContent = "C(" + theta.toFixed(2) + ") = " + cost(theta).toFixed(4) +
+        " | Gradient (exact) = " + grad.toFixed(4) +
+        " | Parameter shift = (" + cPlus.toFixed(3) + " - " + cMinus.toFixed(3) + ")/2 = " + psr.toFixed(4);
+    }
+
+    slider.addEventListener("input", draw);
+    draw();
+  })();
+  </script>
+</div>
 <h3>Choosing an Optimizer</h3>
 
 <p>
@@ -1003,135 +1087,4 @@ $$g_k \approx \frac{C(\vec{\theta} + \epsilon \vec{\Delta}) - C(\vec{\theta} - \
 
 </section>
 
-<!-- ================================================================== -->
 
-<section id="review">
-<h2>Chapter 21 Review</h2>
-
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 21 Review</div>
-
-  <div class="flashcard" data-card-id="ch21-variational-loop">
-    <div class="card-front">Describe the four steps of the variational quantum algorithm loop.</div>
-    <div class="card-back">
-      (1) Prepare a parameterized quantum state $|\psi(\vec{\theta})\rangle = U(\vec{\theta})|0\rangle^{\otimes n}$
-      by running a parameterized circuit. (2) Measure the expectation value of an observable
-      $\langle O \rangle$. (3) Feed the result to a classical optimizer, which proposes updated
-      parameters $\vec{\theta}'$. (4) Repeat until convergence. The quantum computer evaluates
-      the cost function; the classical computer navigates the parameter space.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch21-parameterized-circuit">
-    <div class="card-front">What is a parameterized quantum circuit (PQC), and what role do rotation gates play?</div>
-    <div class="card-back">
-      A PQC (also called an ansatz) is a quantum circuit containing gates with adjustable
-      continuous parameters. Rotation gates like $R_y(\theta)$, $R_z(\phi)$, and $R_x(\alpha)$
-      provide the tunable elements - changing their angles changes the output quantum state.
-      These rotations are combined with fixed entangling gates (CNOT, CZ) to create a family of
-      states parameterized by $\vec{\theta}$.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch21-hardware-efficient-ansatz">
-    <div class="card-front">What is a hardware-efficient ansatz, and what is its main disadvantage?</div>
-    <div class="card-back">
-      A hardware-efficient ansatz (HEA) builds the parameterized circuit from the native gates
-      of the quantum hardware, using alternating layers of single-qubit rotations and
-      entangling gates. Its main disadvantage is that it does not encode problem-specific
-      structure, which can lead to barren plateaus - regions where gradients vanish
-      exponentially with qubit count, making optimization effectively impossible.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch21-uccsd-ansatz">
-    <div class="card-front">What is the UCCSD ansatz, and why is it preferred for quantum chemistry?</div>
-    <div class="card-back">
-      UCCSD (Unitary Coupled Cluster Singles and Doubles) uses the operator
-      $e^{T - T^\dagger}|\phi_0\rangle$, where $T = T_1 + T_2$ contains single and double
-      excitation operators and $|\phi_0\rangle$ is the Hartree-Fock reference state. It is
-      preferred for chemistry because it respects molecular symmetries (particle number, spin),
-      encodes physical intuition about electron correlation, and is systematically improvable.
-      Its main drawback is deep circuit depth from Trotterization.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch21-pauli-decomposition">
-    <div class="card-front">How is a Hamiltonian decomposed for measurement on a quantum computer?</div>
-    <div class="card-back">
-      Any Hermitian operator on $n$ qubits can be written as a weighted sum of Pauli strings:
-      $H = \sum_i c_i P_i$, where $P_i \in \{I, X, Y, Z\}^{\otimes n}$. Each Pauli string
-      is measured independently by applying basis rotations and measuring in the computational
-      basis. The total expectation value is $\langle H \rangle = \sum_i c_i \langle P_i \rangle$.
-      Commuting Pauli strings can be grouped and measured simultaneously to reduce shot overhead.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch21-shot-budget">
-    <div class="card-front">How does statistical error in expectation value estimation scale with the number of shots?</div>
-    <div class="card-back">
-      Each Pauli string measurement returns $\pm 1$ with some probability. The standard error
-      for a single term after $N_s$ shots is
-      $\sigma_i = \sqrt{(1 - \langle P_i \rangle^2)}/\sqrt{N_s}$, scaling as $1/\sqrt{N_s}$.
-      The total error in $\langle H \rangle$ also scales as $1/\sqrt{N_s}$, weighted by the sum
-      of absolute coefficients $\sum_i |c_i|$. Halving the error requires four times as many shots.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch21-parameter-shift-rule">
-    <div class="card-front">State the parameter shift rule and explain why it gives exact gradients.</div>
-    <div class="card-back">
-      For gates of the form $e^{-i\theta G/2}$ with $G$ having eigenvalues $\pm 1$:
-      $\frac{\partial C}{\partial \theta} = \frac{1}{2}[C(\theta + \pi/2) - C(\theta - \pi/2)]$.
-      This is exact (not a finite-difference approximation) because the cost function is a
-      sinusoidal function of $\theta$ with period $2\pi$, and the $\pi/2$ shift extracts the
-      exact first Fourier coefficient. The only error comes from finite shot noise, not the
-      differentiation method.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch21-optimizer-tradeoffs">
-    <div class="card-front">Compare gradient-free and gradient-based optimizers for variational quantum algorithms.</div>
-    <div class="card-back">
-      Gradient-free methods (Nelder-Mead, COBYLA) require fewer circuit evaluations per step
-      and are more robust to noise, but converge slowly in high dimensions. Gradient-based
-      methods (Adam, L-BFGS with parameter shift) converge faster on smooth landscapes but need
-      $2p$ circuit evaluations per step for $p$ parameters. SPSA is a hybrid approach, using
-      only two evaluations to stochastically estimate the gradient regardless of $p$. In
-      practice, a two-stage strategy often works best.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-</div>
-</section>

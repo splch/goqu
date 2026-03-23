@@ -130,64 +130,18 @@
   1024 times. Before you run it, make a prediction.
 </p>
 
-<div class="poe" data-component="poe">
-  <div class="poe-progress">
-    <div class="poe-progress-step active">Predict</div>
-    <div class="poe-progress-step">Observe</div>
-    <div class="poe-progress-step">Explain</div>
-  </div>
-  <div class="poe-step poe-predict active">
-    <h3>Predict</h3>
-    <p>
-      A qubit starts in state $|0\rangle$. We apply a Hadamard gate (which creates an equal
-      superposition) and then measure. If we repeat this experiment 1024 times, how many times
-      will we see outcome 0 and how many times will we see outcome 1? Will the split be exactly
-      50/50, or will it fluctuate?
-    </p>
-    <textarea rows="3" placeholder="Write your prediction here before continuing..."></textarea>
-    <button data-action="next">Submit Prediction</button>
-  </div>
-  <div class="poe-step poe-observe">
-    <h3>Observe</h3>
-    <p>Run the circuit and examine the histogram. Click "Run Again" a few times. Do you get
-    exactly the same counts each time?</p>
-    <div class="sandbox" data-component="sandbox" data-shots="1024" data-autorun>
-      <textarea class="code" rows="6">OPENQASM 3.0;
+<!-- Sandbox 5: First Quantum Circuit -->
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="6">OPENQASM 3.0;
 qubit[1] q;
 bit[1] c;
 h q[0];
 c = measure q;</textarea>
-      <div class="sandbox-controls">
-        <button data-action="run">Run Again</button>
-      </div>
-      <div class="output"></div>
-    </div>
-    <button data-action="next">Continue to Explanation</button>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
   </div>
-  <div class="poe-step poe-explain">
-    <h3>Explain</h3>
-    <p>
-      The Hadamard gate placed the qubit into an <strong>equal superposition</strong> of
-      $|0\rangle$ and $|1\rangle$. In this state, the probability of measuring 0 is exactly 50%,
-      and the probability of measuring 1 is exactly 50%. Over 1024 shots, you should see the
-      counts roughly split around 512 each - but not exactly, because each individual measurement
-      is genuinely random.
-    </p>
-    <p>
-      This randomness is different from a classical coin flip in a profound way. A fair coin's
-      randomness comes from our inability to control the flip precisely - if we knew the exact
-      force, angle, and air resistance, we could predict the outcome. A qubit's randomness is
-      <em>intrinsic</em>: even with perfect knowledge of the quantum state, the outcome of each
-      measurement is fundamentally unpredictable. This was one of the most unsettling discoveries
-      in the history of physics, and it remains true today.
-    </p>
-    <p>
-      Each time you click "Run Again," you get slightly different counts. The underlying
-      probabilities are fixed at exactly 50/50, but the actual counts fluctuate due to statistical
-      sampling - just as flipping a fair coin 1024 times rarely gives exactly 512 heads.
-    </p>
-    <button data-action="complete">Complete</button>
-  </div>
+  <div class="output"></div>
 </div>
 
 </section>
@@ -343,6 +297,77 @@ c = measure q;</textarea>
   </p>
 </div>
 
+<!-- Widget 1: Polarization Filter Simulator -->
+<div class="widget" id="polarization-widget">
+  <div class="widget-header">Polarization Filter Simulator</div>
+  <div class="widget-body">
+    <p style="font-size:0.85rem;color:var(--color-text-muted);margin-bottom:0.75rem">Drag filter angles to simulate Malus's law. Start with two crossed filters, then add a third at 45 degrees to see the three-filter surprise.</p>
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:0.5rem">
+      <label style="font-size:0.85rem">Filter 1: <input type="range" id="pf-f1" min="0" max="180" step="1" value="0" style="width:8rem;accent-color:var(--color-accent)"> <output id="pf-f1v" style="font-family:var(--font-mono);font-size:0.8rem">0</output>deg</label>
+      <label style="font-size:0.85rem">Filter 2: <input type="range" id="pf-f2" min="0" max="180" step="1" value="90" style="width:8rem;accent-color:var(--color-accent)"> <output id="pf-f2v" style="font-family:var(--font-mono);font-size:0.8rem">90</output>deg</label>
+      <label style="font-size:0.85rem"><input type="checkbox" id="pf-f3on"> Add middle filter at <input type="range" id="pf-f3" min="0" max="180" step="1" value="45" style="width:6rem;accent-color:var(--color-accent)"> <output id="pf-f3v" style="font-family:var(--font-mono);font-size:0.8rem">45</output>deg</label>
+    </div>
+    <div id="pf-svg" style="display:flex;justify-content:center"></div>
+    <div id="pf-result" style="font-family:var(--font-mono);font-size:0.9rem;text-align:center;margin-top:0.5rem"></div>
+  </div>
+</div>
+<script>
+(function(){
+  var f1=document.getElementById("pf-f1"),f2=document.getElementById("pf-f2"),f3=document.getElementById("pf-f3");
+  var f1v=document.getElementById("pf-f1v"),f2v=document.getElementById("pf-f2v"),f3v=document.getElementById("pf-f3v");
+  var f3on=document.getElementById("pf-f3on");
+  var svgC=document.getElementById("pf-svg"),res=document.getElementById("pf-result");
+  function render(){
+    var a1=parseInt(f1.value),a2=parseInt(f2.value),a3=parseInt(f3.value);
+    f1v.textContent=a1;f2v.textContent=a2;f3v.textContent=a3;
+    var useMiddle=f3on.checked;
+    var prob;
+    if(useMiddle){
+      var p12=Math.pow(Math.cos((a3-a1)*Math.PI/180),2);
+      var p23=Math.pow(Math.cos((a2-a3)*Math.PI/180),2);
+      prob=p12*p23;
+    }else{
+      prob=Math.pow(Math.cos((a2-a1)*Math.PI/180),2);
+    }
+    var W=360,H=100;
+    var svg='<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" style="max-width:100%;height:auto;font-family:var(--font-mono);font-size:10px">';
+    // light source
+    svg+='<rect x="5" y="30" width="40" height="40" rx="4" fill="var(--color-warning)" opacity="0.6"/>';
+    svg+='<text x="25" y="54" text-anchor="middle" fill="var(--color-text)" font-size="9">Light</text>';
+    // intensity bar
+    var barW=prob*60;
+    svg+='<rect x="'+(W-80)+'" y="35" width="'+Math.max(barW,2)+'" height="30" rx="3" fill="var(--color-accent)" opacity="'+(0.3+prob*0.7)+'"/>';
+    svg+='<text x="'+(W-15)+'" y="54" fill="var(--color-text)" font-size="10">'+(prob*100).toFixed(1)+'%</text>';
+    // filters
+    function drawFilter(x,angle,label){
+      var rad=angle*Math.PI/180;
+      var dy=Math.sin(rad)*35;
+      var dx=Math.cos(rad)*3;
+      svg+='<line x1="'+(x-dx)+'" y1="'+(50-dy)+'" x2="'+(x+dx)+'" y2="'+(50+dy)+'" stroke="var(--color-accent)" stroke-width="3" stroke-linecap="round"/>';
+      svg+='<text x="'+x+'" y="90" text-anchor="middle" fill="var(--color-text-muted)" font-size="9">'+label+' '+angle+'deg</text>';
+    }
+    drawFilter(100,a1,"F1");
+    if(useMiddle) drawFilter(180,a3,"F3");
+    drawFilter(260,a2,"F2");
+    // arrows for light flow
+    var positions=useMiddle?[{x:50,p:1},{x:100,p:1},{x:140,p:useMiddle?Math.pow(Math.cos((a3-a1)*Math.PI/180),2):prob},{x:180,p:useMiddle?Math.pow(Math.cos((a3-a1)*Math.PI/180),2):prob},{x:220,p:prob},{x:260,p:prob}]:[{x:50,p:1},{x:100,p:1},{x:180,p:prob},{x:260,p:prob}];
+    for(var i=0;i<positions.length-1;i++){
+      var p=positions[i],q=positions[i+1];
+      svg+='<line x1="'+p.x+'" y1="50" x2="'+q.x+'" y2="50" stroke="var(--color-warning)" stroke-width="'+(1+p.p*4)+'" opacity="'+(0.2+p.p*0.8)+'"/>';
+    }
+    svg+='</svg>';
+    svgC.textContent="";var el=document.createElement("div");el.insertAdjacentHTML("afterbegin",svg);svgC.appendChild(el.firstChild);
+    if(useMiddle){
+      res.textContent="P(through F1->F3) = cos^2("+(a3-a1)+"deg) = "+(Math.pow(Math.cos((a3-a1)*Math.PI/180),2)*100).toFixed(1)+"% | P(through F3->F2) = cos^2("+(a2-a3)+"deg) = "+(Math.pow(Math.cos((a2-a3)*Math.PI/180),2)*100).toFixed(1)+"% | Total = "+(prob*100).toFixed(1)+"%";
+    }else{
+      res.textContent="P(transmission) = cos^2("+(a2-a1)+"deg) = "+(prob*100).toFixed(1)+"%";
+    }
+  }
+  [f1,f2,f3,f3on].forEach(function(el){el.addEventListener("input",render);el.addEventListener("change",render);});
+  render();
+})();
+</script>
+
 </section>
 
 <!-- ================================================================== -->
@@ -418,25 +443,23 @@ $$|\psi\rangle = \cos\frac{\theta}{2}\,|0\rangle + e^{i\phi}\sin\frac{\theta}{2}
   $\phi$ has no effect on the measurement probabilities - it only changes the phase.
 </p>
 
+<!-- Simulation 2: Bloch Sphere Explorer -->
 <div class="simulation" data-component="simulation" data-bloch>
-  <div class="sim-controls">
-    <label>$\theta$: <input type="range" data-param="theta" min="0" max="3.14159" step="0.01" value="0"><output>0.00</output></label>
-    <label>$\phi$: <input type="range" data-param="phi" min="0" max="6.28318" step="0.01" value="0"><output>0.00</output></label>
-  </div>
-  <pre class="sim-qasm">OPENQASM 3.0;
+  <div class="sim-qasm" hidden>OPENQASM 3.0;
 qubit[1] q;
 bit[1] c;
 ry({theta}) q[0];
 rz({phi}) q[0];
-c = measure q;</pre>
+c = measure q;</div>
+  <div class="sim-controls">
+    <label>Theta: <input type="range" data-param="theta" min="0" max="3.14" step="0.01" value="1.57"> <output>1.57</output></label>
+    <label>Phi: <input type="range" data-param="phi" min="0" max="6.28" step="0.01" value="0"> <output>0.00</output></label>
+  </div>
   <div class="sim-output"></div>
 </div>
 
 <div class="callout callout-info">
   <strong>Exercises for Exploration.</strong>
-  <p>
-    Try setting the sliders to these values and observe the results:
-  </p>
   <ul>
     <li>$\theta = 0$, $\phi = 0$: The north pole ($|0\rangle$). You should see 100% outcome 0.</li>
     <li>$\theta \approx 3.14$ ($\pi$), $\phi = 0$: The south pole ($|1\rangle$). You should see 100% outcome 1.</li>
@@ -572,22 +595,59 @@ $$P(0) = |\alpha|^2, \qquad P(1) = |\beta|^2$$
   (the positive $y$-axis).
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="8">OPENQASM 3.0;
-qubit[1] q;
-bit[1] c;
-// Create the state sqrt(3)/2 |0> + 1/2 |1>
-// theta = pi/3 on the Bloch sphere
-ry(1.0472) q[0];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
 <p>
+<!-- Widget 3: Born Rule Calculator -->
+<div class="widget" id="born-rule-widget">
+  <div class="widget-header">Born Rule Calculator</div>
+  <div class="widget-body">
+    <p style="font-size:0.85rem;color:var(--color-text-muted);margin-bottom:0.5rem">Enter complex amplitudes $\alpha$ and $\beta$. The calculator checks normalization and shows measurement probabilities.</p>
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:0.5rem">
+      <label style="font-size:0.85rem">$\alpha$: <input type="number" id="br-ar" value="0.866" step="0.1" style="width:4rem"> + <input type="number" id="br-ai" value="0" step="0.1" style="width:4rem">i</label>
+      <label style="font-size:0.85rem">$\beta$: <input type="number" id="br-br" value="0.5" step="0.1" style="width:4rem"> + <input type="number" id="br-bi" value="0" step="0.1" style="width:4rem">i</label>
+    </div>
+    <div id="br-output" style="font-family:var(--font-mono);font-size:0.85rem"></div>
+  </div>
+</div>
+<script>
+(function(){
+  var arI=document.getElementById("br-ar"),aiI=document.getElementById("br-ai");
+  var brI=document.getElementById("br-br"),biI=document.getElementById("br-bi");
+  var out=document.getElementById("br-output");
+  function render(){
+    var ar=parseFloat(arI.value)||0,ai=parseFloat(aiI.value)||0;
+    var br=parseFloat(brI.value)||0,bi=parseFloat(biI.value)||0;
+    var magA2=ar*ar+ai*ai,magB2=br*br+bi*bi;
+    var total=magA2+magB2;
+    var normalized=Math.abs(total-1)<0.01;
+    var lines=[];
+    lines.push("|alpha|^2 = "+magA2.toFixed(4)+"  ->  P(0) = "+(magA2*100).toFixed(1)+"%");
+    lines.push("|beta|^2  = "+magB2.toFixed(4)+"  ->  P(1) = "+(magB2*100).toFixed(1)+"%");
+    lines.push("Sum = "+total.toFixed(4)+(normalized?" (normalized)":(" (NOT normalized - should be 1.0)")));
+    var el=document.createElement("div");
+    lines.forEach(function(l){
+      var p=document.createElement("div");p.textContent=l;
+      if(l.indexOf("NOT normalized")>=0)p.style.color="var(--color-error)";
+      el.appendChild(p);
+    });
+    if(normalized){
+      var bar=document.createElement("div");
+      bar.style.cssText="display:flex;height:20px;border-radius:4px;overflow:hidden;margin-top:0.5rem;border:1px solid var(--color-border)";
+      var b0=document.createElement("div");
+      b0.style.cssText="background:var(--color-accent);height:100%;width:"+(magA2*100)+"%";
+      b0.title="P(0) = "+(magA2*100).toFixed(1)+"%";
+      var b1=document.createElement("div");
+      b1.style.cssText="background:var(--color-state);height:100%;width:"+(magB2*100)+"%";
+      b1.title="P(1) = "+(magB2*100).toFixed(1)+"%";
+      bar.appendChild(b0);bar.appendChild(b1);el.appendChild(bar);
+    }
+    while(out.firstChild)out.removeChild(out.firstChild);
+    out.appendChild(el);
+  }
+  [arI,aiI,brI,biI].forEach(function(e){e.addEventListener("input",render);});
+  render();
+})();
+</script>
+
   The circuit above uses a $R_y(\pi/3)$ rotation to prepare the state
   $\cos(\pi/6)|0\rangle + \sin(\pi/6)|1\rangle = \frac{\sqrt{3}}{2}|0\rangle + \frac{1}{2}|1\rangle$.
   Run it and verify that you see approximately 75% outcome 0 and 25% outcome 1.
@@ -887,38 +947,9 @@ $$\langle +|-\rangle = \frac{1}{2}\begin{pmatrix} 1 & 1 \end{pmatrix}\begin{pmat
   so the second H operates on a definite state, and the final measurement gives random results.
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="8">OPENQASM 3.0;
-qubit[1] q;
-bit[1] c;
-h q[0];
-c = measure q;
-h q[0];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
 <p>
   Compare with this circuit, where we skip the intermediate measurement:
 </p>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="7">OPENQASM 3.0;
-qubit[1] q;
-bit[1] c;
-h q[0];
-h q[0];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
 
 <p>
   In the second circuit, the two Hadamard gates cancel each other: $HH = I$ (the identity).
@@ -962,14 +993,9 @@ c = measure q;</textarea>
   experiments often use tens of thousands of shots for higher precision.
 </p>
 
-<h3>Predict-Observe-Explain: X Then H</h3>
+<h3>Predict-Observe-Explain: Measurement Collapse</h3>
 
-<p>
-  Let us test your understanding with one more interactive exercise. This time, the circuit
-  applies an X gate (which flips $|0\rangle$ to $|1\rangle$) followed by a Hadamard gate,
-  then measures.
-</p>
-
+<!-- POE 4: Measurement Collapse -->
 <div class="poe" data-component="poe">
   <div class="poe-progress">
     <div class="poe-progress-step active">Predict</div>
@@ -977,57 +1003,51 @@ c = measure q;</textarea>
     <div class="poe-progress-step">Explain</div>
   </div>
   <div class="poe-step poe-predict active">
-    <h3>Predict</h3>
-    <p>
-      The qubit starts in $|0\rangle$. An X gate is applied (flipping it to $|1\rangle$), then
-      a Hadamard gate, then we measure 1024 times. What probability do you expect for each
-      outcome? Will the result be the same as, or different from, applying just H to $|0\rangle$?
-    </p>
-    <textarea rows="3" placeholder="What fraction of shots will be 0? What fraction will be 1? Explain your reasoning..."></textarea>
+    <h4>Predict</h4>
+    <p>Circuit A applies H, then measures, then H again, then measures. Circuit B applies H, then H (no measurement in between), then measures. Will they produce the same results? What will each give?</p>
+    <textarea rows="3" placeholder="Write your prediction..."></textarea>
     <button data-action="next">Submit Prediction</button>
   </div>
   <div class="poe-step poe-observe">
-    <h3>Observe</h3>
-    <p>Run the circuit and examine the histogram. How does it compare to the H-only circuit from Section 4.1?</p>
+    <h4>Observe</h4>
+    <p><strong>Circuit A (H - measure - H - measure):</strong> The intermediate measurement collapses the superposition.</p>
     <div class="sandbox" data-component="sandbox" data-shots="1024" data-autorun>
       <textarea class="code" rows="7">OPENQASM 3.0;
 qubit[1] q;
+bit[2] c;
+h q[0];
+c[0] = measure q[0];
+h q[0];
+c[1] = measure q[0];</textarea>
+      <div class="sandbox-controls"><button data-action="run">Run Again</button></div>
+      <div class="output"></div>
+    </div>
+    <p style="margin-top:0.75rem"><strong>Circuit B (H - H - measure):</strong> No intermediate measurement.</p>
+    <div class="sandbox" data-component="sandbox" data-shots="1024" data-autorun>
+      <textarea class="code" rows="6">OPENQASM 3.0;
+qubit[1] q;
 bit[1] c;
-x q[0];
+h q[0];
 h q[0];
 c = measure q;</textarea>
-      <div class="sandbox-controls">
-        <button data-action="run">Run Again</button>
-      </div>
+      <div class="sandbox-controls"><button data-action="run">Run Again</button></div>
       <div class="output"></div>
     </div>
     <button data-action="next">Continue to Explanation</button>
   </div>
   <div class="poe-step poe-explain">
-    <h3>Explain</h3>
-    <p>
-      The X gate flips $|0\rangle$ to $|1\rangle$. Then the Hadamard gate acts on $|1\rangle$:
-    </p>
-    <p>
-      $$H|1\rangle = \frac{1}{\sqrt{2}} \begin{pmatrix} 1 & 1 \\ 1 & -1 \end{pmatrix} \begin{pmatrix} 0 \\ 1 \end{pmatrix} = \frac{1}{\sqrt{2}} \begin{pmatrix} 1 \\ -1 \end{pmatrix} = \frac{1}{\sqrt{2}}|0\rangle - \frac{1}{\sqrt{2}}|1\rangle = |-\rangle$$
-    </p>
-    <p>
-      This is the $|-\rangle$ state. The probabilities are $P(0) = |1/\sqrt{2}|^2 = 1/2$ and
-      $P(1) = |-1/\sqrt{2}|^2 = 1/2$. The histogram shows a 50/50 split, apparently identical
-      to the $|+\rangle$ state from Section 4.1.
-    </p>
-    <p>
-      But the underlying states are different. In $|+\rangle$, both amplitudes are
-      $+1/\sqrt{2}$. In $|-\rangle$, the $|1\rangle$ amplitude is $-1/\sqrt{2}$. The Born rule
-      takes the <em>squared magnitude</em>, so the minus sign vanishes from the measurement
-      probabilities. This is the relative phase we discussed: invisible to a single measurement
-      in the computational basis, but physically real. To distinguish $|+\rangle$ from $|-\rangle$,
-      you would need to apply another gate (like H) before measuring, which converts the phase
-      difference into a probability difference. We will explore this in Chapter 5.
-    </p>
-    <button data-action="complete">Complete</button>
+    <h4>Explain</h4>
+    <p>Circuit B always gives $|0\rangle$ because $HH = I$ (the two Hadamards cancel). But Circuit A gives random results for the second measurement because the intermediate measurement <strong>collapsed the superposition</strong>. After collapse, the second H operates on a definite state ($|0\rangle$ or $|1\rangle$), creating a new 50/50 superposition. Measurement is irreversible - it destroys quantum information.</p>
   </div>
 </div>
+
+<h3>Predict-Observe-Explain: X Then H</h3>
+
+<p>
+  Let us test your understanding with one more interactive exercise. This time, the circuit
+  applies an X gate (which flips $|0\rangle$ to $|1\rangle$) followed by a Hadamard gate,
+  then measures.
+</p>
 
 <div class="callout callout-key">
   <strong>Chapter Summary.</strong>
@@ -1048,122 +1068,4 @@ c = measure q;</textarea>
 
 </section>
 
-<!-- ================================================================== -->
-<section id="review">
-<h2>Chapter 4 Review</h2>
 
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 4 Review</div>
-
-  <div class="flashcard" data-card-id="ch04-quantum-trinity">
-    <div class="card-front">What are the three essential ideas of quantum computing, and what role does each play?</div>
-    <div class="card-back">
-      <strong>Superposition</strong> creates possibilities (a qubit can be in a combination of $|0\rangle$ and $|1\rangle$). <strong>Interference</strong> shapes them (amplitudes add constructively for correct answers and destructively for wrong ones). <strong>Measurement</strong> reveals the answer (collapsing the state to a definite outcome). All three are required; none alone is sufficient.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch04-superposition-vs-classical">
-    <div class="card-front">How does quantum superposition differ from classical uncertainty?</div>
-    <div class="card-back">
-      Classical uncertainty means the system is in a definite state that we simply do not know. Quantum superposition is a genuine physical property: the system is in a well-defined quantum state that has components along multiple basis states simultaneously. The difference is experimentally testable: quantum superposition produces interference effects that classical uncertainty cannot.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch04-three-filter">
-    <div class="card-front">In the three-polarizer experiment, why does inserting a 45-degree filter between two crossed filters let light through?</div>
-    <div class="card-back">
-      The 45-degree filter <em>measures</em> the photon, collapsing its state to 45-degree polarization. This new state has a nonzero component along the horizontal axis, so it has a 50% chance of passing the final horizontal filter. Each filter transmits $\cos^2(45^\circ) = 1/2$ of the incident photons, giving $1/2 \times 1/2 = 1/4$ overall transmission. The key insight: quantum measurement changes the state, it does not merely reveal a pre-existing value.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch04-born-rule">
-    <div class="card-front">State the Born rule for a single qubit.</div>
-    <div class="card-back">
-      For a qubit in state $|\psi\rangle = \alpha|0\rangle + \beta|1\rangle$, the probability of measuring outcome 0 is $P(0) = |\alpha|^2$ and the probability of outcome 1 is $P(1) = |\beta|^2$. Equivalently, $P(k) = |\langle k|\psi\rangle|^2$. The normalization condition $|\alpha|^2 + |\beta|^2 = 1$ ensures these probabilities sum to 1.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch04-bloch-sphere-angles">
-    <div class="card-front">On the Bloch sphere, what do $\theta$ and $\phi$ control?</div>
-    <div class="card-back">
-      $\theta$ (polar angle, $0$ to $\pi$) controls the measurement probabilities: $\theta = 0$ is $|0\rangle$, $\theta = \pi$ is $|1\rangle$, and $\theta = \pi/2$ gives a 50/50 superposition on the equator. $\phi$ (azimuthal angle, $0$ to $2\pi$) controls the relative phase between $|0\rangle$ and $|1\rangle$. Phase is invisible to computational-basis measurement but crucial for interference and subsequent gate operations.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch04-bloch-sphere-formula">
-    <div class="card-front">Write the Bloch sphere parameterization of a qubit state.</div>
-    <div class="card-back">
-      $|\psi\rangle = \cos\frac{\theta}{2}|0\rangle + e^{i\phi}\sin\frac{\theta}{2}|1\rangle$, where $0 \leq \theta \leq \pi$ and $0 \leq \phi < 2\pi$. The north pole ($\theta = 0$) is $|0\rangle$, the south pole ($\theta = \pi$) is $|1\rangle$, and the equator ($\theta = \pi/2$) gives equal superpositions with different phases.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch04-bra-ket-notation">
-    <div class="card-front">In Dirac notation, what are a bra, a ket, and an inner product?</div>
-    <div class="card-back">
-      A ket $|a\rangle$ is a column vector representing a quantum state. A bra $\langle a|$ is its conjugate transpose (a row vector). The inner product $\langle a|b\rangle$ is a complex number measuring the overlap between states. Orthogonal states satisfy $\langle a|b\rangle = 0$. A normalized state satisfies $\langle a|a\rangle = 1$. The Born rule in this notation: $P(k) = |\langle k|\psi\rangle|^2$.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch04-global-vs-relative-phase">
-    <div class="card-front">What is the difference between global phase and relative phase?</div>
-    <div class="card-back">
-      A global phase ($e^{i\gamma}$ multiplying the entire state vector) is physically unobservable: $|\psi\rangle$ and $e^{i\gamma}|\psi\rangle$ are the same physical state. A relative phase (different phases on different basis-state amplitudes) is physically real. For example, $|+\rangle$ and $|-\rangle$ give identical 50/50 measurement statistics, but a Hadamard gate maps $|+\rangle \to |0\rangle$ and $|-\rangle \to |1\rangle$, revealing the phase difference.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch04-measurement-collapse">
-    <div class="card-front">What happens to a qubit's state when it is measured, and why is this significant?</div>
-    <div class="card-back">
-      Measurement collapses the superposition: the qubit's state becomes the basis state corresponding to the observed outcome ($|0\rangle$ or $|1\rangle$). The original amplitudes are destroyed irreversibly. This is the <em>only</em> irreversible operation in quantum mechanics (all quantum gates are reversible). It means quantum algorithms should delay measurement as long as possible to preserve interference.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch04-no-cloning">
-    <div class="card-front">Why can't you determine an unknown qubit state from a single copy?</div>
-    <div class="card-back">
-      A single measurement yields only one bit (0 or 1) and destroys the state via collapse. You cannot measure again because the original superposition is gone. The no-cloning theorem forbids making exact copies of an unknown state, so you cannot create duplicates to build up statistics. This fundamental limitation is what makes quantum cryptography secure: eavesdropping necessarily disturbs quantum states.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-</div>
-</section>

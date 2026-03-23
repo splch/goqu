@@ -33,5 +33,10 @@ func main() {
 	js.Global().Set("runShor", js.FuncOf(runShorJS))
 	js.Global().Set("runTrotter", js.FuncOf(runTrotterJS))
 	js.Global().Set("channelInfo", js.FuncOf(channelInfoJS))
+	js.Global().Set("quantumWalk", js.FuncOf(quantumWalkJS))
+	js.Global().Set("entanglementEntropy", js.FuncOf(entanglementEntropyJS))
+	js.Global().Set("partialTrace", js.FuncOf(partialTraceJS))
+	js.Global().Set("marginalDistribution", js.FuncOf(marginalDistributionJS))
+	js.Global().Set("channelBlochImage", js.FuncOf(channelBlochImageJS))
 	select {}
 }

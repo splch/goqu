@@ -251,31 +251,6 @@ $$\langle C \rangle = \langle \gamma, \beta | H_C | \gamma, \beta \rangle$$
   to see how the output distribution changes.
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="18">OPENQASM 3.0;
-qubit[3] q;
-bit[3] c;
-// Initial superposition
-h q[0]; h q[1]; h q[2];
-// Problem unitary: edges (0,1), (1,2), (0,2)
-// gamma = pi/4
-rzz(pi/4) q[0], q[1];
-rzz(pi/4) q[1], q[2];
-rzz(pi/4) q[0], q[2];
-// Mixing unitary: rx on each qubit
-// beta = pi/8
-rx(pi/4) q[0];
-rx(pi/4) q[1];
-rx(pi/4) q[2];
-// Measure
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
 <p>
   For the triangle graph, the optimal MaxCut partitions cut exactly 2 out of 3 edges (you
   cannot cut all three edges of a triangle). The optimal bitstrings are <code>001</code>,
@@ -441,30 +416,6 @@ $$|\psi\rangle = \prod_{k=1}^{p} e^{-i \beta_k H_B} \, e^{-i \gamma_k H_C} \, |s
   is to find parameters that concentrate probability on the optimal bitstrings.
 </p>
 
-<div class="simulation" data-component="simulation">
-  <div class="sim-controls">
-    <label>$\gamma$: <input type="range" data-param="gamma" min="0" max="6.283" step="0.01" value="0.50"><output>0.50</output></label>
-    <label>$\beta$: <input type="range" data-param="beta" min="0" max="3.142" step="0.01" value="0.50"><output>0.50</output></label>
-  </div>
-  <pre class="sim-qasm">OPENQASM 3.0;
-qubit[4] q;
-bit[4] c;
-// Initial superposition
-h q[0]; h q[1]; h q[2]; h q[3];
-// Problem unitary: path graph edges (0,1), (1,2), (2,3)
-rzz({gamma}) q[0], q[1];
-rzz({gamma}) q[1], q[2];
-rzz({gamma}) q[2], q[3];
-// Mixing unitary
-rx({beta}) q[0];
-rx({beta}) q[1];
-rx({beta}) q[2];
-rx({beta}) q[3];
-// Measure
-c = measure q;</pre>
-  <div class="sim-output"></div>
-</div>
-
 <p>
   As you explore the parameter landscape, notice several features. When $\gamma = 0$, the
   problem unitary is the identity and you get a uniform distribution over all 16 bitstrings.
@@ -505,48 +456,6 @@ c = measure q;</pre>
   square cuts all 4 edges, achieved by the bitstrings <code>0101</code> and <code>1010</code>.
   Use $\gamma = \pi/4$ and $\beta = \pi/4$ as starting parameters.
 </p>
-
-<div class="exercise" data-component="exercise">
-  <div class="exercise-header">Exercise 23.1: QAOA for MaxCut on a Square</div>
-  <div class="exercise-prompt">
-    <p>
-      Build a depth-1 QAOA circuit for MaxCut on a 4-vertex cycle graph. Start with Hadamard
-      gates on all qubits, apply <code>rzz(pi/4)</code> for each of the four edges
-      (0,1), (1,2), (2,3), and (3,0), then apply <code>rx(pi/4)</code> as the mixer on each
-      qubit. The optimal bitstrings <code>0101</code> and <code>1010</code> should have the
-      highest probabilities.
-    </p>
-  </div>
-  <textarea class="code" rows="14">OPENQASM 3.0;
-qubit[4] q;
-bit[4] c;
-// Step 1: Initial superposition
-h q[0]; h q[1]; h q[2]; h q[3];
-// Step 2: Problem unitary - add rzz gates for all 4 edges
-// Your code here
-
-// Step 3: Mixing unitary - add rx gates for all 4 qubits
-// Your code here
-
-c = measure q;</textarea>
-  <div class="exercise-expected">
-    <span data-state="0101" data-prob="0.25" data-tolerance="0.12"></span>
-    <span data-state="1010" data-prob="0.25" data-tolerance="0.12"></span>
-  </div>
-  <div class="exercise-hint" style="display:none">
-    <p>
-      Add four <code>rzz(pi/4)</code> gates for the edges: <code>rzz(pi/4) q[0], q[1];</code>,
-      <code>rzz(pi/4) q[1], q[2];</code>, <code>rzz(pi/4) q[2], q[3];</code>, and
-      <code>rzz(pi/4) q[3], q[0];</code>. Then add four <code>rx(pi/4)</code> gates, one for
-      each qubit.
-    </p>
-  </div>
-  <div class="exercise-controls">
-    <button data-action="check">Check</button>
-    <button data-action="hint">Hint</button>
-  </div>
-  <div class="exercise-feedback"></div>
-</div>
 
 <h3>Scaling Up: Deeper Circuits</h3>
 
@@ -745,267 +654,254 @@ $$H(t) = A(t) \sum_i X_i + B(t) \left[ \sum_i h_i Z_i + \sum_{i<j} J_{ij} Z_i Z_
 
 <!-- ================================================================== -->
 
+<!-- Visualization 1: MaxCut Graph Editor Widget -->
+<div class="widget" id="maxcut-graph-editor">
+  <div class="widget-header">MaxCut Graph Editor</div>
+  <p style="font-size:0.9rem;margin-bottom:0.75rem;">
+    Click to add vertices, then click two vertices to add an edge. The widget evaluates
+    all possible partitions and highlights the best cut. Vertices are colored by partition.
+  </p>
+  <div style="display:flex;gap:0.5rem;margin-bottom:0.5rem;">
+    <button id="mc-add-vertex">Add Vertex</button>
+    <button id="mc-reset">Reset</button>
+    <select id="mc-preset" style="font-family:var(--font-mono);font-size:0.8rem;padding:0.3rem;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-surface);color:var(--color-text);">
+      <option value="">Preset...</option>
+      <option value="triangle">Triangle (3)</option>
+      <option value="square">Square (4)</option>
+      <option value="path4">Path (4)</option>
+      <option value="star">Star (5)</option>
+    </select>
+  </div>
+  <div id="mc-canvas" style="width:100%;height:220px;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-code-bg);position:relative;cursor:crosshair;"></div>
+  <div id="mc-result" style="margin-top:0.5rem;font-family:var(--font-mono);font-size:0.85rem;color:var(--color-text-muted);"></div>
+</div>
+<script>
+(function(){
+  var vertices=[], edges=[], selected=-1;
+  var canvasEl=document.getElementById("mc-canvas");
+  var resultEl=document.getElementById("mc-result");
+  if(!canvasEl||!resultEl) return;
+
+  var presets={
+    triangle:{v:[[80,50],[220,50],[150,170]], e:[[0,1],[1,2],[0,2]]},
+    square:{v:[[60,40],[240,40],[240,180],[60,180]], e:[[0,1],[1,2],[2,3],[3,0]]},
+    path4:{v:[[40,110],[130,110],[220,110],[310,110]], e:[[0,1],[1,2],[2,3]]},
+    star:{v:[[150,30],[50,100],[100,200],[200,200],[250,100]], e:[[0,1],[0,2],[0,3],[0,4]]}
+  };
+
+  function draw(bestPart){
+    while(canvasEl.firstChild) canvasEl.removeChild(canvasEl.firstChild);
+    var svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
+    svg.setAttribute("viewBox","0 0 340 220"); svg.setAttribute("width","100%"); svg.setAttribute("height","100%");
+    edges.forEach(function(e){
+      var a=vertices[e[0]], b=vertices[e[1]];
+      var line=document.createElementNS("http://www.w3.org/2000/svg","line");
+      line.setAttribute("x1",a[0]); line.setAttribute("y1",a[1]);
+      line.setAttribute("x2",b[0]); line.setAttribute("y2",b[1]);
+      var isCut = bestPart && (bestPart[e[0]]!==bestPart[e[1]]);
+      line.setAttribute("stroke",isCut?"var(--color-success)":"var(--color-text-muted)");
+      line.setAttribute("stroke-width",isCut?"3":"1.5");
+      svg.appendChild(line);
+    });
+    vertices.forEach(function(v,i){
+      var c=document.createElementNS("http://www.w3.org/2000/svg","circle");
+      c.setAttribute("cx",v[0]); c.setAttribute("cy",v[1]); c.setAttribute("r","14");
+      var fill = bestPart?(bestPart[i]===0?"var(--color-accent)":"var(--color-state)"):"var(--color-accent)";
+      if(i===selected) fill="var(--color-warning)";
+      c.setAttribute("fill",fill); c.setAttribute("stroke","var(--color-surface)"); c.setAttribute("stroke-width","2");
+      c.style.cursor="pointer";
+      c.addEventListener("click",function(ev){
+        ev.stopPropagation();
+        if(selected<0){ selected=i; draw(null); }
+        else if(selected===i){ selected=-1; draw(null); }
+        else{
+          var exists=false;
+          edges.forEach(function(e){ if((e[0]===selected&&e[1]===i)||(e[0]===i&&e[1]===selected)) exists=true; });
+          if(!exists) edges.push([selected,i]);
+          selected=-1; solve();
+        }
+      });
+      svg.appendChild(c);
+      var t=document.createElementNS("http://www.w3.org/2000/svg","text");
+      t.setAttribute("x",v[0]); t.setAttribute("y",v[1]+4);
+      t.setAttribute("text-anchor","middle"); t.setAttribute("font-size","11"); t.setAttribute("font-weight","600");
+      t.setAttribute("fill","white"); t.setAttribute("pointer-events","none");
+      t.textContent=i;
+      svg.appendChild(t);
+    });
+    canvasEl.appendChild(svg);
+  }
+
+  function solve(){
+    if(vertices.length===0){ resultEl.textContent="Add vertices and edges to explore MaxCut."; draw(null); return; }
+    if(edges.length===0){ resultEl.textContent="Add edges between vertices."; draw(null); return; }
+    var n=vertices.length, best=0, bestP=null;
+    for(var mask=0;mask<(1<<n);mask++){
+      var cut=0;
+      edges.forEach(function(e){
+        var a=(mask>>e[0])&1, b=(mask>>e[1])&1;
+        if(a!==b) cut++;
+      });
+      if(cut>best){ best=cut; bestP=[]; for(var i=0;i<n;i++) bestP.push((mask>>i)&1); }
+    }
+    resultEl.textContent="Best cut: "+best+" out of "+edges.length+" edges";
+    draw(bestP);
+  }
+
+  var nextX=80;
+  document.getElementById("mc-add-vertex").addEventListener("click",function(){
+    vertices.push([nextX, 80+Math.random()*80]);
+    nextX+=60; if(nextX>300) nextX=60;
+    solve();
+  });
+  document.getElementById("mc-reset").addEventListener("click",function(){
+    vertices=[]; edges=[]; selected=-1; nextX=80;
+    resultEl.textContent=""; draw(null);
+  });
+  document.getElementById("mc-preset").addEventListener("change",function(){
+    var p=presets[this.value];
+    if(!p) return;
+    vertices=p.v.map(function(v){return v.slice();}); edges=p.e.map(function(e){return e.slice();});
+    selected=-1; this.value=""; solve();
+  });
+  draw(null);
+})();
+</script>
+
+<!-- Visualization 2: QAOA Step-Through -->
+<h3>Interactive: QAOA Circuit Step-Through</h3>
+<p>
+  Walk through a depth-1 QAOA circuit gate by gate for a triangle graph.
+  The Hadamards create the initial superposition, the CNOTs encode ZZ interactions
+  (problem unitary), and the final Hadamards act as the mixer.
+</p>
+<div class="step-through" data-component="step-through" data-mode="clifford">
+  <div class="step-controls">
+    <button data-action="prev" disabled>Previous</button>
+    <button data-action="next">Next</button>
+    <span class="step-info"></span>
+  </div>
+  <div class="step-qasm">OPENQASM 2.0;
+include "qelib1.inc";
+qreg q[3];
+h q[0];
+h q[1];
+h q[2];
+cx q[0], q[1];
+cx q[1], q[2];
+cx q[0], q[2];
+h q[0];
+h q[1];
+h q[2];</div>
+  <div class="step-output"></div>
+</div>
+
+<!-- Visualization 3: 2D Parameter Landscape Simulation -->
 <h3>Interactive: QAOA Energy Landscape</h3>
 <p>
-  Visualize the 2D energy landscape over the QAOA parameters $\gamma$ (problem layer)
-  and $\beta$ (mixer layer) for a simple MaxCut instance. The optimizer must navigate
-  this terrain to find the minimum energy (best cut).
+  Explore the 2D QAOA energy landscape. Adjust both $\gamma$ and $\beta$ to see
+  how the measurement distribution changes for a depth-1 QAOA on the 4-vertex path
+  graph. The optimal bitstrings are <code>0101</code> and <code>1010</code>.
 </p>
-<div class="widget" id="qaoa-landscape-widget">
-  <div class="widget-header">QAOA Energy Landscape (Triangle Graph)</div>
-  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
-    <label>Grid size: <select id="qaoa-land-grid"><option>10</option><option selected>15</option><option>20</option></select></label>
-    <button onclick="runQAOALandscape()">Compute Landscape</button>
+<div class="simulation" data-component="simulation">
+  <div class="sim-controls">
+    <label>$\gamma$:
+      <input type="range" min="0" max="3.14" step="0.05" value="0.60" data-param="gamma">
+      <output>0.60</output>
+    </label>
+    <label>$\beta$:
+      <input type="range" min="0" max="3.14" step="0.05" value="1.00" data-param="beta">
+      <output>1.00</output>
+    </label>
   </div>
-  <div class="widget-output" id="qaoa-landscape-output"></div>
+  <div class="sim-qasm">OPENQASM 2.0;
+include "qelib1.inc";
+qreg q[4];
+creg c[4];
+h q[0]; h q[1]; h q[2]; h q[3];
+rzz({gamma}) q[0], q[1];
+rzz({gamma}) q[1], q[2];
+rzz({gamma}) q[2], q[3];
+rx({beta}) q[0]; rx({beta}) q[1]; rx({beta}) q[2]; rx({beta}) q[3];
+c[0] = measure q[0]; c[1] = measure q[1]; c[2] = measure q[2]; c[3] = measure q[3];</div>
+  <div class="sim-output"></div>
 </div>
-<script>
-async function runQAOALandscape() {
-  await ensureWasm();
-  var out = document.getElementById('qaoa-landscape-output');
-  out.innerHTML = '<p style="color:var(--color-text-muted)">Computing landscape...</p>';
-  await new Promise(function(r) { setTimeout(r, 0); });
-  try {
-    var qasm = 'OPENQASM 3.0;\nqubit[3] q;\nh q[0]; h q[1]; h q[2];\ncx q[0], q[1]; rz({gamma}) q[1]; cx q[0], q[1];\ncx q[1], q[2]; rz({gamma}) q[2]; cx q[1], q[2];\ncx q[0], q[2]; rz({gamma}) q[2]; cx q[0], q[2];\nrx({beta}) q[0]; rx({beta}) q[1]; rx({beta}) q[2];';
-    var pauliStr = '0.5*IIZ+0.5*IZI+0.5*ZII+-0.5*IZZ+-0.5*ZIZ+-0.5*ZZI';
-    var gridSize = parseInt(document.getElementById('qaoa-land-grid').value);
-    var r = JSON.parse(window.sweep2D(qasm, pauliStr, 'gamma', 0, 3.141592653589793, 'beta', 0, 3.141592653589793, gridSize, isDark()));
-    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
-    var energies = r.energies, p1 = r.param1Values, p2 = r.param2Values;
-    var n = energies.length;
-    var eMin = energies[0][0], eMax = energies[0][0];
-    for (var i = 0; i < n; i++) for (var j = 0; j < energies[i].length; j++) {
-      if (energies[i][j] < eMin) eMin = energies[i][j];
-      if (energies[i][j] > eMax) eMax = energies[i][j];
-    }
-    var eRange = eMax - eMin || 1;
-    var W = 400, H = 360, pad = 50, pR = 60, pT = 15, pB = 35;
-    var plotW = W - pad - pR, plotH = H - pT - pB;
-    var cellW = plotW / n, cellH = plotH / n;
-    var fg = isDark() ? '#e0e0e0' : '#333';
-    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;max-width:400px;display:block;">';
-    for (var i = 0; i < n; i++) {
-      for (var j = 0; j < energies[i].length; j++) {
-        var t = (energies[i][j] - eMin) / eRange;
-        var cr = Math.round(36 + 219 * t);
-        var cg = Math.round(36 + 80 * (1 - Math.abs(t - 0.5) * 2));
-        var cb = Math.round(255 - 219 * t);
-        var x = pad + j * cellW;
-        var y = pT + i * cellH;
-        svg += '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + (cellW + 0.5).toFixed(1) + '" height="' + (cellH + 0.5).toFixed(1) + '" fill="rgb(' + cr + ',' + cg + ',' + cb + ')"/>';
-      }
-    }
-    var minI = 0, minJ = 0;
-    for (var i = 0; i < n; i++) for (var j = 0; j < energies[i].length; j++) {
-      if (energies[i][j] < energies[minI][minJ]) { minI = i; minJ = j; }
-    }
-    var mx = pad + (minJ + 0.5) * cellW, my = pT + (minI + 0.5) * cellH;
-    svg += '<text x="' + mx.toFixed(1) + '" y="' + (my + 4).toFixed(1) + '" text-anchor="middle" fill="white" font-size="14" font-weight="bold" stroke="black" stroke-width="0.5">x</text>';
-    svg += '<line x1="' + pad + '" y1="' + pT + '" x2="' + pad + '" y2="' + (pT + plotH) + '" stroke="' + fg + '" stroke-width="1"/>';
-    svg += '<line x1="' + pad + '" y1="' + (pT + plotH) + '" x2="' + (pad + plotW) + '" y2="' + (pT + plotH) + '" stroke="' + fg + '" stroke-width="1"/>';
-    var xLabels = [{v: 0, l: '0'}, {v: Math.PI / 2, l: '\u03c0/2'}, {v: Math.PI, l: '\u03c0'}];
-    for (var k = 0; k < xLabels.length; k++) {
-      var xPos = pad + (xLabels[k].v / 3.141592653589793) * plotW;
-      svg += '<text x="' + xPos + '" y="' + (pT + plotH + 15) + '" text-anchor="middle" fill="' + fg + '" font-size="9">' + xLabels[k].l + '</text>';
-    }
-    var yLabels = [{v: 0, l: '0'}, {v: Math.PI / 2, l: '\u03c0/2'}, {v: Math.PI, l: '\u03c0'}];
-    for (var k = 0; k < yLabels.length; k++) {
-      var yPos = pT + (yLabels[k].v / 3.141592653589793) * plotH;
-      svg += '<text x="' + (pad - 5) + '" y="' + (yPos + 3) + '" text-anchor="end" fill="' + fg + '" font-size="9">' + yLabels[k].l + '</text>';
-    }
-    svg += '<text x="' + (pad + plotW / 2) + '" y="' + (H - 5) + '" text-anchor="middle" fill="' + fg + '" font-size="10">\u03b3</text>';
-    svg += '<text x="12" y="' + (pT + plotH / 2) + '" text-anchor="middle" fill="' + fg + '" font-size="10" transform="rotate(-90,12,' + (pT + plotH / 2) + ')">\u03b2</text>';
-    var barX = pad + plotW + 10, barW = 12, barH = plotH;
-    for (var s = 0; s < barH; s++) {
-      var t = s / barH;
-      var cr = Math.round(36 + 219 * t);
-      var cg = Math.round(36 + 80 * (1 - Math.abs(t - 0.5) * 2));
-      var cb = Math.round(255 - 219 * t);
-      svg += '<rect x="' + barX + '" y="' + (pT + s) + '" width="' + barW + '" height="1.5" fill="rgb(' + cr + ',' + cg + ',' + cb + ')"/>';
-    }
-    svg += '<text x="' + (barX + barW + 3) + '" y="' + (pT + 8) + '" fill="' + fg + '" font-size="8">' + eMin.toFixed(2) + '</text>';
-    svg += '<text x="' + (barX + barW + 3) + '" y="' + (pT + barH) + '" fill="' + fg + '" font-size="8">' + eMax.toFixed(2) + '</text>';
-    svg += '</svg>';
-    svg += '<div class="sim-stats"><span>Min energy: ' + r.minEnergy.toFixed(4) + '</span><span>at \u03b3 = ' + r.minParam1.toFixed(3) + ', \u03b2 = ' + r.minParam2.toFixed(3) + '</span></div>';
-    out.innerHTML = svg;
-  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
-}
-</script>
 
-<!-- ================================================================== -->
-
+<!-- Visualization 4: QAOA Solver Simulation -->
 <h3>Interactive: QAOA MaxCut Solver</h3>
 <p>
-  Run the QAOA algorithm to find approximate solutions to the MaxCut problem on small
-  graphs. Select a graph topology and the number of QAOA layers (higher $p$ gives
-  better approximation ratios but takes longer to optimize).
+  Run the QAOA algorithm to find approximate solutions to the MaxCut problem.
+  Select the number of QAOA layers $p$ and a graph topology. The solver
+  optimizes the parameters and returns the best bitstring found.
 </p>
-<div class="widget" id="qaoa-widget">
-  <div class="widget-header">QAOA for MaxCut</div>
-  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
-    <label>Graph: <select id="qaoa-graph">
-      <option value="0-1,1-2,2-0" data-nq="3">Triangle (3 nodes)</option>
-      <option value="0-1,1-2,2-3,3-0" data-nq="4" selected>Square (4 nodes)</option>
-      <option value="0-1,1-2,2-3,3-0,0-2" data-nq="4">Square + diagonal (4)</option>
-      <option value="0-1,0-2,0-3,1-2,1-3,2-3" data-nq="4">Complete K4 (4 nodes)</option>
-    </select></label>
-    <label>Layers (p): <select id="qaoa-layers"><option selected>1</option><option>2</option><option>3</option></select></label>
-    <button onclick="runQAOAWidget()">Optimize</button>
+<div class="widget" id="qaoa-solver-widget">
+  <div class="widget-header">QAOA Solver</div>
+  <div style="display:flex;gap:1rem;align-items:center;margin-bottom:0.75rem;flex-wrap:wrap;">
+    <label style="font-family:var(--font-mono);font-size:0.85rem;">Depth p:
+      <select id="qaoa-depth" style="font-family:var(--font-mono);font-size:0.8rem;padding:0.3rem;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-surface);color:var(--color-text);">
+        <option value="1">p = 1</option>
+        <option value="2">p = 2</option>
+        <option value="3">p = 3</option>
+      </select>
+    </label>
+    <label style="font-family:var(--font-mono);font-size:0.85rem;">Graph:
+      <select id="qaoa-graph" style="font-family:var(--font-mono);font-size:0.8rem;padding:0.3rem;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-surface);color:var(--color-text);">
+        <option value="triangle">Triangle</option>
+        <option value="path4" selected>4-Path</option>
+        <option value="square">Square</option>
+      </select>
+    </label>
+    <button id="qaoa-run-btn">Run QAOA</button>
   </div>
-  <div class="widget-output" id="qaoa-output"></div>
+  <div id="qaoa-solver-output" style="font-family:var(--font-mono);font-size:0.85rem;"></div>
 </div>
 <script>
-async function runQAOAWidget() {
-  await ensureWasm();
-  var sel = document.getElementById('qaoa-graph');
-  var edges = sel.value;
-  var nq = parseInt(sel.options[sel.selectedIndex].dataset.nq);
-  var layers = parseInt(document.getElementById('qaoa-layers').value);
-  var out = document.getElementById('qaoa-output');
-  out.innerHTML = '<p style="color:var(--color-text-muted)">Optimizing (this may take a moment)...</p>';
-  await new Promise(function(r) { setTimeout(r, 0); });
-  try {
-    var r = JSON.parse(window.runQAOA(edges, nq, layers, 1024, isDark()));
-    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
-    var html = (r.circuitSVG||'') + (r.histogramSVG||'');
-    html += '<div class="sim-stats">';
-    if (r.bestBitstring) html += '<span>Best partition: ' + esc(r.bestBitstring) + '</span>';
-    html += '<span>Energy: ' + r.energy.toFixed(4) + '</span></div>';
-    if (r.qasmCode) html += '<details><summary>Generated QASM</summary><pre>' + esc(r.qasmCode) + '</pre></details>';
-    out.innerHTML = html;
-  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
-}
+(function(){
+  var outEl = document.getElementById("qaoa-solver-output");
+  var btn = document.getElementById("qaoa-run-btn");
+  if(!outEl || !btn) return;
+
+  var graphs = {
+    triangle: {n:3, edges:[[0,1],[1,2],[0,2]], optimal:2},
+    path4: {n:4, edges:[[0,1],[1,2],[2,3]], optimal:3},
+    square: {n:4, edges:[[0,1],[1,2],[2,3],[3,0]], optimal:4}
+  };
+
+  btn.addEventListener("click", async function(){
+    var depth = parseInt(document.getElementById("qaoa-depth").value);
+    var gname = document.getElementById("qaoa-graph").value;
+    var g = graphs[gname];
+    outEl.textContent = "Running QAOA (p="+depth+") on "+gname+" graph...";
+
+    await ensureWasm();
+    await new Promise(function(r){setTimeout(r,0);});
+
+    try {
+      var edgesStr = g.edges.map(function(e){return e[0]+"-"+e[1];}).join(",");
+      var r = JSON.parse(window.runQAOA(g.n, edgesStr, depth, isDark()));
+      if(r.error){ outEl.textContent = "Error: "+r.error; return; }
+
+      outEl.textContent = "";
+      var info = document.createElement("div");
+      info.style.marginBottom = "0.5rem";
+      var lines = [];
+      if(r.bestBitstring !== undefined) lines.push("Best bitstring: "+r.bestBitstring);
+      if(r.bestCut !== undefined) lines.push("Cut value: "+r.bestCut+" / "+g.optimal);
+      if(r.approxRatio !== undefined) lines.push("Ratio: "+(r.approxRatio).toFixed(4));
+      info.textContent = lines.join(" | ");
+      outEl.appendChild(info);
+
+      if(r.histogramSVG || r.histogram){
+        var wrap = document.createElement("div");
+        wrap.style.cssText = "display:flex;justify-content:center;overflow-x:auto;";
+        var tmp = document.createElement("div");
+        tmp.innerHTML = r.histogramSVG || r.histogram;
+        while(tmp.firstChild) wrap.appendChild(tmp.firstChild);
+        outEl.appendChild(wrap);
+      }
+    } catch(e){
+      outEl.textContent = "Error: "+e.message;
+    }
+  });
+})();
 </script>
-
-<!-- ================================================================== -->
-
-<section id="review">
-<h2>Chapter 23 Review</h2>
-
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 23 Review</div>
-
-  <div class="flashcard" data-card-id="ch23-maxcut-hamiltonian">
-    <div class="card-front">What is the cost Hamiltonian for MaxCut, and what do its eigenvalues represent?</div>
-    <div class="card-back">
-      The MaxCut cost Hamiltonian is $H_C = \frac{1}{2} \sum_{(i,j) \in E} (I - Z_i Z_j)$.
-      Each eigenvalue equals the number of edges cut by the corresponding computational basis
-      state (bitstring). Maximizing the cut is equivalent to finding the highest eigenvalue of
-      $H_C$.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch23-qaoa-structure">
-    <div class="card-front">Describe the structure of a depth-$p$ QAOA circuit. What are the two types of unitaries?</div>
-    <div class="card-back">
-      A depth-$p$ QAOA circuit starts with Hadamard gates creating an equal superposition, then
-      applies $p$ alternating layers of: (1) the problem unitary $e^{-i \gamma_k H_C}$, which
-      encodes the cost function as phase rotations, and (2) the mixing unitary $e^{-i \beta_k H_B}$,
-      which creates transitions between basis states using $R_X$ rotations. The $2p$ parameters
-      $(\gamma_1, \ldots, \gamma_p, \beta_1, \ldots, \beta_p)$ are optimized classically.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch23-problem-unitary-gates">
-    <div class="card-front">How is the MaxCut problem unitary implemented in terms of quantum gates?</div>
-    <div class="card-back">
-      Since the MaxCut cost Hamiltonian is a sum of commuting $Z_i Z_j$ terms, the problem
-      unitary factorizes as a product of $R_{ZZ}(\gamma)$ gates, one per edge:
-      $U(H_C, \gamma) = \prod_{(i,j) \in E} e^{i \gamma Z_i Z_j / 2}$. Each
-      <code>rzz(gamma)</code> gate applies a relative phase depending on whether qubits $i$ and
-      $j$ agree or disagree.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch23-mixer-role">
-    <div class="card-front">What is the role of the mixing unitary in QAOA, and what happens without it?</div>
-    <div class="card-back">
-      The mixing unitary $U(H_B, \beta) = \prod_i R_X(2\beta)_i$ creates transitions between
-      computational basis states, allowing the algorithm to explore the solution space. Without
-      the mixer, the problem unitary only modifies phases of basis states, which does not change
-      measurement probabilities. The mixer is what enables amplitude transfer between different
-      candidate solutions.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch23-qaoa-adiabatic">
-    <div class="card-front">How is QAOA connected to adiabatic quantum computation?</div>
-    <div class="card-back">
-      QAOA can be viewed as a Trotterized (discretized) version of adiabatic quantum computation.
-      The alternating problem and mixing unitaries correspond to discrete time steps of a
-      continuous adiabatic interpolation from $H_B$ to $H_C$. In the limit $p \to \infty$ with
-      appropriately chosen parameters, QAOA converges to exact adiabatic evolution and finds the
-      optimal solution. The variational freedom to optimize parameters allows QAOA to outperform
-      a fixed Trotter schedule at the same depth.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch23-adiabatic-gap">
-    <div class="card-front">What determines the difficulty of an optimization problem for adiabatic/QAOA methods?</div>
-    <div class="card-back">
-      The minimum spectral gap $\Delta_{\min}$ between the ground state and first excited state
-      along the adiabatic interpolation path determines the difficulty. The required evolution
-      time scales as $T \sim 1/\Delta_{\min}^2$. For hard instances, the gap can be
-      exponentially small, requiring exponentially many QAOA layers or exponentially long anneal
-      times.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch23-quantum-annealing">
-    <div class="card-front">How does D-Wave's quantum annealing differ from gate-based QAOA?</div>
-    <div class="card-back">
-      D-Wave uses special-purpose hardware that physically implements continuous-time adiabatic
-      evolution, ramping from a transverse field to a problem Hamiltonian. It has thousands of
-      qubits but limited connectivity (Pegasus topology, 15 neighbors per qubit) and can only
-      solve optimization problems. QAOA runs on universal gate-based hardware with fewer qubits
-      but full flexibility, and its variational parameters provide more control than a fixed
-      anneal schedule.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch23-qaoa-limitations">
-    <div class="card-front">Does QAOA solve NP-hard problems efficiently? What are its practical limitations?</div>
-    <div class="card-back">
-      No. For worst-case NP-hard instances, the required circuit depth can grow exponentially.
-      Depth-1 QAOA on MaxCut achieves an approximation ratio of about 0.6924 on 3-regular
-      graphs, below the classical Goemans-Williamson ratio of 0.878. Practical limitations
-      include noise on near-term hardware, the difficulty of classically optimizing the $2p$
-      parameters (especially for large $p$), and the lack of proven quantum advantage over
-      classical heuristics for practically relevant problem sizes.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-</div>
-</section>

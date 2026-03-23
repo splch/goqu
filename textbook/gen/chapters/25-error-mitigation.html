@@ -215,23 +215,6 @@ $$P_{\text{success}} \approx (1 - \epsilon)^{nd} \approx e^{-\epsilon n d}$$
   $\lambda = 0$.
 </p>
 
-<div class="simulation" data-component="simulation">
-  <div class="sim-controls">
-    <label>Noise scale $\lambda$ (via rotation error): <input type="range" data-param="noise" min="0" max="1.57" step="0.01" value="0.00"><output>0.00</output></label>
-  </div>
-  <pre class="sim-qasm">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-// Ideal circuit: create Bell state
-h q[0];
-cx q[0], q[1];
-// Simulated noise: extra rotations (increase slider to add "noise")
-rx({noise}) q[0];
-rx({noise}) q[1];
-c = measure q;</pre>
-  <div class="sim-output"></div>
-</div>
-
 <p>
   At $\lambda = 0$ (no noise), you should see a clean Bell state: roughly 50% <code>00</code>
   and 50% <code>11</code>. As you increase the noise parameter, the distribution spreads to
@@ -285,47 +268,155 @@ c = measure q;</pre>
   see how well linear extrapolation recovers the ideal $\langle ZZ \rangle$ value for
   a Bell state.
 </p>
-<div class="widget" id="zne-widget">
-  <div class="widget-header">Zero-Noise Extrapolation</div>
-  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
-    <label>Noise: <input type="range" id="zne-noise" min="0.01" max="0.2" step="0.01" value="0.05"><output id="zne-noise-val">0.05</output></label>
-    <label>Scale factors: <select id="zne-scales">
-      <option value="1,3,5" selected>1, 3, 5</option>
-      <option value="1,2,3,4,5">1, 2, 3, 4, 5</option>
-    </select></label>
-    <button onclick="runZNEWidget()">Run ZNE</button>
+
+<!-- Visualization 1: ZNE Simulation -->
+<div class="simulation" data-component="simulation" data-noisy>
+  <div class="sim-controls">
+    <label>Noise strength:
+      <input type="range" min="0.0" max="0.5" step="0.01" value="0.05" data-param="noiseParam">
+      <output>0.05</output>
+    </label>
+    <label>Channel:
+      <select data-param="noiseModel">
+        <option value="depolarizing">Depolarizing</option>
+        <option value="amplitude_damping">Amplitude Damping</option>
+        <option value="phase_damping">Phase Damping</option>
+      </select>
+    </label>
   </div>
-  <div class="widget-output" id="zne-output"></div>
+  <div class="sim-qasm">OPENQASM 2.0;
+include "qelib1.inc";
+qreg q[2];
+creg c[2];
+h q[0];
+cx q[0], q[1];
+c[0] = measure q[0];
+c[1] = measure q[1];</div>
+  <div class="sim-output"></div>
+</div>
+
+<div class="widget" id="zne-extrapolation-widget">
+  <div class="widget-header">ZNE Extrapolation Visualizer</div>
+  <p style="font-size:0.9rem;margin-bottom:0.75rem;">
+    The ideal Bell state has $\langle ZZ \rangle = 1$. Under depolarizing noise at rate $p$,
+    the expectation value decays as $(1-2p)^2$. ZNE measures at scale factors $\lambda = 1, 2, 3$
+    and extrapolates to $\lambda = 0$. Drag the slider to see how noise degrades the signal
+    and how extrapolation recovers it.
+  </p>
+  <div style="display:flex;gap:1rem;align-items:center;margin-bottom:0.5rem;">
+    <label style="font-family:var(--font-mono);font-size:0.85rem;">Base noise $p$:
+      <input type="range" min="0.01" max="0.3" step="0.01" value="0.05" id="zne-noise" style="width:10rem;accent-color:var(--color-accent);">
+      <span id="zne-noise-val" style="font-family:var(--font-mono);font-size:0.8rem;">0.05</span>
+    </label>
+  </div>
+  <div id="zne-plot" style="width:100%;height:200px;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-code-bg);"></div>
+  <div id="zne-result" style="font-family:var(--font-mono);font-size:0.85rem;margin-top:0.5rem;text-align:center;color:var(--color-text-muted);"></div>
 </div>
 <script>
-document.getElementById('zne-noise').addEventListener('input', function() {
-  document.getElementById('zne-noise-val').textContent = parseFloat(this.value).toFixed(2);
-});
-async function runZNEWidget() {
-  await ensureWasm();
-  var noise = parseFloat(document.getElementById('zne-noise').value);
-  var scales = document.getElementById('zne-scales').value;
-  var out = document.getElementById('zne-output');
-  out.innerHTML = '<p style="color:var(--color-text-muted)">Running ZNE...</p>';
-  await new Promise(function(r) { setTimeout(r, 0); });
-  try {
-    var qasm = "OPENQASM 3.0;\nqubit[2] q;\nh q[0];\ncx q[0], q[1];";
-    var r = JSON.parse(window.runZNE(qasm, "ZZ", "depolarizing", noise, scales, isDark()));
-    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
-    var html = '<div class="sim-stats">';
-    html += '<span>Ideal &langle;ZZ&rangle;: ' + r.ideal.toFixed(4) + '</span>';
-    html += '<span>Extrapolated: ' + r.linearExtrapolated.toFixed(4) + '</span>';
-    html += '</div>';
-    if (r.scaleFactors && r.noisyValues) {
-      html += '<table class="state-table"><tr><th>Scale Factor</th><th>Noisy &langle;ZZ&rangle;</th></tr>';
-      for (var i = 0; i < r.scaleFactors.length; i++) {
-        html += '<tr><td>' + r.scaleFactors[i].toFixed(0) + '</td><td>' + r.noisyValues[i].toFixed(4) + '</td></tr>';
-      }
-      html += '</table>';
+(function(){
+  var plotEl = document.getElementById("zne-plot");
+  var resultEl = document.getElementById("zne-result");
+  var slider = document.getElementById("zne-noise");
+  if(!plotEl || !slider) return;
+
+  function update(){
+    var p = parseFloat(slider.value);
+    document.getElementById("zne-noise-val").textContent = p.toFixed(2);
+
+    var pts = [
+      {lam:1, val:Math.pow(1-2*p,2)},
+      {lam:2, val:Math.pow(1-2*2*p,2)},
+      {lam:3, val:Math.pow(1-2*3*p,2)}
+    ];
+    pts.forEach(function(pt){ if(pt.val<0) pt.val=Math.abs(pt.val)*0.1; });
+
+    // Linear extrapolation from first two points
+    var slope = (pts[1].val-pts[0].val)/(pts[1].lam-pts[0].lam);
+    var extrap = pts[0].val - slope*pts[0].lam;
+
+    while(plotEl.firstChild) plotEl.removeChild(plotEl.firstChild);
+    var svg = document.createElementNS("http://www.w3.org/2000/svg","svg");
+    svg.setAttribute("viewBox","0 0 400 180"); svg.setAttribute("width","100%"); svg.setAttribute("height","100%");
+    var pad={l:50,r:20,t:15,b:30}, w=400-pad.l-pad.r, h=180-pad.t-pad.b;
+    function sx(v){ return pad.l+v/3.5*w; }
+    function sy(v){ return pad.t+(1-v)*h; }
+
+    // Axes
+    var xAxis = document.createElementNS("http://www.w3.org/2000/svg","line");
+    xAxis.setAttribute("x1",pad.l); xAxis.setAttribute("y1",sy(0));
+    xAxis.setAttribute("x2",pad.l+w); xAxis.setAttribute("y2",sy(0));
+    xAxis.setAttribute("stroke","var(--color-text-muted)"); xAxis.setAttribute("stroke-width","1");
+    svg.appendChild(xAxis);
+    var yAxis = document.createElementNS("http://www.w3.org/2000/svg","line");
+    yAxis.setAttribute("x1",pad.l); yAxis.setAttribute("y1",pad.t);
+    yAxis.setAttribute("x2",pad.l); yAxis.setAttribute("y2",sy(0));
+    yAxis.setAttribute("stroke","var(--color-text-muted)"); yAxis.setAttribute("stroke-width","1");
+    svg.appendChild(yAxis);
+
+    // Ideal line at y=1
+    var ideal = document.createElementNS("http://www.w3.org/2000/svg","line");
+    ideal.setAttribute("x1",pad.l); ideal.setAttribute("y1",sy(1));
+    ideal.setAttribute("x2",pad.l+w); ideal.setAttribute("y2",sy(1));
+    ideal.setAttribute("stroke","var(--color-success)"); ideal.setAttribute("stroke-width","1");
+    ideal.setAttribute("stroke-dasharray","4,4");
+    svg.appendChild(ideal);
+    var idealLabel = document.createElementNS("http://www.w3.org/2000/svg","text");
+    idealLabel.setAttribute("x",pad.l+w+2); idealLabel.setAttribute("y",sy(1)+4);
+    idealLabel.setAttribute("font-size","9"); idealLabel.setAttribute("fill","var(--color-success)");
+    idealLabel.setAttribute("font-family","var(--font-mono)");
+    idealLabel.textContent = "ideal";
+    svg.appendChild(idealLabel);
+
+    // Extrapolation line
+    var ey0 = extrap, ey3 = extrap + slope*3.5;
+    var extLine = document.createElementNS("http://www.w3.org/2000/svg","line");
+    extLine.setAttribute("x1",sx(0)); extLine.setAttribute("y1",sy(Math.max(0,Math.min(1.1,ey0))));
+    extLine.setAttribute("x2",sx(3.5)); extLine.setAttribute("y2",sy(Math.max(-0.1,Math.min(1.1,ey3))));
+    extLine.setAttribute("stroke","var(--color-accent)"); extLine.setAttribute("stroke-width","1.5");
+    extLine.setAttribute("stroke-dasharray","6,3");
+    svg.appendChild(extLine);
+
+    // Data points
+    pts.forEach(function(pt){
+      var c = document.createElementNS("http://www.w3.org/2000/svg","circle");
+      c.setAttribute("cx",sx(pt.lam)); c.setAttribute("cy",sy(Math.max(0,Math.min(1,pt.val))));
+      c.setAttribute("r","5"); c.setAttribute("fill","var(--color-state)");
+      svg.appendChild(c);
+    });
+
+    // Extrapolated point at lambda=0
+    var ec = document.createElementNS("http://www.w3.org/2000/svg","circle");
+    ec.setAttribute("cx",sx(0)); ec.setAttribute("cy",sy(Math.max(0,Math.min(1,extrap))));
+    ec.setAttribute("r","6"); ec.setAttribute("fill","var(--color-accent)");
+    ec.setAttribute("stroke","white"); ec.setAttribute("stroke-width","2");
+    svg.appendChild(ec);
+
+    // Axis labels
+    var xl = document.createElementNS("http://www.w3.org/2000/svg","text");
+    xl.setAttribute("x",pad.l+w/2); xl.setAttribute("y",sy(0)+22);
+    xl.setAttribute("text-anchor","middle"); xl.setAttribute("font-size","10");
+    xl.setAttribute("fill","var(--color-text-muted)");
+    xl.textContent = "Noise scale factor lambda";
+    svg.appendChild(xl);
+
+    for(var i=0;i<=3;i++){
+      var t = document.createElementNS("http://www.w3.org/2000/svg","text");
+      t.setAttribute("x",sx(i)); t.setAttribute("y",sy(0)+12);
+      t.setAttribute("text-anchor","middle"); t.setAttribute("font-size","9");
+      t.setAttribute("fill","var(--color-text-muted)"); t.setAttribute("font-family","var(--font-mono)");
+      t.textContent = i;
+      svg.appendChild(t);
     }
-    out.innerHTML = html;
-  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
-}
+
+    plotEl.appendChild(svg);
+    resultEl.textContent = "Noisy <ZZ> at lambda=1: "+pts[0].val.toFixed(4)+
+      " | ZNE extrapolated: "+extrap.toFixed(4)+
+      " | True value: 1.0000 | Error: "+Math.abs(1-extrap).toFixed(4);
+  }
+
+  slider.addEventListener("input", update);
+  update();
+})();
 </script>
 
 </section>
@@ -732,30 +823,6 @@ $$\mathbf{p}_{\text{ideal}} = M^{-1} \mathbf{p}_{\text{measured}}$$
   each fold level and extrapolate.
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="16">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-// Ideal circuit: create |+-> state
-h q[0];
-x q[1];
-h q[1];
-// Fold 1: U-dagger U (identity in ideal case)
-// Unfold the circuit then redo it
-inv @ h q[1];
-inv @ x q[1];
-inv @ h q[0];
-h q[0];
-x q[1];
-h q[1];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
 <p>
   In the simulator (which is noiseless), the folded circuit produces the same result as the
   unfolded circuit - confirming that unitary folding is an identity operation in the ideal case.
@@ -796,36 +863,266 @@ c = measure q;</textarea>
   quantum computing platforms. The widget below shows how DD pulses are inserted into a
   circuit's idle slots.
 </p>
-<div class="widget" id="dd-widget">
-  <div class="widget-header">Dynamical Decoupling</div>
-  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
-    <label>Sequence: <select id="dd-seq">
-      <option value="XX" selected>XX</option>
-      <option value="XY4">XY4</option>
-    </select></label>
-    <button onclick="runDDWidget()">Insert DD</button>
+<!-- Visualization 2: Unitary Folding Widget -->
+<div class="widget" id="unitary-folding-widget">
+  <div class="widget-header">Unitary Folding Visualizer</div>
+  <p style="font-size:0.9rem;margin-bottom:0.75rem;">
+    Unitary folding amplifies noise by inserting $U^\dagger U$ pairs. Each fold
+    adds gates without changing the ideal computation, but doubles the noise exposure.
+    Toggle fold levels to see the circuit grow and the effective noise increase.
+  </p>
+  <div style="display:flex;gap:1rem;align-items:center;margin-bottom:0.75rem;">
+    <label style="font-family:var(--font-mono);font-size:0.85rem;">Fold level:
+      <select id="fold-level" style="font-family:var(--font-mono);font-size:0.8rem;padding:0.3rem;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-surface);color:var(--color-text);">
+        <option value="0">0 (original, lambda=1)</option>
+        <option value="1">1 (lambda=3)</option>
+        <option value="2">2 (lambda=5)</option>
+        <option value="3">3 (lambda=7)</option>
+      </select>
+    </label>
   </div>
-  <div class="widget-output" id="dd-output"></div>
+  <div id="fold-diagram" style="border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-code-bg);padding:0.75rem;overflow-x:auto;"></div>
+  <div id="fold-stats" style="font-family:var(--font-mono);font-size:0.85rem;margin-top:0.5rem;text-align:center;color:var(--color-text-muted);"></div>
 </div>
 <script>
-async function runDDWidget() {
-  await ensureWasm();
-  var seq = document.getElementById('dd-seq').value;
-  var out = document.getElementById('dd-output');
-  out.innerHTML = '<p style="color:var(--color-text-muted)">Processing...</p>';
-  await new Promise(function(r) { setTimeout(r, 0); });
-  try {
-    var qasm = "OPENQASM 3.0;\nqubit[2] q;\nbit[2] c;\nh q[0];\ncx q[0], q[1];\nh q[1];\nc = measure q;";
-    var r = JSON.parse(window.insertDD(qasm, seq, isDark()));
-    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
-    var html = '<div class="comparison-panels">';
-    html += '<div class="comparison-panel"><h4>Original</h4>' + (r.beforeCircuitSVG||'') + '</div>';
-    html += '<div class="comparison-panel"><h4>With DD (' + esc(seq) + ')</h4>' + (r.afterCircuitSVG||'') + '</div>';
-    html += '</div>';
-    out.innerHTML = html;
-  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
-}
+(function(){
+  var diagramEl = document.getElementById("fold-diagram");
+  var statsEl = document.getElementById("fold-stats");
+  var sel = document.getElementById("fold-level");
+  if(!diagramEl || !sel) return;
+
+  function draw(){
+    var k = parseInt(sel.value);
+    var lambda = 1 + 2*k;
+    var baseGates = ["H","CNOT"];
+    var gates = baseGates.slice();
+    for(var i=0;i<k;i++){
+      gates.push("CNOT*");
+      gates.push("H*");
+      gates.push("H");
+      gates.push("CNOT");
+    }
+
+    while(diagramEl.firstChild) diagramEl.removeChild(diagramEl.firstChild);
+    var totalW = gates.length*55+40;
+    var svg = document.createElementNS("http://www.w3.org/2000/svg","svg");
+    svg.setAttribute("viewBox","0 0 "+totalW+" 80");
+    svg.setAttribute("width",Math.max(totalW,300)+"px"); svg.setAttribute("height","80px");
+
+    // Wire
+    var line = document.createElementNS("http://www.w3.org/2000/svg","line");
+    line.setAttribute("x1","10"); line.setAttribute("y1","35");
+    line.setAttribute("x2",(totalW-10)+""); line.setAttribute("y2","35");
+    line.setAttribute("stroke","var(--color-border)"); line.setAttribute("stroke-width","1");
+    svg.appendChild(line);
+
+    gates.forEach(function(g,i){
+      var x = 30+i*55;
+      var isDagger = g.indexOf("*")>=0;
+      var label = g.replace("*","^");
+      var rect = document.createElementNS("http://www.w3.org/2000/svg","rect");
+      rect.setAttribute("x",x-20); rect.setAttribute("y","15");
+      rect.setAttribute("width","40"); rect.setAttribute("height","40");
+      rect.setAttribute("rx","4");
+      rect.setAttribute("fill",isDagger?"var(--color-state)":"var(--color-gate-1q)");
+      rect.setAttribute("stroke","var(--color-border)"); rect.setAttribute("stroke-width","1");
+      rect.setAttribute("opacity",isDagger?"0.7":"1");
+      svg.appendChild(rect);
+      var t = document.createElementNS("http://www.w3.org/2000/svg","text");
+      t.setAttribute("x",x); t.setAttribute("y","39");
+      t.setAttribute("text-anchor","middle"); t.setAttribute("font-size","9");
+      t.setAttribute("font-family","var(--font-mono)"); t.setAttribute("fill","var(--color-text)");
+      t.textContent = label;
+      svg.appendChild(t);
+    });
+
+    // Fold brackets
+    if(k>0){
+      for(var f=0;f<k;f++){
+        var startIdx = 2 + f*4;
+        var endIdx = startIdx + 3;
+        var x1 = 30+startIdx*55-22, x2 = 30+endIdx*55+22;
+        var bracket = document.createElementNS("http://www.w3.org/2000/svg","rect");
+        bracket.setAttribute("x",x1); bracket.setAttribute("y","58");
+        bracket.setAttribute("width",(x2-x1)); bracket.setAttribute("height","16");
+        bracket.setAttribute("rx","3");
+        bracket.setAttribute("fill","none"); bracket.setAttribute("stroke","var(--color-warning)");
+        bracket.setAttribute("stroke-width","1"); bracket.setAttribute("stroke-dasharray","3,2");
+        svg.appendChild(bracket);
+        var ft = document.createElementNS("http://www.w3.org/2000/svg","text");
+        ft.setAttribute("x",(x1+x2)/2); ft.setAttribute("y","70");
+        ft.setAttribute("text-anchor","middle"); ft.setAttribute("font-size","8");
+        ft.setAttribute("fill","var(--color-warning)"); ft.setAttribute("font-family","var(--font-mono)");
+        ft.textContent = "fold "+(f+1);
+        svg.appendChild(ft);
+      }
+    }
+
+    diagramEl.appendChild(svg);
+    statsEl.textContent = "lambda = "+lambda+" | Total gates: "+gates.length+
+      " (original: "+baseGates.length+") | Noise amplification: "+lambda+"x";
+  }
+
+  sel.addEventListener("change", draw);
+  draw();
+})();
 </script>
+
+<!-- Visualization 3: Readout Confusion Matrix Widget -->
+<div class="widget" id="readout-confusion-widget">
+  <div class="widget-header">Readout Error Confusion Matrix</div>
+  <p style="font-size:0.9rem;margin-bottom:0.75rem;">
+    Measurement errors flip outcomes with some probability. The confusion matrix
+    $M$ maps true states to measured outcomes. Adjust the error rates to see how
+    the histogram is distorted, then apply the inverse correction $M^{-1}$.
+  </p>
+  <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:0.75rem;">
+    <label style="font-family:var(--font-mono);font-size:0.85rem;">P(1|0):
+      <input type="range" min="0" max="0.3" step="0.01" value="0.05" id="ro-p01" style="width:8rem;accent-color:var(--color-accent);">
+      <span id="ro-p01-val" style="font-family:var(--font-mono);font-size:0.8rem;">0.05</span>
+    </label>
+    <label style="font-family:var(--font-mono);font-size:0.85rem;">P(0|1):
+      <input type="range" min="0" max="0.3" step="0.01" value="0.03" id="ro-p10" style="width:8rem;accent-color:var(--color-accent);">
+      <span id="ro-p10-val" style="font-family:var(--font-mono);font-size:0.8rem;">0.03</span>
+    </label>
+  </div>
+  <div id="ro-output" style="display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;align-items:flex-start;"></div>
+</div>
+<script>
+(function(){
+  var outEl = document.getElementById("ro-output");
+  var s01 = document.getElementById("ro-p01");
+  var s10 = document.getElementById("ro-p10");
+  if(!outEl || !s01 || !s10) return;
+
+  function update(){
+    var p01=parseFloat(s01.value), p10=parseFloat(s10.value);
+    document.getElementById("ro-p01-val").textContent = p01.toFixed(2);
+    document.getElementById("ro-p10-val").textContent = p10.toFixed(2);
+
+    // True distribution: Bell state 50/50 on 00 and 11
+    var trueP = {0:0.5, 1:0, 2:0, 3:0.5};
+    // Apply 2-qubit readout error (independent per qubit)
+    var measured = {};
+    for(var i=0;i<4;i++){
+      measured[i]=0;
+      for(var j=0;j<4;j++){
+        var b0j=(j>>0)&1, b1j=(j>>1)&1;
+        var b0i=(i>>0)&1, b1i=(i>>1)&1;
+        var p0 = (b0j===b0i)?(b0j===0?1-p01:1-p10):(b0j===0?p01:p10);
+        var p1 = (b1j===b1i)?(b1j===0?1-p01:1-p10):(b1j===0?p01:p10);
+        measured[i] += trueP[j]*p0*p1;
+      }
+    }
+
+    // Apply inverse correction (approximate for display)
+    var det = (1-p01)*(1-p10) - p01*p10;
+    var corrected = {};
+    for(var i=0;i<4;i++){
+      corrected[i]=0;
+      for(var j=0;j<4;j++){
+        var b0j=(j>>0)&1, b1j=(j>>1)&1;
+        var b0i=(i>>0)&1, b1i=(i>>1)&1;
+        var inv0, inv1;
+        if(b0j===b0i) inv0 = (b0j===0?(1-p10):((1-p01)))/det;
+        else inv0 = (b0j===0?(-p10):(-p01))/det;
+        if(b1j===b1i) inv1 = (b1j===0?(1-p10):((1-p01)))/det;
+        else inv1 = (b1j===0?(-p10):(-p01))/det;
+        corrected[i] += measured[j]*inv0*inv1;
+      }
+      if(corrected[i]<0) corrected[i]=0;
+    }
+    var cSum=0; for(var i=0;i<4;i++) cSum+=corrected[i];
+    if(cSum>0) for(var i=0;i<4;i++) corrected[i]/=cSum;
+
+    var labels=["00","01","10","11"];
+    while(outEl.firstChild) outEl.removeChild(outEl.firstChild);
+
+    function makeBar(title, dist, maxV){
+      var col = document.createElement("div");
+      col.style.cssText = "flex:1;min-width:120px;text-align:center;";
+      var h = document.createElement("div");
+      h.style.cssText = "font-family:var(--font-mono);font-size:0.8rem;font-weight:600;color:var(--color-accent);margin-bottom:4px;";
+      h.textContent = title;
+      col.appendChild(h);
+      var bars = document.createElement("div");
+      bars.style.cssText = "display:flex;gap:3px;align-items:flex-end;height:80px;";
+      labels.forEach(function(l,i){
+        var bar = document.createElement("div");
+        bar.style.cssText = "flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;";
+        var fill = document.createElement("div");
+        var pct = dist[i]/maxV*100;
+        fill.style.cssText = "width:80%;height:"+pct+"%;background:var(--color-accent);border-radius:2px 2px 0 0;min-height:1px;";
+        var lb = document.createElement("div");
+        lb.style.cssText = "font-size:0.65rem;font-family:var(--font-mono);color:var(--color-text-muted);";
+        lb.textContent = l;
+        var vb = document.createElement("div");
+        vb.style.cssText = "font-size:0.6rem;font-family:var(--font-mono);color:var(--color-text-muted);";
+        vb.textContent = (dist[i]*100).toFixed(1)+"%";
+        bar.appendChild(vb); bar.appendChild(fill); bar.appendChild(lb);
+        bars.appendChild(bar);
+      });
+      col.appendChild(bars);
+      return col;
+    }
+
+    outEl.appendChild(makeBar("Ideal", trueP, 0.55));
+    outEl.appendChild(makeBar("Measured (noisy)", measured, 0.55));
+    outEl.appendChild(makeBar("Corrected (M^-1)", corrected, 0.55));
+  }
+
+  s01.addEventListener("input", update);
+  s10.addEventListener("input", update);
+  update();
+})();
+</script>
+
+<!-- Visualization 4: Mitigation vs Correction Comparison -->
+<h3>Mitigation vs Correction: The Full Spectrum</h3>
+<p>
+  Error mitigation and error correction occupy different points on a spectrum from
+  near-term to fault-tolerant quantum computing. This comparison shows how each
+  approach handles the same noisy circuit.
+</p>
+<div class="comparison" data-component="comparison" data-mode="ideal-noisy">
+  <div class="comparison-controls">
+    <label>Noise strength:
+      <input type="range" min="0.0" max="0.4" step="0.01" value="0.1" data-param="noiseParam">
+      <output>0.10</output>
+    </label>
+  </div>
+  <div class="comparison-panels">
+    <div class="comparison-panel" data-label="Ideal (Error-Corrected)">
+      <div class="comparison-qasm">OPENQASM 2.0;
+include "qelib1.inc";
+qreg q[2];
+creg c[2];
+h q[0];
+cx q[0], q[1];
+c[0] = measure q[0];
+c[1] = measure q[1];</div>
+      <div class="comparison-output"></div>
+    </div>
+    <div class="comparison-panel" data-label="Noisy (Needs Mitigation)">
+      <div class="comparison-qasm">OPENQASM 2.0;
+include "qelib1.inc";
+qreg q[2];
+creg c[2];
+h q[0];
+cx q[0], q[1];
+c[0] = measure q[0];
+c[1] = measure q[1];</div>
+      <div class="comparison-output"></div>
+    </div>
+  </div>
+</div>
+<p style="font-size:0.9rem;color:var(--color-text-muted);margin-top:0.5rem;">
+  The left panel shows the ideal (error-corrected) result: a clean Bell state with
+  only <code>00</code> and <code>11</code> outcomes. The right panel shows the same
+  circuit under noise, where <code>01</code> and <code>10</code> leak in. Error
+  mitigation corrects the expectation values statistically; error correction prevents
+  the errors at the physical level.
+</p>
 
 <h3>Interactive: Pauli Twirling</h3>
 <p>
@@ -834,165 +1131,3 @@ async function runDDWidget() {
   with a twirled version - the ideal computation is unchanged, but the noise structure
   is randomized.
 </p>
-<div class="widget" id="twirl-widget">
-  <div class="widget-header">Pauli Twirling</div>
-  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
-    <button onclick="runTwirlWidget()">Twirl Circuit</button>
-  </div>
-  <div class="widget-output" id="twirl-output"></div>
-</div>
-<script>
-async function runTwirlWidget() {
-  await ensureWasm();
-  var out = document.getElementById('twirl-output');
-  out.innerHTML = '<p style="color:var(--color-text-muted)">Processing...</p>';
-  await new Promise(function(r) { setTimeout(r, 0); });
-  try {
-    var qasm = "OPENQASM 3.0;\nqubit[2] q;\nbit[2] c;\nh q[0];\ncx q[0], q[1];\ncx q[1], q[0];\nc = measure q;";
-    var r = JSON.parse(window.twirlCircuit(qasm, isDark()));
-    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
-    var html = '<div class="comparison-panels">';
-    html += '<div class="comparison-panel"><h4>Original</h4>' + (r.originalCircuitSVG||'') + '</div>';
-    html += '<div class="comparison-panel"><h4>Twirled</h4>' + (r.twirledCircuitSVG||'') + '</div>';
-    html += '</div>';
-    out.innerHTML = html;
-  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
-}
-</script>
-
-<!-- ================================================================== -->
-
-<section id="review">
-<h2>Chapter 25 Review</h2>
-
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 25 Review</div>
-
-  <div class="flashcard" data-card-id="ch25-mitigation-vs-correction">
-    <div class="card-front">What is the fundamental difference between quantum error mitigation and quantum error correction?</div>
-    <div class="card-back">
-      Error mitigation corrects <em>expectation values</em> through classical post-processing,
-      requiring no extra qubits but introducing sampling overhead. Error correction protects
-      <em>quantum states</em> at the physical level by encoding logical qubits into many
-      physical qubits. Mitigation trades measurement overhead for accuracy; correction trades
-      qubit overhead for protection. Mitigation degrades with circuit size; correction scales
-      to arbitrary computations once the error threshold is met.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch25-zne-protocol">
-    <div class="card-front">Describe the two steps of Zero-Noise Extrapolation (ZNE).</div>
-    <div class="card-back">
-      Step 1: Run the circuit at several intentionally amplified noise levels (using unitary
-      folding or gate-level folding) and measure the expectation value at each level.
-      Step 2: Fit a model (linear, polynomial, or exponential) to the measured values as a
-      function of noise scale factor, and extrapolate to the zero-noise limit ($\lambda = 0$).
-      The extrapolated value estimates the noiseless expectation value.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch25-unitary-folding">
-    <div class="card-front">What is unitary folding, and why does it amplify noise without changing the ideal computation?</div>
-    <div class="card-back">
-      Unitary folding inserts pairs $U^\dagger U$ (gate and its inverse) into the circuit.
-      Since $U^\dagger U = I$, the ideal computation is unchanged, but each additional gate
-      introduces physical noise. Global folding replaces $U$ with $U(U^\dagger U)^k$, giving
-      noise scale factor $\lambda = 1 + 2k$. Gate-level folding replaces individual gates
-      $G$ with $G G^\dagger G$ for finer control.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch25-pec-quasiprobability">
-    <div class="card-front">How does Probabilistic Error Cancellation (PEC) use quasiprobability distributions to cancel noise?</div>
-    <div class="card-back">
-      PEC decomposes the inverse noise channel $\mathcal{N}^{-1}$ as a quasiprobability mixture
-      of physical operations: $\mathcal{N}^{-1} = \sum_i q_i \mathcal{B}_i$, where the
-      coefficients $q_i$ sum to 1 but can be negative. Each circuit execution randomly samples
-      an operation $\mathcal{B}_i$ with probability $|q_i|/C$ and weights the result by
-      $\text{sgn}(q_i) \cdot C$. The weighted average converges to the noiseless expectation
-      value, with sampling overhead $C^2 = (\sum_i |q_i|)^2$.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch25-pec-overhead">
-    <div class="card-front">What determines the sampling overhead of PEC, and how does it scale with circuit size?</div>
-    <div class="card-back">
-      The sampling overhead is $C_{\text{total}}^2$ where $C_{\text{total}} = \prod_{k=1}^g C_k$
-      is the product of one-norms across all $g$ noisy gates. Since each $C_k \geq 1$, the
-      total overhead grows exponentially with the number of noisy gates. For a circuit with
-      $g$ gates each having one-norm $C$, the overhead is $C^{2g}$. This exponential scaling
-      limits PEC to moderately noisy circuits with relatively few gates.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch25-cdr-method">
-    <div class="card-front">How does Clifford Data Regression (CDR) work, and why are Clifford circuits used for training?</div>
-    <div class="card-back">
-      CDR generates training circuits using mostly Clifford gates, which can be efficiently
-      simulated classically (Gottesman-Knill theorem). Each training circuit is run on both the
-      noisy hardware (giving noisy values) and a classical simulator (giving exact ideal values).
-      A regression model (typically linear) is fitted to these pairs, then applied to correct the
-      noisy output of the target (non-Clifford) circuit. Clifford circuits are used because they
-      provide cheap, exact classical reference values while experiencing similar noise to the
-      target circuit.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch25-measurement-mitigation">
-    <div class="card-front">What is measurement error mitigation, and when does the tensored approximation apply?</div>
-    <div class="card-back">
-      Measurement error mitigation characterizes the measurement confusion matrix $M$ (where
-      $M_{ij}$ = probability of measuring $i$ when the true state is $j$) and inverts it to
-      correct the measured distribution: $\mathbf{p}_{\text{ideal}} = M^{-1} \mathbf{p}_{\text{measured}}$.
-      The full $2^n \times 2^n$ matrix is impractical, but if measurement errors are
-      approximately independent across qubits, it factorizes as a tensor product of $n$
-      individual $2 \times 2$ matrices, requiring only $O(n)$ calibration circuits.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch25-combining-strategies">
-    <div class="card-front">How do error mitigation and error correction complement each other?</div>
-    <div class="card-back">
-      They are complementary, not competing. Near-term: mitigation alone for NISQ circuits.
-      Medium-term: partial correction (small codes) combined with mitigation to reduce effective
-      logical error rates without increasing code distance. Long-term: full fault-tolerant
-      correction as the primary approach, with mitigation reducing overhead (e.g., for magic
-      state distillation). The practical decision depends on circuit depth, qubit count,
-      available hardware error rates, and required precision.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-</div>
-</section>

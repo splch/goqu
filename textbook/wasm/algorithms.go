@@ -24,9 +24,7 @@ import (
 	"github.com/splch/goqu/viz"
 )
 
-// ---------------------------------------------------------------------------
 // Result types
-// ---------------------------------------------------------------------------
 
 type algorithmResult struct {
 	CircuitSVG   string
@@ -55,9 +53,7 @@ type ansatzResult struct {
 	Error      string
 }
 
-// ---------------------------------------------------------------------------
 // Entanglement helper
-// ---------------------------------------------------------------------------
 
 func parseEntanglement(s string) ansatz.Entanglement {
 	switch s {
@@ -70,10 +66,8 @@ func parseEntanglement(s string) ansatz.Entanglement {
 	}
 }
 
-// ---------------------------------------------------------------------------
 // drawAndEmit is a common helper to generate SVG, QASM, and histogram
 // from a circuit and measurement counts.
-// ---------------------------------------------------------------------------
 
 func drawAndEmit(circ *ir.Circuit, counts map[string]int, dark bool) (circSVG, histSVG, qasmCode string) {
 	var drawOpts []draw.SVGOption
@@ -96,13 +90,11 @@ func drawAndEmit(circ *ir.Circuit, counts map[string]int, dark bool) (circSVG, h
 	return
 }
 
-// ---------------------------------------------------------------------------
 // runOracleAlgorithmJS
 //
 // Args for deutsch_jozsa:    (algorithmName, nQubitsStr, oracleTypeStr, shots, dark?)
 // Args for bernstein_vazirani: (algorithmName, nQubitsStr, secretStr, shots, dark?)
 // Args for simon:             (algorithmName, nQubitsStr, secretStr, shots, dark?)
-// ---------------------------------------------------------------------------
 
 func runOracleAlgorithmJS(_ js.Value, args []js.Value) any {
 	if len(args) < 4 {
@@ -261,12 +253,10 @@ func runSimon(ctx context.Context, nQubits int, secretStr string, shots int, dar
 	})
 }
 
-// ---------------------------------------------------------------------------
 // runSearchAlgorithmJS
 //
 // Args: (algorithmName string, nQubits int, targetsStr string, shots int, dark? bool)
 //   targetsStr is comma-separated, e.g. "3,5,7"
-// ---------------------------------------------------------------------------
 
 func runSearchAlgorithmJS(_ js.Value, args []js.Value) any {
 	if len(args) < 4 {
@@ -347,12 +337,10 @@ func runGrover(nQubits int, targets []int, shots int, dark bool) string {
 	})
 }
 
-// ---------------------------------------------------------------------------
 // groverStepThroughJS
 //
 // Args: (nQubits int, targetsStr string)
 // Returns probability distributions for iterations 0..optimal.
-// ---------------------------------------------------------------------------
 
 func groverStepThroughJS(_ js.Value, args []js.Value) any {
 	if len(args) < 2 {
@@ -461,11 +449,9 @@ func groverStepThroughJS(_ js.Value, args []js.Value) any {
 	})
 }
 
-// ---------------------------------------------------------------------------
 // runQFTJS
 //
 // Args: (nQubits int, dark? bool)
-// ---------------------------------------------------------------------------
 
 func runQFTJS(_ js.Value, args []js.Value) any {
 	if len(args) < 1 {
@@ -520,12 +506,10 @@ func runQFTJS(_ js.Value, args []js.Value) any {
 	})
 }
 
-// ---------------------------------------------------------------------------
 // buildAnsatzJS
 //
 // Args: (ansatzName string, nQubits int, layers int, entanglement string, dark? bool)
 // For UCCSD, layers is reinterpreted as nElectrons.
-// ---------------------------------------------------------------------------
 
 func buildAnsatzJS(_ js.Value, args []js.Value) any {
 	if len(args) < 4 {
@@ -588,12 +572,10 @@ func buildAnsatzJS(_ js.Value, args []js.Value) any {
 	})
 }
 
-// ---------------------------------------------------------------------------
 // runQPEJS
 //
 // Args: (gateType string, numPhaseBits int, shots int, dark? bool)
 //   gateType: "T", "S", "Z", or a float angle for RZ
-// ---------------------------------------------------------------------------
 
 func runQPEJS(_ js.Value, args []js.Value) any {
 	if len(args) < 3 {
@@ -662,11 +644,9 @@ func runQPEJS(_ js.Value, args []js.Value) any {
 	})
 }
 
-// ---------------------------------------------------------------------------
 // runShorJS
 //
 // Args: (N int, shots int, dark? bool)
-// ---------------------------------------------------------------------------
 
 func runShorJS(_ js.Value, args []js.Value) any {
 	if len(args) < 2 {

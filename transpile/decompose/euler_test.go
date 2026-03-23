@@ -248,7 +248,7 @@ func TestEulerDecompose_MaxOps(t *testing.T) {
 	}
 }
 
-// --- ZXZ tests ---
+// ZXZ tests
 
 // rxMatrix returns the 2x2 RX(theta) matrix.
 func rxMatrix(theta float64) []complex128 {
@@ -317,7 +317,7 @@ func TestEulerZXZ_ParameterizedGates(t *testing.T) {
 	}
 }
 
-// --- ZSX tests ---
+// ZSX tests
 
 // opsProduct multiplies the matrices of a list of operations (right-to-left application).
 func opsProduct(ops []ir.Operation) []complex128 {
@@ -567,7 +567,7 @@ func TestEulerZYZ_PhaseGate(t *testing.T) {
 	assertEulerZYZ(t, "Phase(pi/4)", m, 1e-7)
 }
 
-// --- XYX tests ---
+// XYX tests
 
 // reconstructXYX builds the matrix Rx(alpha) * Ry(beta) * Rx(gamma).
 func reconstructXYX(alpha, beta, gamma float64) []complex128 {
@@ -703,7 +703,7 @@ func TestEulerXYX_Identity(t *testing.T) {
 	}
 }
 
-// --- XZX tests ---
+// XZX tests
 
 // reconstructXZX builds the matrix Rx(alpha) * Rz(beta) * Rx(gamma).
 func reconstructXZX(alpha, beta, gamma float64) []complex128 {
@@ -839,7 +839,7 @@ func TestEulerXZX_Identity(t *testing.T) {
 	}
 }
 
-// --- U3 tests ---
+// U3 tests
 
 func TestEulerU3_FixedGates(t *testing.T) {
 	fixed := []struct {

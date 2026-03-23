@@ -557,6 +557,115 @@ associative, and has the identity channel as its unit.
 </section>
 
 <!-- ================================================================== -->
+<!-- Visualization 1: Channel Bloch Deformation Simulation -->
+<section id="channel-bloch-deformation">
+<h2>Interactive: Channel Bloch Deformation</h2>
+<p>
+Each quantum channel deforms the Bloch sphere in a characteristic way. The depolarizing
+channel shrinks it uniformly, the dephasing channel flattens it into a disc, and amplitude
+damping both shrinks and shifts it toward $|0\rangle$. Select a channel and adjust the
+noise parameter to see the deformation.
+</p>
+
+<div class="simulation" data-component="simulation" data-noisy>
+  <div class="sim-controls">
+    <label>Channel:
+      <select data-param="noiseModel">
+        <option value="depolarizing">Depolarizing</option>
+        <option value="amplitude_damping">Amplitude Damping</option>
+        <option value="phase_damping">Phase Damping</option>
+        <option value="bit_flip">Bit Flip</option>
+        <option value="phase_flip">Phase Flip</option>
+      </select>
+    </label>
+    <label>Strength $p$:
+      <input type="range" min="0.0" max="1.0" step="0.02" value="0.2" data-param="noiseParam">
+      <output>0.20</output>
+    </label>
+  </div>
+  <div class="sim-qasm">OPENQASM 2.0;
+include "qelib1.inc";
+qreg q[1];
+creg c[1];
+h q[0];
+c[0] = measure q[0];</div>
+  <div class="sim-output"></div>
+</div>
+
+<div class="widget" id="bloch-deform-info">
+  <div class="widget-header">Bloch Sphere Deformation Summary</div>
+  <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:0.5rem;">
+    <label style="font-family:var(--font-mono);font-size:0.85rem;">Channel:
+      <select id="bd-channel" style="font-family:var(--font-mono);font-size:0.8rem;padding:0.3rem;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-surface);color:var(--color-text);">
+        <option value="depol">Depolarizing</option>
+        <option value="dephase">Dephasing</option>
+        <option value="ampdamp">Amplitude Damping</option>
+      </select>
+    </label>
+    <label style="font-family:var(--font-mono);font-size:0.85rem;">$p$:
+      <input type="range" min="0" max="1" step="0.02" value="0.3" id="bd-p" style="width:10rem;accent-color:var(--color-accent);">
+      <span id="bd-p-val" style="font-family:var(--font-mono);font-size:0.8rem;">0.30</span>
+    </label>
+  </div>
+  <div id="bd-output" style="font-family:var(--font-mono);font-size:0.85rem;"></div>
+</div>
+<script>
+(function(){
+  var outEl = document.getElementById("bd-output");
+  var chSel = document.getElementById("bd-channel");
+  var pSlider = document.getElementById("bd-p");
+  if(!outEl || !chSel || !pSlider) return;
+
+  function update(){
+    var ch = chSel.value, p = parseFloat(pSlider.value);
+    document.getElementById("bd-p-val").textContent = p.toFixed(2);
+
+    var info = {};
+    if(ch === "depol"){
+      info.name = "Depolarizing";
+      info.rx = (1-p).toFixed(3); info.ry = (1-p).toFixed(3); info.rz = (1-p).toFixed(3);
+      info.shift = "0";
+      info.shape = "Sphere shrinks uniformly to radius "+(1-p).toFixed(2);
+      info.unital = "Yes";
+    } else if(ch === "dephase"){
+      info.name = "Dephasing (Phase Damping)";
+      var s = (1-2*p);
+      info.rx = Math.abs(s).toFixed(3); info.ry = Math.abs(s).toFixed(3); info.rz = "1.000";
+      info.shift = "0";
+      info.shape = "Ellipsoid: x,y shrink to "+(Math.abs(s)).toFixed(2)+", z preserved";
+      info.unital = "Yes";
+    } else {
+      info.name = "Amplitude Damping";
+      info.rx = Math.sqrt(1-p).toFixed(3); info.ry = Math.sqrt(1-p).toFixed(3); info.rz = (1-p).toFixed(3);
+      info.shift = p.toFixed(3)+" toward |0>";
+      info.shape = "Ellipsoid shifted toward north pole by "+p.toFixed(2);
+      info.unital = "No (fixed point is |0>)";
+    }
+
+    outEl.textContent = "";
+    var lines = [
+      "Channel: "+info.name,
+      "Bloch vector scaling: rx -> "+info.rx+", ry -> "+info.ry+", rz -> "+info.rz,
+      "z-axis shift: "+info.shift,
+      "Geometric effect: "+info.shape,
+      "Unital: "+info.unital
+    ];
+    lines.forEach(function(l){
+      var d = document.createElement("div");
+      d.textContent = l;
+      d.style.marginBottom = "0.2rem";
+      outEl.appendChild(d);
+    });
+  }
+
+  chSel.addEventListener("change", update);
+  pSlider.addEventListener("input", update);
+  update();
+})();
+</script>
+</section>
+
+<!-- ================================================================== -->
 <section id="channel-representations-widget">
 <h2>Interactive: Channel Representations</h2>
 
@@ -565,104 +674,6 @@ Explore different mathematical representations of quantum noise channels. Adjust
 noise parameter to see how the Kraus operators, Choi matrix, and Pauli transfer matrix
 change. All representations describe the same physical process.
 </p>
-
-<div class="widget" id="chanrep-widget">
-  <div class="widget-header">Channel Representations</div>
-  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
-    <label>Channel: <select id="chanrep-type">
-      <option value="depolarizing" selected>Depolarizing</option>
-      <option value="amplitude_damping">Amplitude Damping</option>
-      <option value="phase_damping">Phase Damping</option>
-      <option value="bit_flip">Bit Flip</option>
-      <option value="phase_flip">Phase Flip</option>
-    </select></label>
-    <label>Parameter: <input type="range" id="chanrep-param" min="0" max="1" step="0.01" value="0.1"><output id="chanrep-param-val">0.10</output></label>
-    <button onclick="runChannelRepWidget()">Compute</button>
-  </div>
-  <div class="widget-output" id="chanrep-output"></div>
-</div>
-<script>
-document.getElementById('chanrep-param').addEventListener('input', function() {
-  document.getElementById('chanrep-param-val').textContent = parseFloat(this.value).toFixed(2);
-});
-function fmtComplex(re, im) {
-  var thr = 1e-6;
-  var ra = Math.abs(re) > thr;
-  var ia = Math.abs(im) > thr;
-  if (!ra && !ia) return '0';
-  var rs = ra ? re.toFixed(3).replace(/\.?0+$/, '') : '';
-  var is_ = '';
-  if (ia) {
-    var av = Math.abs(im);
-    var iv = (Math.abs(av - 1) < thr) ? '' : av.toFixed(3).replace(/\.?0+$/, '');
-    is_ = (im < 0 ? '-' : (ra ? '+' : '')) + iv + 'i';
-  }
-  if (ra && ia && im > 0) return rs + ' + ' + is_.replace(/^\+/, '');
-  if (ra && ia) return rs + ' ' + is_;
-  return rs + is_;
-}
-async function runChannelRepWidget() {
-  await ensureWasm();
-  var chType = document.getElementById('chanrep-type').value;
-  var param = parseFloat(document.getElementById('chanrep-param').value);
-  var out = document.getElementById('chanrep-output');
-  out.innerHTML = '<p style="color:var(--color-text-muted)">Computing...</p>';
-  await new Promise(function(r) { setTimeout(r, 0); });
-  try {
-    var r = JSON.parse(window.channelInfo(chType, param));
-    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
-    var html = '';
-    /* Channel properties */
-    html += '<div class="sim-stats">';
-    html += '<span>CP: ' + (r.isCP ? 'Yes' : 'No') + '</span>';
-    html += '<span>TP: ' + (r.isTP ? 'Yes' : 'No') + '</span>';
-    html += '<span>Process fidelity: ' + r.processFidelity.toFixed(4) + '</span>';
-    html += '<span>Avg gate fidelity: ' + r.avgGateFidelity.toFixed(4) + '</span>';
-    html += '</div>';
-    /* Kraus operators */
-    html += '<h4>Kraus Operators (' + r.numKraus + ')</h4>';
-    for (var k = 0; k < r.krausOps.length; k++) {
-      var op = r.krausOps[k];
-      var dim = Math.round(Math.sqrt(op.length));
-      html += '<p style="margin:0.5rem 0 0.25rem;font-weight:600;">K<sub>' + k + '</sub></p>';
-      html += '<table class="state-table"><tbody>';
-      for (var row = 0; row < dim; row++) {
-        html += '<tr>';
-        for (var col = 0; col < dim; col++) {
-          var c = op[row * dim + col];
-          html += '<td>' + esc(fmtComplex(c.re, c.im)) + '</td>';
-        }
-        html += '</tr>';
-      }
-      html += '</tbody></table>';
-    }
-    /* Choi matrix */
-    html += '<h4>Choi Matrix (' + r.choiDim + ' x ' + r.choiDim + ')</h4>';
-    html += '<table class="state-table"><tbody>';
-    for (var row = 0; row < r.choiDim; row++) {
-      html += '<tr>';
-      for (var col = 0; col < r.choiDim; col++) {
-        var c = r.choiMatrix[row * r.choiDim + col];
-        html += '<td>' + esc(fmtComplex(c.re, c.im)) + '</td>';
-      }
-      html += '</tr>';
-    }
-    html += '</tbody></table>';
-    /* PTM matrix */
-    html += '<h4>Pauli Transfer Matrix (' + r.ptmDim + ' x ' + r.ptmDim + ')</h4>';
-    html += '<table class="state-table"><tbody>';
-    for (var row = 0; row < r.ptmDim; row++) {
-      html += '<tr>';
-      for (var col = 0; col < r.ptmDim; col++) {
-        html += '<td>' + r.ptmMatrix[row * r.ptmDim + col].toFixed(3) + '</td>';
-      }
-      html += '</tr>';
-    }
-    html += '</tbody></table>';
-    out.innerHTML = html;
-  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
-}
-</script>
 
 <p>
 Things to explore:
@@ -686,6 +697,339 @@ ground state.</li>
 
 </section>
 
+<!-- Visualization 2: Three Representations Widget -->
+<div class="widget" id="three-reps-widget">
+  <div class="widget-header">Three Representations: Kraus / Choi / PTM</div>
+  <p style="font-size:0.9rem;margin-bottom:0.75rem;">
+    All three representations describe the same channel. Adjust the noise parameter
+    to see how each representation changes simultaneously.
+  </p>
+  <div style="display:flex;gap:1rem;align-items:center;margin-bottom:0.75rem;flex-wrap:wrap;">
+    <label style="font-family:var(--font-mono);font-size:0.85rem;">Channel:
+      <select id="rep-channel" style="font-family:var(--font-mono);font-size:0.8rem;padding:0.3rem;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-surface);color:var(--color-text);">
+        <option value="depol">Depolarizing</option>
+        <option value="dephase">Dephasing</option>
+        <option value="ampdamp">Amplitude Damping</option>
+      </select>
+    </label>
+    <label style="font-family:var(--font-mono);font-size:0.85rem;">$p$:
+      <input type="range" min="0" max="1" step="0.02" value="0.2" id="rep-p" style="width:10rem;accent-color:var(--color-accent);">
+      <span id="rep-p-val" style="font-family:var(--font-mono);font-size:0.8rem;">0.20</span>
+    </label>
+  </div>
+  <div id="rep-output" style="display:flex;gap:1rem;flex-wrap:wrap;"></div>
+</div>
+<script>
+(function(){
+  var outEl = document.getElementById("rep-output");
+  var chSel = document.getElementById("rep-channel");
+  var pSlider = document.getElementById("rep-p");
+  if(!outEl || !chSel || !pSlider) return;
+
+  function fmt(v){ return (v>=0?" ":"")+v.toFixed(3); }
+
+  function makePanel(title, lines){
+    var panel = document.createElement("div");
+    panel.style.cssText = "flex:1;min-width:180px;border:1px solid var(--color-border);border-radius:var(--radius);padding:0.75rem;background:var(--color-code-bg);";
+    var h = document.createElement("div");
+    h.style.cssText = "font-weight:600;font-size:0.85rem;color:var(--color-accent);margin-bottom:0.5rem;";
+    h.textContent = title;
+    panel.appendChild(h);
+    var pre = document.createElement("pre");
+    pre.style.cssText = "font-size:0.75rem;margin:0;white-space:pre;font-family:var(--font-mono);";
+    pre.textContent = lines.join("\n");
+    panel.appendChild(pre);
+    return panel;
+  }
+
+  function update(){
+    var ch = chSel.value, p = parseFloat(pSlider.value);
+    document.getElementById("rep-p-val").textContent = p.toFixed(2);
+    while(outEl.firstChild) outEl.removeChild(outEl.firstChild);
+
+    var krausLines=[], choiLines=[], ptmLines=[];
+    if(ch === "depol"){
+      var s0=Math.sqrt(1-3*p/4), s1=Math.sqrt(p/4);
+      krausLines = [
+        "K0 = "+fmt(s0)+"*I",
+        "K1 = "+fmt(s1)+"*X",
+        "K2 = "+fmt(s1)+"*Y",
+        "K3 = "+fmt(s1)+"*Z"
+      ];
+      var d = 1-p;
+      choiLines = [
+        "["+fmt((1+d)/2)+" 0 0 "+fmt(d)+"]",
+        "[ 0 "+fmt((1-d)/2)+" 0  0]",
+        "[ 0  0 "+fmt((1-d)/2)+" 0]",
+        "["+fmt(d)+" 0 0 "+fmt((1+d)/2)+"]"
+      ];
+      ptmLines = [
+        "[1  0  0  0]",
+        "[0 "+fmt(d)+" 0  0]",
+        "[0  0 "+fmt(d)+" 0]",
+        "[0  0  0 "+fmt(d)+"]"
+      ];
+    } else if(ch === "dephase"){
+      var s0=Math.sqrt(1-p), s1=Math.sqrt(p);
+      krausLines = ["K0 = "+fmt(s0)+"*I", "K1 = "+fmt(s1)+"*Z"];
+      var c = 1-2*p;
+      choiLines = [
+        "[1 0 0 "+fmt(c)+"]",
+        "[0 0 0  0]",
+        "[0 0 0  0]",
+        "["+fmt(c)+" 0 0  1]"
+      ];
+      ptmLines = [
+        "[1  0  0  0]",
+        "[0 "+fmt(c)+" 0  0]",
+        "[0  0 "+fmt(c)+" 0]",
+        "[0  0  0  1]"
+      ];
+    } else {
+      var s1g=Math.sqrt(1-p);
+      krausLines = [
+        "K0 = [[1, 0],",
+        "      [0, "+fmt(s1g)+"]]",
+        "K1 = [[0, "+fmt(Math.sqrt(p))+"],",
+        "      [0, 0]]"
+      ];
+      choiLines = [
+        "[1 0 0 "+fmt(s1g)+"]",
+        "[0 "+fmt(p)+" 0  0]",
+        "[0 0 0  0]",
+        "["+fmt(s1g)+" 0 0 "+fmt(1-p)+"]"
+      ];
+      ptmLines = [
+        "[ 1   0   0   0 ]",
+        "[ 0 "+fmt(s1g)+"  0   0 ]",
+        "[ 0   0 "+fmt(s1g)+"  0 ]",
+        "["+fmt(p)+"  0   0 "+fmt(1-p)+"]"
+      ];
+    }
+
+    outEl.appendChild(makePanel("Kraus Operators", krausLines));
+    outEl.appendChild(makePanel("Choi Matrix (4x4)", choiLines));
+    outEl.appendChild(makePanel("Pauli Transfer Matrix", ptmLines));
+  }
+
+  chSel.addEventListener("change", update);
+  pSlider.addEventListener("input", update);
+  update();
+})();
+</script>
+
+<!-- ================================================================== -->
+<!-- Visualization 3: Stinespring Dilation Walkthrough -->
+<section id="stinespring-walkthrough">
+<h2>Interactive: Stinespring Dilation Walkthrough</h2>
+<p>
+  Every quantum channel arises from a unitary on a larger system followed by tracing
+  out the environment. This walkthrough shows the Stinespring dilation of the amplitude
+  damping channel: the system qubit interacts unitarily with an environment qubit,
+  then the environment is discarded.
+</p>
+
+<div class="animated-walkthrough" data-component="animated-walkthrough">
+  <div class="walkthrough-progress"></div>
+
+  <div class="walkthrough-stage active" data-stage="0">
+    <div class="walkthrough-narration">
+      <h4>Step 1: System + Environment</h4>
+      <p>Begin with the system qubit in state $\rho$ and an environment qubit initialized to
+        $|0\rangle_E$. The joint state is $\rho \otimes |0\rangle\langle 0|_E$ - a product
+        state with no entanglement.</p>
+    </div>
+    <div class="walkthrough-viz">
+      <div style="display:flex;gap:2rem;justify-content:center;align-items:center;font-family:var(--font-mono);font-size:0.9rem;">
+        <div style="text-align:center;padding:1rem;border:2px solid var(--color-accent);border-radius:8px;">
+          <div style="font-weight:600;color:var(--color-accent);">System</div>
+          <div>$\rho$</div>
+        </div>
+        <div style="font-size:1.5rem;color:var(--color-text-muted);">x</div>
+        <div style="text-align:center;padding:1rem;border:2px solid var(--color-text-muted);border-radius:8px;">
+          <div style="font-weight:600;color:var(--color-text-muted);">Environment</div>
+          <div>$|0\rangle\langle 0|$</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="walkthrough-stage" data-stage="1">
+    <div class="walkthrough-narration">
+      <h4>Step 2: Joint Unitary</h4>
+      <p>Apply a global unitary $U$ that couples system and environment. For amplitude
+        damping: $U|1\rangle_S|0\rangle_E = \sqrt{1-\gamma}|1\rangle_S|0\rangle_E +
+        \sqrt{\gamma}|0\rangle_S|1\rangle_E$. The system and environment become entangled.</p>
+    </div>
+    <div class="walkthrough-viz">
+      <div style="text-align:center;">
+        <div style="display:inline-block;padding:1rem 2rem;border:2px solid var(--color-state);border-radius:8px;font-family:var(--font-mono);">
+          <div style="font-weight:600;color:var(--color-state);">$U_{SE}$</div>
+          <div style="font-size:0.85rem;">$U(\rho \otimes |0\rangle\langle 0|)U^\dagger$</div>
+          <div style="font-size:0.8rem;color:var(--color-text-muted);margin-top:4px;">System and environment are now entangled</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="walkthrough-stage" data-stage="2">
+    <div class="walkthrough-narration">
+      <h4>Step 3: Trace Out Environment</h4>
+      <p>Discard the environment by taking the partial trace over $E$. The resulting
+        system state is $\mathcal{E}(\rho) = \text{Tr}_E(U(\rho \otimes |0\rangle\langle 0|)U^\dagger)$.
+        This produces the noisy channel output.</p>
+    </div>
+    <div class="walkthrough-viz">
+      <div style="display:flex;gap:2rem;justify-content:center;align-items:center;font-family:var(--font-mono);font-size:0.9rem;">
+        <div style="text-align:center;padding:1rem;border:2px solid var(--color-success);border-radius:8px;">
+          <div style="font-weight:600;color:var(--color-success);">System output</div>
+          <div>$\mathcal{E}(\rho)$</div>
+        </div>
+        <div style="text-align:center;padding:1rem;border:2px dashed var(--color-text-muted);border-radius:8px;opacity:0.5;">
+          <div style="font-weight:600;color:var(--color-text-muted);">Environment</div>
+          <div>(traced out)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="walkthrough-stage" data-stage="3">
+    <div class="walkthrough-narration">
+      <h4>Result: Kraus Operators Emerge</h4>
+      <p>The Kraus operators $K_k = \langle k|_E U |0\rangle_E$ are extracted from the
+        unitary by projecting onto environment basis states. For amplitude damping:
+        $K_0 = \begin{pmatrix}1&0\\0&\sqrt{1-\gamma}\end{pmatrix}$ and
+        $K_1 = \begin{pmatrix}0&\sqrt{\gamma}\\0&0\end{pmatrix}$.</p>
+    </div>
+    <div class="walkthrough-viz">
+      <div style="text-align:center;font-family:var(--font-mono);font-size:0.85rem;">
+        <div style="display:flex;gap:1.5rem;justify-content:center;">
+          <div style="padding:0.75rem;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-code-bg);">
+            $K_0 = \langle 0|U|0\rangle$<br>
+            No decay branch
+          </div>
+          <div style="padding:0.75rem;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-code-bg);">
+            $K_1 = \langle 1|U|0\rangle$<br>
+            Decay (emission) branch
+          </div>
+        </div>
+        <div style="margin-top:0.5rem;color:var(--color-text-muted);font-size:0.8rem;">
+          $\mathcal{E}(\rho) = K_0\rho K_0^\dagger + K_1\rho K_1^\dagger$
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="walkthrough-controls">
+    <button data-action="prev" disabled>Previous</button>
+    <button data-action="next">Next</button>
+    <button data-action="auto">Auto-play</button>
+  </div>
+</div>
+</section>
+
+<!-- ================================================================== -->
+<!-- Visualization 4: Channel Composition Widget -->
+<section id="channel-composition-widget-section">
+<h2>Interactive: Channel Composition</h2>
+<p>
+  Compose two channels in sequence and observe the cumulative effect. Notice that
+  channel composition is generally non-commutative: applying dephasing then amplitude
+  damping gives a different result from amplitude damping then dephasing.
+</p>
+
+<div class="widget" id="channel-compose-widget">
+  <div class="widget-header">Channel Composition</div>
+  <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:0.75rem;">
+    <label style="font-family:var(--font-mono);font-size:0.85rem;">First:
+      <select id="cc-ch1" style="font-family:var(--font-mono);font-size:0.8rem;padding:0.3rem;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-surface);color:var(--color-text);">
+        <option value="depol">Depolarizing</option>
+        <option value="dephase" selected>Dephasing</option>
+        <option value="ampdamp">Amplitude Damping</option>
+      </select>
+    </label>
+    <label style="font-family:var(--font-mono);font-size:0.85rem;">$p_1$:
+      <input type="range" min="0" max="0.5" step="0.02" value="0.2" id="cc-p1" style="width:8rem;accent-color:var(--color-accent);">
+      <span id="cc-p1-val" style="font-family:var(--font-mono);font-size:0.8rem;">0.20</span>
+    </label>
+    <span style="font-size:1.2rem;color:var(--color-text-muted);">then</span>
+    <label style="font-family:var(--font-mono);font-size:0.85rem;">Second:
+      <select id="cc-ch2" style="font-family:var(--font-mono);font-size:0.8rem;padding:0.3rem;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-surface);color:var(--color-text);">
+        <option value="depol">Depolarizing</option>
+        <option value="dephase">Dephasing</option>
+        <option value="ampdamp" selected>Amplitude Damping</option>
+      </select>
+    </label>
+    <label style="font-family:var(--font-mono);font-size:0.85rem;">$p_2$:
+      <input type="range" min="0" max="0.5" step="0.02" value="0.3" id="cc-p2" style="width:8rem;accent-color:var(--color-accent);">
+      <span id="cc-p2-val" style="font-family:var(--font-mono);font-size:0.8rem;">0.30</span>
+    </label>
+  </div>
+  <div id="cc-output" style="font-family:var(--font-mono);font-size:0.85rem;"></div>
+</div>
+<script>
+(function(){
+  var outEl = document.getElementById("cc-output");
+  var ch1=document.getElementById("cc-ch1"), ch2=document.getElementById("cc-ch2");
+  var p1s=document.getElementById("cc-p1"), p2s=document.getElementById("cc-p2");
+  if(!outEl || !ch1 || !ch2 || !p1s || !p2s) return;
+
+  function blochEffect(ch, p){
+    if(ch==="depol") return {sx:1-p, sy:1-p, sz:1-p, dz:0, name:"Depolarizing("+p.toFixed(2)+")"};
+    if(ch==="dephase"){ var c=1-2*p; return {sx:Math.abs(c), sy:Math.abs(c), sz:1, dz:0, name:"Dephasing("+p.toFixed(2)+")"}; }
+    return {sx:Math.sqrt(1-p), sy:Math.sqrt(1-p), sz:1-p, dz:p, name:"AmpDamp("+p.toFixed(2)+")"};
+  }
+
+  function update(){
+    var p1=parseFloat(p1s.value), p2=parseFloat(p2s.value);
+    document.getElementById("cc-p1-val").textContent = p1.toFixed(2);
+    document.getElementById("cc-p2-val").textContent = p2.toFixed(2);
+
+    var e1 = blochEffect(ch1.value, p1);
+    var e2 = blochEffect(ch2.value, p2);
+
+    // Composition: apply e1 then e2 to Bloch vector (0,0,1) = |0>
+    var r1 = {x:0, y:0, z:1};
+    // After first channel
+    r1 = {x:r1.x*e1.sx, y:r1.y*e1.sy, z:r1.z*e1.sz+e1.dz};
+    // After second channel
+    var r2 = {x:r1.x*e2.sx, y:r1.y*e2.sy, z:r1.z*e2.sz+e2.dz};
+
+    // Reverse order for comparison
+    var rr1 = {x:0, y:0, z:1};
+    rr1 = {x:rr1.x*e2.sx, y:rr1.y*e2.sy, z:rr1.z*e2.sz+e2.dz};
+    var rr2 = {x:rr1.x*e1.sx, y:rr1.y*e1.sy, z:rr1.z*e1.sz+e1.dz};
+
+    var commutes = Math.abs(r2.z-rr2.z)<0.001 && Math.abs(r2.x-rr2.x)<0.001;
+
+    outEl.textContent = "";
+    var lines = [
+      "Composition: "+e1.name+" then "+e2.name,
+      "Input: |0> (Bloch vector = (0, 0, 1))",
+      "After "+e1.name+": r = ("+r1.x.toFixed(3)+", "+r1.y.toFixed(3)+", "+r1.z.toFixed(3)+")",
+      "After "+e2.name+": r = ("+r2.x.toFixed(3)+", "+r2.y.toFixed(3)+", "+r2.z.toFixed(3)+")",
+      "",
+      "Reverse order: "+e2.name+" then "+e1.name,
+      "Result: r = ("+rr2.x.toFixed(3)+", "+rr2.y.toFixed(3)+", "+rr2.z.toFixed(3)+")",
+      commutes?"These channels commute for this input.":"These channels do NOT commute - order matters!"
+    ];
+    lines.forEach(function(l){
+      var d = document.createElement("div");
+      d.textContent = l;
+      if(l.indexOf("NOT")>=0) d.style.color = "var(--color-state)";
+      if(l.indexOf("commute for")>=0) d.style.color = "var(--color-success)";
+      d.style.marginBottom = "0.15rem";
+      outEl.appendChild(d);
+    });
+  }
+
+  [ch1,ch2].forEach(function(s){ s.addEventListener("change", update); });
+  [p1s,p2s].forEach(function(s){ s.addEventListener("input", update); });
+  update();
+})();
+</script>
+</section>
+
 <!-- ================================================================== -->
 <section id="sandbox-channels">
 <h2>Sandbox: Quantum Channel Effects</h2>
@@ -696,28 +1040,6 @@ in the $|+\rangle$ state (equal superposition) and apply different noise models.
 circuit as-is to see the pure $|+\rangle$ state, then uncomment different noise sections to
 observe their effects.
 </p>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="12">OPENQASM 3.0;
-qubit[2] q;
-bit[1] c;
-// Prepare |+> state
-h q[0];
-// --- Amplitude damping (simulate with controlled rotation) ---
-// Uncomment below: ancilla q[1] starts at |0>
-// cx q[0], q[1];
-// --- Dephasing (apply Z with some probability) ---
-// Uncomment below to apply a Z rotation (partial dephasing):
-// rz(1.0) q[0];
-// Measure in X basis to detect coherence
-h q[0];
-c[0] = measure q[0];</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
 
 <p>
 Experiments to try:
@@ -749,27 +1071,6 @@ different channels degrade the state in qualitatively different ways as you incr
 noise strength.
 </p>
 
-<div class="simulation" data-component="simulation" data-noisy="true">
-  <div class="sim-controls">
-    <label>Channel:
-      <select data-param="noiseModel">
-        <option value="depolarizing">Depolarizing</option>
-        <option value="amplitude_damping">Amplitude Damping</option>
-        <option value="phase_damping">Phase Damping</option>
-        <option value="bit_flip">Bit Flip</option>
-        <option value="phase_flip">Phase Flip</option>
-      </select>
-    </label>
-    <label>Strength: <input type="range" data-param="noiseParam" min="0" max="0.5" step="0.01" value="0.1"><output>0.10</output></label>
-  </div>
-  <script type="text/template" class="sim-qasm">OPENQASM 3.0;
-qubit[1] q;
-bit[1] c;
-h q[0];
-c = measure q;</script>
-  <div class="sim-output"></div>
-</div>
-
 <p>
 Compare the channels at the same noise strength:
 </p>
@@ -791,101 +1092,4 @@ channel mixes $|+\rangle$ and $|-\rangle$, destroying coherence in the $X$ basis
 
 </section>
 
-<!-- ================================================================== -->
 
-<section id="review">
-<h2>Chapter 27 Review</h2>
-
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 27 Review</div>
-
-  <div class="flashcard" data-card-id="ch27-kraus-representation">
-    <div class="card-front">State the Kraus representation of a quantum channel and the completeness condition.</div>
-    <div class="card-back">
-      A quantum channel $\mathcal{E}$ acts as $\mathcal{E}(\rho) = \sum_k K_k \rho K_k^\dagger$, where the Kraus operators $\{K_k\}$ satisfy the completeness relation $\sum_k K_k^\dagger K_k = I$. This ensures trace preservation. A channel with a single Kraus operator is a unitary evolution; multiple Kraus operators represent irreversible (noisy) processes.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch27-complete-positivity">
-    <div class="card-front">Why must quantum channels be completely positive, not merely positive?</div>
-    <div class="card-back">
-      A merely positive map can produce non-physical (non-positive) density operators when applied to part of an entangled system. Complete positivity ensures that $\mathcal{E} \otimes \mathcal{I}_n$ is positive for all ancilla dimensions $n$. The canonical example: the transpose map $\rho \mapsto \rho^T$ is positive but not completely positive - applying it to one half of a Bell state yields an operator with negative eigenvalues.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch27-choi-matrix">
-    <div class="card-front">What is the Choi matrix, and how does it characterize a quantum channel?</div>
-    <div class="card-back">
-      The Choi matrix is $J(\mathcal{E}) = (\mathcal{I} \otimes \mathcal{E})(|\Omega\rangle\langle\Omega|)$, formed by applying the channel to one half of a maximally entangled state. A map is completely positive iff $J(\mathcal{E}) \geq 0$, and trace-preserving iff $\text{Tr}_B(J(\mathcal{E})) = I$. The Choi matrix eigenvectors (reshaped) give the Kraus operators.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch27-depolarizing-channel">
-    <div class="card-front">Describe the depolarizing channel and its effect on the Bloch vector.</div>
-    <div class="card-back">
-      The depolarizing channel is $\mathcal{E}(\rho) = (1-p)\rho + p \frac{I}{d}$, which replaces the state with the maximally mixed state with probability $p$. For a qubit, it uniformly shrinks the Bloch vector: $\vec{r} \mapsto (1-p)\vec{r}$. It is unital (preserves the identity) and treats all directions of noise equally - it is the most symmetric noise model.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch27-amplitude-damping">
-    <div class="card-front">What physical process does the amplitude damping channel model, and why is it not unital?</div>
-    <div class="card-back">
-      Amplitude damping models spontaneous emission (energy decay), such as a two-level atom emitting a photon. The $|1\rangle$ population decays toward $|0\rangle$ with probability $\gamma$. It is not unital because its fixed point is $|0\rangle\langle 0|$, not $I/2$ - the ground state is preferred. Its Kraus operators are $K_0 = \begin{pmatrix}1&0\\0&\sqrt{1-\gamma}\end{pmatrix}$ and $K_1 = \begin{pmatrix}0&\sqrt{\gamma}\\0&0\end{pmatrix}$.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch27-stinespring-dilation">
-    <div class="card-front">State the Stinespring dilation theorem and its physical interpretation.</div>
-    <div class="card-back">
-      Every quantum channel $\mathcal{E}(\rho)$ can be written as $\text{Tr}_E(U(\rho \otimes |0\rangle\langle 0|_E)U^\dagger)$ for some environment system $E$ and unitary $U$. Physically: all quantum noise arises from unitary interaction with an unobserved environment followed by tracing it out. If we could track the environment, the evolution would be perfectly reversible.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch27-complementary-channel">
-    <div class="card-front">What is the complementary channel, and why is it important for quantum capacity?</div>
-    <div class="card-back">
-      The complementary channel $\mathcal{E}^c(\rho) = \text{Tr}_B(U(\rho \otimes |0\rangle\langle 0|_E)U^\dagger)$ describes what the environment receives - it is obtained from the Stinespring dilation by tracing out the output instead of the environment. It is central to quantum capacity: information captured by the environment is lost to the receiver. For degradable channels (where $\mathcal{E}^c$ can be obtained by processing the output of $\mathcal{E}$), the quantum capacity has a simple formula.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch27-three-representations">
-    <div class="card-front">Name the three equivalent representations of a quantum channel and give one advantage of each.</div>
-    <div class="card-back">
-      (1) <strong>Kraus representation:</strong> most convenient for direct computation of the channel's output on any input. (2) <strong>Choi matrix:</strong> best for verifying complete positivity (check positive semi-definiteness) and for optimization via semidefinite programs. (3) <strong>Stinespring dilation:</strong> most physically transparent, showing channels arise from unitary evolution plus partial trace; essential for defining the complementary channel.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-</div>
-</section>

@@ -70,7 +70,7 @@ func blockStride3(q0, q1, q2 int) (mask0, mask1, mask2, lo, mid, hi int) {
 	return
 }
 
-// --- Serial kernels ---
+// Serial kernels
 
 // kernel3qCCX: CCX swaps |110> and |111> (both controls set).
 func (s *Sim) kernel3qCCX(q0, q1, q2 int) {
@@ -174,7 +174,7 @@ func (s *Sim) kernel3qGeneric(q0, q1, q2 int, m []complex128) {
 	}
 }
 
-// --- Parallel kernels ---
+// Parallel kernels
 
 // kernel3qFunc is the per-offset body of a 3-qubit kernel. It receives
 // the statevector, the base offset (all three qubit bits = 0), and the

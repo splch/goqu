@@ -21,7 +21,7 @@ func assertClose(t *testing.T, label string, got, want []complex128) {
 	}
 }
 
-// --- MatMul tests ---
+// MatMul tests
 
 func TestMatMul_Identity(t *testing.T) {
 	id := Eye(2)
@@ -69,7 +69,7 @@ func TestMatMul_3x3(t *testing.T) {
 	assertClose(t, "I3*A", result, a)
 }
 
-// --- MatAdj tests ---
+// MatAdj tests
 
 func TestMatAdj_Identity(t *testing.T) {
 	id := Eye(2)
@@ -104,7 +104,7 @@ func TestMatAdj_UnitaryInverse(t *testing.T) {
 	assertClose(t, "S†*S", result, Eye(2))
 }
 
-// --- Tensor tests ---
+// Tensor tests
 
 func TestTensor_IxH(t *testing.T) {
 	// I ⊗ H should be a 4x4 matrix.
@@ -176,7 +176,7 @@ func TestTensor_ScalarLike(t *testing.T) {
 	assertClose(t, "3⊗M", result, want)
 }
 
-// --- Det2x2 tests ---
+// Det2x2 tests
 
 func TestDet2x2_Identity(t *testing.T) {
 	id := Eye(2)
@@ -225,7 +225,7 @@ func TestDet2x2_SGate(t *testing.T) {
 	}
 }
 
-// --- ToSU2 tests ---
+// ToSU2 tests
 
 func TestToSU2_Identity(t *testing.T) {
 	id := Eye(2)
@@ -292,7 +292,7 @@ func TestToSU2_PreservesUnitary(t *testing.T) {
 	}
 }
 
-// --- IsIdentity tests ---
+// IsIdentity tests
 
 func TestIsIdentity_True(t *testing.T) {
 	for _, n := range []int{1, 2, 3, 4} {
@@ -332,7 +332,7 @@ func TestIsIdentity_NearIdentity(t *testing.T) {
 	}
 }
 
-// --- MatClose tests ---
+// MatClose tests
 
 func TestMatClose_Equal(t *testing.T) {
 	a := []complex128{1, 2i, complex(3, 4), 5}
@@ -366,7 +366,7 @@ func TestMatClose_WithinTolerance(t *testing.T) {
 	}
 }
 
-// --- GlobalPhase tests ---
+// GlobalPhase tests
 
 func TestGlobalPhase_SameMatrix(t *testing.T) {
 	a := Eye(2)
@@ -437,7 +437,7 @@ func TestGlobalPhase_DifferentLengths(t *testing.T) {
 	}
 }
 
-// --- Eye tests ---
+// Eye tests
 
 func TestEye_1x1(t *testing.T) {
 	result := Eye(1)
@@ -469,7 +469,7 @@ func TestEye_4x4(t *testing.T) {
 	}
 }
 
-// --- MatScale tests ---
+// MatScale tests
 
 func TestMatScale(t *testing.T) {
 	m := []complex128{1, 2, 3, 4}
@@ -484,7 +484,7 @@ func TestMatScale_One(t *testing.T) {
 	assertClose(t, "MatScale(m,1)", result, m)
 }
 
-// --- Combined / integration tests ---
+// Combined / integration tests
 
 func TestUnitaryProperty_HadamardAdj(t *testing.T) {
 	// H is self-adjoint and unitary: H*H†=I.

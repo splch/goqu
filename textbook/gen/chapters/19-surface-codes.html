@@ -137,6 +137,179 @@
   - a highly unlikely event when the physical error rate is low and $L$ is large.
 </p>
 
+<!-- Visualization 1: Toric Code Lattice Widget -->
+<div class="widget" id="widget-toric-code">
+  <div class="widget-header">Interactive: Toric Code Lattice</div>
+  <p style="margin-bottom:0.75rem;font-size:0.9rem;">Click edges (qubits) to inject $Z$ errors. Anyon pairs appear at the endpoints of error chains. Errors that form non-contractible loops cause logical errors.</p>
+  <div style="display:flex;justify-content:center;">
+    <canvas id="toric-canvas" width="400" height="400" style="border:1px solid var(--color-border);border-radius:var(--radius);max-width:100%;cursor:crosshair;"></canvas>
+  </div>
+  <div style="margin-top:0.5rem;display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
+    <button id="toric-clear" style="font-family:var(--font-body);font-size:0.85rem;padding:0.35rem 0.75rem;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-accent);color:#fff;cursor:pointer;">Clear errors</button>
+    <span id="toric-info" style="font-size:0.85rem;color:var(--color-text-muted);"></span>
+  </div>
+  <script>
+  (function(){
+    var canvas = document.getElementById("toric-canvas");
+    var ctx = canvas.getContext("2d");
+    var clearBtn = document.getElementById("toric-clear");
+    var infoEl = document.getElementById("toric-info");
+    var W = canvas.width, H = canvas.height;
+    var L = 4; // 4x4 lattice
+    var dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    var bgCol = dark ? "#262626" : "#fff";
+    var gridCol = dark ? "#444" : "#ddd";
+    var vertexCol = dark ? "#6A9BD2" : "#4C72B0";
+    var errorCol = dark ? "#E07070" : "#C44E52";
+    var anyonCol = "#f59e0b";
+
+    var cellSize = W / (L + 1);
+    var offset = cellSize;
+
+    // Edges: horizontal and vertical
+    // hEdges[r][c] = horizontal edge from vertex (r,c) to (r,c+1)
+    // vEdges[r][c] = vertical edge from vertex (r,c) to (r+1,c)
+    var hErrors = [], vErrors = [];
+    for (var r = 0; r < L; r++) {
+      hErrors.push([]);
+      vErrors.push([]);
+      for (var c = 0; c < L; c++) {
+        hErrors[r].push(false);
+        vErrors[r].push(false);
+      }
+    }
+
+    function vertexPos(r, c) {
+      return {x: offset + (c % L) * cellSize, y: offset + (r % L) * cellSize};
+    }
+
+    function computeAnyons() {
+      // Vertex operators: product of Z on all edges touching vertex
+      // Z error on an edge flips the two vertices at its endpoints
+      var anyons = [];
+      for (var r = 0; r < L; r++) {
+        for (var c = 0; c < L; c++) {
+          var parity = 0;
+          // Edges touching vertex (r,c):
+          // right: hEdges[r][c]
+          // left: hEdges[r][(c-1+L)%L]
+          // down: vEdges[r][c]
+          // up: vEdges[(r-1+L)%L][c]
+          if (hErrors[r][c]) parity++;
+          if (hErrors[r][(c-1+L)%L]) parity++;
+          if (vErrors[r][c]) parity++;
+          if (vErrors[(r-1+L)%L][c]) parity++;
+          if (parity % 2 === 1) anyons.push({r:r, c:c});
+        }
+      }
+      return anyons;
+    }
+
+    function draw() {
+      ctx.fillStyle = bgCol;
+      ctx.fillRect(0, 0, W, H);
+
+      // Draw edges
+      for (var r = 0; r < L; r++) {
+        for (var c = 0; c < L; c++) {
+          var p1 = vertexPos(r, c);
+          var p2h = vertexPos(r, c+1);
+          var p2v = vertexPos(r+1, c);
+
+          // Horizontal edge
+          ctx.beginPath();
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(p2h.x, p2h.y);
+          ctx.strokeStyle = hErrors[r][c] ? errorCol : gridCol;
+          ctx.lineWidth = hErrors[r][c] ? 4 : 2;
+          ctx.stroke();
+
+          // Vertical edge
+          ctx.beginPath();
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(p2v.x, p2v.y);
+          ctx.strokeStyle = vErrors[r][c] ? errorCol : gridCol;
+          ctx.lineWidth = vErrors[r][c] ? 4 : 2;
+          ctx.stroke();
+        }
+      }
+
+      // Draw vertices
+      for (var r = 0; r < L; r++) {
+        for (var c = 0; c < L; c++) {
+          var p = vertexPos(r, c);
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 5, 0, 2*Math.PI);
+          ctx.fillStyle = vertexCol;
+          ctx.fill();
+        }
+      }
+
+      // Draw anyons
+      var anyons = computeAnyons();
+      anyons.forEach(function(a){
+        var p = vertexPos(a.r, a.c);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 10, 0, 2*Math.PI);
+        ctx.fillStyle = anyonCol;
+        ctx.fill();
+        ctx.strokeStyle = dark ? "#fff" : "#000";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.fillStyle = dark ? "#000" : "#fff";
+        ctx.font = "bold 10px system-ui";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("e", p.x, p.y);
+      });
+
+      var totalErrors = 0;
+      for (var r = 0; r < L; r++) for (var c = 0; c < L; c++) {
+        if (hErrors[r][c]) totalErrors++;
+        if (vErrors[r][c]) totalErrors++;
+      }
+      infoEl.textContent = totalErrors + " error" + (totalErrors !== 1 ? "s" : "") + ", " + anyons.length + " anyon" + (anyons.length !== 1 ? "s" : "");
+    }
+
+    canvas.addEventListener("click", function(e){
+      var rect = canvas.getBoundingClientRect();
+      var sx = W / rect.width, sy = H / rect.height;
+      var mx = (e.clientX - rect.left)*sx, my = (e.clientY - rect.top)*sy;
+
+      // Find nearest edge
+      var bestDist = Infinity, bestType = "", bestR = 0, bestC = 0;
+      for (var r = 0; r < L; r++) {
+        for (var c = 0; c < L; c++) {
+          var p1 = vertexPos(r, c);
+          // Horizontal edge midpoint
+          var p2h = vertexPos(r, c+1);
+          var hmx = (p1.x + p2h.x)/2, hmy = (p1.y + p2h.y)/2;
+          var hd = Math.hypot(mx - hmx, my - hmy);
+          if (hd < bestDist) { bestDist = hd; bestType = "h"; bestR = r; bestC = c; }
+          // Vertical edge midpoint
+          var p2v = vertexPos(r+1, c);
+          var vmx = (p1.x + p2v.x)/2, vmy = (p1.y + p2v.y)/2;
+          var vd = Math.hypot(mx - vmx, my - vmy);
+          if (vd < bestDist) { bestDist = vd; bestType = "v"; bestR = r; bestC = c; }
+        }
+      }
+      if (bestDist < cellSize * 0.4) {
+        if (bestType === "h") hErrors[bestR][bestC] = !hErrors[bestR][bestC];
+        else vErrors[bestR][bestC] = !vErrors[bestR][bestC];
+        draw();
+      }
+    });
+
+    clearBtn.addEventListener("click", function(){
+      for (var r = 0; r < L; r++) for (var c = 0; c < L; c++) { hErrors[r][c] = false; vErrors[r][c] = false; }
+      draw();
+    });
+
+    draw();
+  })();
+  </script>
+</div>
+
 <h3>Why "Topological"?</h3>
 
 <p>
@@ -197,6 +370,161 @@
   the perimeter creates a code that encodes exactly one logical qubit.
 </p>
 
+<!-- Visualization 2: Error Chain + Matching Widget -->
+<div class="widget" id="widget-error-matching">
+  <div class="widget-header">Interactive: Error Chains and Matching</div>
+  <p style="margin-bottom:0.75rem;font-size:0.9rem;">Inject errors on a distance-5 surface code lattice. The decoder pairs syndrome defects using minimum-weight matching. If the correction chain plus the error chain forms a non-contractible path, a logical error occurs.</p>
+  <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;margin-bottom:0.5rem;">
+    <button id="match-random" style="font-family:var(--font-body);font-size:0.85rem;padding:0.35rem 0.75rem;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-accent);color:#fff;cursor:pointer;">Random errors (p=0.05)</button>
+    <button id="match-clear" style="font-family:var(--font-body);font-size:0.85rem;padding:0.35rem 0.75rem;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-surface);color:var(--color-text);cursor:pointer;">Clear</button>
+    <span id="match-info" style="font-size:0.85rem;color:var(--color-text-muted);"></span>
+  </div>
+  <div style="display:flex;justify-content:center;">
+    <canvas id="match-canvas" width="320" height="320" style="border:1px solid var(--color-border);border-radius:var(--radius);max-width:100%;"></canvas>
+  </div>
+  <script>
+  (function(){
+    var canvas = document.getElementById("match-canvas");
+    var ctx = canvas.getContext("2d");
+    var infoEl = document.getElementById("match-info");
+    var W = canvas.width, H = canvas.height;
+    var d = 5;
+    var cellSize = W / (d + 2);
+    var ox = cellSize * 1.5, oy = cellSize * 1.5;
+    var dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    var bgCol = dark ? "#262626" : "#fff";
+
+    // data qubits on edges of a d x d grid
+    var errors = {}; // key: "h_r_c" or "v_r_c"
+
+    function draw() {
+      ctx.fillStyle = bgCol;
+      ctx.fillRect(0,0,W,H);
+
+      // Grid
+      ctx.strokeStyle = dark ? "#444" : "#ddd";
+      ctx.lineWidth = 1;
+      for (var r = 0; r <= d-1; r++) for (var c = 0; c <= d-1; c++) {
+        if (c < d-1) {
+          ctx.beginPath();
+          ctx.moveTo(ox + c*cellSize, oy + r*cellSize);
+          ctx.lineTo(ox + (c+1)*cellSize, oy + r*cellSize);
+          var key = "h_"+r+"_"+c;
+          ctx.strokeStyle = errors[key] ? (dark?"#E07070":"#C44E52") : (dark?"#444":"#ddd");
+          ctx.lineWidth = errors[key] ? 4 : 1;
+          ctx.stroke();
+        }
+        if (r < d-1) {
+          ctx.beginPath();
+          ctx.moveTo(ox + c*cellSize, oy + r*cellSize);
+          ctx.lineTo(ox + c*cellSize, oy + (r+1)*cellSize);
+          var key = "v_"+r+"_"+c;
+          ctx.strokeStyle = errors[key] ? (dark?"#E07070":"#C44E52") : (dark?"#444":"#ddd");
+          ctx.lineWidth = errors[key] ? 4 : 1;
+          ctx.stroke();
+        }
+      }
+
+      // Compute syndrome defects (simplified: count error edges at each vertex)
+      var defects = [];
+      for (var r = 0; r < d; r++) for (var c = 0; c < d; c++) {
+        var count = 0;
+        if (errors["h_"+r+"_"+c]) count++;
+        if (c > 0 && errors["h_"+r+"_"+(c-1)]) count++;
+        if (errors["v_"+r+"_"+c]) count++;
+        if (r > 0 && errors["v_"+(r-1)+"_"+c]) count++;
+        if (count % 2 === 1) defects.push({r:r, c:c});
+      }
+
+      // Draw vertices
+      for (var r = 0; r < d; r++) for (var c = 0; c < d; c++) {
+        ctx.beginPath();
+        ctx.arc(ox + c*cellSize, oy + r*cellSize, 4, 0, 2*Math.PI);
+        ctx.fillStyle = dark ? "#666" : "#aaa";
+        ctx.fill();
+      }
+
+      // Draw defects
+      defects.forEach(function(def){
+        ctx.beginPath();
+        ctx.arc(ox + def.c*cellSize, oy + def.r*cellSize, 8, 0, 2*Math.PI);
+        ctx.fillStyle = "#f59e0b";
+        ctx.fill();
+      });
+
+      // Simple greedy matching visualization
+      if (defects.length >= 2) {
+        ctx.strokeStyle = "#22c55e";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([4,3]);
+        var used = {};
+        for (var i = 0; i < defects.length; i++) {
+          if (used[i]) continue;
+          var bestJ = -1, bestDist = Infinity;
+          for (var j = i+1; j < defects.length; j++) {
+            if (used[j]) continue;
+            var dist = Math.abs(defects[i].r - defects[j].r) + Math.abs(defects[i].c - defects[j].c);
+            if (dist < bestDist) { bestDist = dist; bestJ = j; }
+          }
+          if (bestJ >= 0) {
+            used[i] = true; used[bestJ] = true;
+            ctx.beginPath();
+            ctx.moveTo(ox + defects[i].c*cellSize, oy + defects[i].r*cellSize);
+            ctx.lineTo(ox + defects[bestJ].c*cellSize, oy + defects[bestJ].r*cellSize);
+            ctx.stroke();
+          }
+        }
+        ctx.setLineDash([]);
+      }
+
+      var errCount = Object.keys(errors).filter(function(k){return errors[k];}).length;
+      infoEl.textContent = errCount + " error" + (errCount!==1?"s":"") + ", " + defects.length + " syndrome defect" + (defects.length!==1?"s":"") + (defects.length >= 2 ? " (green lines = decoder matching)" : "");
+    }
+
+    document.getElementById("match-random").addEventListener("click", function(){
+      errors = {};
+      for (var r = 0; r < d; r++) for (var c = 0; c < d; c++) {
+        if (c < d-1 && Math.random() < 0.05) errors["h_"+r+"_"+c] = true;
+        if (r < d-1 && Math.random() < 0.05) errors["v_"+r+"_"+c] = true;
+      }
+      draw();
+    });
+
+    document.getElementById("match-clear").addEventListener("click", function(){
+      errors = {};
+      draw();
+    });
+
+    canvas.addEventListener("click", function(e){
+      var rect = canvas.getBoundingClientRect();
+      var sx = W / rect.width, sy = H / rect.height;
+      var mx = (e.clientX - rect.left)*sx, my = (e.clientY - rect.top)*sy;
+      var bestDist = Infinity, bestKey = "";
+      for (var r = 0; r < d; r++) for (var c = 0; c < d; c++) {
+        if (c < d-1) {
+          var ex = (ox + c*cellSize + ox + (c+1)*cellSize)/2;
+          var ey = oy + r*cellSize;
+          var dist = Math.hypot(mx-ex, my-ey);
+          if (dist < bestDist) { bestDist = dist; bestKey = "h_"+r+"_"+c; }
+        }
+        if (r < d-1) {
+          var ex = ox + c*cellSize;
+          var ey = (oy + r*cellSize + oy + (r+1)*cellSize)/2;
+          var dist = Math.hypot(mx-ex, my-ey);
+          if (dist < bestDist) { bestDist = dist; bestKey = "v_"+r+"_"+c; }
+        }
+      }
+      if (bestDist < cellSize * 0.45) {
+        errors[bestKey] = !errors[bestKey];
+        draw();
+      }
+    });
+
+    draw();
+  })();
+  </script>
+</div>
+
 <h3>The ~1% Error Threshold</h3>
 
 <p>
@@ -246,35 +574,6 @@ $$p_{\text{logical}} \sim \left(\frac{p_{\text{physical}}}{p_{\text{threshold}}}
   The syndrome pattern reveals the error location.
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="16">OPENQASM 3.0;
-qubit[13] q;
-bit[13] c;
-// q[0..8] = 9 data qubits in a 3x3 grid
-// q[9..12] = 4 Z-stabilizer ancillas
-// All start in |0>, so Z-stabilizers should read +1
-// Introduce X error on data qubit 4 (center)
-x q[4];
-// Measure Z-stabilizer: Z on qubits {0,1,3,4} via ancilla q[9]
-cx q[0], q[9]; cx q[1], q[9];
-cx q[3], q[9]; cx q[4], q[9];
-// Measure Z-stabilizer: Z on qubits {1,2,4,5} via ancilla q[10]
-cx q[1], q[10]; cx q[2], q[10];
-cx q[4], q[10]; cx q[5], q[10];
-// Measure Z-stabilizer: Z on qubits {3,4,6,7} via ancilla q[11]
-cx q[3], q[11]; cx q[4], q[11];
-cx q[6], q[11]; cx q[7], q[11];
-// Measure Z-stabilizer: Z on qubits {4,5,7,8} via ancilla q[12]
-cx q[4], q[12]; cx q[5], q[12];
-cx q[7], q[12]; cx q[8], q[12];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
 <p>
   With an $X$ error on the center qubit (q[4]), all four $Z$-type stabilizers that include
   qubit 4 should flag, since $X$ anticommutes with $Z$. The ancilla qubits q[9] through
@@ -294,37 +593,6 @@ c = measure q;</textarea>
   single-qubit error produces a unique two-bit syndrome that identifies the faulty qubit.
 </p>
 
-<div class="simulation" data-component="simulation" data-clifford="true">
-  <div class="sim-controls">
-    <label>Inject error on:
-      <select data-param="err">
-        <option value="id q[0];" selected>No error</option>
-        <option value="x q[0];">Qubit 0</option>
-        <option value="x q[1];">Qubit 1</option>
-        <option value="x q[2];">Qubit 2</option>
-      </select>
-    </label>
-  </div>
-  <pre class="sim-qasm">OPENQASM 3.0;
-qubit[5] q;
-bit[2] c;
-// Encode logical |0> in 3-qubit repetition code
-cx q[0], q[1];
-cx q[0], q[2];
-// Error injection (controlled by parameter)
-{err}
-// Syndrome extraction using ancilla qubits
-// Stabilizer Z0Z1: parity of q[0] and q[1] onto q[3]
-cx q[0], q[3];
-cx q[1], q[3];
-// Stabilizer Z1Z2: parity of q[1] and q[2] onto q[4]
-cx q[1], q[4];
-cx q[2], q[4];
-c[0] = measure q[3];
-c[1] = measure q[4];</pre>
-  <div class="sim-output"></div>
-</div>
-
 <p>
   The syndrome outcomes map directly to the error location: syndrome $00$ means no error,
   $10$ identifies qubit 0, $11$ identifies qubit 1, and $01$ identifies qubit 2. This is
@@ -342,23 +610,6 @@ c[1] = measure q[4];</pre>
   building up the multi-qubit stabilizer correlations that enable error detection.
 </p>
 
-<div class="step-through" data-component="step-through" data-mode="clifford">
-  <div class="step-controls">
-    <button data-action="prev" disabled>Previous</button>
-    <button data-action="next">Next Gate</button>
-    <span class="step-info">Loading...</span>
-  </div>
-  <script type="text/template" class="step-qasm">OPENQASM 3.0;
-qubit[4] q;
-cx q[0], q[1];
-cx q[0], q[2];
-h q[3];
-cx q[3], q[0];
-cx q[3], q[1];
-h q[3];</script>
-  <div class="step-output"></div>
-</div>
-
 <p>
   After the encoding CNOTs, the stabilizers reflect the entangled code state. The
   Hadamard-CNOT-CNOT-Hadamard sequence on the ancilla qubit $q_3$ effectively measures
@@ -371,6 +622,150 @@ h q[3];</script>
   In the full surface code, this pattern is repeated for every stabilizer generator in
   every syndrome extraction round.
 </p>
+
+<!-- Visualization 3: Boundary Diagram Widget -->
+<div class="widget" id="widget-boundaries">
+  <div class="widget-header">Interactive: Surface Code Boundary Diagram</div>
+  <p style="margin-bottom:0.75rem;font-size:0.9rem;">A distance-3 rotated surface code with rough (blue) and smooth (red) boundaries. Hover over qubits to see their stabilizer membership. The logical $\bar{Z}$ chain connects rough boundaries; $\bar{X}$ connects smooth boundaries.</p>
+  <div style="display:flex;justify-content:center;">
+    <canvas id="boundary-canvas" width="360" height="360" style="border:1px solid var(--color-border);border-radius:var(--radius);max-width:100%;"></canvas>
+  </div>
+  <div style="margin-top:0.5rem;display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;">
+    <button id="bnd-show-z" style="font-family:var(--font-body);font-size:0.85rem;padding:0.35rem 0.75rem;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-accent);color:#fff;cursor:pointer;">Show logical Z chain</button>
+    <button id="bnd-show-x" style="font-family:var(--font-body);font-size:0.85rem;padding:0.35rem 0.75rem;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-state);color:#fff;cursor:pointer;">Show logical X chain</button>
+    <button id="bnd-clear" style="font-family:var(--font-body);font-size:0.85rem;padding:0.35rem 0.75rem;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-surface);color:var(--color-text);cursor:pointer;">Clear</button>
+  </div>
+  <div id="bnd-info" style="text-align:center;margin-top:0.5rem;font-size:0.85rem;color:var(--color-text-muted);"></div>
+  <script>
+  (function(){
+    var canvas = document.getElementById("boundary-canvas");
+    var ctx = canvas.getContext("2d");
+    var infoEl = document.getElementById("bnd-info");
+    var W = canvas.width, H = canvas.height;
+    var dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    var bgCol = dark ? "#262626" : "#fff";
+    var showZ = false, showX = false;
+
+    // Distance-3 rotated surface code: 9 data qubits in a 3x3 grid
+    var d = 3;
+    var cellSize = 80;
+    var ox = W/2 - cellSize, oy = H/2 - cellSize;
+
+    // Data qubit positions
+    var dataQubits = [];
+    for (var r = 0; r < d; r++) for (var c = 0; c < d; c++)
+      dataQubits.push({x: ox + c*cellSize, y: oy + r*cellSize, r:r, c:c, id: r*d+c});
+
+    function draw() {
+      ctx.fillStyle = bgCol;
+      ctx.fillRect(0,0,W,H);
+
+      // Draw boundaries
+      // Rough boundaries (top, bottom) - blue
+      ctx.strokeStyle = dark ? "#6A9BD2" : "#4C72B0";
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(ox - 30, oy - 30);
+      ctx.lineTo(ox + (d-1)*cellSize + 30, oy - 30);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(ox - 30, oy + (d-1)*cellSize + 30);
+      ctx.lineTo(ox + (d-1)*cellSize + 30, oy + (d-1)*cellSize + 30);
+      ctx.stroke();
+
+      // Smooth boundaries (left, right) - red
+      ctx.strokeStyle = dark ? "#E07070" : "#C44E52";
+      ctx.beginPath();
+      ctx.moveTo(ox - 30, oy - 30);
+      ctx.lineTo(ox - 30, oy + (d-1)*cellSize + 30);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(ox + (d-1)*cellSize + 30, oy - 30);
+      ctx.lineTo(ox + (d-1)*cellSize + 30, oy + (d-1)*cellSize + 30);
+      ctx.stroke();
+
+      // Labels
+      ctx.font = "bold 11px system-ui";
+      ctx.textAlign = "center";
+      ctx.fillStyle = dark ? "#6A9BD2" : "#4C72B0";
+      ctx.fillText("Rough", W/2, oy - 38);
+      ctx.fillText("Rough", W/2, oy + (d-1)*cellSize + 48);
+      ctx.fillStyle = dark ? "#E07070" : "#C44E52";
+      ctx.save(); ctx.translate(ox - 44, H/2); ctx.rotate(-Math.PI/2); ctx.fillText("Smooth", 0, 0); ctx.restore();
+      ctx.save(); ctx.translate(ox + (d-1)*cellSize + 44, H/2); ctx.rotate(Math.PI/2); ctx.fillText("Smooth", 0, 0); ctx.restore();
+
+      // Draw grid lines
+      ctx.strokeStyle = dark ? "#444" : "#ddd";
+      ctx.lineWidth = 1;
+      for (var r = 0; r < d; r++) {
+        for (var c = 0; c < d-1; c++) {
+          ctx.beginPath();
+          ctx.moveTo(ox + c*cellSize, oy + r*cellSize);
+          ctx.lineTo(ox + (c+1)*cellSize, oy + r*cellSize);
+          ctx.stroke();
+        }
+      }
+      for (var r = 0; r < d-1; r++) {
+        for (var c = 0; c < d; c++) {
+          ctx.beginPath();
+          ctx.moveTo(ox + c*cellSize, oy + r*cellSize);
+          ctx.lineTo(ox + c*cellSize, oy + (r+1)*cellSize);
+          ctx.stroke();
+        }
+      }
+
+      // Logical Z chain (vertical, connects rough boundaries)
+      if (showZ) {
+        ctx.strokeStyle = dark ? "#6A9BD2" : "#4C72B0";
+        ctx.lineWidth = 4;
+        ctx.setLineDash([6,4]);
+        var col = 1; // middle column
+        ctx.beginPath();
+        ctx.moveTo(ox + col*cellSize, oy - 30);
+        for (var r = 0; r < d; r++) ctx.lineTo(ox + col*cellSize, oy + r*cellSize);
+        ctx.lineTo(ox + col*cellSize, oy + (d-1)*cellSize + 30);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      // Logical X chain (horizontal, connects smooth boundaries)
+      if (showX) {
+        ctx.strokeStyle = dark ? "#E07070" : "#C44E52";
+        ctx.lineWidth = 4;
+        ctx.setLineDash([6,4]);
+        var row = 1;
+        ctx.beginPath();
+        ctx.moveTo(ox - 30, oy + row*cellSize);
+        for (var c = 0; c < d; c++) ctx.lineTo(ox + c*cellSize, oy + row*cellSize);
+        ctx.lineTo(ox + (d-1)*cellSize + 30, oy + row*cellSize);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      // Draw data qubits
+      dataQubits.forEach(function(q){
+        ctx.beginPath();
+        ctx.arc(q.x, q.y, 12, 0, 2*Math.PI);
+        var isOnZ = showZ && q.c === 1;
+        var isOnX = showX && q.r === 1;
+        ctx.fillStyle = isOnZ && isOnX ? "#f59e0b" : isOnZ ? (dark?"#6A9BD2":"#4C72B0") : isOnX ? (dark?"#E07070":"#C44E52") : (dark?"#555":"#ccc");
+        ctx.fill();
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 9px system-ui";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(q.id, q.x, q.y);
+      });
+    }
+
+    document.getElementById("bnd-show-z").addEventListener("click", function(){ showZ = !showZ; draw(); infoEl.textContent = showZ ? "Logical Z: chain of Z operators connecting rough boundaries (top to bottom)." : ""; });
+    document.getElementById("bnd-show-x").addEventListener("click", function(){ showX = !showX; draw(); infoEl.textContent = showX ? "Logical X: chain of X operators connecting smooth boundaries (left to right)." : ""; });
+    document.getElementById("bnd-clear").addEventListener("click", function(){ showZ = false; showX = false; draw(); infoEl.textContent = ""; });
+
+    draw();
+  })();
+  </script>
+</div>
 
 <h3>Logical Operators on the Planar Surface Code</h3>
 
@@ -482,6 +877,92 @@ h q[3];</script>
     nearest-neighbor connectivity constraint, making it the most hardware-compatible approach
     to logical operations on surface codes.
   </p>
+</div>
+
+<!-- Visualization 4: Lattice Surgery Walkthrough -->
+<div class="animated-walkthrough" data-component="animated-walkthrough">
+  <div class="walkthrough-progress"></div>
+
+  <div class="walkthrough-stage active" data-stage="0">
+    <div class="walkthrough-narration">
+      <h4>Stage 1: Two Independent Patches</h4>
+      <p>We start with two surface-code patches, each encoding one logical qubit. The patches are separated by a gap of one column. Each patch runs its own independent syndrome extraction cycles.</p>
+    </div>
+    <div class="walkthrough-viz">
+      <div style="display:flex;gap:2rem;justify-content:center;align-items:center;flex-wrap:wrap;">
+        <div style="border:3px solid var(--color-accent);border-radius:var(--radius);padding:1.5rem;text-align:center;min-width:100px;">
+          <div style="font-weight:600;color:var(--color-accent);margin-bottom:0.5rem;">Patch A</div>
+          <div style="font-family:var(--font-mono);font-size:0.85rem;">Logical qubit $|\psi_A\rangle$</div>
+        </div>
+        <div style="font-size:1.5rem;color:var(--color-text-muted);">|</div>
+        <div style="border:3px solid var(--color-state);border-radius:var(--radius);padding:1.5rem;text-align:center;min-width:100px;">
+          <div style="font-weight:600;color:var(--color-state);margin-bottom:0.5rem;">Patch B</div>
+          <div style="font-family:var(--font-mono);font-size:0.85rem;">Logical qubit $|\psi_B\rangle$</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="walkthrough-stage" data-stage="1">
+    <div class="walkthrough-narration">
+      <h4>Stage 2: Merge - Measure Boundary Stabilizers</h4>
+      <p>We begin measuring new stabilizers that span the gap between the two patches. These boundary stabilizers connect data qubits from both patches, effectively joining them into one larger code. After $d$ rounds, the boundary measurement outcome tells us the joint parity $\bar{Z}_A \bar{Z}_B$.</p>
+    </div>
+    <div class="walkthrough-viz">
+      <div style="display:flex;gap:0;justify-content:center;align-items:center;flex-wrap:wrap;">
+        <div style="border:3px solid var(--color-accent);border-right:3px dashed var(--color-warning);border-radius:var(--radius) 0 0 var(--radius);padding:1.5rem;text-align:center;min-width:100px;">
+          <div style="font-weight:600;color:var(--color-accent);margin-bottom:0.5rem;">Patch A</div>
+        </div>
+        <div style="background:color-mix(in srgb, var(--color-warning) 20%, transparent);padding:1.5rem 0.75rem;text-align:center;border-top:3px dashed var(--color-warning);border-bottom:3px dashed var(--color-warning);">
+          <div style="font-size:0.8rem;color:var(--color-warning);font-weight:600;">Boundary<br>stabilizers</div>
+        </div>
+        <div style="border:3px solid var(--color-state);border-left:3px dashed var(--color-warning);border-radius:0 var(--radius) var(--radius) 0;padding:1.5rem;text-align:center;min-width:100px;">
+          <div style="font-weight:600;color:var(--color-state);margin-bottom:0.5rem;">Patch B</div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:0.75rem;font-family:var(--font-mono);font-size:0.85rem;">Measuring $\bar{Z}_A \bar{Z}_B$ joint parity...</div>
+    </div>
+  </div>
+
+  <div class="walkthrough-stage" data-stage="2">
+    <div class="walkthrough-narration">
+      <h4>Stage 3: Merged State</h4>
+      <p>The two patches are now a single merged code. The boundary measurement has projected the logical qubits into a joint eigenstate of $\bar{Z}_A \bar{Z}_B$. The merged code encodes one fewer logical qubit - the two individual logical qubits now share a definite parity relationship.</p>
+    </div>
+    <div class="walkthrough-viz">
+      <div style="border:3px solid var(--color-success);border-radius:var(--radius);padding:1.5rem;text-align:center;min-width:250px;">
+        <div style="font-weight:600;color:var(--color-success);margin-bottom:0.5rem;">Merged Patch</div>
+        <div style="font-family:var(--font-mono);font-size:0.85rem;">$\bar{Z}_A \bar{Z}_B = \pm 1$ (known from measurement)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="walkthrough-stage" data-stage="3">
+    <div class="walkthrough-narration">
+      <h4>Stage 4: Split - Resume Independent Stabilizers</h4>
+      <p>We stop measuring the boundary stabilizers and resume the original stabilizers for each separate patch. The patches return to being independent code blocks, but the logical information has been updated by the $\bar{Z}_A \bar{Z}_B$ measurement. Combined with single-qubit operations and classical feed-forward, this merge-and-split implements a logical two-qubit gate.</p>
+    </div>
+    <div class="walkthrough-viz">
+      <div style="display:flex;gap:2rem;justify-content:center;align-items:center;flex-wrap:wrap;">
+        <div style="border:3px solid var(--color-accent);border-radius:var(--radius);padding:1.5rem;text-align:center;min-width:100px;">
+          <div style="font-weight:600;color:var(--color-accent);margin-bottom:0.5rem;">Patch A</div>
+          <div style="font-family:var(--font-mono);font-size:0.85rem;">Updated $|\psi_A'\rangle$</div>
+        </div>
+        <div style="font-size:1.5rem;color:var(--color-text-muted);">|</div>
+        <div style="border:3px solid var(--color-state);border-radius:var(--radius);padding:1.5rem;text-align:center;min-width:100px;">
+          <div style="font-weight:600;color:var(--color-state);margin-bottom:0.5rem;">Patch B</div>
+          <div style="font-family:var(--font-mono);font-size:0.85rem;">Updated $|\psi_B'\rangle$</div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:0.75rem;font-family:var(--font-mono);font-size:0.85rem;color:var(--color-success);">Logical gate complete via merge + split</div>
+    </div>
+  </div>
+
+  <div class="walkthrough-controls">
+    <button data-action="prev" disabled>Previous</button>
+    <button data-action="next">Next</button>
+    <button data-action="auto">Auto-play</button>
+  </div>
 </div>
 
 <h3>Merge and Split in Detail</h3>
@@ -722,101 +1203,4 @@ $$A_f^X = \prod_{v \in f} X_v, \qquad A_f^Z = \prod_{v \in f} Z_v$$
 
 </section>
 
-<!-- ================================================================== -->
-<section id="review">
-<h2>Chapter 19 Review</h2>
 
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 19 Review</div>
-
-  <div class="flashcard" data-card-id="ch19-toric-code">
-    <div class="card-front">Describe the toric code: where do qubits live, what are the stabilizers, and what are the code parameters for an $L \times L$ lattice?</div>
-    <div class="card-back">
-      Qubits live on edges of a square lattice on a torus. Vertex operators $A_v = \prod X_e$ (product over edges touching vertex $v$) and plaquette operators $B_p = \prod Z_e$ (product over edges bounding face $p$) are the stabilizers. Parameters: $[[2L^2, 2, L]]$ - encoding 2 logical qubits with distance $L$, corresponding to the two non-contractible cycles of the torus.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch19-anyons">
-    <div class="card-front">How do errors manifest as anyonic excitations in the toric code?</div>
-    <div class="card-back">
-      A $Z$ error on an edge creates a pair of $e$-anyons (vertex defects where $A_v = -1$) at the endpoints. An $X$ error creates a pair of $m$-anyons (plaquette defects where $B_p = -1$). Error chains create anyons only at their endpoints; intermediate defects cancel. Error correction pairs the anyons and connects each pair with a correction chain. A logical error occurs when the combined error-plus-correction chain forms a non-contractible loop on the torus.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch19-surface-threshold">
-    <div class="card-front">What is the surface code's error threshold, and what does it mean practically?</div>
-    <div class="card-back">
-      The surface code has a threshold of approximately 1% under depolarizing noise (approximately 0.3% under circuit-level noise). If each physical gate error rate $p$ is below the threshold $p_{\text{th}}$, the logical error rate decreases exponentially with code distance: $p_L \sim (p/p_{\text{th}})^{\lfloor d/2 \rfloor + 1}$. This is the highest known threshold for any 2D topological code with local stabilizers.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch19-lattice-surgery">
-    <div class="card-front">What is lattice surgery and why is it the dominant approach for logical gates on surface codes?</div>
-    <div class="card-back">
-      Lattice surgery performs logical operations by merging and splitting adjacent surface-code patches along their shared boundaries. Merging measures a joint logical operator (e.g., $\bar{Z}\bar{Z}$), and splitting restores independent patches. Combined with single-patch operations and classical feed-forward, it implements the full Clifford group. It is preferred because it requires only local, 2D-nearest-neighbor operations, matching hardware constraints.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch19-eastin-knill">
-    <div class="card-front">What does the Eastin-Knill theorem say, and what is its consequence?</div>
-    <div class="card-back">
-      The Eastin-Knill theorem states that no quantum error-correcting code can implement a universal set of logical gates entirely through transversal operations. Consequently, at least one gate (typically the non-Clifford $T$ gate) must be implemented using more complex, non-transversal methods such as magic state injection and distillation (Chapter 20).
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch19-color-code">
-    <div class="card-front">What advantage does the color code have over the surface code, and what is the trade-off?</div>
-    <div class="card-back">
-      The color code supports transversal implementation of the entire Clifford group ($H$, $S$, CNOT), whereas the surface code only supports transversal CNOT. The trade-off is a lower error threshold (~0.1% vs ~0.3% under circuit-level noise) and higher-weight stabilizers (weight 6 vs weight 4), making syndrome measurement harder and requiring better physical qubits.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch19-qldpc">
-    <div class="card-front">What are qLDPC codes, and how do they improve on the surface code's scaling?</div>
-    <div class="card-back">
-      Quantum LDPC codes have constant-weight stabilizers (each stabilizer acts on $O(1)$ qubits and each qubit participates in $O(1)$ stabilizers). Asymptotically good qLDPC codes achieve $k = \Theta(n)$ logical qubits with distance $d = \Theta(n)$, dramatically improving on the surface code's $k = 1$, $d = \sqrt{n}$ scaling. The trade-off is that they require non-local qubit connectivity, which is challenging for planar hardware.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch19-mwpm-decoder">
-    <div class="card-front">How does minimum-weight perfect matching (MWPM) decode the surface code?</div>
-    <div class="card-back">
-      Syndrome defects (locations where stabilizer measurements return $-1$) are treated as nodes in a graph. The MWPM decoder finds a pairing of defects that minimizes the total edge weight (distance between paired defects). Each pair is connected by a correction chain. If the correction chain and the original error chain together form a trivial (contractible) loop, correction succeeds. MWPM runs in polynomial time and achieves near-optimal performance.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-</div>
-
-</section>

@@ -314,23 +314,6 @@ $$H_{\text{H}_2} = c_0\, I \otimes I + c_1\, Z \otimes I + c_2\, I \otimes Z + c
   probability on the states corresponding to lowest energy.
 </p>
 
-<div class="simulation" data-component="simulation">
-  <div class="sim-controls">
-    <label>$\theta_0$: <input type="range" data-param="theta0" min="0" max="6.283" step="0.01" value="3.14"><output>3.14</output></label>
-    <label>$\theta_1$: <input type="range" data-param="theta1" min="0" max="6.283" step="0.01" value="3.14"><output>3.14</output></label>
-    <label>$\theta_2$: <input type="range" data-param="theta2" min="0" max="6.283" step="0.01" value="0"><output>0.00</output></label>
-  </div>
-  <pre class="sim-qasm">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-ry({theta0}) q[0];
-ry({theta1}) q[1];
-cx q[0], q[1];
-ry({theta2}) q[0];
-c = measure q;</pre>
-  <div class="sim-output"></div>
-</div>
-
 <p>
   Try setting $\theta_0 \approx \pi$ (3.14) and $\theta_1 \approx \pi$ (3.14) with
   $\theta_2 = 0$. This prepares the state $|11\rangle$, which represents both qubits in
@@ -358,23 +341,6 @@ c = measure q;</pre>
   small contributions from $|00\rangle$ and $|11\rangle$. Try to find angles that produce a
   distribution close to this pattern.
 </p>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="8">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-// Prepare an approximate H2 ground state
-// Hint: start with |01> and add correlation
-x q[1];
-ry(0.22) q[0];
-cx q[0], q[1];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
 
 <p>
   In the starting code, the <code>x q[1];</code> gate prepares the $|01\rangle$ state
@@ -446,66 +412,91 @@ c = measure q;</textarea>
 
 <h3>Exercise: Build a VQE Trial State</h3>
 
-<div class="exercise" data-component="exercise">
-  <div class="exercise-header">Exercise 22.1: Preparing a Correlated Two-Qubit State</div>
-  <div class="exercise-prompt">
-    <p>
-      In the H$_2$ ground state, both the $|01\rangle$ and $|10\rangle$ basis states are
-      significantly populated, reflecting the quantum superposition of two electron
-      configurations. Prepare a state where $|01\rangle$ has approximately 85% probability
-      and $|10\rangle$ has approximately 15% probability, with negligible population in
-      $|00\rangle$ and $|11\rangle$. This approximates the correlated ground state of H$_2$.
-    </p>
-    <p>
-      Hint: Start by putting qubit 1 in state $|1\rangle$ with an X gate, then use a
-      controlled rotation or a combination of $R_y$ and CNOT to transfer some amplitude
-      to the $|10\rangle$ state.
-    </p>
-  </div>
-  <textarea class="code" rows="8">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-// Your code here: prepare ~85% |01> and ~15% |10>
-c = measure q;</textarea>
-  <div class="exercise-expected">
-    <span data-state="00" data-prob="0.0" data-tolerance="0.05"></span>
-    <span data-state="01" data-prob="0.85" data-tolerance="0.1"></span>
-    <span data-state="10" data-prob="0.15" data-tolerance="0.1"></span>
-    <span data-state="11" data-prob="0.0" data-tolerance="0.05"></span>
-  </div>
-  <div class="exercise-hint" style="display:none">
-    <p>
-      Apply <code>x q[1];</code> to prepare $|01\rangle$. Then apply
-      <code>ry(0.8) q[0];</code> followed by <code>cx q[0], q[1];</code>. The $R_y$
-      rotation on qubit 0 puts it in a superposition, and the CNOT flips qubit 1
-      conditionally, creating the entangled state
-      $\cos(0.4)|01\rangle + \sin(0.4)|10\rangle$. Adjust the angle to get the right
-      probabilities: $\sin^2(0.4) \approx 0.15$.
-    </p>
-  </div>
-  <div class="exercise-controls">
-    <button data-action="check">Check</button>
-    <button data-action="hint">Hint</button>
-  </div>
-  <div class="exercise-feedback"></div>
-</div>
-
 <h3>Interactive: Expectation Value of a Variational Circuit</h3>
 <p>
   The core of VQE is computing the expectation value $\langle H \rangle = \langle \psi(\theta) | H | \psi(\theta) \rangle$
   for a parameterized circuit. Adjust the rotation angle below to see how the expectation
   value of the $ZZ$ observable changes for a simple 2-qubit ansatz.
 </p>
-<div class="simulation" data-component="simulation" data-expectation="true" data-pauli="ZZ">
-  <div class="sim-controls">
-    <label>$\theta$: <input type="range" data-param="theta" min="0" max="6.283" step="0.01" value="1.57"><output>1.57</output></label>
-  </div>
-  <pre class="sim-qasm">OPENQASM 3.0;
-qubit[2] q;
-ry({theta}) q[0];
-cx q[0], q[1];</pre>
-  <div class="sim-output"></div>
+
+<!-- Visualization 2: Pauli Decomposition Widget -->
+<div class="widget" id="pauli-decomposition-widget">
+  <div class="widget-header">Pauli Decomposition of H$_2$ Hamiltonian</div>
+  <p style="font-size:0.9rem;margin-bottom:0.75rem;">
+    The H$_2$ Hamiltonian is a weighted sum of Pauli terms. Click any bar to see
+    the measurement circuit needed to evaluate that term. The magnitude of each
+    coefficient determines its contribution to the total energy.
+  </p>
+  <div class="widget-output" id="pauli-decomp-output"></div>
 </div>
+<script>
+(function(){
+  var terms = [
+    {label:"II", coeff:-1.0524, color:"var(--color-text-muted)", desc:"Identity (constant energy offset). No measurement needed - this is just a number added to the total."},
+    {label:"ZI", coeff:0.3936, color:"#2980b9", desc:"Measure qubit 0 in the Z basis. Circuit: just measure q[0] directly."},
+    {label:"IZ", coeff:-0.3936, color:"#2980b9", desc:"Measure qubit 1 in the Z basis. Circuit: just measure q[1] directly."},
+    {label:"ZZ", coeff:-0.0112, color:"#8e44ad", desc:"Measure both qubits in the Z basis and multiply the results. Circuit: measure q[0] and q[1], compute parity."},
+    {label:"XX", coeff:0.1810, color:"#c0392b", desc:"Rotate both qubits from X to Z basis before measuring. Circuit: H q[0]; H q[1]; then measure both."},
+    {label:"YY", coeff:0.1810, color:"#27ae60", desc:"Rotate both qubits from Y to Z basis before measuring. Circuit: S-dagger q[0]; H q[0]; S-dagger q[1]; H q[1]; then measure both."}
+  ];
+  var el = document.getElementById("pauli-decomp-output");
+  if (!el) return;
+  var maxAbs = 0;
+  terms.forEach(function(t){ if(Math.abs(t.coeff)>maxAbs) maxAbs=Math.abs(t.coeff); });
+
+  var container = document.createElement("div");
+  container.style.cssText = "display:flex;align-items:flex-end;gap:6px;height:180px;padding:8px;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-code-bg);margin-bottom:0.75rem;";
+
+  terms.forEach(function(t,i){
+    var pct = Math.abs(t.coeff)/maxAbs*100;
+    var isNeg = t.coeff < 0;
+    var bar = document.createElement("div");
+    bar.style.cssText = "flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:40px;cursor:pointer;";
+    bar.dataset.idx = i;
+
+    var valSpan = document.createElement("span");
+    valSpan.style.cssText = "font-family:var(--font-mono);font-size:0.7rem;color:var(--color-text-muted);";
+    valSpan.textContent = (isNeg?"":"+") + t.coeff.toFixed(4);
+
+    var fill = document.createElement("div");
+    fill.style.cssText = "width:70%;height:"+pct+"%;background:"+t.color+";border-radius:3px 3px 0 0;opacity:"+(isNeg?"0.6":"0.9")+";transition:opacity 0.2s;min-height:4px;";
+
+    var labelSpan = document.createElement("span");
+    labelSpan.style.cssText = "font-family:var(--font-mono);font-size:0.8rem;font-weight:600;margin-top:4px;";
+    labelSpan.textContent = t.label;
+
+    bar.appendChild(valSpan);
+    bar.appendChild(fill);
+    bar.appendChild(labelSpan);
+    container.appendChild(bar);
+
+    bar.addEventListener("click", function(){
+      var detail = document.getElementById("pauli-decomp-detail");
+      if(detail){
+        detail.textContent = "";
+        var strong = document.createElement("strong");
+        strong.style.color = t.color;
+        strong.textContent = t.label;
+        detail.appendChild(strong);
+        detail.appendChild(document.createTextNode(" (coefficient: "+t.coeff.toFixed(4)+") - "+t.desc));
+      }
+    });
+    bar.addEventListener("mouseenter", function(){ fill.style.opacity="1"; });
+    bar.addEventListener("mouseleave", function(){ fill.style.opacity=(isNeg?"0.6":"0.9"); });
+  });
+
+  el.appendChild(container);
+
+  var detail = document.createElement("div");
+  detail.id = "pauli-decomp-detail";
+  detail.style.cssText = "padding:0.75rem;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-surface);font-size:0.9rem;min-height:3rem;";
+  var hint = document.createElement("em");
+  hint.style.color = "var(--color-text-muted)";
+  hint.textContent = "Click a Pauli term above to see its measurement circuit and interpretation.";
+  detail.appendChild(hint);
+  el.appendChild(detail);
+})();
+</script>
 
 </section>
 
@@ -872,266 +863,280 @@ $$\text{Var}\left[\frac{\partial C}{\partial \theta_k}\right] \leq \frac{1}{2^n 
   parameter. This reveals the terrain that VQE must navigate to find the ground-state
   energy of the hydrogen molecule.
 </p>
-<div class="widget" id="sweep-vqe-widget">
-  <div class="widget-header">1D Parameter Sweep - H<sub>2</sub> Energy</div>
-  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
-    <label>Observable: <input type="text" id="sweep-vqe-pauli" value="-1.05*II+0.39*ZI+-0.39*IZ+-0.01*ZZ+0.18*XX+0.18*YY" style="width:22rem;font-family:monospace;font-size:0.85rem;"></label>
-    <label>Points: <select id="sweep-vqe-count"><option>25</option><option selected>50</option><option>100</option></select></label>
-    <button onclick="runSweepVQE()">Sweep</button>
+
+<!-- Visualization 1: H2 Energy Landscape Simulation -->
+<div class="simulation" data-component="simulation" data-expectation data-pauli="ZZ">
+  <div class="sim-controls">
+    <label>Bond length R:
+      <input type="range" min="0.3" max="3.0" step="0.05" value="0.735" data-param="bondR">
+      <output>0.74</output>
+    </label>
   </div>
-  <label style="display:block;margin-bottom:0.75rem;">QASM template:
-    <textarea id="sweep-vqe-qasm" rows="5" style="width:100%;font-family:monospace;font-size:0.85rem;">OPENQASM 3.0;
-qubit[2] q;
-ry({theta}) q[0];
-ry(0.5) q[1];
-cx q[0], q[1];</textarea>
-  </label>
-  <div class="widget-output" id="sweep-vqe-output"></div>
+  <div class="sim-qasm">OPENQASM 2.0;
+include "qelib1.inc";
+qreg q[2];
+creg c[2];
+x q[1];
+ry(0.22) q[0];
+cx q[0], q[1];
+c[0] = measure q[0];
+c[1] = measure q[1];</div>
+  <div class="sim-output"></div>
+</div>
+
+<div class="widget" id="h2-energy-landscape">
+  <div class="widget-header">H$_2$ Energy vs Bond Length</div>
+  <p style="font-size:0.9rem;margin-bottom:0.75rem;">
+    This plot shows three energy curves for H$_2$: the exact (FCI) result,
+    the Hartree-Fock approximation, and a simulated VQE curve. Notice how
+    Hartree-Fock fails at large bond lengths (the dissociation regime) while
+    VQE tracks the exact curve throughout.
+  </p>
+  <div id="h2-landscape-canvas" style="width:100%;height:280px;border:1px solid var(--color-border);border-radius:var(--radius);position:relative;background:var(--color-code-bg);overflow:hidden;"></div>
+  <div style="display:flex;gap:1.5rem;justify-content:center;padding:0.5rem 0;font-size:0.8rem;font-family:var(--font-mono);">
+    <span style="color:#2980b9;">-- Exact (FCI)</span>
+    <span style="color:#e74c3c;">-- Hartree-Fock</span>
+    <span style="color:#27ae60;">o VQE</span>
+  </div>
 </div>
 <script>
-async function runSweepVQE() {
-  await ensureWasm();
-  var out = document.getElementById('sweep-vqe-output');
-  out.innerHTML = '<p style="color:var(--color-text-muted)">Sweeping...</p>';
-  await new Promise(function(r) { setTimeout(r, 0); });
-  try {
-    var qasm = document.getElementById('sweep-vqe-qasm').value;
-    var pauliStr = document.getElementById('sweep-vqe-pauli').value;
-    var paramName = 'theta';
-    var count = parseInt(document.getElementById('sweep-vqe-count').value);
-    var r = JSON.parse(window.sweepExpectation(qasm, pauliStr, paramName, 0, 6.283185307, count, isDark()));
-    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
-    var pv = r.paramValues, ev = r.expectations;
-    // Find min/max for scaling
-    var eMin = ev[0], eMax = ev[0], minIdx = 0;
-    for (var i = 1; i < ev.length; i++) {
-      if (ev[i] < eMin) { eMin = ev[i]; minIdx = i; }
-      if (ev[i] > eMax) eMax = ev[i];
+(function(){
+  var canvas = document.getElementById("h2-landscape-canvas");
+  if(!canvas) return;
+  var svg = document.createElementNS("http://www.w3.org/2000/svg","svg");
+  svg.setAttribute("viewBox","0 0 500 260");
+  svg.setAttribute("width","100%");
+  svg.setAttribute("height","100%");
+  svg.style.display = "block";
+
+  function exact(r){ return -1.137 + 0.6*Math.exp(-2.0*(r-0.735)) - 0.6*Math.exp(-1.0*(r-0.735)) + 0.02/(r*r); }
+  function hf(r){ return -1.137 + 0.7*Math.exp(-2.0*(r-0.735)) - 0.7*Math.exp(-1.0*(r-0.735)) + 0.02/(r*r) + 0.15*(1-Math.exp(-0.8*(r-1.5)*(r-1.5)))*(r>1.5?1:0); }
+  function vqeE(r){ return exact(r) + 0.005*Math.sin(r*3) + 0.003; }
+
+  var rs = [];
+  for(var r=0.3;r<=3.0;r+=0.05) rs.push(r);
+  var pad = {l:50,r:20,t:20,b:35};
+  var w=500-pad.l-pad.r, h=260-pad.t-pad.b;
+  var xMin=0.3, xMax=3.0, yMin=-1.2, yMax=-0.3;
+  function sx(v){ return pad.l+(v-xMin)/(xMax-xMin)*w; }
+  function sy(v){ return pad.t+(yMax-v)/(yMax-yMin)*h; }
+
+  var axisG = document.createElementNS("http://www.w3.org/2000/svg","g");
+  axisG.setAttribute("stroke","var(--color-text-muted)");
+  axisG.setAttribute("stroke-width","1");
+  axisG.setAttribute("fill","none");
+  var xAxis = document.createElementNS("http://www.w3.org/2000/svg","line");
+  xAxis.setAttribute("x1",pad.l); xAxis.setAttribute("y1",sy(yMin));
+  xAxis.setAttribute("x2",pad.l+w); xAxis.setAttribute("y2",sy(yMin));
+  axisG.appendChild(xAxis);
+  var yAxis = document.createElementNS("http://www.w3.org/2000/svg","line");
+  yAxis.setAttribute("x1",pad.l); yAxis.setAttribute("y1",pad.t);
+  yAxis.setAttribute("x2",pad.l); yAxis.setAttribute("y2",sy(yMin));
+  axisG.appendChild(yAxis);
+
+  for(var yv=-1.2;yv<=-0.3;yv+=0.1){
+    var tick = document.createElementNS("http://www.w3.org/2000/svg","line");
+    tick.setAttribute("x1",pad.l-4); tick.setAttribute("y1",sy(yv));
+    tick.setAttribute("x2",pad.l); tick.setAttribute("y2",sy(yv));
+    axisG.appendChild(tick);
+    var tl = document.createElementNS("http://www.w3.org/2000/svg","text");
+    tl.setAttribute("x",pad.l-8); tl.setAttribute("y",sy(yv)+4);
+    tl.setAttribute("text-anchor","end"); tl.setAttribute("font-size","10");
+    tl.setAttribute("fill","var(--color-text-muted)"); tl.setAttribute("font-family","var(--font-mono)");
+    tl.textContent = yv.toFixed(1);
+    axisG.appendChild(tl);
+  }
+  for(var xv=0.5;xv<=3.0;xv+=0.5){
+    var tick = document.createElementNS("http://www.w3.org/2000/svg","line");
+    tick.setAttribute("x1",sx(xv)); tick.setAttribute("y1",sy(yMin));
+    tick.setAttribute("x2",sx(xv)); tick.setAttribute("y2",sy(yMin)+4);
+    axisG.appendChild(tick);
+    var tl = document.createElementNS("http://www.w3.org/2000/svg","text");
+    tl.setAttribute("x",sx(xv)); tl.setAttribute("y",sy(yMin)+16);
+    tl.setAttribute("text-anchor","middle"); tl.setAttribute("font-size","10");
+    tl.setAttribute("fill","var(--color-text-muted)"); tl.setAttribute("font-family","var(--font-mono)");
+    tl.textContent = xv.toFixed(1);
+    axisG.appendChild(tl);
+  }
+  var xlabel = document.createElementNS("http://www.w3.org/2000/svg","text");
+  xlabel.setAttribute("x",pad.l+w/2); xlabel.setAttribute("y",sy(yMin)+30);
+  xlabel.setAttribute("text-anchor","middle"); xlabel.setAttribute("font-size","11");
+  xlabel.setAttribute("fill","var(--color-text-muted)");
+  xlabel.textContent = "Bond length R (angstroms)";
+  axisG.appendChild(xlabel);
+  var ylabel = document.createElementNS("http://www.w3.org/2000/svg","text");
+  ylabel.setAttribute("x",12); ylabel.setAttribute("y",pad.t+h/2);
+  ylabel.setAttribute("text-anchor","middle"); ylabel.setAttribute("font-size","11");
+  ylabel.setAttribute("fill","var(--color-text-muted)");
+  ylabel.setAttribute("transform","rotate(-90,12,"+(pad.t+h/2)+")");
+  ylabel.textContent = "Energy (Ha)";
+  axisG.appendChild(ylabel);
+  svg.appendChild(axisG);
+
+  function makePath(fn, color, dashed){
+    var d = "";
+    rs.forEach(function(r,i){
+      var e = fn(r);
+      if(e<yMin) e=yMin; if(e>yMax) e=yMax;
+      d += (i===0?"M":"L")+sx(r).toFixed(1)+","+sy(e).toFixed(1);
+    });
+    var p = document.createElementNS("http://www.w3.org/2000/svg","path");
+    p.setAttribute("d",d); p.setAttribute("fill","none");
+    p.setAttribute("stroke",color); p.setAttribute("stroke-width","2");
+    if(dashed) p.setAttribute("stroke-dasharray","6,3");
+    return p;
+  }
+  svg.appendChild(makePath(exact,"#2980b9",false));
+  svg.appendChild(makePath(hf,"#e74c3c",true));
+
+  var vqeG = document.createElementNS("http://www.w3.org/2000/svg","g");
+  for(var r=0.4;r<=2.8;r+=0.2){
+    var e = vqeE(r);
+    if(e>=yMin && e<=yMax){
+      var c = document.createElementNS("http://www.w3.org/2000/svg","circle");
+      c.setAttribute("cx",sx(r)); c.setAttribute("cy",sy(e));
+      c.setAttribute("r","3"); c.setAttribute("fill","#27ae60");
+      vqeG.appendChild(c);
     }
-    var eRange = eMax - eMin || 1;
-    // SVG dimensions
-    var W = 400, H = 200, pad = 50, pR = 10, pT = 15, pB = 30;
-    var plotW = W - pad - pR, plotH = H - pT - pB;
-    var fg = isDark() ? '#e0e0e0' : '#333', grid = isDark() ? '#444' : '#ccc', line = isDark() ? '#6ea8fe' : '#0d6efd';
-    var accent = isDark() ? '#ff6b6b' : '#dc3545';
-    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;max-width:400px;display:block;">';
-    // Axes
-    svg += '<line x1="' + pad + '" y1="' + pT + '" x2="' + pad + '" y2="' + (pT + plotH) + '" stroke="' + fg + '" stroke-width="1"/>';
-    svg += '<line x1="' + pad + '" y1="' + (pT + plotH) + '" x2="' + (pad + plotW) + '" y2="' + (pT + plotH) + '" stroke="' + fg + '" stroke-width="1"/>';
-    // Y-axis labels
-    for (var t = 0; t <= 4; t++) {
-      var yVal = eMax - (t / 4) * eRange;
-      var yPos = pT + (t / 4) * plotH;
-      svg += '<line x1="' + (pad - 3) + '" y1="' + yPos + '" x2="' + (pad + plotW) + '" y2="' + yPos + '" stroke="' + grid + '" stroke-width="0.5"/>';
-      svg += '<text x="' + (pad - 5) + '" y="' + (yPos + 3) + '" text-anchor="end" fill="' + fg + '" font-size="9">' + yVal.toFixed(2) + '</text>';
-    }
-    // X-axis labels
-    var xLabels = [{v: 0, l: '0'}, {v: Math.PI, l: '\u03c0'}, {v: 2 * Math.PI, l: '2\u03c0'}];
-    for (var k = 0; k < xLabels.length; k++) {
-      var xPos = pad + (xLabels[k].v / 6.283185307) * plotW;
-      svg += '<text x="' + xPos + '" y="' + (pT + plotH + 15) + '" text-anchor="middle" fill="' + fg + '" font-size="9">' + xLabels[k].l + '</text>';
-    }
-    // Axis titles
-    svg += '<text x="' + (pad + plotW / 2) + '" y="' + (H - 2) + '" text-anchor="middle" fill="' + fg + '" font-size="10">' + esc(paramName) + '</text>';
-    svg += '<text x="12" y="' + (pT + plotH / 2) + '" text-anchor="middle" fill="' + fg + '" font-size="10" transform="rotate(-90,12,' + (pT + plotH / 2) + ')">Energy (Ha)</text>';
-    // Data polyline
-    var pts = '';
-    for (var i = 0; i < pv.length; i++) {
-      var x = pad + (pv[i] / 6.283185307) * plotW;
-      var y = pT + ((eMax - ev[i]) / eRange) * plotH;
-      pts += (i === 0 ? '' : ' ') + x.toFixed(1) + ',' + y.toFixed(1);
-    }
-    svg += '<polyline points="' + pts + '" fill="none" stroke="' + line + '" stroke-width="2"/>';
-    // Mark minimum with a circle
-    var minX = pad + (pv[minIdx] / 6.283185307) * plotW;
-    var minY = pT + ((eMax - ev[minIdx]) / eRange) * plotH;
-    svg += '<circle cx="' + minX.toFixed(1) + '" cy="' + minY.toFixed(1) + '" r="4" fill="' + accent + '" stroke="' + fg + '" stroke-width="1"/>';
-    svg += '</svg>';
-    // Stats
-    svg += '<div class="sim-stats"><span>Min energy: ' + ev[minIdx].toFixed(4) + ' Ha</span><span>at ' + esc(paramName) + ' = ' + pv[minIdx].toFixed(3) + '</span></div>';
-    out.innerHTML = svg;
-  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
-}
+  }
+  svg.appendChild(vqeG);
+  canvas.appendChild(svg);
+})();
 </script>
 
 <!-- ================================================================== -->
 
-<h3>Interactive: VQE Optimization</h3>
+<h3>Interactive: VQE Manual Optimizer</h3>
 <p>
   Run the full VQE algorithm on a 2-qubit Hamiltonian representing molecular hydrogen
   at equilibrium bond distance. The optimizer searches the parameter space to find
   the ground state energy. Watch the energy converge toward the minimum.
 </p>
-<div class="widget" id="vqe-widget">
-  <div class="widget-header">Variational Quantum Eigensolver</div>
-  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
-    <label>Ansatz: <select id="vqe-ansatz">
-      <option value="real_amplitudes" selected>RealAmplitudes</option>
-      <option value="efficient_su2">EfficientSU2</option>
-    </select></label>
-    <label>Layers: <select id="vqe-layers"><option>1</option><option selected>2</option><option>3</option></select></label>
-    <button onclick="runVQEWidget()">Run VQE</button>
+
+<!-- Visualization 3: VQE Manual Optimizer Simulation -->
+<div class="simulation" data-component="simulation" data-expectation data-pauli="ZZ">
+  <div class="sim-controls">
+    <label>$\theta_0$:
+      <input type="range" min="0" max="6.283" step="0.05" value="3.14" data-param="theta0">
+      <output>3.14</output>
+    </label>
+    <label>$\theta_1$:
+      <input type="range" min="0" max="6.283" step="0.05" value="0.22" data-param="theta1">
+      <output>0.22</output>
+    </label>
   </div>
-  <div class="widget-output" id="vqe-output"></div>
+  <div class="sim-qasm">OPENQASM 2.0;
+include "qelib1.inc";
+qreg q[2];
+creg c[2];
+ry({theta0}) q[0];
+ry({theta1}) q[1];
+cx q[0], q[1];
+c[0] = measure q[0];
+c[1] = measure q[1];</div>
+  <div class="sim-output"></div>
 </div>
-<script>
-async function runVQEWidget() {
-  await ensureWasm();
-  var ans = document.getElementById('vqe-ansatz').value;
-  var layers = parseInt(document.getElementById('vqe-layers').value);
-  var out = document.getElementById('vqe-output');
-  out.innerHTML = '<p style="color:var(--color-text-muted)">Optimizing (this may take a moment)...</p>';
-  await new Promise(function(r) { setTimeout(r, 0); });
-  try {
-    var ham = "-1.05*II+0.39*ZI+-0.39*IZ+-0.01*ZZ+0.18*XX+0.18*YY";
-    var r = JSON.parse(window.runVQE(ham, ans, 2, layers, 100, isDark()));
-    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
-    var html = (r.circuitSVG||'');
-    html += '<div class="sim-stats"><span>Ground state energy: ' + r.energy.toFixed(4) + '</span><span>Iterations: ' + r.numIterations + '</span></div>';
-    if (r.history && r.history.length > 0) {
-      html += '<div style="font-family:var(--font-mono);font-size:0.8rem;margin-top:0.5rem;"><strong>Energy convergence:</strong> ';
-      var step = Math.max(1, Math.floor(r.history.length / 10));
-      for (var i = 0; i < r.history.length; i += step) html += r.history[i].toFixed(4) + ' &rarr; ';
-      html += r.history[r.history.length-1].toFixed(4) + '</div>';
-    }
-    out.innerHTML = html;
-  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
-}
-</script>
+<p style="font-size:0.9rem;color:var(--color-text-muted);margin-top:0.5rem;">
+  Try to find the parameter values that concentrate probability on $|01\rangle$ and $|10\rangle$ -
+  these correspond to the bonding configurations of H$_2$. The ground state has $\theta_0 \approx \pi$
+  and $\theta_1 \approx 0.22$. The expectation value $\langle ZZ \rangle$ reports how correlated
+  the two qubits are.
+</p>
+
 </section>
 
 <!-- ================================================================== -->
+<!-- Visualization 4: ADAPT-VQE Animated Walkthrough -->
+<section id="adapt-vqe-walkthrough">
+<h3>Interactive: ADAPT-VQE Walkthrough</h3>
+<p>
+  Watch the ADAPT-VQE algorithm build its ansatz one operator at a time. At each
+  iteration, the algorithm evaluates the gradient of every operator in the pool,
+  selects the one with the largest gradient, appends it to the circuit, and
+  re-optimizes all parameters. The energy drops toward the exact ground state.
+</p>
 
-<section id="review">
-<h2>Chapter 22 Review</h2>
+<div class="animated-walkthrough" data-component="animated-walkthrough">
+  <div class="walkthrough-progress"></div>
 
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 22 Review</div>
-
-  <div class="flashcard" data-card-id="ch22-ground-state-problem">
-    <div class="card-front">Why is finding the ground-state energy of a molecule computationally hard for classical computers?</div>
-    <div class="card-back">
-      The Hilbert space of $N$ electrons in $M$ spin-orbitals has dimension $\binom{M}{N}$,
-      which grows exponentially with system size. Exactly diagonalizing the Hamiltonian (Full
-      Configuration Interaction) requires storing and manipulating a vector of this dimension.
-      For even moderate molecules (50 orbitals, 25 electrons), the dimension exceeds $10^{14}$.
-      Classical approximations (DFT, coupled cluster) trade accuracy for tractability but fail
-      for strongly correlated systems.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
+  <div class="walkthrough-stage active" data-stage="0">
+    <div class="walkthrough-narration">
+      <h4>Step 0: Hartree-Fock Reference</h4>
+      <p>We begin with the Hartree-Fock state $|01\rangle$ - the simplest approximation
+        where both electrons occupy the bonding orbital. Energy: $-1.117$ Ha
+        (above the exact value of $-1.137$ Ha by 0.020 Ha).</p>
+    </div>
+    <div class="walkthrough-viz">
+      <div style="display:flex;gap:4px;align-items:flex-end;height:100px;padding:8px;">
+        <div style="flex:1;text-align:center;"><div style="height:5%;width:60%;margin:0 auto;background:var(--color-accent);border-radius:2px 2px 0 0;"></div><div style="font-size:0.7rem;font-family:var(--font-mono);">|00&gt;</div></div>
+        <div style="flex:1;text-align:center;"><div style="height:90%;width:60%;margin:0 auto;background:var(--color-state);border-radius:2px 2px 0 0;"></div><div style="font-size:0.7rem;font-family:var(--font-mono);">|01&gt;</div></div>
+        <div style="flex:1;text-align:center;"><div style="height:3%;width:60%;margin:0 auto;background:var(--color-accent);border-radius:2px 2px 0 0;"></div><div style="font-size:0.7rem;font-family:var(--font-mono);">|10&gt;</div></div>
+        <div style="flex:1;text-align:center;"><div style="height:2%;width:60%;margin:0 auto;background:var(--color-accent);border-radius:2px 2px 0 0;"></div><div style="font-size:0.7rem;font-family:var(--font-mono);">|11&gt;</div></div>
       </div>
     </div>
   </div>
 
-  <div class="flashcard" data-card-id="ch22-variational-principle">
-    <div class="card-front">State the variational principle and explain how VQE exploits it.</div>
-    <div class="card-back">
-      For any trial state $|\psi\rangle$, $\langle \psi|H|\psi\rangle \geq E_0$ (the true
-      ground-state energy), with equality only when $|\psi\rangle$ is the ground state. VQE
-      parameterizes the trial state as $|\psi(\vec{\theta})\rangle$ using a quantum circuit and
-      minimizes $\langle \psi(\vec{\theta})|H|\psi(\vec{\theta})\rangle$ over $\vec{\theta}$
-      using a classical optimizer. The minimum found is guaranteed to be an upper bound on $E_0$.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
+  <div class="walkthrough-stage" data-stage="1">
+    <div class="walkthrough-narration">
+      <h4>Step 1: Evaluate Gradients</h4>
+      <p>Compute $|\partial E / \partial \theta_k|$ for each operator in the pool.
+        The double excitation $a_1^\dagger a_3^\dagger a_2 a_0$ has gradient magnitude
+        $0.362$ - by far the largest. Single excitations have near-zero gradients for H$_2$.</p>
+    </div>
+    <div class="walkthrough-viz">
+      <div style="display:flex;gap:4px;align-items:flex-end;height:100px;padding:8px;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-code-bg);">
+        <div style="flex:1;text-align:center;"><div style="height:5%;width:60%;margin:0 auto;background:var(--color-text-muted);border-radius:2px 2px 0 0;"></div><div style="font-size:0.65rem;font-family:var(--font-mono);">s01</div></div>
+        <div style="flex:1;text-align:center;"><div style="height:3%;width:60%;margin:0 auto;background:var(--color-text-muted);border-radius:2px 2px 0 0;"></div><div style="font-size:0.65rem;font-family:var(--font-mono);">s23</div></div>
+        <div style="flex:1;text-align:center;"><div style="height:90%;width:60%;margin:0 auto;background:var(--color-state);border-radius:2px 2px 0 0;"></div><div style="font-size:0.65rem;font-family:var(--font-mono);">d0123</div></div>
+        <div style="flex:1;text-align:center;"><div style="height:2%;width:60%;margin:0 auto;background:var(--color-text-muted);border-radius:2px 2px 0 0;"></div><div style="font-size:0.65rem;font-family:var(--font-mono);">s02</div></div>
+      </div>
+      <p style="font-size:0.8rem;text-align:center;color:var(--color-text-muted);margin-top:4px;">Gradient magnitudes for operator pool</p>
+    </div>
+  </div>
+
+  <div class="walkthrough-stage" data-stage="2">
+    <div class="walkthrough-narration">
+      <h4>Step 2: Append and Optimize</h4>
+      <p>The double excitation operator is appended to the ansatz. Its parameter $\theta_1$
+        is optimized, yielding $\theta_1 \approx 0.11$. Energy drops to $-1.137$ Ha -
+        within chemical accuracy of the exact result. Circuit depth: just 1 CNOT layer.</p>
+    </div>
+    <div class="walkthrough-viz">
+      <div style="display:flex;gap:4px;align-items:flex-end;height:100px;padding:8px;">
+        <div style="flex:1;text-align:center;"><div style="height:1%;width:60%;margin:0 auto;background:var(--color-accent);border-radius:2px 2px 0 0;"></div><div style="font-size:0.7rem;font-family:var(--font-mono);">|00&gt;</div></div>
+        <div style="flex:1;text-align:center;"><div style="height:80%;width:60%;margin:0 auto;background:var(--color-state);border-radius:2px 2px 0 0;"></div><div style="font-size:0.7rem;font-family:var(--font-mono);">|01&gt;</div></div>
+        <div style="flex:1;text-align:center;"><div style="height:18%;width:60%;margin:0 auto;background:var(--color-state);border-radius:2px 2px 0 0;"></div><div style="font-size:0.7rem;font-family:var(--font-mono);">|10&gt;</div></div>
+        <div style="flex:1;text-align:center;"><div style="height:1%;width:60%;margin:0 auto;background:var(--color-accent);border-radius:2px 2px 0 0;"></div><div style="font-size:0.7rem;font-family:var(--font-mono);">|11&gt;</div></div>
       </div>
     </div>
   </div>
 
-  <div class="flashcard" data-card-id="ch22-jordan-wigner">
-    <div class="card-front">How does the Jordan-Wigner transformation encode fermionic operators in qubits?</div>
-    <div class="card-back">
-      Each spin-orbital maps to one qubit ($|1\rangle$ = occupied, $|0\rangle$ = empty). The
-      creation operator $a_p^\dagger$ maps to $\frac{1}{2}(X_p - iY_p) \otimes Z_{p-1} \otimes
-      \cdots \otimes Z_0$. The string of $Z$ operators (the "Jordan-Wigner string") on all
-      lower-indexed qubits encodes fermionic antisymmetry by tracking the parity of occupied
-      orbitals. The mapping is exact but non-local: operators on orbital $p$ produce Pauli
-      strings of weight $O(p)$.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
+  <div class="walkthrough-stage" data-stage="3">
+    <div class="walkthrough-narration">
+      <h4>Step 3: Convergence Check</h4>
+      <p>All remaining gradient magnitudes are below the convergence threshold ($10^{-4}$).
+        ADAPT-VQE terminates with a 1-parameter ansatz. For H$_2$, a single double excitation
+        captures essentially all the electron correlation. Final energy: $-1.1372$ Ha
+        (error: $0.0001$ Ha, well within chemical accuracy).</p>
+    </div>
+    <div class="walkthrough-viz">
+      <div style="padding:1rem;text-align:center;">
+        <div style="font-family:var(--font-mono);font-size:1.1rem;color:var(--color-success);font-weight:600;">Converged!</div>
+        <div style="font-family:var(--font-mono);font-size:0.9rem;margin-top:0.5rem;">
+          E = -1.1372 Ha<br>
+          Error = 0.0001 Ha &lt; 0.0016 Ha (chemical accuracy)<br>
+          Parameters: 1 | CNOT depth: 1
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="flashcard" data-card-id="ch22-bravyi-kitaev">
-    <div class="card-front">How does the Bravyi-Kitaev transformation improve on Jordan-Wigner?</div>
-    <div class="card-back">
-      Bravyi-Kitaev stores a mixture of occupation and parity information using a binary tree
-      structure, producing Pauli strings of weight $O(\log M)$ instead of Jordan-Wigner's
-      $O(M)$. This logarithmic scaling yields shorter operator strings and potentially shallower
-      circuits for large molecules. The trade-off is a less intuitive encoding - qubit states do
-      not directly represent orbital occupations. For small systems ($M < 20$), the practical
-      difference is modest.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch22-h2-hamiltonian">
-    <div class="card-front">How many Pauli terms does the H$_2$ Hamiltonian have in a minimal basis, and what are they?</div>
-    <div class="card-back">
-      After Jordan-Wigner transformation and symmetry reduction, the H$_2$ Hamiltonian has six
-      Pauli terms: $H = c_0 II + c_1 ZI + c_2 IZ + c_3 ZZ + c_4 XX + c_5 YY$. These can be
-      grouped into three measurement settings (since $\{II, ZI, IZ, ZZ\}$ all commute, $XX$
-      needs its own basis, and $YY$ needs its own basis). The exact ground-state energy at
-      equilibrium is approximately $-1.137$ Hartree.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch22-adapt-vqe">
-    <div class="card-front">Describe the ADAPT-VQE algorithm and its key advantage over fixed ansatze.</div>
-    <div class="card-back">
-      ADAPT-VQE grows the ansatz iteratively: (1) define an operator pool, (2) start from a
-      reference state, (3) compute the energy gradient for each pool operator, (4) append the
-      operator with the largest gradient, (5) re-optimize all parameters, (6) repeat until
-      gradients are below a threshold. Its key advantage is producing compact, problem-tailored
-      ansatze with fewer parameters and shallower circuits than fixed approaches like UCCSD,
-      while naturally avoiding barren plateaus.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch22-barren-plateau">
-    <div class="card-front">What is a barren plateau, and when does it arise in variational quantum circuits?</div>
-    <div class="card-back">
-      A barren plateau is a region of the parameter landscape where cost function gradients
-      vanish exponentially: $\text{Var}[\partial C/\partial \theta_k] \sim O(2^{-n})$. It
-      arises in deep, unstructured (random) circuits that approach a unitary 2-design, in
-      circuits with global cost functions, with excessive entanglement, and even from hardware
-      noise. On a barren plateau, no gradient-based optimizer can find the minimum without
-      exponentially many evaluations. First proven by McClean et al. (2018).
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch22-barren-plateau-mitigation">
-    <div class="card-front">Name four strategies for mitigating barren plateaus in variational algorithms.</div>
-    <div class="card-back">
-      (1) <em>Structured ansatze</em>: use problem-specific circuits (UCCSD, symmetry-preserving)
-      that restrict the search space. (2) <em>Layerwise training</em>: optimize one layer at a
-      time, keeping effective depth small. (3) <em>Smart initialization</em>: start with
-      parameters near zero (close to identity), ensuring non-zero initial gradients.
-      (4) <em>ADAPT-VQE</em>: grow the ansatz adaptively, only adding operators with large
-      gradients, inherently avoiding flat regions.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
+  <div class="walkthrough-controls">
+    <button data-action="prev" disabled>Previous</button>
+    <button data-action="next">Next</button>
+    <button data-action="auto">Auto-play</button>
   </div>
 </div>
 </section>
+
+

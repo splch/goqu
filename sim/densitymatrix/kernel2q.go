@@ -93,7 +93,7 @@ func (s *Sim) gate2Cols(q0, q1 int, m []complex128) {
 	}
 }
 
-// --- Parallel versions ---
+// Parallel versions
 
 func (s *Sim) applyGate2Parallel(q0, q1 int, m []complex128) {
 	s.gate2RowsParallel(q0, q1, m)

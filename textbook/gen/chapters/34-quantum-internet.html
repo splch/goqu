@@ -279,6 +279,76 @@
   </p>
 </div>
 
+<!-- Widget 1: Wehner Stages Pyramid -->
+<div class="widget" id="wehner-widget">
+  <div class="widget-header">Wehner Stages of the Quantum Internet</div>
+  <p style="font-size:0.9rem;margin-bottom:0.5rem">Click a stage to see its capabilities and current status.</p>
+  <canvas id="wehner-canvas" width="600" height="340" style="width:100%;border:1px solid var(--color-border);border-radius:var(--radius);cursor:pointer"></canvas>
+  <div id="wehner-info" style="padding:0.5rem;font-size:0.9rem;min-height:3rem;border:1px solid var(--color-border);border-radius:var(--radius);margin-top:0.5rem;background:var(--color-code-bg)"></div>
+</div>
+<script>
+(function(){
+  var canvas=document.getElementById("wehner-canvas"),ctx=canvas.getContext("2d");
+  var infoEl=document.getElementById("wehner-info");
+  var stages=[
+    {name:"Stage 1: Trusted Repeater",cap:"Point-to-point QKD with trusted relays",app:"Metropolitan QKD networks",status:"Deployed (China, Europe, US)"},
+    {name:"Stage 2: Prepare & Measure",cap:"End-to-end qubit transmission, no entanglement",app:"BB84 QKD, QRNG",status:"Lab demonstrations"},
+    {name:"Stage 3: Entanglement Distribution",cap:"EPR pair sharing between end nodes",app:"E91 QKD, device-independent QKD",status:"Early lab demos (Delft 2021)"},
+    {name:"Stage 4: Quantum Memory",cap:"Store-and-forward quantum states on demand",app:"Teleportation, blind computation",status:"Research phase"},
+    {name:"Stage 5: Few-Qubit Fault-Tolerant",cap:"Error-corrected local processing",app:"Clock synchronization, distributed sensing",status:"Theoretical"},
+    {name:"Stage 6: Quantum Computing Network",cap:"Full distributed quantum computation",app:"Quantum cloud, all of the above",status:"Future goal"}
+  ];
+  var selected=0;
+  function isDk(){return window.matchMedia("(prefers-color-scheme:dark)").matches;}
+  function draw(){
+    var dpr=window.devicePixelRatio||1;
+    var rect=canvas.getBoundingClientRect();
+    canvas.width=rect.width*dpr;canvas.height=rect.height*dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    var W=rect.width,H=rect.height;
+    var dk=isDk();
+    ctx.fillStyle=dk?"#262626":"#ffffff";ctx.fillRect(0,0,W,H);
+    var n=stages.length;
+    var layerH=(H-30)/n;
+    var mono=getComputedStyle(document.body).getPropertyValue("--font-mono");
+    var cols=[dk?"#78C87C":"#55a868",dk?"#6A9BD2":"#4C72B0",dk?"#CCB974":"#B8A960",dk?"#8172B2":"#6A5DA2",dk?"#E07070":"#C44E52",dk?"#E0A070":"#C48E52"];
+    for(var i=n-1;i>=0;i--){
+      var y=H-30-(i+1)*layerH;
+      var frac=0.3+(n-1-i)*0.12;
+      var lx=W*(0.5-frac/2),rw=W*frac;
+      ctx.fillStyle=i===selected?cols[i]+"44":cols[i]+"22";
+      ctx.strokeStyle=cols[i];ctx.lineWidth=i===selected?3:1.5;
+      ctx.beginPath();ctx.roundRect(lx,y,rw,layerH-4,4);ctx.fill();ctx.stroke();
+      ctx.fillStyle=dk?"#ddd":"#222";
+      ctx.font=(i===selected?"bold ":"")+"11px "+mono;ctx.textAlign="center";
+      ctx.fillText(stages[i].name,W/2,y+layerH/2+4);
+    }
+    // Current status marker
+    ctx.fillStyle=dk?"#78C87C":"#55a868";ctx.font="bold 10px "+mono;ctx.textAlign="center";
+    ctx.fillText("Current: Stage 1-2",W/2,H-10);
+  }
+  canvas.addEventListener("click",function(e){
+    var rect=canvas.getBoundingClientRect();
+    var my=e.clientY-rect.top;
+    var H=rect.height;
+    var n=stages.length;
+    var layerH=(H-30)/n;
+    for(var i=0;i<n;i++){
+      var y=H-30-(i+1)*layerH;
+      if(my>=y&&my<=y+layerH){
+        selected=i;
+        var s=stages[i];
+        infoEl.textContent=s.name+". Capability: "+s.cap+". Application: "+s.app+". Status: "+s.status+".";
+        draw();return;
+      }
+    }
+  });
+  infoEl.textContent="Click a stage in the pyramid to explore its capabilities and status.";
+  window.addEventListener("resize",draw);
+  setTimeout(draw,50);
+})();
+</script>
+
 </section>
 
 <!-- ================================================================== -->
@@ -384,6 +454,102 @@
   </li>
 </ul>
 
+<!-- Widget 2: Photon Loss vs Distance -->
+<div class="widget" id="photon-loss-widget">
+  <div class="widget-header">Photon Survival Probability vs Distance</div>
+  <p style="font-size:0.9rem;margin-bottom:0.5rem">
+    Fiber loss is exponential ($e^{-\alpha d}$) at 0.2 dB/km. Satellite links follow inverse-square law.
+    The crossover determines when satellite links become preferable.
+  </p>
+  <canvas id="pl-canvas" width="600" height="280" style="width:100%;border:1px solid var(--color-border);border-radius:var(--radius)"></canvas>
+  <div id="pl-info" style="font-family:var(--font-mono);font-size:0.85rem;color:var(--color-text-muted);margin-top:0.5rem"></div>
+</div>
+<script>
+(function(){
+  var canvas=document.getElementById("pl-canvas"),ctx=canvas.getContext("2d");
+  var infoEl=document.getElementById("pl-info");
+  function isDk(){return window.matchMedia("(prefers-color-scheme:dark)").matches;}
+  function draw(){
+    var dpr=window.devicePixelRatio||1;
+    var rect=canvas.getBoundingClientRect();
+    canvas.width=rect.width*dpr;canvas.height=rect.height*dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    var W=rect.width,H=rect.height;
+    var dk=isDk();
+    ctx.fillStyle=dk?"#262626":"#ffffff";ctx.fillRect(0,0,W,H);
+    var pad={l:60,r:20,t:25,b:40};
+    var pw=W-pad.l-pad.r,ph=H-pad.t-pad.b;
+    var mono=getComputedStyle(document.body).getPropertyValue("--font-mono");
+    var dMax=2000; // km
+    var logMin=-10,logMax=0; // log10 of probability
+    // Fiber: P = 10^(-0.2*d/10) = 10^(-0.02*d)
+    // Satellite: P = (R_ref/d)^2, with R_ref ~ 200 km for ~ 50% efficiency at LEO
+    var colFiber=dk?"#6A9BD2":"#4C72B0";
+    var colSat=dk?"#78C87C":"#55a868";
+    // Grid
+    ctx.strokeStyle=dk?"#333":"#e0e0e0";ctx.lineWidth=0.5;ctx.setLineDash([3,3]);
+    for(var g=logMin;g<=logMax;g+=2){
+      var y=pad.t+(logMax-g)/(logMax-logMin)*ph;
+      ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+pw,y);ctx.stroke();
+      ctx.fillStyle=dk?"#999":"#666";ctx.font="10px "+mono;ctx.textAlign="right";
+      ctx.fillText("10^"+g,pad.l-5,y+4);
+    }
+    ctx.setLineDash([]);
+    // Fiber curve
+    ctx.strokeStyle=colFiber;ctx.lineWidth=2.5;
+    ctx.beginPath();
+    for(var i=0;i<=200;i++){
+      var d=i/200*dMax;
+      var logP=-0.02*d;
+      if(logP<logMin)logP=logMin;
+      var x=pad.l+d/dMax*pw;
+      var y=pad.t+(logMax-logP)/(logMax-logMin)*ph;
+      if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    // Satellite curve
+    ctx.strokeStyle=colSat;ctx.lineWidth=2.5;
+    ctx.beginPath();
+    var first=true;
+    for(var i=1;i<=200;i++){
+      var d=i/200*dMax;
+      if(d<100)continue;
+      var logP=Math.log10(Math.pow(150/d,2));
+      if(logP<logMin)logP=logMin;
+      var x=pad.l+d/dMax*pw;
+      var y=pad.t+(logMax-logP)/(logMax-logMin)*ph;
+      if(first){ctx.moveTo(x,y);first=false;}else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    // Crossover annotation
+    // Find crossover: -0.02*d = 2*log10(150/d)
+    var crossD=400; // approximate
+    for(var d=100;d<2000;d+=5){
+      var fP=-0.02*d;
+      var sP=2*Math.log10(150/d);
+      if(fP<sP){crossD=d;break;}
+    }
+    var cx=pad.l+crossD/dMax*pw;
+    ctx.strokeStyle=dk?"#E07070":"#C44E52";ctx.lineWidth=1;ctx.setLineDash([4,3]);
+    ctx.beginPath();ctx.moveTo(cx,pad.t);ctx.lineTo(cx,pad.t+ph);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle=dk?"#E07070":"#C44E52";ctx.font="10px "+mono;ctx.textAlign="center";
+    ctx.fillText("Crossover ~"+crossD+" km",cx,pad.t-5);
+    // Legend
+    ctx.strokeStyle=colFiber;ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(pad.l+10,pad.t+10);ctx.lineTo(pad.l+28,pad.t+10);ctx.stroke();
+    ctx.fillStyle=dk?"#ccc":"#333";ctx.font="10px "+mono;ctx.textAlign="left";ctx.fillText("Fiber (exponential)",pad.l+33,pad.t+14);
+    ctx.strokeStyle=colSat;ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(pad.l+10,pad.t+26);ctx.lineTo(pad.l+28,pad.t+26);ctx.stroke();
+    ctx.fillText("Satellite (inverse-square)",pad.l+33,pad.t+30);
+    // Axis labels
+    ctx.fillStyle=dk?"#999":"#666";ctx.font="11px "+mono;ctx.textAlign="center";
+    ctx.fillText("Distance (km)",pad.l+pw/2,H-8);
+    ctx.save();ctx.translate(12,pad.t+ph/2);ctx.rotate(-Math.PI/2);ctx.fillText("Transmission probability (log scale)",0,0);ctx.restore();
+    infoEl.textContent="Fiber loss is 0.2 dB/km (exponential decay). At 100 km, only ~1% of photons survive. Satellite links follow inverse-square law, becoming preferable beyond ~"+crossD+" km.";
+  }
+  window.addEventListener("resize",draw);
+  setTimeout(draw,50);
+})();
+</script>
+
 </section>
 
 <!-- ================================================================== -->
@@ -446,6 +612,54 @@
   </p>
 </div>
 
+<!-- Animated Walkthrough 3: Entanglement Swapping -->
+<div class="animated-walkthrough" data-component="animated-walkthrough">
+  <div class="walkthrough-progress"></div>
+  <div class="walkthrough-stage active" data-stage="0">
+    <div class="walkthrough-narration">
+      <h4>Step 1: Create Two Bell Pairs</h4>
+      <p>Alice and Charlie share $|\Phi^+\rangle_{AC}$ (qubits 0,1). Charlie and Bob share $|\Phi^+\rangle_{CB}$ (qubits 2,3). Neither Alice nor Bob are entangled with each other.</p>
+    </div>
+    <div class="walkthrough-qasm">OPENQASM 3.0;
+qubit[4] q; bit[4] c;
+h q[0]; cx q[0], q[1];
+h q[2]; cx q[2], q[3];
+c = measure q;</div>
+    <div class="walkthrough-output"></div>
+  </div>
+  <div class="walkthrough-stage" data-stage="1">
+    <div class="walkthrough-narration">
+      <h4>Step 2: Charlie's Bell-State Measurement</h4>
+      <p>Charlie performs a BSM on his two qubits (1 and 2): a CNOT followed by Hadamard, then measures both. This projects qubits 0 and 3 into an entangled state.</p>
+    </div>
+    <div class="walkthrough-qasm">OPENQASM 3.0;
+qubit[4] q; bit[4] c;
+h q[0]; cx q[0], q[1];
+h q[2]; cx q[2], q[3];
+cx q[1], q[2]; h q[1];
+c = measure q;</div>
+    <div class="walkthrough-output"></div>
+  </div>
+  <div class="walkthrough-stage" data-stage="2">
+    <div class="walkthrough-narration">
+      <h4>Step 3: Long-Range Entanglement Established</h4>
+      <p>After Charlie's measurement, qubits 0 (Alice) and 3 (Bob) are entangled. The four equally likely outcomes of Charlie's BSM (qubits 1,2) each correspond to a specific Bell state between Alice and Bob. Bob applies a correction based on Charlie's classical message.</p>
+    </div>
+    <div class="walkthrough-qasm">OPENQASM 3.0;
+qubit[4] q; bit[4] c;
+h q[0]; cx q[0], q[1];
+h q[2]; cx q[2], q[3];
+cx q[1], q[2]; h q[1];
+c = measure q;</div>
+    <div class="walkthrough-output"></div>
+  </div>
+  <div class="walkthrough-controls">
+    <button data-action="prev" disabled>Prev</button>
+    <button data-action="next">Next</button>
+    <button data-action="auto">Auto-play</button>
+  </div>
+</div>
+
 <h3>Entanglement Swapping Circuit</h3>
 
 <p>
@@ -461,32 +675,6 @@
   Despite never interacting directly, they become perfectly correlated - a hallmark of
   entanglement swapping.
 </p>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="18">OPENQASM 3.0;
-qubit[4] q;
-bit[4] c;
-
-// Create EPR pair 1: Alice (q0) - Charlie-left (q1)
-h q[0];
-cx q[0], q[1];
-
-// Create EPR pair 2: Charlie-right (q2) - Bob (q3)
-h q[2];
-cx q[2], q[3];
-
-// Charlie's Bell-state measurement on q1, q2
-cx q[1], q[2];
-h q[1];
-
-// Measure all qubits
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
 
 <p>
   Examine the measurement results carefully. You will notice that qubits 0 and 3 (Alice
@@ -505,32 +693,6 @@ c = measure q;</textarea>
   noise parameter increases, the teleported state becomes increasingly mixed with random
   errors, reducing the protocol's effectiveness.
 </p>
-<div class="simulation" data-component="simulation" data-comparison="true">
-  <div class="sim-controls">
-    <label>Channel:
-      <select data-param="noiseModel">
-        <option value="depolarizing" selected>Depolarizing</option>
-        <option value="amplitude_damping">Amplitude Damping</option>
-        <option value="phase_damping">Phase Damping</option>
-      </select>
-    </label>
-    <label>Noise: <input type="range" data-param="noiseParam" min="0" max="0.3" step="0.01" value="0.05"><output>0.05</output></label>
-  </div>
-  <pre class="sim-qasm">OPENQASM 3.0;
-qubit[3] q;
-bit[3] c;
-// Prepare state to teleport
-h q[0];
-// Create Bell pair
-h q[1];
-cx q[1], q[2];
-// Bell measurement
-cx q[0], q[1];
-h q[0];
-c = measure q;</pre>
-  <div class="sim-output"></div>
-</div>
-
 <h3>Entanglement Purification</h3>
 
 <p>
@@ -624,6 +786,107 @@ c = measure q;</pre>
     is never "in transit" through the repeater - it is teleported from segment to segment.
   </p>
 </div>
+
+<!-- Widget 4: Quantum Repeater Chain -->
+<div class="widget" id="repeater-widget">
+  <div class="widget-header">Quantum Repeater Chain Simulator</div>
+  <p style="font-size:0.9rem;margin-bottom:0.5rem">
+    A repeater chain divides a long link into segments. Each segment generates entanglement,
+    then swapping extends it across the full distance. Noise accumulates at each swap.
+  </p>
+  <div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:center;margin-bottom:0.75rem">
+    <label style="font-size:0.9rem;font-family:var(--font-mono)">Segments:
+      <input type="range" id="rep-segs" min="1" max="8" step="1" value="4" style="width:8rem;accent-color:var(--color-accent)">
+      <output id="rep-segs-out">4</output>
+    </label>
+    <label style="font-size:0.9rem;font-family:var(--font-mono)">Total distance (km):
+      <input type="range" id="rep-dist" min="50" max="1000" step="50" value="400" style="width:8rem;accent-color:var(--color-accent)">
+      <output id="rep-dist-out">400</output>
+    </label>
+    <label style="font-size:0.9rem;font-family:var(--font-mono)">Segment fidelity:
+      <input type="range" id="rep-fid" min="0.80" max="0.99" step="0.01" value="0.95" style="width:8rem;accent-color:var(--color-accent)">
+      <output id="rep-fid-out">0.95</output>
+    </label>
+  </div>
+  <canvas id="rep-canvas" width="600" height="180" style="width:100%;border:1px solid var(--color-border);border-radius:var(--radius)"></canvas>
+  <div id="rep-info" style="font-family:var(--font-mono);font-size:0.85rem;color:var(--color-text-muted);margin-top:0.5rem"></div>
+</div>
+<script>
+(function(){
+  var segSlider=document.getElementById("rep-segs"),segOut=document.getElementById("rep-segs-out");
+  var distSlider=document.getElementById("rep-dist"),distOut=document.getElementById("rep-dist-out");
+  var fidSlider=document.getElementById("rep-fid"),fidOut=document.getElementById("rep-fid-out");
+  var canvas=document.getElementById("rep-canvas"),ctx=canvas.getContext("2d");
+  var infoEl=document.getElementById("rep-info");
+  function isDk(){return window.matchMedia("(prefers-color-scheme:dark)").matches;}
+  function draw(){
+    var nSeg=parseInt(segSlider.value,10);segOut.textContent=nSeg;
+    var totalDist=parseInt(distSlider.value,10);distOut.textContent=totalDist;
+    var segFid=parseFloat(fidSlider.value);fidOut.textContent=segFid.toFixed(2);
+    var dpr=window.devicePixelRatio||1;
+    var rect=canvas.getBoundingClientRect();
+    canvas.width=rect.width*dpr;canvas.height=rect.height*dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    var W=rect.width,H=rect.height;
+    var dk=isDk();
+    ctx.fillStyle=dk?"#262626":"#ffffff";ctx.fillRect(0,0,W,H);
+    var mono=getComputedStyle(document.body).getPropertyValue("--font-mono");
+    var pad={l:40,r:40,t:30,b:50};
+    var pw=W-pad.l-pad.r;
+    var nodeR=12;
+    // Draw nodes (nSeg+1 nodes)
+    var nNodes=nSeg+1;
+    for(var i=0;i<nNodes;i++){
+      var x=pad.l+i/(nNodes-1)*pw;
+      var y=H/2-10;
+      // Fiber segment
+      if(i<nNodes-1){
+        var x2=pad.l+(i+1)/(nNodes-1)*pw;
+        ctx.strokeStyle=dk?"#555":"#ccc";ctx.lineWidth=3;
+        ctx.beginPath();ctx.moveTo(x+nodeR,y);ctx.lineTo(x2-nodeR,y);ctx.stroke();
+        // Segment distance
+        ctx.fillStyle=dk?"#888":"#999";ctx.font="9px "+mono;ctx.textAlign="center";
+        ctx.fillText((totalDist/nSeg).toFixed(0)+" km",(x+x2)/2,y+25);
+      }
+      // Node
+      var col;
+      if(i===0)col=dk?"#6A9BD2":"#4C72B0"; // Alice
+      else if(i===nNodes-1)col=dk?"#78C87C":"#55a868"; // Bob
+      else col=dk?"#CCB974":"#B8A960"; // Repeater
+      ctx.fillStyle=col;
+      ctx.beginPath();ctx.arc(x,y,nodeR,0,2*Math.PI);ctx.fill();
+      ctx.fillStyle=dk?"#fff":"#fff";ctx.font="bold 9px "+mono;ctx.textAlign="center";ctx.textBaseline="middle";
+      if(i===0)ctx.fillText("A",x,y);
+      else if(i===nNodes-1)ctx.fillText("B",x,y);
+      else ctx.fillText("R"+i,x,y);
+    }
+    // Title
+    ctx.fillStyle=dk?"#ccc":"#333";ctx.font="11px "+mono;ctx.textAlign="left";ctx.textBaseline="top";
+    ctx.fillText("Alice",pad.l-5,H/2+20);
+    ctx.textAlign="right";
+    ctx.fillText("Bob",pad.l+pw+5,H/2+20);
+    // Calculate final fidelity
+    // Each swap reduces fidelity: F_final ~ (segFid)^nSeg approximately
+    // More precise: after n swaps, F ~ 1/4 + 3/4 * (4F-1)^(nSeg) / 3^(nSeg-1)
+    // Simplified: depolarizing model
+    var p=4*(segFid-0.25)/3; // Werner parameter
+    var pFinal=Math.pow(p,nSeg);
+    var finalFid=0.25+0.75*pFinal;
+    // Direct (no repeater) fidelity
+    var segDist=totalDist/nSeg;
+    var segTrans=Math.pow(10,-0.02*segDist);
+    var directTrans=Math.pow(10,-0.02*totalDist);
+    ctx.fillStyle=dk?"#ccc":"#333";ctx.font="11px "+mono;ctx.textAlign="center";ctx.textBaseline="top";
+    ctx.fillText("End-to-end fidelity: "+finalFid.toFixed(3)+" | Segment transmission: "+(segTrans*100).toFixed(1)+"% | Direct transmission: "+(directTrans*100).toFixed(4)+"%",W/2,H-20);
+    infoEl.textContent=nSeg+" segments of "+(totalDist/nSeg).toFixed(0)+" km each. End-to-end fidelity: "+finalFid.toFixed(4)+". Without repeaters, direct fiber transmission would be "+(directTrans*100).toFixed(6)+"%.";
+  }
+  segSlider.addEventListener("input",draw);
+  distSlider.addEventListener("input",draw);
+  fidSlider.addEventListener("input",draw);
+  window.addEventListener("resize",draw);
+  setTimeout(draw,50);
+})();
+</script>
 
 </section>
 
@@ -748,197 +1011,69 @@ c = measure q;</pre>
 <section id="poe-ftl">
 <h2>Can Entanglement Enable Faster-Than-Light Communication?</h2>
 
+<p>
+  This is one of the most common misconceptions about quantum mechanics. Let us work through it
+  carefully with a Predict-Observe-Explain exercise.
+</p>
+
+<!-- POE 5: No FTL Communication -->
 <div class="poe" data-component="poe">
   <div class="poe-progress">
-    <div class="poe-progress-step active">Predict</div>
+    <div class="poe-progress-step">Predict</div>
     <div class="poe-progress-step">Observe</div>
     <div class="poe-progress-step">Explain</div>
   </div>
-  <div class="poe-step poe-predict active">
+  <div class="poe-step active">
     <h3>Predict</h3>
     <p>
-      Alice and Bob share an EPR pair $|\Phi^+\rangle = \frac{1}{\sqrt{2}}(|00\rangle + |11\rangle)$.
-      Alice measures her qubit and instantly, no matter the distance, Bob's qubit collapses to a
-      definite state that is perfectly correlated with Alice's result. Can Alice use this
-      mechanism to send a message to Bob faster than light? Write your prediction and
-      reasoning below.
+      Alice and Bob share a Bell state $|\Phi^+\rangle = \frac{1}{\sqrt{2}}(|00\rangle + |11\rangle)$.
+      They separate to distant locations. Alice measures her qubit in the $Z$-basis and gets
+      outcome 0 or 1 with equal probability.
     </p>
-    <textarea rows="3" placeholder="Write your prediction here..."></textarea>
-    <button data-action="next">Submit Prediction</button>
+    <p>
+      <strong>Question:</strong> Before Alice tells Bob her result, can Bob determine
+      <em>anything</em> about Alice's measurement outcome by measuring his qubit?
+      Can Alice send a message to Bob by choosing different measurement bases?
+    </p>
+    <textarea rows="3" placeholder="Write your prediction: can Bob learn anything from his local measurements alone?"></textarea>
+    <button data-action="next">See the observation</button>
   </div>
-  <div class="poe-step poe-observe">
+  <div class="poe-step">
     <h3>Observe</h3>
     <p>
-      Run the circuit below many times. Alice measures qubit 0 and Bob measures qubit 1.
-      Look at Bob's measurement results <em>alone</em> (ignore Alice's results for now).
-      What distribution does Bob see?
+      Run the circuit below mentally (or in the sandbox). Alice and Bob each measure their qubit:
     </p>
-    <div class="sandbox" data-component="sandbox" data-shots="1024" data-autorun>
-      <textarea class="code" rows="8">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-// Create EPR pair
-h q[0];
-cx q[0], q[1];
-// Both measure
-c = measure q;</textarea>
-      <div class="sandbox-controls">
-        <button data-action="run">Run Again</button>
-      </div>
-      <div class="output"></div>
-    </div>
-    <button data-action="next">Continue to Explanation</button>
+    <ul>
+      <li>Bob's marginal outcomes: 50% $|0\rangle$, 50% $|1\rangle$ - <strong>regardless of what Alice does</strong>.</li>
+      <li>If Alice measures in the $Z$-basis: outcomes are perfectly correlated (both get 0 or both get 1).</li>
+      <li>If Alice measures in the $X$-basis instead: Bob's outcomes are <em>still</em> 50/50 in the $Z$-basis.</li>
+    </ul>
+    <p>
+      The correlations only become visible when Alice and Bob <strong>compare their results</strong> -
+      which requires classical communication.
+    </p>
+    <button data-action="next">See the explanation</button>
   </div>
-  <div class="poe-step poe-explain">
+  <div class="poe-step">
     <h3>Explain</h3>
     <p>
-      <strong>No, entanglement cannot be used for faster-than-light communication.</strong>
-      This is the <strong>no-communication theorem</strong>, a rigorous consequence of
-      quantum mechanics.
+      <strong>No faster-than-light communication is possible</strong> because:
     </p>
-    <p>
-      The key insight is that when Bob looks at his measurement results <em>alone</em>
-      (without knowing Alice's results), he sees a perfectly random 50/50 distribution of
-      0s and 1s - regardless of what Alice does. Alice's measurement does instantly
-      determine the <em>correlation</em> between their results, but correlation is only
-      visible when they compare results, which requires classical communication (limited
-      to the speed of light).
-    </p>
-    <p>
-      Formally, the reduced density matrix of Bob's qubit is $\rho_B = \frac{1}{2}I$
-      regardless of whether Alice has measured, what basis she measured in, or what result
-      she obtained. Bob's local statistics are completely independent of Alice's actions.
-      Entanglement enables remarkable protocols (teleportation, QKD, superdense coding),
-      but every one of them requires a classical channel to complete - and that classical
-      channel respects the speed of light.
-    </p>
-    <button data-action="complete">Complete</button>
+    <ol>
+      <li>Bob's <em>marginal</em> measurement statistics are always completely random (50/50),
+      no matter what Alice does on her side. This is a mathematical consequence of the partial
+      trace: $\text{Tr}_A(|\Phi^+\rangle\langle\Phi^+|) = I/2$.</li>
+      <li>The correlations in a Bell state are only visible in the <em>joint</em> statistics -
+      comparing Alice's and Bob's results. This comparison requires a classical channel, which
+      is limited by the speed of light.</li>
+      <li>This is not a technicality - it is a theorem: the <strong>no-signaling theorem</strong>
+      states that no choice of measurement by Alice can affect the probability distribution of
+      Bob's outcomes. Entanglement creates correlations, not communication.</li>
+    </ol>
+    <button data-action="complete">Done</button>
   </div>
 </div>
 
 </section>
 
-<!-- ================================================================== -->
-<section id="review">
-<h2>Chapter 34 Review</h2>
 
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 34 Review</div>
-
-  <div class="flashcard" data-card-id="ch34-ebit-definition">
-    <div class="card-front">What is an ebit, and how is it used as a networking metric?</div>
-    <div class="card-back">
-      An ebit is one maximally entangled pair (e.g., a Bell state) shared between two
-      parties. Quantum network capacity is measured in ebits per second - the rate at which
-      entangled pairs can be distributed. Each use of teleportation or entanglement-based
-      QKD consumes one ebit.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch34-wehner-stages">
-    <div class="card-front">Name the six stages of the quantum internet in the Wehner-Elkouss-Hanson framework.</div>
-    <div class="card-back">
-      (1) Trusted-Repeater Networks, (2) Prepare-and-Measure Networks,
-      (3) Entanglement-Distribution Networks, (4) Quantum-Memory Networks,
-      (5) Few-Qubit Fault-Tolerant Networks, (6) Quantum Computing Networks. Each stage
-      unlocks progressively more powerful applications, from basic QKD to full distributed
-      quantum computation.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch34-no-cloning-networking">
-    <div class="card-front">Why does the no-cloning theorem make quantum networking fundamentally harder than classical networking?</div>
-    <div class="card-back">
-      Classical networks amplify signals by copying and retransmitting bits. The no-cloning
-      theorem forbids copying unknown quantum states, so quantum signals cannot be amplified.
-      Photon loss in fiber is exponential (~0.2 dB/km at 1550 nm), and without amplification,
-      direct transmission is limited to roughly 100 km.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch34-entanglement-swapping">
-    <div class="card-front">Explain entanglement swapping in one sentence.</div>
-    <div class="card-back">
-      A relay node (Charlie) performs a Bell-state measurement on one qubit from each of
-      two separate EPR pairs (Alice-Charlie and Charlie-Bob), which projects the remaining
-      qubits (Alice's and Bob's) into an entangled state, even though they never directly
-      interacted. This is equivalent to teleporting entanglement.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch34-purification-purpose">
-    <div class="card-front">What is entanglement purification and why is it needed?</div>
-    <div class="card-back">
-      Entanglement purification converts multiple low-fidelity entangled pairs into fewer
-      high-fidelity pairs using local operations and classical communication (LOCC). It is
-      needed because real-world entanglement is degraded by channel noise, imperfect sources,
-      and decoherence. Protocols require fidelity above certain thresholds to be useful.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch34-fiber-vs-satellite">
-    <div class="card-front">Why are satellite links preferred over fiber for intercontinental quantum communication?</div>
-    <div class="card-back">
-      Fiber loss is exponential (~0.2 dB/km), making direct transmission impractical beyond
-      a few hundred km. Satellite free-space links suffer only inverse-square-law loss,
-      which is far more favorable for long distances. China's Micius demonstrated
-      entanglement distribution over 1,200 km via satellite.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch34-no-ftl">
-    <div class="card-front">Can entanglement be used for faster-than-light communication? Why or why not?</div>
-    <div class="card-back">
-      No. The no-communication theorem proves that Bob's local measurement statistics are
-      independent of anything Alice does to her qubit. Bob always sees a random 50/50
-      outcome; correlations only become visible when results are compared via a classical
-      channel (limited to light speed). Entanglement enables remarkable protocols but all
-      require classical communication to complete.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch34-quantum-repeater">
-    <div class="card-front">How does a quantum repeater differ from a classical repeater?</div>
-    <div class="card-back">
-      A classical repeater copies and retransmits signals. A quantum repeater cannot copy
-      (no-cloning). Instead, it generates entanglement in short segments, purifies the
-      pairs, and uses entanglement swapping to stitch segments together. The quantum
-      information is teleported from segment to segment, never physically traversing
-      the full distance.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-</div>
-</section>

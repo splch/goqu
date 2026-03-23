@@ -49,6 +49,78 @@
   </p>
 </div>
 
+<!-- Widget 1: Exponential Wall -->
+<div class="widget" id="expwall-widget">
+  <div class="widget-header">The Exponential Wall</div>
+  <p style="font-size:0.9rem;margin-bottom:0.5rem">Drag the qubit slider to see how Hilbert space dimension and memory requirements grow.</p>
+  <div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:center;margin-bottom:0.75rem">
+    <label style="font-size:0.9rem;font-family:var(--font-mono)">Qubits n:
+      <input type="range" id="ew-n" min="1" max="300" step="1" value="40" style="width:14rem;accent-color:var(--color-accent)">
+      <output id="ew-n-out">40</output>
+    </label>
+  </div>
+  <div id="ew-output" style="font-family:var(--font-mono);font-size:0.9rem;line-height:1.8"></div>
+</div>
+<script>
+(function(){
+  var nSlider=document.getElementById("ew-n"),nOut=document.getElementById("ew-n-out");
+  var outEl=document.getElementById("ew-output");
+  function isDk(){return window.matchMedia("(prefers-color-scheme:dark)").matches;}
+  function fmt(exp){
+    if(exp<10)return Math.pow(2,exp).toString();
+    return "2^"+exp+" (~10^"+(exp*Math.LOG10E*Math.LN2).toFixed(0)+")";
+  }
+  function memStr(exp){
+    // Each complex amplitude = 16 bytes (two float64)
+    var logBytes=exp*Math.LN2/Math.LN10+Math.log10(16);
+    if(logBytes<3)return (Math.pow(10,logBytes)).toFixed(0)+" bytes";
+    if(logBytes<6)return (Math.pow(10,logBytes-3)).toFixed(1)+" KB";
+    if(logBytes<9)return (Math.pow(10,logBytes-6)).toFixed(1)+" MB";
+    if(logBytes<12)return (Math.pow(10,logBytes-9)).toFixed(1)+" GB";
+    if(logBytes<15)return (Math.pow(10,logBytes-12)).toFixed(1)+" TB";
+    if(logBytes<18)return (Math.pow(10,logBytes-15)).toFixed(1)+" PB";
+    if(logBytes<21)return (Math.pow(10,logBytes-18)).toFixed(1)+" EB";
+    return "10^"+(logBytes).toFixed(0)+" bytes";
+  }
+  function comparison(exp){
+    var logDim=exp*Math.LOG10E*Math.LN2;
+    if(logDim<3)return "fits in a small table";
+    if(logDim<6)return "fits on a modern PC";
+    if(logDim<9)return "requires a supercomputer";
+    if(logDim<12)return "beyond any single supercomputer";
+    if(logDim<20)return "beyond all computers ever built";
+    if(logDim<50)return "exceeds atoms on Earth (~10^50)";
+    if(logDim<80)return "exceeds atoms in the observable universe (~10^80)";
+    return "incomprehensibly vast";
+  }
+  function draw(){
+    var n=parseInt(nSlider.value,10);nOut.textContent=n;
+    var dk=isDk();
+    var accent=dk?"#6A9BD2":"#4C72B0";
+    var warn=dk?"#E07070":"#C44E52";
+    var ok=dk?"#78C87C":"#55a868";
+    var dimStr=fmt(n);
+    var mem=memStr(n);
+    var comp=comparison(n);
+    var logDim=n*Math.LOG10E*Math.LN2;
+    var color=logDim<9?ok:(logDim<20?accent:warn);
+    var html='<div style="padding:0.75rem;border-left:4px solid '+color+';background:'+(dk?'rgba(255,255,255,0.03)':'rgba(0,0,0,0.02)')+';border-radius:0 var(--radius) var(--radius) 0">';
+    html+='<div><strong>'+n+' qubits</strong></div>';
+    html+='<div>Hilbert space dimension: <strong>'+dimStr+'</strong></div>';
+    html+='<div>Memory for state vector: <strong>'+mem+'</strong></div>';
+    html+='<div>Matrix operations: <strong>'+fmt(2*n)+'</strong> entries ('+fmt(3*n)+' for diagonalization)</div>';
+    html+='<div style="margin-top:0.5rem;color:'+color+'"><strong>'+comp+'</strong></div>';
+    html+='</div>';
+    outEl.textContent="";
+    var tmp=document.createElement("div");
+    tmp.insertAdjacentHTML("beforeend",html);
+    while(tmp.firstChild)outEl.appendChild(tmp.firstChild);
+  }
+  nSlider.addEventListener("input",draw);
+  setTimeout(draw,50);
+})();
+</script>
+
 <h3>Feynman's Proposal</h3>
 
 <p>
@@ -255,6 +327,97 @@
   </p>
 </div>
 
+<!-- Widget 2: Classical Method Coverage -->
+<div class="widget" id="method-coverage-widget">
+  <div class="widget-header">Classical Method Coverage Map</div>
+  <p style="font-size:0.9rem;margin-bottom:0.5rem">
+    Each classical method covers a region of parameter space (system size vs correlation strength).
+    The "hard" regime - large, strongly correlated systems - is where all methods fail and quantum
+    simulation is needed. Hover over a region to learn more.
+  </p>
+  <canvas id="mc-canvas" width="600" height="340" style="width:100%;border:1px solid var(--color-border);border-radius:var(--radius);cursor:crosshair"></canvas>
+  <div id="mc-info" style="font-family:var(--font-mono);font-size:0.85rem;color:var(--color-text-muted);margin-top:0.5rem;min-height:2rem"></div>
+</div>
+<script>
+(function(){
+  var canvas=document.getElementById("mc-canvas"),ctx=canvas.getContext("2d");
+  var infoEl=document.getElementById("mc-info");
+  var methods=[
+    {name:"DFT",x1:0,y1:0,x2:0.95,y2:0.35,col:"rgba(76,114,176,0.25)",border:"#4C72B0",desc:"DFT: Handles large systems but only weak correlations. Approximate functionals fail for strongly correlated systems."},
+    {name:"CCSD(T)",x1:0,y1:0,x2:0.35,y2:0.45,col:"rgba(85,168,104,0.25)",border:"#55a868",desc:"Coupled Cluster: Gold standard for small, weakly correlated molecules. O(N^7) scaling limits system size."},
+    {name:"DMRG",x1:0,y1:0.3,x2:0.5,y2:0.9,col:"rgba(129,114,178,0.25)",border:"#8172B2",desc:"DMRG: Excellent for 1D strongly correlated systems. Fails in 2D/3D due to entanglement area law."},
+    {name:"QMC",x1:0.2,y1:0,x2:0.7,y2:0.55,col:"rgba(204,185,116,0.25)",border:"#CCB974",desc:"Quantum Monte Carlo: Handles moderate systems, but the sign problem kills accuracy for fermions in the strongly correlated regime."}
+  ];
+  function isDk(){return window.matchMedia("(prefers-color-scheme:dark)").matches;}
+  function draw(){
+    var dpr=window.devicePixelRatio||1;
+    var rect=canvas.getBoundingClientRect();
+    canvas.width=rect.width*dpr;canvas.height=rect.height*dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    var W=rect.width,H=rect.height;
+    var dk=isDk();
+    ctx.fillStyle=dk?"#262626":"#ffffff";ctx.fillRect(0,0,W,H);
+    var pad={l:70,r:20,t:25,b:45};
+    var pw=W-pad.l-pad.r,ph=H-pad.t-pad.b;
+    // "Quantum advantage" region (top-right)
+    ctx.fillStyle=dk?"rgba(224,112,112,0.12)":"rgba(196,78,82,0.08)";
+    ctx.fillRect(pad.l+pw*0.5,pad.t,pw*0.5,ph*0.5);
+    ctx.fillStyle=dk?"#E07070":"#C44E52";
+    var mono=getComputedStyle(document.body).getPropertyValue("--font-mono");
+    ctx.font="bold 12px "+mono;ctx.textAlign="center";
+    ctx.fillText("Quantum Advantage Zone",pad.l+pw*0.75,pad.t+ph*0.25);
+    ctx.font="10px "+mono;
+    ctx.fillText("(all classical methods fail)",pad.l+pw*0.75,pad.t+ph*0.25+16);
+    // Method regions
+    methods.forEach(function(m){
+      var x=pad.l+m.x1*pw,y=pad.t+(1-m.y2)*ph;
+      var w=(m.x2-m.x1)*pw,h=(m.y2-m.y1)*ph;
+      ctx.fillStyle=dk?m.col.replace("0.25","0.2"):m.col;
+      ctx.fillRect(x,y,w,h);
+      ctx.strokeStyle=m.border;ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
+      ctx.strokeRect(x,y,w,h);ctx.setLineDash([]);
+      ctx.fillStyle=dk?"#ccc":"#333";ctx.font="11px "+mono;ctx.textAlign="center";
+      ctx.fillText(m.name,x+w/2,y+h/2+4);
+    });
+    // Axes
+    ctx.strokeStyle=dk?"#666":"#aaa";ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(pad.l,pad.t+ph);ctx.lineTo(pad.l+pw,pad.t+ph);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,pad.t+ph);ctx.stroke();
+    ctx.fillStyle=dk?"#999":"#666";ctx.font="11px "+mono;ctx.textAlign="center";
+    ctx.fillText("System size (qubits/orbitals) -->",pad.l+pw/2,H-8);
+    ctx.save();ctx.translate(15,pad.t+ph/2);ctx.rotate(-Math.PI/2);ctx.fillText("Correlation strength -->",0,0);ctx.restore();
+    // Scale labels
+    ctx.textAlign="center";ctx.font="9px "+mono;
+    ctx.fillText("4",pad.l,pad.t+ph+12);ctx.fillText("100+",pad.l+pw,pad.t+ph+12);
+    ctx.textAlign="right";
+    ctx.fillText("Weak",pad.l-8,pad.t+ph-5);ctx.fillText("Strong",pad.l-8,pad.t+10);
+  }
+  canvas.addEventListener("mousemove",function(e){
+    var rect=canvas.getBoundingClientRect();
+    var mx=e.clientX-rect.left,my=e.clientY-rect.top;
+    var W=rect.width,H=rect.height;
+    var pad={l:70,r:20,t:25,b:45};
+    var pw=W-pad.l-pad.r,ph=H-pad.t-pad.b;
+    var fx=(mx-pad.l)/pw,fy=1-(my-pad.t)/ph;
+    var found=false;
+    for(var i=methods.length-1;i>=0;i--){
+      var m=methods[i];
+      if(fx>=m.x1&&fx<=m.x2&&fy>=m.y1&&fy<=m.y2){
+        infoEl.textContent=m.desc;found=true;break;
+      }
+    }
+    if(!found&&fx>0.5&&fy>0.5){
+      infoEl.textContent="Quantum advantage zone: large, strongly correlated systems where no classical method gives reliable results. This is where quantum simulation shines.";
+    }else if(!found){
+      infoEl.textContent="Move your cursor over the method regions or the quantum advantage zone.";
+    }
+  });
+  infoEl.textContent="Hover over method regions to learn about their coverage and limitations.";
+  window.addEventListener("resize",draw);
+  setTimeout(draw,50);
+})();
+</script>
+
 </section>
 
 <!-- ================================================================== -->
@@ -350,28 +513,6 @@ $$e^{-iHt} \approx \left( \prod_k e^{-iH_k t/n} \right)^n$$
   number of gates. As $n$ (the number of Trotter steps) increases, the approximation improves.
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="15">OPENQASM 3.0;
-// Digital simulation: 1 Trotter step of a 2-qubit Ising model
-// H = J*Z*Z + h*X, with J=pi/4, h=pi/8
-// e^(-iHt) ~ e^(-iJ*ZZ*dt) * e^(-ih*X*dt) for small dt
-qubit[2] q;
-bit[2] c;
-// Start in |+> state on first qubit
-h q[0];
-// ZZ interaction: Rzz(2*J*dt) with J=pi/4, dt=1
-rzz(pi/2) q[0], q[1];
-// Transverse field: Rx(2*h*dt) on each qubit, h=pi/8
-rx(pi/4) q[0];
-rx(pi/4) q[1];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
 <p>
   This sandbox implements a single Trotter step for a two-qubit Ising model. The
   <code>rzz</code> gate implements the $ZZ$ interaction, and the <code>rx</code> gates implement
@@ -434,6 +575,41 @@ c = measure q;</textarea>
     </tr>
   </tbody>
 </table>
+
+<!-- Comparison 3: Analog vs Digital -->
+<div class="comparison" data-component="comparison">
+  <div class="comparison-controls">
+    <label>Trotter steps:
+      <input type="range" data-param="steps" min="1" max="10" step="1" value="2" style="width:8rem">
+      <output>2</output>
+    </label>
+  </div>
+  <div class="comparison-panels">
+    <div class="comparison-panel" data-label="Analog (continuous evolution)">
+      <div class="comparison-qasm">OPENQASM 3.0;
+qubit[2] q; bit[2] c;
+x q[0];
+rzz(1.5708) q[0], q[1];
+rx(0.7854) q[0];
+rx(0.7854) q[1];
+c = measure q;</div>
+      <div class="comparison-output"></div>
+    </div>
+    <div class="comparison-panel" data-label="Digital ({steps} Trotter steps)">
+      <div class="comparison-qasm">OPENQASM 3.0;
+qubit[2] q; bit[2] c;
+x q[0];
+rzz(0.7854) q[0], q[1];
+rx(0.3927) q[0];
+rx(0.3927) q[1];
+rzz(0.7854) q[0], q[1];
+rx(0.3927) q[0];
+rx(0.3927) q[1];
+c = measure q;</div>
+      <div class="comparison-output"></div>
+    </div>
+  </div>
+</div>
 
 <h3>The Verification Problem</h3>
 
@@ -541,31 +717,6 @@ c = measure q;</textarea>
   many qubits are more valuable than exact answers with few qubits.
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="18">OPENQASM 3.0;
-// Comparing 1 vs 2 Trotter steps for ZZ + X Hamiltonian
-// More steps = better approximation of true evolution
-qubit[2] q;
-bit[2] c;
-h q[0];
-// Two Trotter steps: each with half the angle
-// Step 1
-rzz(pi/4) q[0], q[1];
-rx(pi/8) q[0];
-rx(pi/8) q[1];
-// Step 2
-rzz(pi/4) q[0], q[1];
-rx(pi/8) q[0];
-rx(pi/8) q[1];
-// This is more accurate than 1 step with full angles
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
 <p>
   Compare this two-step Trotter circuit with the single-step version above. Both simulate the
   same total evolution time, but the two-step version divides the angles in half and applies
@@ -585,136 +736,28 @@ c = measure q;</textarea>
   </p>
 </div>
 
-</section>
-
-<!-- ================================================================== -->
-
-<section id="review">
-<h2>Chapter 32 Review</h2>
-
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 32 Review</div>
-
-  <div class="flashcard" data-card-id="ch32-exponential-wall">
-    <div class="card-front">What is the "exponential wall" in classical simulation of quantum systems?</div>
-    <div class="card-back">
-      The state of $n$ quantum particles (e.g., spin-1/2) lives in a Hilbert space of dimension
-      $2^n$, requiring $2^n$ complex amplitudes to describe. For $n = 300$, this exceeds the
-      number of atoms in the observable universe. Matrix operations scale as $2^{2n}$ or $2^{3n}$.
-      This exponential growth is not an algorithm limitation but a fundamental feature of quantum
-      mechanics (tensor product structure of Hilbert spaces).
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
+<!-- Sandbox 4: Trotter Step -->
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="12">OPENQASM 3.0;
+qubit[2] q; bit[2] c;
+// Initial state: |10> (spin up on qubit 0)
+x q[0];
+// 2-qubit Ising model: H = J*ZZ + h*(X0 + X1)
+// J=1.0, h=0.5, total time t=pi/2
+// 4 Trotter steps, dt = pi/8
+// Each step: Rzz(2*J*dt) then Rx(2*h*dt) on each qubit
+rzz(0.3927) q[0], q[1]; rx(0.1963) q[0]; rx(0.1963) q[1];
+rzz(0.3927) q[0], q[1]; rx(0.1963) q[0]; rx(0.1963) q[1];
+rzz(0.3927) q[0], q[1]; rx(0.1963) q[0]; rx(0.1963) q[1];
+rzz(0.3927) q[0], q[1]; rx(0.1963) q[0]; rx(0.1963) q[1];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
   </div>
-
-  <div class="flashcard" data-card-id="ch32-feynman-proposal">
-    <div class="card-front">What did Feynman propose in 1982, and why was it significant?</div>
-    <div class="card-back">
-      Feynman proposed using quantum mechanical computers to simulate quantum physics, arguing that
-      classical computers face an exponential barrier. A quantum computer with $n$ qubits can
-      directly represent an $n$-particle quantum state without exponential overhead. This insight
-      was the origin of quantum computing: both the first proposed application and the strongest
-      argument for quantum advantage.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch32-simulation-tasks">
-    <div class="card-front">Name four common computational tasks in quantum simulation.</div>
-    <div class="card-back">
-      (1) <strong>Ground state energy:</strong> finding the smallest eigenvalue of $H$.
-      (2) <strong>Time evolution:</strong> computing $e^{-iHt}|\psi\rangle$.
-      (3) <strong>Thermal properties:</strong> computing $\text{Tr}(e^{-\beta H})$ or thermal
-      expectation values. (4) <strong>Spectral properties:</strong> energy gaps, excited states,
-      and transition amplitudes. Time evolution is the most natural for quantum computers; ground
-      state problems relate to QMA-hardness.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch32-analog-simulation">
-    <div class="card-front">What is analog quantum simulation, and what are its main advantages and limitations?</div>
-    <div class="card-back">
-      Analog quantum simulation uses a controllable quantum system whose natural Hamiltonian mimics
-      the target Hamiltonian (e.g., cold atoms in optical lattices for Hubbard models). Advantages:
-      simpler to implement, can handle large systems (hundreds of qubits). Limitations: restricted
-      to physically realizable Hamiltonians, difficult to error-correct, hard to independently
-      verify results, limited by analog control precision.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch32-digital-simulation">
-    <div class="card-front">What is digital quantum simulation, and how does it differ from analog?</div>
-    <div class="card-back">
-      Digital quantum simulation decomposes $e^{-iHt}$ into a sequence of quantum gates using
-      techniques like Trotterization. It is universal (any Hamiltonian), compatible with error
-      correction, and has provable error bounds. Unlike analog simulation, it requires deep
-      circuits with many gates, and gate errors accumulate. Digital simulation offers systematic
-      improvability but currently demands fault-tolerant hardware for full advantage.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch32-analog-platforms">
-    <div class="card-front">Name four experimental platforms used for analog quantum simulation.</div>
-    <div class="card-back">
-      (1) <strong>Ultracold atoms in optical lattices:</strong> implement Hubbard models, systems
-      of hundreds of atoms. (2) <strong>Trapped ions:</strong> long-range spin-spin interactions,
-      50+ qubits demonstrated. (3) <strong>Superconducting circuits:</strong> tunable couplers for
-      lattice models. (4) <strong>Rydberg atom arrays:</strong> arbitrary geometries via optical
-      tweezers, 200+ atoms, quantum phase transitions and spin liquids.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch32-lloyd-1996">
-    <div class="card-front">What did Seth Lloyd prove in 1996 about quantum simulation?</div>
-    <div class="card-back">
-      Lloyd proved that a quantum computer can efficiently simulate any local Hamiltonian,
-      vindicating Feynman's proposal. Using the Trotter-Suzuki decomposition, simulating time $t$
-      for a system with $m$ local terms to accuracy $\epsilon$ requires $O(m^2 t^2/\epsilon)$
-      gates. This showed that digital quantum simulation is efficient (polynomial cost) for local
-      Hamiltonians.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch32-why-simulation-matters">
-    <div class="card-front">Why is quantum simulation considered the most promising near-term quantum application?</div>
-    <div class="card-back">
-      Quantum simulation is promising because: (1) the problem is inherently quantum, giving
-      quantum computers a structural advantage; (2) classical difficulty is well-established;
-      (3) scientific and economic impact is enormous (drug discovery, materials, chemistry);
-      (4) useful simulations may require fewer qubits and shallower circuits than algorithms
-      like Shor's. Even modest quantum simulations could solve classically intractable problems
-      in chemistry and materials science.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
+  <div class="output"></div>
 </div>
+
 </section>
+
+

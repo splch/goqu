@@ -152,7 +152,7 @@ func rowMulPhase(xt, zt, xs, zs []uint64, rt, rs bool) bool {
 	return (phase % 4) >= 2
 }
 
-// --- Gate operations (all O(n) per gate) ---
+// Gate operations (all O(n) per gate)
 
 // H applies a Hadamard gate on qubit q.
 // For each row: swap x,z at col q; then r ^= (x & z) where x is the new x bit.

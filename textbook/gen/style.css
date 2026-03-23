@@ -60,7 +60,6 @@ body {
   min-height: 100vh;
 }
 
-/* --- Sidebar --- */
 .sidebar {
   position: sticky;
   top: 0;
@@ -173,7 +172,6 @@ body {
   }
 }
 
-/* --- Main content --- */
 main {
   max-width: var(--content-width);
   margin: 0 auto;
@@ -185,7 +183,6 @@ main {
   main { padding: 3.5rem 1rem 4rem; }
 }
 
-/* --- Breadcrumb --- */
 .breadcrumb {
   font-size: 0.85rem;
   color: var(--color-text-muted);
@@ -199,7 +196,6 @@ main {
 
 .breadcrumb a:hover { text-decoration: underline; }
 
-/* --- Typography --- */
 article h1 {
   font-size: 2rem;
   line-height: 1.2;
@@ -284,7 +280,6 @@ article th {
   background: var(--color-code-bg);
 }
 
-/* --- Callout boxes --- */
 .callout {
   margin: 1.5rem 0;
   padding: 1rem 1.25rem;
@@ -311,10 +306,8 @@ article th {
 
 .callout strong:first-child { display: block; margin-bottom: 0.25rem; }
 
-/* --- KaTeX display math --- */
 .katex-display { overflow-x: auto; overflow-y: hidden; padding: 0.5rem 0; }
 
-/* --- Sandbox (QASM code editor + output) --- */
 .sandbox {
   margin: 1.5rem 0;
   border: 1px solid var(--color-border);
@@ -397,7 +390,6 @@ article svg { max-width: 100%; height: auto; }
   font-size: 0.85rem;
 }
 
-/* --- Simulation (parameter sliders) --- */
 .simulation {
   margin: 1.5rem 0;
   border: 1px solid var(--color-border);
@@ -444,7 +436,6 @@ article svg { max-width: 100%; height: auto; }
 
 .sim-qasm { display: none; }
 
-/* --- Exercise (graded coding challenge) --- */
 .exercise {
   margin: 1.5rem 0;
   border: 2px solid var(--color-accent);
@@ -507,7 +498,6 @@ article svg { max-width: 100%; height: auto; }
   color: var(--color-error);
 }
 
-/* --- Flashcard (spaced repetition) --- */
 .flashcard-deck {
   margin: 1.5rem 0;
   border: 1px solid var(--color-border);
@@ -571,7 +561,6 @@ article svg { max-width: 100%; height: auto; }
 .flashcard-controls button.easy { border-color: var(--color-success); color: var(--color-success); }
 .flashcard-controls button.hard { border-color: var(--color-error); color: var(--color-error); }
 
-/* --- Predict-Observe-Explain --- */
 .poe {
   margin: 1.5rem 0;
   border: 1px solid var(--color-border);
@@ -645,7 +634,6 @@ article svg { max-width: 100%; height: auto; }
 
 .poe-progress-step.done { color: var(--color-success); }
 
-/* --- Chapter navigation --- */
 .chapter-nav {
   display: flex;
   justify-content: space-between;
@@ -668,7 +656,6 @@ article svg { max-width: 100%; height: auto; }
 .chapter-nav .next { text-align: right; margin-left: auto; }
 .nav-spacer { flex: 1; }
 
-/* --- Index page --- */
 .index-hero {
   text-align: center;
   margin: 2rem 0 3rem;
@@ -718,7 +705,6 @@ article svg { max-width: 100%; height: auto; }
   font-weight: 600;
 }
 
-/* --- JS-only interactive widgets --- */
 .widget {
   margin: 1.5rem 0;
   border: 1px solid var(--color-border);
@@ -764,7 +750,6 @@ article svg { max-width: 100%; height: auto; }
   font-size: 0.9rem;
 }
 
-/* --- Amplitude/state table --- */
 .state-table {
   width: 100%;
   border-collapse: collapse;
@@ -781,7 +766,6 @@ article svg { max-width: 100%; height: auto; }
 
 .state-table th { background: var(--color-code-bg); font-weight: 600; }
 
-/* --- Utility classes --- */
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -790,7 +774,6 @@ article svg { max-width: 100%; height: auto; }
   clip: rect(0,0,0,0);
 }
 
-/* --- Comparison panels (ideal vs noisy side-by-side) --- */
 .comparison-panels {
   display: flex;
   gap: 1rem;
@@ -818,7 +801,6 @@ article svg { max-width: 100%; height: auto; }
   .comparison-panels { flex-direction: column; }
 }
 
-/* --- Simulation stats readout --- */
 .sim-stats {
   display: flex;
   gap: 1.5rem;
@@ -829,7 +811,6 @@ article svg { max-width: 100%; height: auto; }
   color: var(--color-text-muted);
 }
 
-/* --- Stabilizer table --- */
 .stabilizer-table {
   width: 100%;
   margin-top: 0.75rem;
@@ -862,7 +843,6 @@ article svg { max-width: 100%; height: auto; }
 .stab-y { color: #27ae60; font-weight: 600; }
 .stab-z { color: #2980b9; font-weight: 600; }
 
-/* --- Step-Through component --- */
 .step-through {
   margin: 1.5rem 0;
   border: 1px solid var(--color-border);
@@ -911,7 +891,6 @@ article svg { max-width: 100%; height: auto; }
 
 .step-qasm { display: none; }
 
-/* --- Amplitude bars (Grover step-through) --- */
 .amplitude-bars {
   display: flex;
   gap: 0.25rem;
@@ -955,7 +934,254 @@ article svg { max-width: 100%; height: auto; }
   color: var(--color-text-muted);
 }
 
-/* --- Utility classes --- */
+.comparison {
+  margin: 1.5rem 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.comparison-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--color-code-bg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.comparison-controls label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  font-family: var(--font-mono);
+}
+
+.comparison-controls input[type="range"] {
+  width: 10rem;
+  accent-color: var(--color-accent);
+}
+
+.comparison-controls output {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  min-width: 3rem;
+}
+
+.comparison-controls select {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.comparison-controls button {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  padding: 0.35rem 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-accent);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.comparison-controls button:hover { background: var(--color-accent-hover); }
+
+.comparison .comparison-panels {
+  display: flex;
+  gap: 0;
+  width: 100%;
+}
+
+.comparison .comparison-panel {
+  flex: 1;
+  min-width: 0;
+  padding: 1rem;
+  text-align: center;
+  position: relative;
+}
+
+.comparison .comparison-panel + .comparison-panel {
+  border-left: 1px solid var(--color-border);
+}
+
+.comparison .comparison-panel::before {
+  content: attr(data-label);
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.comparison .comparison-output {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 2rem;
+}
+
+.comparison .comparison-output svg { max-width: 100%; height: auto; }
+
+.comparison .comparison-qasm { display: none; }
+
+@media (max-width: 600px) {
+  .comparison .comparison-panels { flex-direction: column; }
+  .comparison .comparison-panel + .comparison-panel {
+    border-left: none;
+    border-top: 1px solid var(--color-border);
+  }
+}
+
+.animated-walkthrough {
+  margin: 1.5rem 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.walkthrough-progress {
+  display: flex;
+  padding: 0.5rem 1rem;
+  background: var(--color-code-bg);
+  border-bottom: 1px solid var(--color-border);
+  gap: 0;
+}
+
+.walkthrough-pip {
+  flex: 1;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.35rem 0;
+  color: var(--color-text-muted);
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.walkthrough-pip:hover { color: var(--color-accent); }
+
+.walkthrough-pip.active {
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+}
+
+.walkthrough-pip.done { color: var(--color-success); }
+
+.walkthrough-stage {
+  display: none;
+  padding: 1.25rem;
+  animation: walkthrough-fadein 0.3s ease;
+}
+
+.walkthrough-stage.active { display: block; }
+
+@keyframes walkthrough-fadein {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.walkthrough-stage.walkthrough-exit {
+  display: block;
+  animation: walkthrough-fadeout 0.15s ease forwards;
+}
+
+@keyframes walkthrough-fadeout {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-8px); }
+}
+
+.walkthrough-narration {
+  margin-bottom: 1rem;
+}
+
+.walkthrough-narration h4 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  color: var(--color-accent);
+}
+
+.walkthrough-narration p {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.walkthrough-narration p:last-child { margin-bottom: 0; }
+
+.walkthrough-viz {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 2rem;
+}
+
+.walkthrough-viz svg { max-width: 100%; height: auto; }
+
+.walkthrough-qasm { display: none; }
+
+.walkthrough-output {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.walkthrough-output svg { max-width: 100%; height: auto; }
+
+.walkthrough-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  background: var(--color-code-bg);
+  border-top: 1px solid var(--color-border);
+}
+
+.walkthrough-controls button {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  padding: 0.35rem 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-accent);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.walkthrough-controls button:hover { background: var(--color-accent-hover); }
+.walkthrough-controls button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.walkthrough-controls button[data-action="auto"] {
+  margin-left: auto;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+.walkthrough-controls button[data-action="auto"]:hover {
+  background: var(--color-code-bg);
+}
+
 .flex-center { display: flex; justify-content: center; align-items: center; }
 .gap-1 { gap: 1rem; }
 .mt-1 { margin-top: 1rem; }

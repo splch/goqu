@@ -23,6 +23,134 @@
   role categories, what they involve, and what background they require.
 </p>
 
+<!-- Widget 1: Career Role Map -->
+<div class="widget" id="career-role-map">
+  <div class="widget-header">Career Role Map</div>
+  <p style="font-size:0.9rem; color:var(--color-text-muted); margin-bottom:0.75rem;">Click a role to see details. Lines connect roles that share key skills.</p>
+  <div id="role-svg" style="width:100%; overflow-x:auto;"></div>
+  <div id="role-details" style="font-size:0.9rem; margin-top:0.75rem; padding:0.75rem; border:1px solid var(--color-border); border-radius:var(--radius); display:none;"></div>
+</div>
+
+<script>
+(function(){
+  var svgBox = document.getElementById('role-svg');
+  var detailsBox = document.getElementById('role-details');
+
+  function isDk(){ return window.matchMedia("(prefers-color-scheme: dark)").matches; }
+
+  var roles = [
+    {id:0, name:"Hardware\nEngineer", short:"HW Eng", color:"#e74c3c", x:260, y:50,
+     skills:["Physics","EE","Cryo","Fab"], bg:"PhD Physics/EE", demand:"High"},
+    {id:1, name:"Software\nEngineer", short:"SW Eng", color:"#3498db", x:420, y:100,
+     skills:["Python","Rust","Compilers","Cloud"], bg:"BS/MS CS", demand:"Very High"},
+    {id:2, name:"Algorithm\nResearcher", short:"Algo Res", color:"#9b59b6", x:100, y:100,
+     skills:["Math","Complexity","QI Theory"], bg:"PhD CS/Math/Physics", demand:"High"},
+    {id:3, name:"Applications\nScientist", short:"App Sci", color:"#2ecc71", x:180, y:200,
+     skills:["Domain expertise","VQE/QAOA","Optimization"], bg:"PhD Domain + QC", demand:"Growing"},
+    {id:4, name:"QEC\nSpecialist", short:"QEC Spec", color:"#e67e22", x:340, y:200,
+     skills:["Coding theory","Decoders","Stat mech"], bg:"PhD Physics/CS", demand:"Very High"},
+    {id:5, name:"Product\nManager", short:"PM/BD", color:"#1abc9c", x:440, y:250,
+     skills:["Business","Communication","QC literacy"], bg:"MBA + QC training", demand:"Growing"},
+    {id:6, name:"Educator /\nTech Writer", short:"Educator", color:"#f1c40f", x:100, y:270,
+     skills:["Communication","Teaching","QC knowledge"], bg:"Any + communication", demand:"Growing"}
+  ];
+
+  // Shared-skill edges
+  var edges = [
+    [0,1],[0,2],[0,4],[1,3],[1,4],[1,5],[2,3],[2,4],[2,6],[3,5],[3,6],[4,1],[5,6]
+  ];
+
+  var selected = -1;
+
+  function draw(){
+    var dark = isDk();
+    var textC = dark ? '#ccc' : '#333';
+
+    var W = 520, H = 320;
+    var ns = document.createElementNS("http://www.w3.org/2000/svg","svg");
+    ns.setAttribute("viewBox","0 0 "+W+" "+H);
+    ns.setAttribute("style","font-family:system-ui,sans-serif;max-width:100%;height:auto;cursor:pointer;");
+
+    function mkEl(tag,attrs){
+      var e = document.createElementNS("http://www.w3.org/2000/svg",tag);
+      for(var k in attrs) e.setAttribute(k,attrs[k]);
+      return e;
+    }
+    function addText(x,y,txt,sz,anch,col,fw){
+      var t = mkEl("text",{x:x,y:y,"text-anchor":anch||"middle",fill:col||textC,"font-size":sz||"11"});
+      if(fw) t.setAttribute("font-weight",fw);
+      t.textContent = txt;
+      ns.appendChild(t);
+    }
+
+    // Edges
+    for(var e=0;e<edges.length;e++){
+      var a = roles[edges[e][0]], b = roles[edges[e][1]];
+      var isHighlighted = selected === edges[e][0] || selected === edges[e][1];
+      ns.appendChild(mkEl("line",{
+        x1:a.x, y1:a.y, x2:b.x, y2:b.y,
+        stroke: isHighlighted ? "#f39c12" : (dark?"#444":"#ddd"),
+        "stroke-width": isHighlighted ? "2" : "1",
+        opacity: isHighlighted ? "1" : "0.5"
+      }));
+    }
+
+    // Role nodes
+    for(var i=0;i<roles.length;i++){
+      var r = roles[i];
+      var isSelected = selected === i;
+      var radius = isSelected ? 32 : 28;
+      ns.appendChild(mkEl("circle",{
+        cx:r.x, cy:r.y, r:radius,
+        fill:r.color, opacity:isSelected?"1":"0.8",
+        stroke:isSelected?"#fff":"none", "stroke-width":"2"
+      }));
+      // Split name by newline
+      var lines = r.short.split('\n');
+      for(var l=0;l<lines.length;l++){
+        addText(r.x, r.y + (l - (lines.length-1)/2) * 12 + 4, lines[l], "9", "middle", "#fff", "600");
+      }
+
+      // Click handler
+      (function(idx){
+        var hitCircle = mkEl("circle",{cx:roles[idx].x, cy:roles[idx].y, r:35, fill:"transparent"});
+        hitCircle.addEventListener('click', function(){
+          selected = selected === idx ? -1 : idx;
+          draw();
+          showDetails();
+        });
+        ns.appendChild(hitCircle);
+      })(i);
+    }
+
+    while(svgBox.firstChild) svgBox.removeChild(svgBox.firstChild);
+    svgBox.appendChild(ns);
+  }
+
+  function showDetails(){
+    if(selected === -1){
+      detailsBox.style.display = 'none';
+      return;
+    }
+    var r = roles[selected];
+    detailsBox.style.display = 'block';
+    detailsBox.textContent = '';
+    var title = document.createElement('strong');
+    title.textContent = r.name.replace('\n',' ');
+    title.style.color = r.color;
+    detailsBox.appendChild(title);
+    detailsBox.appendChild(document.createElement('br'));
+    detailsBox.appendChild(document.createTextNode('Key skills: ' + r.skills.join(', ')));
+    detailsBox.appendChild(document.createElement('br'));
+    detailsBox.appendChild(document.createTextNode('Background: ' + r.bg));
+    detailsBox.appendChild(document.createElement('br'));
+    detailsBox.appendChild(document.createTextNode('Demand: ' + r.demand));
+  }
+
+  draw();
+})();
+</script>
+
 <h3>Quantum Hardware Engineer</h3>
 
 <p>
@@ -139,6 +267,108 @@
   Regardless of your target role, certain foundational skills are essential. Here is a
   staged roadmap from beginner to job-ready.
 </p>
+
+<!-- Widget 2: Skills Progression -->
+<div class="widget" id="skills-progression">
+  <div class="widget-header">Skills Progression: Foundation to Job-Ready</div>
+  <div id="skills-svg" style="width:100%; overflow-x:auto;"></div>
+</div>
+
+<script>
+(function(){
+  var svgBox = document.getElementById('skills-svg');
+
+  function isDk(){ return window.matchMedia("(prefers-color-scheme: dark)").matches; }
+
+  function draw(){
+    var dark = isDk();
+    var textC = dark ? '#ccc' : '#333';
+    var mutedC = dark ? '#888' : '#999';
+
+    var tiers = [
+      {name:"Stage 1: Foundations", time:"1-3 months", color:"#3498db",
+       groups:[
+         {cat:"Math", items:["Linear algebra","Complex numbers","Probability"]},
+         {cat:"Physics", items:["Superposition","Measurement","QM basics"]},
+         {cat:"Programming", items:["Python fluency","Jupyter notebooks"]},
+         {cat:"QC Basics", items:["Qubits & gates","Circuits","Qiskit/Cirq"]}
+       ]},
+      {name:"Stage 2: Intermediate", time:"3-6 months", color:"#e67e22",
+       groups:[
+         {cat:"Algorithms", items:["Grover","Shor (concept)","VQE/QAOA"]},
+         {cat:"QEC", items:["Bit-flip code","Surface code","Stabilizers"]},
+         {cat:"Noise", items:["Channels","T1/T2","Error mitigation"]},
+         {cat:"Specialization", items:["Choose focus area"]}
+       ]},
+      {name:"Stage 3: Advanced", time:"6-12 months", color:"#27ae60",
+       groups:[
+         {cat:"Research", items:["Read papers","Attend talks"]},
+         {cat:"Portfolio", items:["Major project","GitHub showcase"]},
+         {cat:"Open Source", items:["Contribute to Qiskit/Cirq/etc."]},
+         {cat:"Community", items:["Conferences","Networking","Presentations"]}
+       ]}
+    ];
+
+    var W = 520, H = 360;
+    var ns = document.createElementNS("http://www.w3.org/2000/svg","svg");
+    ns.setAttribute("viewBox","0 0 "+W+" "+H);
+    ns.setAttribute("style","font-family:system-ui,sans-serif;max-width:100%;height:auto;");
+
+    function mkEl(tag,attrs){
+      var e = document.createElementNS("http://www.w3.org/2000/svg",tag);
+      for(var k in attrs) e.setAttribute(k,attrs[k]);
+      return e;
+    }
+    function addText(x,y,txt,sz,anch,col,fw){
+      var t = mkEl("text",{x:x,y:y,"text-anchor":anch||"middle",fill:col||textC,"font-size":sz||"11"});
+      if(fw) t.setAttribute("font-weight",fw);
+      t.textContent = txt;
+      ns.appendChild(t);
+    }
+
+    var tierH = (H - 20) / tiers.length;
+    var colW = (W - 20) / 4;
+
+    for(var t=0;t<tiers.length;t++){
+      var tier = tiers[t];
+      var y0 = 10 + t * tierH;
+
+      // Tier background
+      ns.appendChild(mkEl("rect",{x:5,y:y0,width:W-10,height:tierH-6,rx:6,fill:tier.color,opacity:"0.08",stroke:tier.color,"stroke-width":"1",opacity:"0.15"}));
+
+      // Tier header
+      addText(W/2,y0+18,tier.name+" ("+tier.time+")","11","middle",tier.color,"600");
+
+      // Arrow between tiers
+      if(t < tiers.length - 1){
+        var arrowY = y0 + tierH - 3;
+        ns.appendChild(mkEl("polygon",{points:(W/2-6)+","+arrowY+" "+(W/2+6)+","+arrowY+" "+W/2+","+(arrowY+6),fill:tier.color,opacity:"0.5"}));
+      }
+
+      // Groups
+      for(var g=0;g<tier.groups.length;g++){
+        var grp = tier.groups[g];
+        var gx = 15 + g * colW;
+        var gy = y0 + 30;
+
+        addText(gx+colW/2-5,gy+10,grp.cat,"10","middle",textC,"600");
+
+        for(var i=0;i<grp.items.length;i++){
+          var iy = gy + 24 + i * 16;
+          ns.appendChild(mkEl("circle",{cx:gx+12,cy:iy-3,r:2.5,fill:tier.color}));
+          addText(gx+20,iy,grp.items[i],"9","start",mutedC);
+        }
+      }
+    }
+
+    while(svgBox.firstChild) svgBox.removeChild(svgBox.firstChild);
+    svgBox.appendChild(ns);
+  }
+
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener('change', draw);
+  draw();
+})();
+</script>
 
 <h3>Stage 1: Foundations (1-3 months)</h3>
 
@@ -324,78 +554,4 @@
 
 <hr />
 
-<!-- ================================================================== -->
-<section id="review">
-<h2>Chapter 41 Review</h2>
 
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 41 Review</div>
-
-  <div class="flashcard" data-card-id="ch41-roles-overview">
-    <div class="card-front">Name four distinct roles in the quantum computing industry and the background each requires.</div>
-    <div class="card-back">
-      (1) Quantum hardware engineer: experimental physics/EE, typically PhD for research. (2) Quantum software engineer: CS/SE with Python/Rust, BS often sufficient. (3) Quantum algorithm researcher: CS theory/math/physics PhD, strong mathematical foundations. (4) Quantum applications scientist: domain expertise (chemistry, finance, ML) combined with quantum knowledge. Also: QEC specialist, product manager, educator.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch41-skills-stage1">
-    <div class="card-front">What are the four foundational skills needed to start in quantum computing?</div>
-    <div class="card-back">
-      (1) Linear algebra: vectors, matrices, eigenvalues, tensor products, unitary/Hermitian matrices. (2) Quantum mechanics basics: superposition, measurement, entanglement (quantum information perspective suffices). (3) Python programming fluency. (4) Basic quantum computing: qubits, gates, circuits, measurement - ability to write and run circuits in Qiskit or Cirq.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch41-qip-conference">
-    <div class="card-front">What is QIP and why is it important?</div>
-    <div class="card-back">
-      QIP (Quantum Information Processing) is the premier academic conference for quantum information science. It is highly selective and focused on theoretical and foundational results. Attending or following QIP gives exposure to cutting-edge research. Other key venues: APS March Meeting (physics), IEEE Quantum Week (industry), Q2B (business applications).
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch41-arxiv-importance">
-    <div class="card-front">Why is arXiv (quant-ph) essential for staying current in quantum computing?</div>
-    <div class="card-back">
-      Nearly all quantum computing papers appear on arXiv before (or instead of) journal publication. It is the primary preprint server and the way researchers stay current with the latest results. Reading arXiv regularly is how the quantum community shares and discovers new work. Key journals (Nature, PRL, PRX Quantum, Quantum) publish peer-reviewed versions, but arXiv is where results first appear.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch41-opensource-start">
-    <div class="card-front">What is the recommended approach for getting started with quantum open-source contributions?</div>
-    <div class="card-back">
-      (1) Pick a project you have used (Qiskit, Cirq, PennyLane, Mitiq). (2) Read the CONTRIBUTING.md file. (3) Start small: fix documentation typos, add tests, improve error messages. (4) Join the project's community channels. (5) Escalate gradually to larger features. The Unitary Fund also offers micro-grants ($2K-$10K) for new quantum software projects.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch41-career-advice">
-    <div class="card-front">Why is open-source contribution valuable for a quantum computing career?</div>
-    <div class="card-back">
-      In a field with a talent shortage, your GitHub profile functions as your resume. Contributions demonstrate technical skill, collaboration ability, and initiative. Several people have been hired at major quantum companies specifically because of open-source contributions. The quantum open-source ecosystem is more welcoming to newcomers than many other technical communities because the field is young and growing.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-</div>
-</section>

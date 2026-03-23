@@ -93,6 +93,52 @@ $$F_4 = \frac{1}{2} \begin{pmatrix} 1 & 1 & 1 & 1 \\ 1 & i & i^2 & i^3 \\ 1 & i^
   with each of these $N$ rotational frequencies.
 </p>
 
+<h3>Interactive: Roots of Unity on the Unit Circle</h3>
+
+<div class="widget" id="roots-widget">
+  <div class="widget-header">N-th Roots of Unity</div>
+  <div class="widget-body">
+    <label style="font-size:0.85rem;">N: <input type="range" id="roots-n" min="2" max="16" step="1" value="4" style="width:10rem;vertical-align:middle;"> <span id="roots-n-val">4</span></label>
+  </div>
+  <div class="widget-output" id="roots-output"></div>
+</div>
+<script>
+(function(){
+  var nS=document.getElementById("roots-n"),nV=document.getElementById("roots-n-val"),out=document.getElementById("roots-output");
+  function update(){
+    var N=parseInt(nS.value); nV.textContent=N;
+    var W=280,H=280,cx=W/2,cy=H/2,R=100;
+    var svg='<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" style="font-family:var(--font-mono);font-size:10px;">';
+    // circle
+    svg+='<circle cx="'+cx+'" cy="'+cy+'" r="'+R+'" fill="none" stroke="var(--color-border)" stroke-width="1"/>';
+    // axes
+    svg+='<line x1="'+(cx-R-15)+'" y1="'+cy+'" x2="'+(cx+R+15)+'" y2="'+cy+'" stroke="var(--color-text-muted)" stroke-width="0.5" stroke-dasharray="3,3"/>';
+    svg+='<line x1="'+cx+'" y1="'+(cy-R-15)+'" x2="'+cx+'" y2="'+(cy+R+15)+'" stroke="var(--color-text-muted)" stroke-width="0.5" stroke-dasharray="3,3"/>';
+    svg+='<text x="'+(cx+R+18)+'" y="'+(cy+4)+'" fill="var(--color-text-muted)" font-size="9">Re</text>';
+    svg+='<text x="'+(cx+3)+'" y="'+(cy-R-8)+'" fill="var(--color-text-muted)" font-size="9">Im</text>';
+    // points and lines
+    var colors=["var(--color-accent)","var(--color-state)","var(--color-success)","#e67e22","#9b59b6","#1abc9c","#e74c3c","#3498db"];
+    for(var k=0;k<N;k++){
+      var angle=2*Math.PI*k/N;
+      var px=cx+R*Math.cos(angle), py=cy-R*Math.sin(angle);
+      var col=colors[k%colors.length];
+      svg+='<line x1="'+cx+'" y1="'+cy+'" x2="'+px+'" y2="'+py+'" stroke="'+col+'" stroke-width="1" opacity="0.4"/>';
+      svg+='<circle cx="'+px+'" cy="'+py+'" r="5" fill="'+col+'"/>';
+      var lx=cx+(R+16)*Math.cos(angle), ly=cy-(R+16)*Math.sin(angle);
+      svg+='<text x="'+lx+'" y="'+(ly+3)+'" text-anchor="middle" fill="var(--color-text)" font-size="9">\u03C9^'+k+'</text>';
+    }
+    svg+='<text x="'+cx+'" y="'+(H-5)+'" text-anchor="middle" fill="var(--color-text-muted)" font-size="9">\u03C9 = e^(2\u03C0i/'+N+'), the '+N+' roots are equally spaced</text>';
+    svg+='</svg>';
+    out.textContent="";
+    var d=document.createElement("div");d.style.textAlign="center";
+    d.insertAdjacentHTML("afterbegin",svg);
+    out.appendChild(d);
+  }
+  nS.addEventListener("input",update);
+  update();
+})();
+</script>
+
 <p>
   Computing this matrix-vector product directly requires $N$ multiplications for each of the
   $N$ output values, giving a total of $O(N^2)$ arithmetic operations. For large $N$, this
@@ -371,6 +417,31 @@ $$\frac{1}{2\sqrt{2}} \left(|0\rangle - |1\rangle\right) \otimes \left(|0\rangle
   This matches our expected product form exactly, confirming the circuit is correct.
 </p>
 
+<h3>Interactive: QFT Step-Through</h3>
+
+<p>
+  Step through the 3-qubit QFT circuit gate by gate. At each step, the stabilizer tableau
+  shows how the state evolves through Hadamard and controlled-phase gates.
+</p>
+
+<div class="step-through" data-component="step-through" data-mode="clifford">
+  <div class="step-qasm" hidden>OPENQASM 3.0;
+qubit[3] q;
+h q[0];
+cp(pi/2) q[1], q[0];
+cp(pi/4) q[2], q[0];
+h q[1];
+cp(pi/2) q[2], q[1];
+h q[2];
+swap q[0], q[2];</div>
+  <div class="step-controls">
+    <button data-action="prev" disabled>Previous</button>
+    <span class="step-info">Step 0</span>
+    <button data-action="next">Next</button>
+  </div>
+  <div class="step-output"></div>
+</div>
+
 <h3>Sandbox: 3-Qubit QFT Circuit</h3>
 
 <p>
@@ -382,23 +453,18 @@ $$\frac{1}{2\sqrt{2}} \left(|0\rangle - |1\rangle\right) \otimes \left(|0\rangle
 </p>
 
 <div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="16">OPENQASM 3.0;
-qubit[3] q;
-bit[3] c;
-
-// Prepare input |101> = |5>
-x q[0];
-x q[2];
-
-// QFT circuit
+  <textarea class="code" rows="14">OPENQASM 3.0;
+qubit[3] q; bit[3] c;
+// Prepare |101> = |5>
+x q[0]; x q[2];
+// 3-qubit QFT
 h q[0];
-cp(pi/2) q[0], q[1];
-cp(pi/4) q[0], q[2];
+cp(pi/2) q[1], q[0];
+cp(pi/4) q[2], q[0];
 h q[1];
-cp(pi/2) q[1], q[2];
+cp(pi/2) q[2], q[1];
 h q[2];
 swap q[0], q[2];
-
 c = measure q;</textarea>
   <div class="sandbox-controls">
     <button data-action="run">Run</button>
@@ -816,49 +882,6 @@ $$\frac{1}{2\sqrt{2}} \sum_{k=0}^{7} e^{2\pi i k/8} |k\rangle$$
   probability close to 100%.
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="28">OPENQASM 3.0;
-qubit[4] q;
-bit[3] c;
-
-// q[0..2] = ancilla (counting register)
-// q[3]    = eigenstate register
-
-// Prepare eigenstate |1>
-x q[3];
-
-// Hadamard on ancillas
-h q[0];
-h q[1];
-h q[2];
-
-// Controlled-U^(2^k) operations
-// Ancilla 0 controls T^4 = Z
-cp(pi) q[0], q[3];
-// Ancilla 1 controls T^2 = S
-cp(pi/2) q[1], q[3];
-// Ancilla 2 controls T^1 = T
-cp(pi/4) q[2], q[3];
-
-// Inverse QFT on ancilla qubits
-swap q[0], q[2];
-h q[2];
-cp(-pi/2) q[1], q[2];
-h q[1];
-cp(-pi/4) q[0], q[2];
-cp(-pi/2) q[0], q[1];
-h q[0];
-
-c[0] = measure q[0];
-c[1] = measure q[1];
-c[2] = measure q[2];</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
 <div class="callout callout-info">
   <strong>Note.</strong>
   <p>
@@ -951,33 +974,57 @@ c[2] = measure q[2];</textarea>
 
 <!-- ================================================================== -->
 
-<h3>Interactive: QFT Circuit Builder</h3>
-<p>
-  Build a Quantum Fourier Transform circuit for different qubit counts and see the
-  circuit structure, output probabilities, and generated QASM code.
-</p>
-<div class="widget" id="qft-widget">
-  <div class="widget-header">Quantum Fourier Transform</div>
-  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
-    <label>Qubits: <select id="qft-qubits"><option>2</option><option selected>3</option><option>4</option><option>5</option></select></label>
-    <button onclick="runQFTWidget()">Build QFT</button>
+<h3>Interactive: DFT vs FFT vs QFT Complexity</h3>
+
+<div class="widget" id="complexity-widget">
+  <div class="widget-header">Fourier Transform Complexity Comparison</div>
+  <div class="widget-body">
+    <label style="font-size:0.85rem;">Qubits (n): <input type="range" id="cplx-n" min="2" max="30" step="1" value="10" style="width:12rem;vertical-align:middle;"> <span id="cplx-n-val">10</span> &nbsp; (N = 2^n = <span id="cplx-N-val">1024</span>)</label>
   </div>
-  <div class="widget-output" id="qft-output"></div>
+  <div class="widget-output" id="complexity-output"></div>
 </div>
 <script>
-async function runQFTWidget() {
-  await ensureWasm();
-  var nq = parseInt(document.getElementById('qft-qubits').value);
-  var out = document.getElementById('qft-output');
-  out.innerHTML = '<p style="color:var(--color-text-muted)">Building...</p>';
-  await new Promise(function(r) { setTimeout(r, 0); });
-  try {
-    var r = JSON.parse(window.runQFT(nq, "", isDark()));
-    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
-    out.innerHTML = (r.circuitSVG||'') + (r.histogramSVG||'');
-    if (r.qasmCode) out.innerHTML += '<details><summary>Generated QASM</summary><pre>' + esc(r.qasmCode) + '</pre></details>';
-  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
-}
+(function(){
+  var nS=document.getElementById("cplx-n"),nV=document.getElementById("cplx-n-val"),NV=document.getElementById("cplx-N-val"),out=document.getElementById("complexity-output");
+  function update(){
+    var n=parseInt(nS.value);nV.textContent=n;NV.textContent=Math.pow(2,n).toExponential(1);
+    var dft=2*n,fft=n+Math.log2(n*Math.pow(2,n)),qft=Math.log2(n*n);
+    // Use log2 of operation count for bar heights
+    var dftLog=2*n, fftLog=n+Math.log2(n), qftLog=2*Math.log2(n);
+    var maxLog=dftLog+2;
+    var W=360,H=200,pad=60,barW=60,gap=30;
+    var barArea=W-2*pad, startX=pad+barArea/2-(3*barW+2*gap)/2;
+    var maxBarH=H-50;
+    function barH(logV){return Math.max(4,logV/maxLog*maxBarH);}
+    var svg='<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" style="font-family:var(--font-mono);font-size:10px;">';
+    var y0=H-30;
+    // axis
+    svg+='<line x1="'+(pad-10)+'" y1="'+y0+'" x2="'+(W-10)+'" y2="'+y0+'" stroke="var(--color-border)" stroke-width="1"/>';
+    // DFT bar
+    var bx=startX, bh=barH(dftLog), by=y0-bh;
+    svg+='<rect x="'+bx+'" y="'+by+'" width="'+barW+'" height="'+bh+'" rx="3" fill="var(--color-error)" opacity="0.7"/>';
+    svg+='<text x="'+(bx+barW/2)+'" y="'+(y0+12)+'" text-anchor="middle" fill="var(--color-text)" font-size="9">DFT</text>';
+    svg+='<text x="'+(bx+barW/2)+'" y="'+(by-4)+'" text-anchor="middle" fill="var(--color-text)" font-size="8">O(2^'+2*n+')</text>';
+    // FFT bar
+    bx+=barW+gap; bh=barH(fftLog); by=y0-bh;
+    svg+='<rect x="'+bx+'" y="'+by+'" width="'+barW+'" height="'+bh+'" rx="3" fill="var(--color-warning)" opacity="0.7"/>';
+    svg+='<text x="'+(bx+barW/2)+'" y="'+(y0+12)+'" text-anchor="middle" fill="var(--color-text)" font-size="9">FFT</text>';
+    svg+='<text x="'+(bx+barW/2)+'" y="'+(by-4)+'" text-anchor="middle" fill="var(--color-text)" font-size="8">O('+n+'\u00B72^'+n+')</text>';
+    // QFT bar
+    bx+=barW+gap; bh=barH(qftLog); by=y0-bh;
+    svg+='<rect x="'+bx+'" y="'+by+'" width="'+barW+'" height="'+bh+'" rx="3" fill="var(--color-success)" opacity="0.7"/>';
+    svg+='<text x="'+(bx+barW/2)+'" y="'+(y0+12)+'" text-anchor="middle" fill="var(--color-text)" font-size="9">QFT</text>';
+    svg+='<text x="'+(bx+barW/2)+'" y="'+(by-4)+'" text-anchor="middle" fill="var(--color-text)" font-size="8">O('+n*n+')</text>';
+    svg+='<text x="10" y="15" fill="var(--color-text-muted)" font-size="9">log scale</text>';
+    svg+='</svg>';
+    out.textContent="";
+    var d=document.createElement("div");d.style.textAlign="center";
+    d.insertAdjacentHTML("afterbegin",svg);
+    out.appendChild(d);
+  }
+  nS.addEventListener("input",update);
+  update();
+})();
 </script>
 
 <!-- ================================================================== -->
@@ -988,144 +1035,70 @@ async function runQFTWidget() {
   on $|1\rangle$ is $e^{2\pi i \phi}$), choose the number of precision bits, and watch
   QPE recover the phase from the measurement histogram.
 </p>
-<div class="widget" id="qpe-widget">
-  <div class="widget-header">Quantum Phase Estimation</div>
-  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
-    <label>Gate: <select id="qpe-gate">
-      <option value="T">T (phase 1/8)</option>
-      <option value="S" selected>S (phase 1/4)</option>
-      <option value="Z">Z (phase 1/2)</option>
+
+<div class="simulation" data-component="simulation">
+  <div class="sim-qasm" hidden>OPENQASM 3.0;
+qubit[5] q; bit[3] c;
+// QPE for T gate: phase = 1/8
+// Eigenstate qubit = q[3], ancillas = q[0..2]
+x q[3];
+h q[0]; h q[1]; h q[2];
+// Controlled-T^4 = Controlled-Z
+cz q[0], q[3];
+// Controlled-T^2 = Controlled-S
+cp(pi/2) q[1], q[3];
+// Controlled-T^1
+cp(pi/4) q[2], q[3];
+// Inverse QFT on q[0..2]
+swap q[0], q[2];
+h q[0];
+cp(-pi/2) q[1], q[0];
+cp(-pi/4) q[2], q[0];
+h q[1];
+cp(-pi/2) q[2], q[1];
+h q[2];
+c[0] = measure q[0]; c[1] = measure q[1]; c[2] = measure q[2];</div>
+  <div class="sim-controls">
+    <label>Gate: <select data-param="gate">
+      <option value="T">T (phase=1/8)</option>
+      <option value="S">S (phase=1/4)</option>
+      <option value="Z">Z (phase=1/2)</option>
     </select></label>
-    <label>Precision bits: <select id="qpe-bits">
-      <option>2</option>
-      <option selected>3</option>
-      <option>4</option>
-      <option>5</option>
-      <option>6</option>
-    </select></label>
-    <label>Shots: <input type="number" id="qpe-shots" value="1024" min="1" max="65536" style="width:5.5rem;"></label>
-    <button onclick="runQPEWidget()">Run QPE</button>
   </div>
-  <div class="widget-output" id="qpe-output"></div>
-</div>
-<script>
-async function runQPEWidget() {
-  await ensureWasm();
-  var gateType = document.getElementById('qpe-gate').value;
-  var bits = parseInt(document.getElementById('qpe-bits').value);
-  var shots = parseInt(document.getElementById('qpe-shots').value) || 1024;
-  var out = document.getElementById('qpe-output');
-  out.innerHTML = '<p style="color:var(--color-text-muted)">Running QPE...</p>';
-  await new Promise(function(r) { setTimeout(r, 0); });
-  try {
-    var r = JSON.parse(window.runQPE(gateType, bits, shots, isDark()));
-    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
-    var html = '';
-    if (r.circuitSVG) html += r.circuitSVG;
-    if (r.histogramSVG) html += r.histogramSVG;
-    if (r.result) html += '<div class="sim-stats"><span>' + esc(r.result) + '</span></div>';
-    if (r.qasmCode) html += '<details><summary>Generated QASM</summary><pre>' + esc(r.qasmCode) + '</pre></details>';
-    out.innerHTML = html;
-  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
-}
-</script>
-
-<!-- ================================================================== -->
-
-<section id="review">
-<h2>Chapter 10 Review</h2>
-
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 10 Review</div>
-
-  <div class="flashcard" data-card-id="ch10-dft-purpose">
-    <div class="card-front">What does the Discrete Fourier Transform do?</div>
-    <div class="card-back">
-      The DFT converts a signal from the time domain to the frequency domain. Given $N$ complex numbers $(x_0, \ldots, x_{N-1})$, it produces $N$ complex numbers $(y_0, \ldots, y_{N-1})$ where $y_k = \frac{1}{\sqrt{N}} \sum_{j=0}^{N-1} x_j \, e^{2\pi i jk/N}$. Each output component $y_k$ represents the amplitude and phase of the frequency-$k$ component present in the input signal.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch10-fft-complexity">
-    <div class="card-front">What are the time complexities of the naive DFT and the FFT?</div>
-    <div class="card-back">
-      The naive DFT requires $O(N^2)$ operations (matrix-vector multiplication). The Fast Fourier Transform (FFT) uses a divide-and-conquer strategy to compute the same result in $O(N \log N)$ operations, which is an enormous practical speedup for large $N$.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch10-qft-definition">
-    <div class="card-front">How does the QFT act on a computational basis state $|j\rangle$?</div>
-    <div class="card-back">
-      The QFT maps $|j\rangle \mapsto \frac{1}{\sqrt{N}} \sum_{k=0}^{N-1} e^{2\pi i jk/N} |k\rangle$, where $N = 2^n$. It creates a uniform superposition of all basis states, with the amplitude of each $|k\rangle$ carrying a phase proportional to $jk/N$. This is mathematically identical to the classical DFT applied to the amplitudes.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch10-qft-gates">
-    <div class="card-front">What gates are used in the QFT circuit, and what are the controlled rotation angles?</div>
-    <div class="card-back">
-      The QFT circuit uses Hadamard gates, controlled phase gates $\text{CP}(\pi/2^k)$, and SWAP gates. For each qubit $q_m$, a Hadamard is applied followed by controlled phase rotations from each subsequent qubit $q_k$ ($k > m$) with angle $\pi/2^{k-m}$. SWAP gates at the end reverse the qubit order (bit reversal).
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch10-qft-gate-count">
-    <div class="card-front">How many gates does the QFT require, and how does this compare to the classical FFT?</div>
-    <div class="card-back">
-      The QFT requires $O(n^2)$ gates on $n$ qubits, transforming $N = 2^n$ amplitudes. The classical FFT requires $O(N \log N) = O(n \cdot 2^n)$ operations. The QFT is exponentially faster in gate count: polynomial in $n$ versus exponential in $n$. However, this advantage applies only when the data is already in quantum form.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch10-qft-catch">
-    <div class="card-front">Why can the QFT not simply replace the classical FFT for processing classical data?</div>
-    <div class="card-back">
-      Two reasons: (1) Loading $N$ classical data values into $n = \log_2 N$ qubits as amplitudes generally requires $O(N)$ operations, negating the exponential gate savings. (2) Reading the full output requires $O(N)$ measurements due to wavefunction collapse. The QFT is powerful as a subroutine when the input is already quantum and only limited output information is needed.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch10-qpe-problem">
-    <div class="card-front">What problem does Quantum Phase Estimation solve?</div>
-    <div class="card-back">
-      QPE estimates the phase $\theta$ in the eigenvalue equation $U|\psi\rangle = e^{2\pi i \theta}|\psi\rangle$. Given a unitary $U$ and its eigenvector $|\psi\rangle$, QPE uses $n$ ancilla qubits to determine $\theta$ to $n$ bits of precision. The circuit applies controlled-$U^{2^k}$ powers followed by the inverse QFT.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch10-qpe-applications">
-    <div class="card-front">Name four major quantum algorithms that use Quantum Phase Estimation as a subroutine.</div>
-    <div class="card-back">
-      (1) Shor's algorithm uses QPE to find the period of modular exponentiation for integer factoring. (2) The HHL algorithm uses QPE to extract matrix eigenvalues for solving linear systems. (3) Quantum simulation uses QPE with $U = e^{iHt}$ to find energy eigenvalues of Hamiltonians. (4) Quantum counting combines QPE with Grover's algorithm to estimate the number of solutions to a search problem.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
+  <div class="sim-output"></div>
 </div>
 
-</section>
+<h3>Exercise: Build QPE for the S Gate</h3>
+
+<div class="exercise" data-component="exercise">
+  <div class="exercise-header">Exercise: QPE for S Gate Phase Estimation</div>
+  <div class="exercise-prompt"><p>The S gate has eigenvalue $e^{i\pi/2} = e^{2\pi i \cdot 1/4}$ on $|1\rangle$, so $\theta = 1/4 = 0.01_2$. With 3 ancilla qubits, QPE should output $|010\rangle$ (decimal 2, since $2/8 = 1/4$). Complete the circuit below.</p></div>
+  <textarea class="code" rows="16">OPENQASM 3.0;
+qubit[4] q; bit[3] c;
+// QPE for S gate: eigenstate = |1>
+x q[3];
+// TODO: Apply H to ancilla qubits q[0], q[1], q[2]
+
+// Controlled powers of S:
+// q[0] controls S^4 = I (do nothing)
+// q[1] controls S^2 = Z
+// q[2] controls S^1 = S
+
+// TODO: Apply controlled unitaries
+
+// TODO: Apply inverse QFT to q[0..2]
+
+// Measure ancillas
+c[0] = measure q[0]; c[1] = measure q[1]; c[2] = measure q[2];</textarea>
+  <div class="exercise-expected">
+    <span data-state="010" data-prob="1.0" data-tolerance="0.1"></span>
+  </div>
+  <div class="exercise-controls">
+    <button data-action="run">Run</button>
+    <button data-action="check">Check</button>
+    <button data-action="hint">Hint</button>
+  </div>
+  <div class="exercise-feedback"></div>
+  <div class="output"></div>
+  <div class="exercise-hint hidden"><p>Add <code>h q[0]; h q[1]; h q[2];</code> for the Hadamards. For controlled unitaries: <code>cz q[1], q[3]; cp(pi/2) q[2], q[3];</code> (S^4=I needs no gate, S^2=Z, S^1=S). For inverse QFT: <code>swap q[0], q[2]; h q[0]; cp(-pi/2) q[1], q[0]; cp(-pi/4) q[2], q[0]; h q[1]; cp(-pi/2) q[2], q[1]; h q[2];</code></p></div>
+</div>

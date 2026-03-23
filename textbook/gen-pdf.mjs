@@ -25,9 +25,7 @@ import { fileURLToPath } from "url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUTPUT = process.argv[2] || join(__dirname, "goqu-textbook.pdf");
 
-// ---------------------------------------------------------------------------
 // Preflight checks
-// ---------------------------------------------------------------------------
 
 if (!existsSync(join(__dirname, "chapters"))) {
   console.error(
@@ -53,9 +51,7 @@ if (!existsSync(join(__dirname, "wasm_exec.js"))) {
   execSync(`cp "${goroot}/lib/wasm/wasm_exec.js" "${join(__dirname, "wasm_exec.js")}"`);
 }
 
-// ---------------------------------------------------------------------------
 // Chapter metadata
-// ---------------------------------------------------------------------------
 
 const chapters = JSON.parse(
   readFileSync(join(__dirname, "gen", "chapters.json"), "utf-8"),
@@ -76,9 +72,7 @@ for (const ch of chapters) {
   cur.chapters.push(ch);
 }
 
-// ---------------------------------------------------------------------------
 // Helpers
-// ---------------------------------------------------------------------------
 
 function esc(s) {
   return s
@@ -140,9 +134,7 @@ function rewriteLinks(html) {
   });
 }
 
-// ---------------------------------------------------------------------------
 // CSS
-// ---------------------------------------------------------------------------
 
 const CSS = /* css */ `
 /* === Reset & base === */
@@ -669,12 +661,10 @@ section { page-break-before: auto; }
 [data-component]:empty { display: none; }
 `;
 
-// ---------------------------------------------------------------------------
 // HTML builder
-// ---------------------------------------------------------------------------
 
 function buildHTML() {
-  // --- Cover ---
+  // Cover
   const cover = `
   <div class="pdf-cover">
     <div class="cover-spacer"></div>
@@ -689,7 +679,7 @@ q1: \u2500\u2500\u2500\u2500\u2500X\u2500\u2500</pre></div>
     <div class="cover-url">splch.github.io/goqu</div>
   </div>`;
 
-  // --- Table of contents ---
+  // Table of contents
   const toc = `
   <div class="pdf-toc">
     <h1 class="toc-heading">Contents</h1>
@@ -715,7 +705,7 @@ q1: \u2500\u2500\u2500\u2500\u2500X\u2500\u2500</pre></div>
       .join("")}
   </div>`;
 
-  // --- Part dividers + chapters ---
+  // Part dividers + chapters
   let content = "";
   for (const part of parts) {
     content += `
@@ -1062,9 +1052,7 @@ q1: \u2500\u2500\u2500\u2500\u2500X\u2500\u2500</pre></div>
 </html>`;
 }
 
-// ---------------------------------------------------------------------------
 // Local static server (avoids file:// cross-origin issues with CDN resources)
-// ---------------------------------------------------------------------------
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -1103,9 +1091,7 @@ function startServer() {
   });
 }
 
-// ---------------------------------------------------------------------------
 // Main
-// ---------------------------------------------------------------------------
 
 async function main() {
   const t0 = Date.now();

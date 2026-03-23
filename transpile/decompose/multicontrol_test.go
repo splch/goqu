@@ -57,7 +57,7 @@ func TestDecomposeMultiControlledGateCount(t *testing.T) {
 	}
 }
 
-// --- Tests that verify the three Codex review issues are fixed ---
+// Tests that verify the three Codex review issues are fixed
 
 // Fix 1: decomposeSingleControlled must produce CX+1Q gates (not return unchanged C(U)).
 // Before the fix, C1-H would be returned as Controlled(H,1) causing infinite recursion.

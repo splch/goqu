@@ -586,6 +586,399 @@ criterion is different from maximizing mutual information.
 </section>
 
 <!-- ================================================================== -->
+<!-- Visualization 1: Bloch Ball Interior Simulation -->
+<section id="bloch-ball-interior">
+<h2>Interactive: Bloch Ball Interior</h2>
+<p>
+  Pure states live on the <em>surface</em> of the Bloch sphere. Mixed states live
+  <em>inside</em>. Adjust the purity parameter to move from a pure state ($r = 1$)
+  toward the maximally mixed state at the center ($r = 0$). The density matrix,
+  purity, and von Neumann entropy update in real time.
+</p>
+
+<div class="simulation" data-component="simulation" data-bloch>
+  <div class="sim-controls">
+    <label>$r$ (Bloch radius):
+      <input type="range" min="0.0" max="1.0" step="0.02" value="1.0" data-param="r">
+      <output>1.00</output>
+    </label>
+    <label>$\phi$:
+      <input type="range" min="0" max="6.28" step="0.1" value="0.0" data-param="phi">
+      <output>0.00</output>
+    </label>
+  </div>
+  <div class="sim-qasm">OPENQASM 2.0;
+include "qelib1.inc";
+qreg q[1];
+creg c[1];
+ry({r}) q[0];
+rz({phi}) q[0];
+c[0] = measure q[0];</div>
+  <div class="sim-output"></div>
+</div>
+
+<div class="widget" id="bloch-ball-widget">
+  <div class="widget-header">Mixed State Properties</div>
+  <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:0.5rem;">
+    <label style="font-family:var(--font-mono);font-size:0.85rem;">Bloch radius $r$:
+      <input type="range" min="0" max="1" step="0.01" value="1.0" id="bb-radius" style="width:10rem;accent-color:var(--color-accent);">
+      <span id="bb-r-val" style="font-family:var(--font-mono);font-size:0.8rem;">1.00</span>
+    </label>
+  </div>
+  <div id="bb-output" style="font-family:var(--font-mono);font-size:0.85rem;"></div>
+</div>
+<script>
+(function(){
+  var outEl = document.getElementById("bb-output");
+  var slider = document.getElementById("bb-radius");
+  if(!outEl || !slider) return;
+
+  function update(){
+    var r = parseFloat(slider.value);
+    document.getElementById("bb-r-val").textContent = r.toFixed(2);
+
+    var purity = (1+r*r)/2;
+    var lam1 = (1+r)/2, lam2 = (1-r)/2;
+    var entropy = 0;
+    if(lam1>0 && lam1<1) entropy -= lam1*Math.log2(lam1);
+    if(lam2>0 && lam2<1) entropy -= lam2*Math.log2(lam2);
+
+    outEl.textContent = "";
+    var lines = [
+      "rho = (I + r*Z) / 2 = diag("+(lam1).toFixed(3)+", "+(lam2).toFixed(3)+")",
+      "Purity Tr(rho^2) = "+purity.toFixed(4)+(purity>0.99?" (pure)":purity<0.51?" (near maximally mixed)":""),
+      "Von Neumann entropy S(rho) = "+entropy.toFixed(4)+" bits"+(entropy<0.01?" (pure, zero entropy)":entropy>0.99?" (maximally mixed)":""),
+      r===1?"State is on the Bloch sphere surface (pure).":
+      r===0?"State is at the center (maximally mixed, I/2).":
+      "State is inside the Bloch sphere (mixed)."
+    ];
+    lines.forEach(function(l){
+      var p = document.createElement("div");
+      p.textContent = l;
+      p.style.marginBottom = "0.25rem";
+      outEl.appendChild(p);
+    });
+  }
+
+  slider.addEventListener("input", update);
+  update();
+})();
+</script>
+</section>
+
+<!-- ================================================================== -->
+<!-- Visualization 2: Partial Trace Step-Through -->
+<section id="partial-trace-walkthrough">
+<h2>Interactive: Partial Trace Step-Through</h2>
+<p>
+  Watch the partial trace in action. Starting from the Bell state density matrix
+  $\rho_{AB} = |\Phi^+\rangle\langle\Phi^+|$, trace out qubit B to obtain the
+  reduced state $\rho_A = I/2$.
+</p>
+
+<div class="animated-walkthrough" data-component="animated-walkthrough">
+  <div class="walkthrough-progress"></div>
+
+  <div class="walkthrough-stage active" data-stage="0">
+    <div class="walkthrough-narration">
+      <h4>The Bell State Density Matrix</h4>
+      <p>$|\Phi^+\rangle = \frac{1}{\sqrt{2}}(|00\rangle + |11\rangle)$. The $4 \times 4$
+        density matrix has entries only in the corners of the matrix.</p>
+    </div>
+    <div class="walkthrough-viz">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:2px;max-width:200px;margin:0 auto;font-family:var(--font-mono);font-size:0.8rem;text-align:center;">
+        <div style="background:var(--color-accent);color:white;padding:6px;border-radius:3px;">1/2</div>
+        <div style="background:var(--color-code-bg);padding:6px;border-radius:3px;">0</div>
+        <div style="background:var(--color-code-bg);padding:6px;border-radius:3px;">0</div>
+        <div style="background:var(--color-accent);color:white;padding:6px;border-radius:3px;">1/2</div>
+        <div style="background:var(--color-code-bg);padding:6px;border-radius:3px;">0</div>
+        <div style="background:var(--color-code-bg);padding:6px;border-radius:3px;">0</div>
+        <div style="background:var(--color-code-bg);padding:6px;border-radius:3px;">0</div>
+        <div style="background:var(--color-code-bg);padding:6px;border-radius:3px;">0</div>
+        <div style="background:var(--color-code-bg);padding:6px;border-radius:3px;">0</div>
+        <div style="background:var(--color-code-bg);padding:6px;border-radius:3px;">0</div>
+        <div style="background:var(--color-code-bg);padding:6px;border-radius:3px;">0</div>
+        <div style="background:var(--color-code-bg);padding:6px;border-radius:3px;">0</div>
+        <div style="background:var(--color-accent);color:white;padding:6px;border-radius:3px;">1/2</div>
+        <div style="background:var(--color-code-bg);padding:6px;border-radius:3px;">0</div>
+        <div style="background:var(--color-code-bg);padding:6px;border-radius:3px;">0</div>
+        <div style="background:var(--color-accent);color:white;padding:6px;border-radius:3px;">1/2</div>
+      </div>
+      <p style="font-size:0.8rem;text-align:center;color:var(--color-text-muted);margin-top:4px;">
+        Rows/cols: |00>, |01>, |10>, |11>
+      </p>
+    </div>
+  </div>
+
+  <div class="walkthrough-stage" data-stage="1">
+    <div class="walkthrough-narration">
+      <h4>Partition into 2x2 Blocks</h4>
+      <p>To trace out B, view the 4x4 matrix as a 2x2 grid of 2x2 blocks. Each block
+        corresponds to a pair of values of qubit A.</p>
+    </div>
+    <div class="walkthrough-viz">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;max-width:250px;margin:0 auto;">
+        <div style="border:2px solid var(--color-state);border-radius:4px;padding:6px;text-align:center;font-family:var(--font-mono);font-size:0.8rem;">
+          <div style="font-size:0.7rem;color:var(--color-text-muted);margin-bottom:2px;">A=0, A'=0</div>
+          1/2, 0<br>0, 0
+        </div>
+        <div style="border:2px solid var(--color-accent);border-radius:4px;padding:6px;text-align:center;font-family:var(--font-mono);font-size:0.8rem;">
+          <div style="font-size:0.7rem;color:var(--color-text-muted);margin-bottom:2px;">A=0, A'=1</div>
+          0, 1/2<br>0, 0
+        </div>
+        <div style="border:2px solid var(--color-accent);border-radius:4px;padding:6px;text-align:center;font-family:var(--font-mono);font-size:0.8rem;">
+          <div style="font-size:0.7rem;color:var(--color-text-muted);margin-bottom:2px;">A=1, A'=0</div>
+          0, 0<br>1/2, 0
+        </div>
+        <div style="border:2px solid var(--color-state);border-radius:4px;padding:6px;text-align:center;font-family:var(--font-mono);font-size:0.8rem;">
+          <div style="font-size:0.7rem;color:var(--color-text-muted);margin-bottom:2px;">A=1, A'=1</div>
+          0, 0<br>0, 1/2
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="walkthrough-stage" data-stage="2">
+    <div class="walkthrough-narration">
+      <h4>Trace Each Block</h4>
+      <p>The partial trace sums the diagonal of each 2x2 block:
+        $(\rho_A)_{ij} = \text{Tr}(\text{block}_{ij})$. The diagonal-block traces give
+        the diagonal entries of $\rho_A$, and the off-diagonal-block traces give the
+        off-diagonal entries.</p>
+    </div>
+    <div class="walkthrough-viz">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;max-width:200px;margin:0 auto;font-family:var(--font-mono);font-size:0.9rem;text-align:center;">
+        <div style="background:var(--color-state);color:white;padding:8px;border-radius:4px;">
+          Tr = 1/2
+        </div>
+        <div style="background:var(--color-code-bg);padding:8px;border-radius:4px;">
+          Tr = 0
+        </div>
+        <div style="background:var(--color-code-bg);padding:8px;border-radius:4px;">
+          Tr = 0
+        </div>
+        <div style="background:var(--color-state);color:white;padding:8px;border-radius:4px;">
+          Tr = 1/2
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="walkthrough-stage" data-stage="3">
+    <div class="walkthrough-narration">
+      <h4>Result: $\rho_A = I/2$</h4>
+      <p>The reduced state of qubit A is the maximally mixed state $I/2$. Despite
+        the joint state being pure, the subsystem is maximally uncertain. This is
+        the hallmark of maximal entanglement: $S(\rho_A) = 1$ bit.</p>
+    </div>
+    <div class="walkthrough-viz">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;max-width:120px;margin:0 auto;font-family:var(--font-mono);font-size:1rem;text-align:center;">
+        <div style="background:var(--color-success);color:white;padding:10px;border-radius:4px;font-weight:600;">1/2</div>
+        <div style="background:var(--color-code-bg);padding:10px;border-radius:4px;">0</div>
+        <div style="background:var(--color-code-bg);padding:10px;border-radius:4px;">0</div>
+        <div style="background:var(--color-success);color:white;padding:10px;border-radius:4px;font-weight:600;">1/2</div>
+      </div>
+      <p style="font-size:0.85rem;text-align:center;margin-top:8px;font-family:var(--font-mono);">
+        Purity = 0.5 | Entropy = 1.0 bit | Maximally mixed
+      </p>
+    </div>
+  </div>
+
+  <div class="walkthrough-controls">
+    <button data-action="prev" disabled>Previous</button>
+    <button data-action="next">Next</button>
+    <button data-action="auto">Auto-play</button>
+  </div>
+</div>
+</section>
+
+<!-- ================================================================== -->
+<!-- Visualization 3: Schmidt Decomposition Widget -->
+<section id="schmidt-widget">
+<h2>Interactive: Schmidt Decomposition</h2>
+<p>
+  Every pure bipartite state has a Schmidt decomposition revealing its entanglement
+  structure. Adjust the parameter $\theta$ to control the Schmidt coefficients of
+  the state $\cos\theta|00\rangle + \sin\theta|11\rangle$.
+</p>
+
+<div class="widget" id="schmidt-decomp-widget">
+  <div class="widget-header">Schmidt Decomposition Explorer</div>
+  <div style="display:flex;gap:1rem;align-items:center;margin-bottom:0.75rem;">
+    <label style="font-family:var(--font-mono);font-size:0.85rem;">$\theta$:
+      <input type="range" min="0" max="1.5708" step="0.01" value="0.7854" id="schmidt-theta" style="width:12rem;accent-color:var(--color-accent);">
+      <span id="schmidt-theta-val" style="font-family:var(--font-mono);font-size:0.8rem;">0.79</span>
+    </label>
+  </div>
+  <div id="schmidt-output" style="font-family:var(--font-mono);font-size:0.85rem;"></div>
+</div>
+<script>
+(function(){
+  var outEl = document.getElementById("schmidt-output");
+  var slider = document.getElementById("schmidt-theta");
+  if(!outEl || !slider) return;
+
+  function update(){
+    var theta = parseFloat(slider.value);
+    document.getElementById("schmidt-theta-val").textContent = theta.toFixed(2);
+    var lam1 = Math.cos(theta), lam2 = Math.sin(theta);
+    var rank = (lam1>1e-6 && lam2>1e-6)?2:1;
+    var ee = 0;
+    if(lam1*lam1>0 && lam1*lam1<1) ee -= lam1*lam1*Math.log2(lam1*lam1);
+    if(lam2*lam2>0 && lam2*lam2<1) ee -= lam2*lam2*Math.log2(lam2*lam2);
+
+    outEl.textContent = "";
+    var lines = [
+      "|psi> = "+lam1.toFixed(4)+"|00> + "+lam2.toFixed(4)+"|11>",
+      "Schmidt coefficients: lambda_1 = "+lam1.toFixed(4)+", lambda_2 = "+lam2.toFixed(4),
+      "Schmidt rank: "+rank+(rank===1?" (product state)":" (entangled)"),
+      "Entanglement entropy: S = "+ee.toFixed(4)+" bits",
+      theta<0.01?"Product state |00> - no entanglement.":
+      Math.abs(theta-Math.PI/4)<0.02?"Maximally entangled Bell state (theta = pi/4).":
+      "Partially entangled state."
+    ];
+    lines.forEach(function(l){
+      var p = document.createElement("div");
+      p.textContent = l;
+      p.style.marginBottom = "0.25rem";
+      outEl.appendChild(p);
+    });
+
+    // Visual bar for Schmidt coefficients
+    var barDiv = document.createElement("div");
+    barDiv.style.cssText = "display:flex;gap:1rem;margin-top:0.5rem;";
+    [{label:"lambda_1", val:lam1*lam1}, {label:"lambda_2", val:lam2*lam2}].forEach(function(s){
+      var bar = document.createElement("div");
+      bar.style.cssText = "flex:1;";
+      var lbl = document.createElement("div");
+      lbl.style.cssText = "font-size:0.75rem;color:var(--color-text-muted);margin-bottom:2px;";
+      lbl.textContent = s.label+"^2 = "+(s.val).toFixed(4);
+      var fill = document.createElement("div");
+      fill.style.cssText = "height:16px;background:var(--color-accent);border-radius:3px;transition:width 0.2s;width:"+Math.round(s.val*100)+"%;";
+      bar.appendChild(lbl); bar.appendChild(fill);
+      barDiv.appendChild(bar);
+    });
+    outEl.appendChild(barDiv);
+  }
+
+  slider.addEventListener("input", update);
+  update();
+})();
+</script>
+</section>
+
+<!-- ================================================================== -->
+<!-- Visualization 4: POVM Widget -->
+<section id="povm-widget">
+<h2>Interactive: POVM vs Projective Measurement</h2>
+<p>
+  A projective measurement on a qubit has at most 2 outcomes. A POVM can have 3 or more.
+  The trine POVM uses three measurement directions equally spaced at 120 degrees in the
+  $xz$-plane of the Bloch sphere. Compare the outcome probabilities for a given input state.
+</p>
+
+<div class="widget" id="povm-trine-widget">
+  <div class="widget-header">Trine POVM Explorer</div>
+  <div style="display:flex;gap:1rem;align-items:center;margin-bottom:0.75rem;flex-wrap:wrap;">
+    <label style="font-family:var(--font-mono);font-size:0.85rem;">State angle $\theta$:
+      <input type="range" min="0" max="3.14" step="0.05" value="0.0" id="povm-theta" style="width:10rem;accent-color:var(--color-accent);">
+      <span id="povm-theta-val" style="font-family:var(--font-mono);font-size:0.8rem;">0.00</span>
+    </label>
+  </div>
+  <div id="povm-output" style="display:flex;gap:1.5rem;flex-wrap:wrap;justify-content:center;"></div>
+</div>
+<script>
+(function(){
+  var outEl = document.getElementById("povm-output");
+  var slider = document.getElementById("povm-theta");
+  if(!outEl || !slider) return;
+
+  // Trine POVM directions on Bloch sphere (xz-plane, 120 degrees apart)
+  var trine = [
+    {label:"E1 (|0>)", bx:0, bz:1},
+    {label:"E2", bx:Math.sin(2*Math.PI/3), bz:Math.cos(2*Math.PI/3)},
+    {label:"E3", bx:Math.sin(4*Math.PI/3), bz:Math.cos(4*Math.PI/3)}
+  ];
+
+  function update(){
+    var theta = parseFloat(slider.value);
+    document.getElementById("povm-theta-val").textContent = theta.toFixed(2);
+
+    // State Bloch vector (in xz-plane)
+    var sx = Math.sin(theta), sz = Math.cos(theta);
+
+    // Trine POVM probabilities: p_k = (2/3) * (1/2)(1 + r . e_k)
+    var probs = trine.map(function(t){
+      return (2/3) * 0.5 * (1 + sx*t.bx + sz*t.bz);
+    });
+
+    // Projective Z-basis probabilities
+    var pZ0 = 0.5*(1+sz), pZ1 = 0.5*(1-sz);
+
+    while(outEl.firstChild) outEl.removeChild(outEl.firstChild);
+
+    // POVM column
+    var povmCol = document.createElement("div");
+    povmCol.style.cssText = "flex:1;min-width:150px;";
+    var h1 = document.createElement("div");
+    h1.style.cssText = "font-family:var(--font-mono);font-size:0.8rem;font-weight:600;color:var(--color-accent);margin-bottom:8px;text-align:center;";
+    h1.textContent = "Trine POVM (3 outcomes)";
+    povmCol.appendChild(h1);
+
+    probs.forEach(function(p,i){
+      var row = document.createElement("div");
+      row.style.cssText = "display:flex;align-items:center;gap:8px;margin-bottom:4px;";
+      var lbl = document.createElement("span");
+      lbl.style.cssText = "font-size:0.8rem;width:50px;";
+      lbl.textContent = trine[i].label;
+      var bar = document.createElement("div");
+      bar.style.cssText = "flex:1;height:14px;background:var(--color-code-bg);border-radius:3px;overflow:hidden;";
+      var fill = document.createElement("div");
+      fill.style.cssText = "height:100%;background:var(--color-accent);border-radius:3px;width:"+Math.round(p*100)+"%;transition:width 0.2s;";
+      bar.appendChild(fill);
+      var val = document.createElement("span");
+      val.style.cssText = "font-size:0.75rem;width:40px;text-align:right;";
+      val.textContent = (p*100).toFixed(1)+"%";
+      row.appendChild(lbl); row.appendChild(bar); row.appendChild(val);
+      povmCol.appendChild(row);
+    });
+    outEl.appendChild(povmCol);
+
+    // Projective column
+    var projCol = document.createElement("div");
+    projCol.style.cssText = "flex:1;min-width:150px;";
+    var h2 = document.createElement("div");
+    h2.style.cssText = "font-family:var(--font-mono);font-size:0.8rem;font-weight:600;color:var(--color-state);margin-bottom:8px;text-align:center;";
+    h2.textContent = "Z-basis Projective (2 outcomes)";
+    projCol.appendChild(h2);
+
+    [{label:"|0>", p:pZ0},{label:"|1>", p:pZ1}].forEach(function(item){
+      var row = document.createElement("div");
+      row.style.cssText = "display:flex;align-items:center;gap:8px;margin-bottom:4px;";
+      var lbl = document.createElement("span");
+      lbl.style.cssText = "font-size:0.8rem;width:50px;";
+      lbl.textContent = item.label;
+      var bar = document.createElement("div");
+      bar.style.cssText = "flex:1;height:14px;background:var(--color-code-bg);border-radius:3px;overflow:hidden;";
+      var fill = document.createElement("div");
+      fill.style.cssText = "height:100%;background:var(--color-state);border-radius:3px;width:"+Math.round(item.p*100)+"%;transition:width 0.2s;";
+      bar.appendChild(fill);
+      var val = document.createElement("span");
+      val.style.cssText = "font-size:0.75rem;width:40px;text-align:right;";
+      val.textContent = (item.p*100).toFixed(1)+"%";
+      row.appendChild(lbl); row.appendChild(bar); row.appendChild(val);
+      projCol.appendChild(row);
+    });
+    outEl.appendChild(projCol);
+  }
+
+  slider.addEventListener("input", update);
+  update();
+})();
+</script>
+</section>
+
+<!-- ================================================================== -->
 <section id="sandbox-density-matrix">
 <h2>Sandbox: Density Matrix Explorer</h2>
 
@@ -595,26 +988,6 @@ pure state like $|0\rangle$ always gives the same outcome, while creating a Bell
 and tracing out one qubit yields a maximally mixed reduced state with 50/50 outcomes.
 Try modifying the circuit: add an $H$ gate before measurement to see how the Bloch
 vector direction affects outcome statistics.
-</p>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="8">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-// Create Bell state |00> + |11>
-h q[0];
-cx q[0], q[1];
-// Measure only qubit 0 (partial trace of qubit 1)
-c[0] = measure q[0];</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
-<p>
-Try these modifications to explore density matrix concepts:
 </p>
 
 <ul>
@@ -642,28 +1015,6 @@ toward 0.25 (maximally mixed on 2 qubits) as noise increases, and the
 <strong>StateCity</strong> visualization reveals the density matrix structure directly.
 </p>
 
-<div class="simulation" data-component="simulation" data-comparison="true">
-  <div class="sim-controls">
-    <label>Channel:
-      <select data-param="noiseModel">
-        <option value="depolarizing">Depolarizing</option>
-        <option value="amplitude_damping">Amplitude Damping</option>
-        <option value="phase_damping">Phase Damping</option>
-        <option value="bit_flip">Bit Flip</option>
-        <option value="phase_flip">Phase Flip</option>
-      </select>
-    </label>
-    <label>Noise: <input type="range" data-param="noiseParam" min="0" max="0.5" step="0.01" value="0.1"><output>0.10</output></label>
-  </div>
-  <script type="text/template" class="sim-qasm">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-h q[0];
-cx q[0], q[1];
-c = measure q;</script>
-  <div class="sim-output"></div>
-</div>
-
 <p>
 Things to observe:
 </p>
@@ -682,101 +1033,4 @@ equally likely.</li>
 
 </section>
 
-<!-- ================================================================== -->
 
-<section id="review">
-<h2>Chapter 26 Review</h2>
-
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 26 Review</div>
-
-  <div class="flashcard" data-card-id="ch26-density-operator-properties">
-    <div class="card-front">What three properties must a density operator $\rho$ satisfy?</div>
-    <div class="card-back">
-      A density operator must be (1) Hermitian: $\rho = \rho^\dagger$, (2) positive semi-definite: $\langle\phi|\rho|\phi\rangle \geq 0$ for all $|\phi\rangle$, and (3) unit trace: $\text{Tr}(\rho) = 1$. Purity is determined by $\text{Tr}(\rho^2)$: it equals 1 for pure states and is strictly less than 1 for mixed states.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch26-pure-vs-mixed">
-    <div class="card-front">How do you determine whether a density operator represents a pure state or a mixed state?</div>
-    <div class="card-back">
-      Compute the purity $\text{Tr}(\rho^2)$. If $\text{Tr}(\rho^2) = 1$, the state is pure (equivalently, $\rho^2 = \rho$, meaning $\rho$ is a projector). If $\text{Tr}(\rho^2) < 1$, the state is mixed. For a $d$-dimensional system, the minimum purity $1/d$ corresponds to the maximally mixed state $\rho = I/d$.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch26-partial-trace">
-    <div class="card-front">What is the partial trace, and why is it the correct way to describe a subsystem?</div>
-    <div class="card-back">
-      The partial trace $\rho_A = \text{Tr}_B(\rho_{AB})$ describes subsystem $A$ by "tracing out" subsystem $B$. It is the unique operation such that $\text{Tr}(\rho_{AB}(M_A \otimes I_B)) = \text{Tr}(\rho_A M_A)$ for all observables $M_A$ on $A$. This ensures that all local measurement statistics on $A$ are correctly reproduced regardless of what happens on $B$.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch26-schmidt-decomposition">
-    <div class="card-front">State the Schmidt decomposition theorem and explain how Schmidt rank relates to entanglement.</div>
-    <div class="card-back">
-      Any pure bipartite state $|\psi\rangle_{AB}$ can be written as $\sum_i \lambda_i |a_i\rangle|b_i\rangle$ with $\lambda_i > 0$, $\sum_i \lambda_i^2 = 1$, and $\{|a_i\rangle\}$, $\{|b_i\rangle\}$ orthonormal. The number of nonzero terms $r$ (the Schmidt rank) determines entanglement: $r = 1$ means the state is a product state (unentangled), while $r > 1$ means it is entangled. Equal Schmidt coefficients indicate maximal entanglement.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch26-povm-definition">
-    <div class="card-front">Define a POVM and explain how it generalizes projective measurements.</div>
-    <div class="card-back">
-      A POVM is a set of positive semi-definite operators $\{E_m\}$ with $\sum_m E_m = I$. The probability of outcome $m$ is $p(m) = \text{Tr}(\rho E_m)$. Unlike projective measurements, POVM elements need not be orthogonal projectors, and there can be more outcomes than the Hilbert space dimension. By Naimark's theorem, every POVM can be realized as a projective measurement on a larger system with an ancilla.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch26-helstrom-bound">
-    <div class="card-front">What is the Helstrom bound for minimum-error discrimination between two quantum states?</div>
-    <div class="card-back">
-      Given two states $\rho_0, \rho_1$ with priors $p_0, p_1$, the maximum success probability of correctly identifying which state was prepared is $p_{\text{succ}}^{\max} = \frac{1}{2}(1 + \|p_0\rho_0 - p_1\rho_1\|_1)$, where $\|\cdot\|_1$ is the trace norm. The optimal measurement projects onto the positive and negative eigenspaces of $p_0\rho_0 - p_1\rho_1$. Non-orthogonal states can never be perfectly distinguished.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch26-holevo-bound">
-    <div class="card-front">State the Holevo bound and explain its significance for quantum communication.</div>
-    <div class="card-back">
-      The Holevo bound states that for an ensemble $\{p_x, \rho_x\}$ and any measurement yielding outcome $Y$, the accessible mutual information satisfies $I(X:Y) \leq \chi = S(\sum_x p_x \rho_x) - \sum_x p_x S(\rho_x)$. This means a $d$-dimensional quantum system can transmit at most $\log d$ classical bits of accessible information. A single qubit carries at most 1 classical bit without pre-shared entanglement.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch26-purification">
-    <div class="card-front">What is purification of a mixed state, and why is it always possible?</div>
-    <div class="card-back">
-      Given any mixed state $\rho_A = \sum_i p_i |a_i\rangle\langle a_i|$, a purification is a pure state $|\psi\rangle_{AR} = \sum_i \sqrt{p_i}|a_i\rangle|r_i\rangle$ on a larger system $AR$ such that $\text{Tr}_R(|\psi\rangle\langle\psi|) = \rho_A$. It always exists because we can introduce a reference system $R$ of sufficient dimension. Purification is not unique: any unitary on $R$ yields a different valid purification.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-</div>
-</section>
