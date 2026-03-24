@@ -432,15 +432,14 @@ to the ancilla (the identity), so the input qubit should measure as $|0\rangle$ 
 indicating "constant."</p>
 
 <div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="11">OPENQASM 3.0;
-qubit[2] q;
-bit[1] c;
-gate oracle_const q0, q1 {
+  <textarea class="code" rows="10">OPENQASM 3.0;
+qubit[2] q; bit[1] c;
+// Deutsch's algorithm: constant oracle f(x)=0
+gate oracle q0, q1 {
+  // f(x)=0: do nothing
 }
-x q[1];
-h q[0];
-h q[1];
-oracle_const q[0], q[1];
+x q[1]; h q[0]; h q[1];
+oracle q[0], q[1];
 h q[0];
 c[0] = measure q[0];</textarea>
   <div class="sandbox-controls">
@@ -465,16 +464,14 @@ and $f(x) = 1$. It only detects whether $f$ is constant or balanced.</p>
 CNOT gate. The input qubit should measure as $|1\rangle$ every time, indicating "balanced."</p>
 
 <div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="12">OPENQASM 3.0;
-qubit[2] q;
-bit[1] c;
-gate oracle_bal q0, q1 {
+  <textarea class="code" rows="10">OPENQASM 3.0;
+qubit[2] q; bit[1] c;
+// Deutsch's algorithm: balanced oracle f(x)=x
+gate oracle q0, q1 {
   cx q0, q1;
 }
-x q[1];
-h q[0];
-h q[1];
-oracle_bal q[0], q[1];
+x q[1]; h q[0]; h q[1];
+oracle q[0], q[1];
 h q[0];
 c[0] = measure q[0];</textarea>
   <div class="sandbox-controls">
@@ -494,6 +491,28 @@ this function is balanced.</p>
   The power comes from <em>interference</em>: the Hadamard gate at the end causes the
   amplitudes for different inputs to constructively or destructively interfere, concentrating
   probability on the answer that encodes the global property we care about.</p>
+</div>
+
+<h3>Interactive: Deutsch's Algorithm Step-Through</h3>
+
+<p>Walk through Deutsch's algorithm for all four possible oracles. At each gate, the full
+two-qubit state vector is shown. Watch how phase kickback encodes $f(0) \oplus f(1)$
+into the relative phase of the input qubit.</p>
+
+<div class="step-through" data-component="step-through" data-mode="clifford">
+  <div class="step-qasm" hidden>OPENQASM 3.0;
+qubit[2] q;
+x q[1];
+h q[0];
+h q[1];
+cx q[0], q[1];
+h q[0];</div>
+  <div class="step-controls">
+    <button data-action="prev" disabled>Previous</button>
+    <span class="step-info">Step 0</span>
+    <button data-action="next">Next</button>
+  </div>
+  <div class="step-output"></div>
 </div>
 
 </section>
@@ -565,9 +584,9 @@ the magnitude of this sum is $|\pm 2^n / 2^n| = 1$.
 The probability of measuring $|00\ldots0\rangle$ is $1$.</p>
 
 <p>If $f$ is balanced, exactly $2^{n-1}$ terms are $+1$ and $2^{n-1}$ are $-1$. The sum
-cancels to 0, so the probability of measuring $|00\ldots0\rangle$ is $0$. In fact, the
-amplitudes for all other basis states are guaranteed to be nonzero (by normalization), so
-measurement will always yield a string other than all zeros.</p>
+cancels to 0, so the probability of measuring $|00\ldots0\rangle$ is $0$. By normalization,
+at least one other basis state must have nonzero amplitude, so measurement will always yield
+a string other than all zeros.</p>
 
 <p>The decision rule is therefore simple: if the measurement result is $|00\ldots0\rangle$,
 output "constant"; otherwise, output "balanced." This is deterministic and requires just
@@ -589,20 +608,16 @@ on inputs 01 and 10 - perfectly balanced. Since $f$ is balanced, the measurement
 never produce the all-zeros outcome $|00\rangle$.</p>
 
 <div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="15">OPENQASM 3.0;
-qubit[3] q;
-bit[2] c;
-gate balanced_oracle q0, q1, anc {
+  <textarea class="code" rows="13">OPENQASM 3.0;
+qubit[3] q; bit[2] c;
+// Deutsch-Jozsa, n=2: balanced oracle f(x0,x1) = x0 XOR x1
+gate oracle q0, q1, anc {
   cx q0, anc;
   cx q1, anc;
 }
-x q[2];
-h q[0];
-h q[1];
-h q[2];
-balanced_oracle q[0], q[1], q[2];
-h q[0];
-h q[1];
+x q[2]; h q[0]; h q[1]; h q[2];
+oracle q[0], q[1], q[2];
+h q[0]; h q[1];
 c[0] = measure q[0];
 c[1] = measure q[1];</textarea>
   <div class="sandbox-controls">
@@ -623,38 +638,30 @@ Complete the circuit by adding the Hadamard gates and measurement. If your circu
 the measurement result will never be $|00\rangle$.</p>
 
 <div class="exercise" data-component="exercise">
-  <div class="exercise-header">Exercise 9.1: Complete a Deutsch-Jozsa Circuit</div>
-  <div class="exercise-prompt">
-    <p>Fill in the missing gates to complete the Deutsch-Jozsa algorithm. The oracle
-    <code>dj_oracle</code> computes $f(x_0, x_1) = x_0$. You need to: (1) prepare the
-    ancilla in $|1\rangle$, (2) apply Hadamards before the oracle, (3) apply Hadamards
-    to the input qubits after the oracle, and (4) measure the input qubits. The expected
-    outcome is $|10\rangle$ with 100% probability.</p>
-  </div>
-  <textarea class="code" rows="14">OPENQASM 3.0;
-qubit[3] q;
-bit[2] c;
-gate dj_oracle q0, q1, anc {
+  <div class="exercise-header">Exercise: Build a Deutsch-Jozsa Circuit</div>
+  <div class="exercise-prompt"><p>Complete the circuit below. Add Hadamard gates before and after the oracle (on the input qubits), set the ancilla to $|-\rangle$, and add measurements. The result should never be $|00\rangle$ since the oracle is balanced.</p></div>
+  <textarea class="code" rows="12">OPENQASM 3.0;
+qubit[3] q; bit[2] c;
+// Oracle: f(x0, x1) = x0 (balanced)
+gate oracle q0, q1, anc {
   cx q0, anc;
 }
-// Prepare ancilla and apply Hadamards
-
-// Apply the oracle
-dj_oracle q[0], q[1], q[2];
-// Apply Hadamards to input qubits and measure
-</textarea>
+// TODO: prepare ancilla in |-> state
+// TODO: apply Hadamards to input qubits
+oracle q[0], q[1], q[2];
+// TODO: apply Hadamards to input qubits
+// TODO: measure input qubits</textarea>
   <div class="exercise-expected">
-    <span data-state="10" data-prob="1.0" data-tolerance="0.05"></span>
-  </div>
-  <div class="exercise-hint" style="display:none">
-    <p>Before the oracle: <code>x q[2]; h q[0]; h q[1]; h q[2];</code>. After the oracle:
-    <code>h q[0]; h q[1];</code>. Then measure both input qubits into the classical bits.</p>
+    <span data-state="00" data-prob="0.0" data-tolerance="0.05"></span>
   </div>
   <div class="exercise-controls">
+    <button data-action="run">Run</button>
     <button data-action="check">Check</button>
     <button data-action="hint">Hint</button>
   </div>
   <div class="exercise-feedback"></div>
+  <div class="output"></div>
+  <div class="exercise-hint hidden"><p>Add <code>x q[2]; h q[0]; h q[1]; h q[2];</code> before the oracle and <code>h q[0]; h q[1];</code> after it. Then add <code>c[0] = measure q[0]; c[1] = measure q[1];</code> at the end. The key is: never seeing $|00\rangle$ means the function is balanced.</p></div>
 </div>
 
 </section>
@@ -741,22 +748,16 @@ becomes $(-1)^{s \cdot x}$ in the phase.</p>
 see the measurement outcome $|101\rangle$ with 100% probability.</p>
 
 <div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="16">OPENQASM 3.0;
-qubit[4] q;
-bit[3] c;
+  <textarea class="code" rows="13">OPENQASM 3.0;
+qubit[4] q; bit[3] c;
+// Bernstein-Vazirani: secret string s = 101
 gate bv_oracle q0, q1, q2, anc {
   cx q0, anc;
   cx q2, anc;
 }
-x q[3];
-h q[0];
-h q[1];
-h q[2];
-h q[3];
+x q[3]; h q[0]; h q[1]; h q[2]; h q[3];
 bv_oracle q[0], q[1], q[2], q[3];
-h q[0];
-h q[1];
-h q[2];
+h q[0]; h q[1]; h q[2];
 c[0] = measure q[0];
 c[1] = measure q[1];
 c[2] = measure q[2];</textarea>
@@ -939,19 +940,24 @@ subroutine produces a string $y$ with $y \cdot s = 0 \pmod{2}$. For $s = 11$, th
 $y_0 \oplus y_1 = 0$ means we should see only $|00\rangle$ and $|11\rangle$ in the first
 register.</p>
 
+<p>The oracle applies two CNOTs to compute $\text{out}_1 = x_0 \oplus x_1$, which implements
+the function from the truth table. Note that Simon's algorithm does not use phase kickback
+like the previous algorithms - it uses the standard oracle that writes $f(x)$ into the
+output register. The entanglement between input and output registers, combined with the
+Hadamard transform, produces the linear constraints on $s$.</p>
+
 <div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="16">OPENQASM 3.0;
-qubit[4] q;
-bit[2] c;
+  <textarea class="code" rows="13">OPENQASM 3.0;
+qubit[4] q; bit[2] c;
+// Simon's algorithm: n=2, s=11
+// Oracle: f(x0,x1) = (0, x0 XOR x1)
 gate simon_oracle q0, q1, out0, out1 {
   cx q0, out1;
   cx q1, out1;
 }
-h q[0];
-h q[1];
+h q[0]; h q[1];
 simon_oracle q[0], q[1], q[2], q[3];
-h q[0];
-h q[1];
+h q[0]; h q[1];
 c[0] = measure q[0];
 c[1] = measure q[1];</textarea>
   <div class="sandbox-controls">
@@ -960,12 +966,6 @@ c[1] = measure q[1];</textarea>
   </div>
   <div class="output"></div>
 </div>
-
-<p>The oracle applies two CNOTs to compute $\text{out}_1 = x_0 \oplus x_1$, which implements
-the function from the truth table. Note that Simon's algorithm does not use phase kickback
-like the previous algorithms - it uses the standard oracle that writes $f(x)$ into the
-output register. The entanglement between input and output registers, combined with the
-Hadamard transform, produces the linear constraints on $s$.</p>
 
 <p>You should see approximately 50% $|00\rangle$ and 50% $|11\rangle$ in the measurement.
 The outcome $|11\rangle$ tells us $y = 11$, which satisfies $y \cdot s = 1 \oplus 1 = 0$ for
@@ -1061,32 +1061,21 @@ for the unstructured search problem - provably the best possible for any quantum
   No matter how many qubits you use, the algorithm determines whether the oracle is
   constant or balanced with just <strong>one query</strong>.
 </p>
-<div class="widget" id="dj-widget">
-  <div class="widget-header">Deutsch-Jozsa Algorithm</div>
-  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
-    <label>Qubits: <select id="dj-qubits"><option>2</option><option>3</option><option selected>4</option><option>5</option></select></label>
-    <label>Oracle: <select id="dj-oracle"><option value="constant">Constant</option><option value="balanced" selected>Balanced</option></select></label>
-    <button onclick="runDJ()">Run</button>
+
+<div class="simulation" data-component="simulation">
+  <div class="sim-qasm" hidden>OPENQASM 3.0;
+qubit[{nq}] q; bit[{nmeas}] c;
+// Deutsch-Jozsa with n={nmeas} input qubits
+// Oracle type selected via dropdown</div>
+  <div class="sim-controls">
+    <label>Qubits: <input type="range" data-param="nq" min="2" max="6" step="1" value="3"> <output>3</output></label>
+    <label>Oracle: <select data-param="oracleType">
+      <option value="constant">Constant</option>
+      <option value="balanced">Balanced</option>
+    </select></label>
   </div>
-  <div class="widget-output" id="dj-output"></div>
+  <div class="sim-output"></div>
 </div>
-<script>
-async function runDJ() {
-  await ensureWasm();
-  var nq = document.getElementById('dj-qubits').value;
-  var oracle = document.getElementById('dj-oracle').value;
-  var out = document.getElementById('dj-output');
-  out.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
-  await new Promise(r => setTimeout(r, 0));
-  try {
-    var r = JSON.parse(window.runOracleAlgorithm("deutsch_jozsa", nq, oracle, 1024, isDark()));
-    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
-    out.innerHTML = (r.circuitSVG||'') + (r.histogramSVG||'');
-    if (r.result) out.innerHTML += '<p><strong>Result:</strong> ' + esc(r.result) + '</p>';
-    if (r.qasmCode) out.innerHTML += '<details><summary>Generated QASM</summary><pre>' + esc(r.qasmCode) + '</pre></details>';
-  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
-}
-</script>
 
 <h3>Interactive: Bernstein-Vazirani Explorer</h3>
 <p>
@@ -1094,158 +1083,74 @@ async function runDJ() {
   $f(x) = s \cdot x \pmod{2}$ using just <strong>one query</strong>. Enter a secret
   number below (interpreted as a binary string) and watch the algorithm recover it.
 </p>
-<div class="widget" id="bv-widget">
-  <div class="widget-header">Bernstein-Vazirani Algorithm</div>
-  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
-    <label>Qubits: <select id="bv-qubits"><option>2</option><option>3</option><option selected>4</option><option>5</option></select></label>
-    <label>Secret (decimal): <input type="number" id="bv-secret" value="5" min="0" max="31" style="width:4rem"></label>
-    <button onclick="runBV()">Run</button>
-  </div>
-  <div class="widget-output" id="bv-output"></div>
-</div>
-<script>
-async function runBV() {
-  await ensureWasm();
-  var nq = document.getElementById('bv-qubits').value;
-  var secret = document.getElementById('bv-secret').value;
-  var out = document.getElementById('bv-output');
-  out.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
-  await new Promise(r => setTimeout(r, 0));
-  try {
-    var r = JSON.parse(window.runOracleAlgorithm("bernstein_vazirani", nq, secret, 1024, isDark()));
-    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
-    out.innerHTML = (r.circuitSVG||'') + (r.histogramSVG||'');
-    if (r.result) out.innerHTML += '<p><strong>Result:</strong> ' + esc(r.result) + '</p>';
-    if (r.qasmCode) out.innerHTML += '<details><summary>Generated QASM</summary><pre>' + esc(r.qasmCode) + '</pre></details>';
-  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
-}
-</script>
 
-<h3>Interactive: Simon's Algorithm Explorer</h3>
+<div class="simulation" data-component="simulation">
+  <div class="sim-qasm" hidden>OPENQASM 3.0;
+qubit[4] q; bit[3] c;
+// BV with secret = {secret}
+gate bv q0, q1, q2, anc {
+  cx q0, anc;
+  cx q2, anc;
+}
+x q[3]; h q[0]; h q[1]; h q[2]; h q[3];
+bv q[0], q[1], q[2], q[3];
+h q[0]; h q[1]; h q[2];
+c[0] = measure q[0]; c[1] = measure q[1]; c[2] = measure q[2];</div>
+  <div class="sim-controls">
+    <label>Secret (decimal): <input type="range" data-param="secret" min="0" max="7" step="1" value="5"> <output>5</output></label>
+  </div>
+  <div class="sim-output"></div>
+</div>
+
+<h3>Interactive: Simon's Algorithm Walkthrough</h3>
 <p>
   Simon's algorithm finds a hidden period $s$ such that $f(x) = f(x \oplus s)$ for a
-  two-to-one function. It requires multiple queries but exponentially fewer than any
-  classical algorithm. Select a secret period below.
+  two-to-one function. It requires multiple quantum rounds to build a system of linear equations,
+  which are then solved by Gaussian elimination to reveal $s$.
 </p>
-<div class="widget" id="simon-widget">
-  <div class="widget-header">Simon's Algorithm</div>
-  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
-    <label>Qubits: <select id="simon-qubits"><option>2</option><option selected>3</option></select></label>
-    <label>Secret period (decimal): <input type="number" id="simon-secret" value="3" min="1" max="7" style="width:4rem"></label>
-    <button onclick="runSimon()">Run</button>
+
+<div class="animated-walkthrough" data-component="animated-walkthrough">
+  <div class="walkthrough-progress"></div>
+
+  <div class="walkthrough-stage active" data-stage="0">
+    <div class="walkthrough-narration">
+      <h4>Stage 1: Problem Setup</h4>
+      <p>We have a function $f:\{0,1\}^2 \to \{0,1\}^2$ with hidden period $s=11$. This means $f(x) = f(x \oplus 11)$ for all $x$. The function is two-to-one: $f(00)=f(11)$ and $f(01)=f(10)$.</p>
+    </div>
   </div>
-  <div class="widget-output" id="simon-output"></div>
+
+  <div class="walkthrough-stage" data-stage="1">
+    <div class="walkthrough-narration">
+      <h4>Stage 2: First Quantum Round</h4>
+      <p>Apply Hadamards to input register, query the oracle, apply Hadamards again, and measure. The result $y$ satisfies $y \cdot s = 0 \pmod{2}$.</p>
+    </div>
+    <div class="walkthrough-qasm" hidden>OPENQASM 3.0;
+qubit[4] q; bit[2] c;
+gate simon q0, q1, o0, o1 { cx q0, o1; cx q1, o1; }
+h q[0]; h q[1];
+simon q[0], q[1], q[2], q[3];
+h q[0]; h q[1];
+c[0] = measure q[0]; c[1] = measure q[1];</div>
+    <div class="walkthrough-output"></div>
+  </div>
+
+  <div class="walkthrough-stage" data-stage="2">
+    <div class="walkthrough-narration">
+      <h4>Stage 3: Classical Post-Processing</h4>
+      <p>Each measurement gives a constraint: $y \cdot s \equiv 0 \pmod{2}$. For $s=11$, valid outcomes are $y=00$ (trivial) and $y=11$ (giving $s_0 \oplus s_1 = 0$). After collecting enough non-trivial constraints, Gaussian elimination yields $s=11$.</p>
+    </div>
+  </div>
+
+  <div class="walkthrough-controls">
+    <button data-action="prev" disabled>Previous</button>
+    <button data-action="next">Next</button>
+    <button data-action="auto">Auto-play</button>
+  </div>
 </div>
-<script>
-async function runSimon() {
-  await ensureWasm();
-  var nq = document.getElementById('simon-qubits').value;
-  var secret = document.getElementById('simon-secret').value;
-  var out = document.getElementById('simon-output');
-  out.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
-  await new Promise(r => setTimeout(r, 0));
-  try {
-    var r = JSON.parse(window.runOracleAlgorithm("simon", nq, secret, 1024, isDark()));
-    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
-    out.innerHTML = (r.circuitSVG||'') + (r.histogramSVG||'');
-    if (r.result) out.innerHTML += '<p><strong>Result:</strong> ' + esc(r.result) + '</p>';
-    if (r.qasmCode) out.innerHTML += '<details><summary>Generated QASM</summary><pre>' + esc(r.qasmCode) + '</pre></details>';
-  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
-}
-</script>
 
 </section>
 
-<!-- ================================================================== -->
 
-<section id="review">
-<h2>Chapter 9 Review</h2>
-
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 9 Review</div>
-
-  <div class="flashcard" data-card-id="ch09-oracle-model">
-    <div class="card-front">What is a quantum oracle, and what is query complexity?</div>
-    <div class="card-back">A quantum oracle $U_f$ is a unitary gate that computes a classical function reversibly: $U_f|x\rangle|y\rangle = |x\rangle|y \oplus f(x)\rangle$. Query complexity measures the minimum number of oracle calls needed to determine some property of $f$. It ignores the cost of other operations and focuses solely on how many times the black box must be accessed.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch09-phase-kickback">
-    <div class="card-front">What is phase kickback and how does it convert a standard oracle into a phase oracle?</div>
-    <div class="card-back">When the ancilla qubit is prepared in $|-\rangle = \frac{1}{\sqrt{2}}(|0\rangle - |1\rangle)$, applying the standard oracle $U_f$ produces $(-1)^{f(x)}|x\rangle|-\rangle$. The function value is "kicked back" as a phase on the input register. The ancilla is unchanged. This converts a bit oracle into a phase oracle without any additional gates.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch09-deutsch">
-    <div class="card-front">What problem does Deutsch's algorithm solve, and what is its quantum advantage?</div>
-    <div class="card-back">Deutsch's algorithm determines whether a function $f:\{0,1\}\to\{0,1\}$ is constant or balanced. Classically, 2 queries are needed. Quantum mechanically, 1 query suffices. The circuit applies Hadamards, the oracle with phase kickback, and a final Hadamard. The measurement outcome (0 = constant, 1 = balanced) encodes the answer with certainty.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch09-deutsch-jozsa">
-    <div class="card-front">How does the Deutsch-Jozsa algorithm achieve an exponential speedup?</div>
-    <div class="card-back">For $f:\{0,1\}^n\to\{0,1\}$ promised constant or balanced, a deterministic classical algorithm needs $2^{n-1}+1$ queries. The quantum algorithm uses 1 query: Hadamards create a superposition over all inputs, the phase oracle tags each amplitude with $(-1)^{f(x)}$, and a final Hadamard produces constructive interference at $|0\rangle^{\otimes n}$ (constant) or destructive interference (balanced).
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch09-bernstein-vazirani">
-    <div class="card-front">What does the Bernstein-Vazirani algorithm find, and how many queries does it use?</div>
-    <div class="card-back">It finds a secret $n$-bit string $s$ hidden inside the oracle $f(x) = s \cdot x \pmod{2}$. Classically, $n$ queries are needed (one per bit). Quantum mechanically, 1 query suffices. The circuit is identical to Deutsch-Jozsa. The $n$-qubit Hadamard after the phase oracle maps $\frac{1}{\sqrt{2^n}}\sum_x (-1)^{s \cdot x}|x\rangle$ directly to $|s\rangle$.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch09-simon-problem">
-    <div class="card-front">What is Simon's problem and why is it significant?</div>
-    <div class="card-back">Given $f:\{0,1\}^n\to\{0,1\}^n$ with $f(x)=f(y) \iff x\oplus y \in \{0^n, s\}$, find $s$. It provides an exponential speedup ($O(n)$ quantum vs. $\Omega(2^{n/2})$ classical) that holds even against probabilistic classical algorithms, unlike Deutsch-Jozsa. It was the direct inspiration for Shor's factoring algorithm.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch09-simon-mechanism">
-    <div class="card-front">How does Simon's algorithm extract the secret string $s$?</div>
-    <div class="card-back">Each run of the quantum subroutine produces a random string $y$ satisfying $y \cdot s = 0 \pmod{2}$. After $O(n)$ repetitions, we collect $n-1$ linearly independent equations, which are solved via Gaussian elimination over $\mathbb{F}_2$ to uniquely determine $s$. The quantum part provides linear constraints; the classical part solves the linear system.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch09-simon-shor-connection">
-    <div class="card-front">How is Simon's algorithm connected to Shor's algorithm?</div>
-    <div class="card-back">Both find hidden periodic structure in a function. Simon's problem has periodicity under XOR ($\mathbb{Z}_2^n$), using Hadamard as the Fourier transform. Shor's problem has periodicity under addition ($\mathbb{Z}_r$), using the Quantum Fourier Transform. Both are instances of the hidden subgroup problem. Simon's algorithm (1994) directly inspired Shor's factoring algorithm (1994).
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-</div>
-</section>
 
     </article>
 
@@ -1274,7 +1179,6 @@ async function runSimon() {
   
   <script>
   "use strict";
-  
   function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
   function isDark() { return window.matchMedia("(prefers-color-scheme: dark)").matches; }
   function renderMath(el) {
@@ -1282,7 +1186,6 @@ async function runSimon() {
       renderMathInElement(el, { delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}], throwOnError: false });
   }
 
-  
   var wasmReady = null;
   function ensureWasm() {
     if (!wasmReady) {
@@ -1295,7 +1198,6 @@ async function runSimon() {
     return wasmReady;
   }
 
-  
   var SRS_KEY = "goqu-srs";
   function srsLoad() { try { return JSON.parse(localStorage.getItem(SRS_KEY) || "{}"); } catch(e) { return {}; } }
   function srsSave(d) { localStorage.setItem(SRS_KEY, JSON.stringify(d)); }
@@ -1313,7 +1215,6 @@ async function runSimon() {
     d[id] = s; srsSave(d);
   }
 
-  
   function initSandbox(el) {
     var code = el.querySelector(".code"), output = el.querySelector(".output");
     if (!code || !output) return;
@@ -1335,7 +1236,6 @@ async function runSimon() {
     if (el.hasAttribute("data-autorun")) run();
   }
 
-  
   function initSimulation(el) {
     var tmplEl = el.querySelector(".sim-qasm"), output = el.querySelector(".sim-output");
     var sliders = el.querySelectorAll('input[type="range"]');
@@ -1407,7 +1307,6 @@ async function runSimon() {
     update();
   }
 
-  
   function formatStabilizer(s) {
     if (!s) return "";
     var sign = s[0], ops = s.slice(1), html = '<span class="stab-sign">' + esc(sign) + '</span>';
@@ -1418,7 +1317,6 @@ async function runSimon() {
     return html;
   }
 
-  
   function initExercise(el) {
     var code = el.querySelector(".code"), feedback = el.querySelector(".exercise-feedback");
     var checkBtn = el.querySelector('[data-action="check"]');
@@ -1456,7 +1354,6 @@ async function runSimon() {
     if (hintBtn && hintEl) hintBtn.addEventListener("click", function() { hintEl.style.display = hintEl.style.display === "none" ? "block" : "none"; });
   }
 
-  
   function initFlashcardDeck(el) {
     el.querySelectorAll(".flashcard").forEach(function(card) {
       var id = card.dataset.cardId;
@@ -1475,7 +1372,6 @@ async function runSimon() {
     });
   }
 
-  
   function initPOE(el) {
     var steps = el.querySelectorAll(".poe-step"), prog = el.querySelectorAll(".poe-progress-step");
     if (steps.length === 0) return;
@@ -1492,7 +1388,6 @@ async function runSimon() {
     show(0);
   }
 
-  
   function initStepThrough(el) {
     var qasmEl = el.querySelector(".step-qasm");
     var output = el.querySelector(".step-output");
@@ -1574,9 +1469,198 @@ async function runSimon() {
     load();
   }
 
-  
+  function initComparison(el) {
+    var panels = el.querySelectorAll(".comparison-panel");
+    var sliders = el.querySelectorAll('.comparison-controls input[type="range"]');
+    var selects = el.querySelectorAll('.comparison-controls select[data-param]');
+    if (panels.length < 2) return;
+    var mode = el.dataset.mode || "default";
+    var pending = false, dirty = false;
+
+    function getParams() {
+      var params = {};
+      sliders.forEach(function(s) {
+        params[s.dataset.param] = parseFloat(s.value);
+        var o = s.parentElement.querySelector("output");
+        if (o) o.textContent = parseFloat(s.value).toFixed(2);
+      });
+      selects.forEach(function(s) { params[s.dataset.param] = s.value; });
+      return params;
+    }
+
+    function substituteQasm(tmpl, params) {
+      var qasm = tmpl;
+      for (var k in params) qasm = qasm.replaceAll("{" + k + "}", params[k].toString());
+      return qasm;
+    }
+
+    async function runPanel(panel, params) {
+      var tmplEl = panel.querySelector(".comparison-qasm");
+      var output = panel.querySelector(".comparison-output");
+      if (!tmplEl || !output) return;
+      var qasm = substituteQasm(tmplEl.textContent, params);
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var html = "", r;
+        if (mode === "ideal-noisy") {
+          var isLeft = panel === panels[0];
+          if (isLeft) {
+            r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+            if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+            html = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+          } else {
+            var noiseModel = el.dataset.noiseModel || params.noiseModel || "depolarizing";
+            var noiseParam = parseFloat(params.noiseParam || "0.1");
+            if (window.runNoisyQASM) {
+              r = JSON.parse(window.runNoisyQASM(qasm, 1024, noiseModel, noiseParam, isDark()));
+              if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+              html = (r.circuitSVG || r.circuit || "") + (r.histogramSVG || r.histogram || "") + (r.stateCitySVG || "");
+              if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span></div>';
+            }
+          }
+        } else if (mode === "transpile") {
+          var target = panel.dataset.target || "generic";
+          if (window.transpileQASM) {
+            r = JSON.parse(window.transpileQASM(qasm, target, isDark()));
+            if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+            html = (r.circuit || r.circuitSVG || "") + (r.info || "");
+          }
+        } else {
+          r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          html = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+        }
+        output.innerHTML = html;
+        renderMath(output);
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    async function runAll() {
+      if (pending) { dirty = true; return; }
+      pending = true;
+      await ensureWasm();
+      var params = getParams();
+      var promises = [];
+      panels.forEach(function(panel) { promises.push(runPanel(panel, params)); });
+      await Promise.all(promises);
+      pending = false;
+      if (dirty) { dirty = false; runAll(); }
+    }
+
+    sliders.forEach(function(s) { s.addEventListener("input", runAll); });
+    selects.forEach(function(s) { s.addEventListener("change", runAll); });
+
+    var runBtn = el.querySelector('[data-action="run"]');
+    if (!runBtn) {
+      var controls = el.querySelector(".comparison-controls");
+      if (controls) {
+        runBtn = document.createElement("button");
+        runBtn.setAttribute("data-action", "run");
+        runBtn.textContent = "Run";
+        controls.appendChild(runBtn);
+      }
+    }
+    if (runBtn) runBtn.addEventListener("click", runAll);
+
+    runAll();
+  }
+
+  function initAnimatedWalkthrough(el) {
+    var stages = el.querySelectorAll(".walkthrough-stage");
+    var progressBar = el.querySelector(".walkthrough-progress");
+    var prevBtn = el.querySelector('[data-action="prev"]');
+    var nextBtn = el.querySelector('[data-action="next"]');
+    var autoBtn = el.querySelector('[data-action="auto"]');
+    if (stages.length === 0) return;
+    var cur = 0, autoTimer = null, stageRan = {};
+
+    
+    if (progressBar) {
+      progressBar.textContent = "";
+      for (var i = 0; i < stages.length; i++) {
+        var pip = document.createElement("div");
+        pip.className = "walkthrough-pip" + (i === 0 ? " active" : "");
+        pip.setAttribute("data-index", i);
+        pip.textContent = i + 1;
+        progressBar.appendChild(pip);
+      }
+    }
+
+    function updateProgress() {
+      if (!progressBar) return;
+      var pips = progressBar.querySelectorAll(".walkthrough-pip");
+      pips.forEach(function(p, i) {
+        p.classList.remove("active", "done");
+        if (i < cur) p.classList.add("done");
+        if (i === cur) p.classList.add("active");
+      });
+    }
+
+    async function runStageQasm(stage) {
+      var idx = stage.dataset.stage || "0";
+      if (stageRan[idx]) return;
+      var qasmEl = stage.querySelector(".walkthrough-qasm");
+      var output = stage.querySelector(".walkthrough-output");
+      if (!qasmEl || !output) return;
+      stageRan[idx] = true;
+      await ensureWasm();
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(qasmEl.textContent, 1024, isDark()));
+        if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+        output.innerHTML = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+        renderMath(output);
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    function show(idx) {
+      if (idx < 0 || idx >= stages.length) return;
+      stages.forEach(function(s, i) {
+        s.classList.remove("active", "walkthrough-exit");
+        if (i === cur && i !== idx) s.classList.add("walkthrough-exit");
+      });
+      var prev = cur;
+      cur = idx;
+      setTimeout(function() {
+        stages.forEach(function(s, i) {
+          s.classList.remove("walkthrough-exit");
+          s.classList.toggle("active", i === cur);
+        });
+      }, prev !== idx ? 150 : 0);
+      updateProgress();
+      if (prevBtn) prevBtn.disabled = (cur === 0);
+      if (nextBtn) nextBtn.disabled = (cur >= stages.length - 1);
+      runStageQasm(stages[cur]);
+    }
+
+    function stopAuto() {
+      if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+      if (autoBtn) autoBtn.textContent = "Auto-play";
+    }
+
+    if (prevBtn) prevBtn.addEventListener("click", function() { stopAuto(); if (cur > 0) show(cur - 1); });
+    if (nextBtn) nextBtn.addEventListener("click", function() { stopAuto(); if (cur < stages.length - 1) show(cur + 1); });
+    if (autoBtn) autoBtn.addEventListener("click", function() {
+      if (autoTimer) { stopAuto(); return; }
+      autoBtn.textContent = "Pause";
+      autoTimer = setInterval(function() {
+        if (cur < stages.length - 1) { show(cur + 1); }
+        else { stopAuto(); }
+      }, 3000);
+    });
+
+    if (progressBar) progressBar.addEventListener("click", function(e) {
+      var pip = e.target.closest(".walkthrough-pip");
+      if (pip) { stopAuto(); show(parseInt(pip.dataset.index, 10)); }
+    });
+
+    show(0);
+  }
+
   document.addEventListener("DOMContentLoaded", function() {
-    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough};
+    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough, comparison: initComparison, "animated-walkthrough": initAnimatedWalkthrough};
     document.querySelectorAll("[data-component]").forEach(function(el) { var fn = reg[el.dataset.component]; if (fn) fn(el); });
   });
   </script>

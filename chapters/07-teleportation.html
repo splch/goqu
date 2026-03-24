@@ -282,41 +282,70 @@ $$\frac{1}{2}\big[|00\rangle(\alpha|0\rangle + \beta|1\rangle) + |01\rangle(\alp
 
 <p>Here is the full teleportation circuit. We prepare Alice's data qubit in a specific state (here, $|1\rangle$ via an X gate) so we can verify the teleportation worked. Alice's measurement outcomes feed into classically controlled corrections on Bob's qubit:</p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="18">OPENQASM 3.0;
+<!-- Animated Walkthrough 1: Teleportation Protocol -->
+<div class="animated-walkthrough" data-component="animated-walkthrough">
+  <div class="walkthrough-progress"></div>
+  <div class="walkthrough-stage active" data-stage="1">
+    <div class="walkthrough-narration">
+      <h4>Stage 1: Create Bell Pair</h4>
+      <p>Alice and Bob share an entangled Bell pair. H on q[1] followed by CNOT(q[1],q[2]) creates $|\Phi^+\rangle$. Meanwhile, Alice's data qubit q[0] is in state $|1\rangle$ (prepared with X gate).</p>
+    </div>
+    <div class="walkthrough-viz">
+      <div class="walkthrough-qasm" hidden>OPENQASM 3.0;
 qubit[3] q;
 bit[3] c;
-
-// Prepare Alice's data qubit in |1> state
 x q[0];
-
-// Create Bell pair between q[1] and q[2]
 h q[1];
 cx q[1], q[2];
-
-// Alice's operations: CNOT then H
+c = measure q;</div>
+      <div class="walkthrough-output"></div>
+    </div>
+  </div>
+  <div class="walkthrough-stage" data-stage="2">
+    <div class="walkthrough-narration">
+      <h4>Stage 2: Alice's Bell Measurement</h4>
+      <p>Alice applies CNOT(q[0],q[1]) then H on q[0]. This entangles her data qubit with her half of the Bell pair, effectively performing a Bell-state measurement on her two qubits.</p>
+    </div>
+    <div class="walkthrough-viz">
+      <div class="walkthrough-qasm" hidden>OPENQASM 3.0;
+qubit[3] q;
+bit[3] c;
+x q[0];
+h q[1];
+cx q[1], q[2];
 cx q[0], q[1];
 h q[0];
-
-// Alice measures her two qubits
+c = measure q;</div>
+      <div class="walkthrough-output"></div>
+    </div>
+  </div>
+  <div class="walkthrough-stage" data-stage="3">
+    <div class="walkthrough-narration">
+      <h4>Stage 3: Bob's Correction</h4>
+      <p>Alice measures q[0] and q[1], sending two classical bits to Bob. Based on the results, Bob applies corrections: X if q[1]=1, Z if q[0]=1. After correction, Bob's qubit is in state $|1\rangle$ - the teleportation is complete!</p>
+    </div>
+    <div class="walkthrough-viz">
+      <div class="walkthrough-qasm" hidden>OPENQASM 3.0;
+qubit[3] q;
+bit[3] c;
+x q[0];
+h q[1];
+cx q[1], q[2];
+cx q[0], q[1];
+h q[0];
 c[0] = measure q[0];
 c[1] = measure q[1];
-
-// Bob's corrections based on Alice's results
-if (c[1] == 1) {
-  x q[2];
-}
-if (c[0] == 1) {
-  z q[2];
-}
-
-// Measure Bob's qubit to verify
-c[2] = measure q[2];</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
+if (c[1]) x q[2];
+if (c[0]) z q[2];
+c[2] = measure q[2];</div>
+      <div class="walkthrough-output"></div>
+    </div>
   </div>
-  <div class="output"></div>
+  <div class="walkthrough-controls">
+    <button data-action="prev" disabled>Previous</button>
+    <button data-action="next">Next</button>
+    <button data-action="auto">Auto-play</button>
+  </div>
 </div>
 
 <p>Run this circuit. Since we prepared Alice's qubit as $|1\rangle$, Bob's qubit should always measure $1$ after the corrections. The first two bits (Alice's measurements) will be random - each of the four outcomes $00$, $01$, $10$, $11$ occurs with equal probability - but Bob's bit will always be $1$.</p>
@@ -347,52 +376,6 @@ c[2] = measure q[2];</textarea>
 
 <h3>Predict, Observe, Explain: Can we send information faster than light?</h3>
 
-<div class="poe" data-component="poe">
-  <div class="poe-progress">
-    <div class="poe-progress-step active">Predict</div>
-    <div class="poe-progress-step">Observe</div>
-    <div class="poe-progress-step">Explain</div>
-  </div>
-  <div class="poe-step poe-predict active">
-    <h3>Predict</h3>
-    <p>Consider a modified teleportation circuit where Alice skips the classical communication step - she performs her measurements but does not tell Bob the results. Bob simply measures his qubit without any corrections. What will Bob see? Will his measurement outcomes depend on what state Alice was trying to teleport?</p>
-    <textarea rows="3" placeholder="Write your prediction..."></textarea>
-    <button data-action="next">Submit Prediction</button>
-  </div>
-  <div class="poe-step poe-observe">
-    <h3>Observe</h3>
-    <p>Here is the circuit with Alice teleporting $|1\rangle$ but Bob applying no corrections:</p>
-    <div class="sandbox" data-component="sandbox" data-shots="1024" data-autorun>
-      <textarea class="code" rows="14">OPENQASM 3.0;
-qubit[3] q;
-bit[3] c;
-
-// Alice prepares |1>
-x q[0];
-
-// Bell pair
-h q[1];
-cx q[1], q[2];
-
-// Alice's operations and measurement
-cx q[0], q[1];
-h q[0];
-c[0] = measure q[0];
-c[1] = measure q[1];
-
-// Bob measures WITHOUT corrections
-c[2] = measure q[2];</textarea>
-      <div class="sandbox-controls"><button data-action="run">Run</button></div>
-      <div class="output"></div>
-    </div>
-    <button data-action="next">Continue</button>
-  </div>
-  <div class="poe-step poe-explain">
-    <h3>Explain</h3>
-    <p>Without corrections, Bob's qubit (c[2]) measures 0 about half the time and 1 about half the time - completely random, regardless of what Alice sent. This is because the four correction branches (corresponding to Alice's four measurement outcomes) average out to a completely mixed state. Bob's local measurement statistics are identical whether Alice teleported $|0\rangle$, $|1\rangle$, or any other state. Only when he receives Alice's classical bits and applies the corrections does the teleported state emerge. This is why teleportation cannot transmit information faster than light.</p>
-    <button data-action="complete">Complete</button>
-  </div>
-</div>
 </section>
 
 <!-- ================================================================== -->
@@ -451,113 +434,61 @@ $$\frac{1}{\sqrt{2}}(|11\rangle + |01\rangle) = \frac{1}{\sqrt{2}}(|1\rangle + |
   <p>A single qubit can normally carry at most one bit of information (Holevo's theorem). Superdense coding achieves two bits only because Alice and Bob share a pre-existing entangled pair. The entanglement acts as a resource that was "pre-distributed" before communication began. You can think of one bit as stored in the qubit Alice sends and the other bit as stored in the entanglement itself.</p>
 </div>
 
-<h3>Sandbox: sending message 00</h3>
+<h3>Interactive: Superdense Coding</h3>
 
-<p>Alice applies $I$ (no gate). Bob decodes and should get $|00\rangle$ every time:</p>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="12">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-
-// Create Bell pair
-h q[0];
-cx q[0], q[1];
-
-// Alice encodes 00: apply I (nothing)
-
-// Bob decodes: reverse Bell circuit
-cx q[0], q[1];
-h q[0];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
+<!-- Widget 2: Superdense Coding -->
+<div class="widget" id="superdense-widget">
+  <div class="widget-header">Superdense Coding Simulator</div>
+  <div class="widget-body">
+    <p style="font-size:0.85rem;color:var(--color-text-muted);margin-bottom:0.5rem">Select a 2-bit message. Alice encodes it by applying a gate to her qubit, then Bob decodes both bits.</p>
+    <div style="display:flex;gap:0.75rem;align-items:center;margin-bottom:0.75rem;flex-wrap:wrap">
+      <button id="sd-00" style="font-size:0.9rem;padding:0.4rem 1rem">Send 00</button>
+      <button id="sd-01" style="font-size:0.9rem;padding:0.4rem 1rem">Send 01</button>
+      <button id="sd-10" style="font-size:0.9rem;padding:0.4rem 1rem">Send 10</button>
+      <button id="sd-11" style="font-size:0.9rem;padding:0.4rem 1rem">Send 11</button>
+    </div>
+    <div id="sd-info" style="font-family:var(--font-mono);font-size:0.85rem;margin-bottom:0.5rem"></div>
+    <div id="sd-sandbox-container"></div>
   </div>
-  <div class="output"></div>
 </div>
-
-<h3>Sandbox: sending message 01</h3>
-
-<p>Alice applies $X$. Bob decodes and should get $|01\rangle$ every time:</p>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="13">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-
-// Create Bell pair
-h q[0];
-cx q[0], q[1];
-
-// Alice encodes 01: apply X
-x q[0];
-
-// Bob decodes
-cx q[0], q[1];
-h q[0];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
-<h3>Sandbox: sending message 10</h3>
-
-<p>Alice applies $Z$. Bob decodes and should get $|10\rangle$ every time:</p>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="13">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-
-// Create Bell pair
-h q[0];
-cx q[0], q[1];
-
-// Alice encodes 10: apply Z
-z q[0];
-
-// Bob decodes
-cx q[0], q[1];
-h q[0];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
-<h3>Sandbox: sending message 11</h3>
-
-<p>Alice applies $X$ then $Z$ (the combined operation $ZX$). Bob decodes and should get $|11\rangle$ every time:</p>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="14">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-
-// Create Bell pair
-h q[0];
-cx q[0], q[1];
-
-// Alice encodes 11: apply X then Z (= ZX operator)
-x q[0];
-z q[0];
-
-// Bob decodes
-cx q[0], q[1];
-h q[0];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
+<script>
+(function(){
+  var infoE=document.getElementById("sd-info"),cont=document.getElementById("sd-sandbox-container");
+  var gates={"00":{gate:"// I (no gate)",label:"I (do nothing)",bell:"Phi+"},"01":{gate:"x q[0];",label:"X (bit flip)",bell:"Psi+"},"10":{gate:"z q[0];",label:"Z (phase flip)",bell:"Phi-"},"11":{gate:"x q[0];\nz q[0];",label:"X then Z",bell:"Psi-"}};
+  function send(msg){
+    var g=gates[msg];
+    infoE.textContent="Message: "+msg+" | Alice applies: "+g.label+" | Bell state becomes: |"+g.bell+">";
+    // Create sandbox
+    while(cont.firstChild)cont.removeChild(cont.firstChild);
+    var sb=document.createElement("div");
+    sb.className="sandbox";
+    sb.setAttribute("data-component","sandbox");
+    sb.setAttribute("data-shots","1024");
+    sb.setAttribute("data-autorun","");
+    var ta=document.createElement("textarea");
+    ta.className="code";ta.rows=9;
+    ta.value="OPENQASM 3.0;\nqubit[2] q;\nbit[2] c;\n// Bell pair\nh q[0];\ncx q[0], q[1];\n// Alice encodes message "+msg+"\n"+g.gate+"\n// Bob decodes\ncx q[0], q[1];\nh q[0];\nc = measure q;";
+    sb.appendChild(ta);
+    var ctrl=document.createElement("div");ctrl.className="sandbox-controls";
+    var btn=document.createElement("button");btn.setAttribute("data-action","run");btn.textContent="Run";
+    ctrl.appendChild(btn);sb.appendChild(ctrl);
+    var output=document.createElement("div");output.className="output";sb.appendChild(output);
+    cont.appendChild(sb);
+    // Init the sandbox via the component system
+    if(typeof initSandbox==="function")initSandbox(sb);
+    else{
+      // fallback: find the init function from the global scope
+      var fn=window.initSandbox;
+      if(fn)fn(sb);
+    }
+  }
+  document.getElementById("sd-00").addEventListener("click",function(){send("00");});
+  document.getElementById("sd-01").addEventListener("click",function(){send("01");});
+  document.getElementById("sd-10").addEventListener("click",function(){send("10");});
+  document.getElementById("sd-11").addEventListener("click",function(){send("11");});
+  send("00");
+})();
+</script>
 
 <div class="callout callout-info">
   <strong>Teleportation and superdense coding: a duality</strong>
@@ -684,58 +615,72 @@ $$p_{\text{win}} = \cos^2\!\left(\frac{\pi}{8}\right) \approx 0.8536$$
   <p>Experiments have confirmed the quantum prediction with high statistical significance (most notably the 2015 "loophole-free" Bell tests). This means at least one of the following classical assumptions must be false: (1) locality - physical influences cannot travel faster than light, (2) realism - physical properties have definite values before measurement, or (3) freedom of choice - experimenters can freely choose their measurement settings. Most physicists accept that local realism is violated, while the speed-of-light limit on communication is preserved.</p>
 </div>
 
-<h3>Sandbox: the quantum CHSH strategy</h3>
+<h3>Interactive: the CHSH game</h3>
+
+<!-- Widget 3: CHSH Game Simulator -->
+<div class="widget" id="chsh-game-widget">
+  <div class="widget-header">CHSH Game Simulator</div>
+  <div class="widget-body">
+    <p style="font-size:0.85rem;color:var(--color-text-muted);margin-bottom:0.5rem">Play rounds of the CHSH game. Compare classical (always output 0) vs quantum (entangled) strategy. The quantum strategy wins ~85% vs classical 75%.</p>
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:0.75rem">
+      <button id="chsh-play" style="font-size:0.9rem;padding:0.5rem 1.5rem">Play 100 Rounds</button>
+      <button id="chsh-reset" style="font-size:0.8rem;background:var(--color-surface);color:var(--color-text);border-color:var(--color-border)">Reset</button>
+    </div>
+    <div style="display:flex;gap:2rem;flex-wrap:wrap">
+      <div>
+        <strong style="font-size:0.85rem">Classical Strategy (both output 0):</strong>
+        <div id="chsh-classical" style="font-family:var(--font-mono);font-size:0.9rem;margin-top:0.25rem">Wins: 0 / 0 (0%)</div>
+        <div id="chsh-cbar" style="height:16px;border-radius:3px;background:var(--color-border);margin-top:0.25rem;width:200px;overflow:hidden"><div id="chsh-cfill" style="height:100%;background:var(--color-accent);width:0%;transition:width 0.3s"></div></div>
+      </div>
+      <div>
+        <strong style="font-size:0.85rem">Quantum Strategy (entangled):</strong>
+        <div id="chsh-quantum" style="font-family:var(--font-mono);font-size:0.9rem;margin-top:0.25rem">Wins: 0 / 0 (0%)</div>
+        <div id="chsh-qbar" style="height:16px;border-radius:3px;background:var(--color-border);margin-top:0.25rem;width:200px;overflow:hidden"><div id="chsh-qfill" style="height:100%;background:var(--color-success);width:0%;transition:width 0.3s"></div></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:0.5rem;margin-top:0.5rem;font-size:0.8rem;color:var(--color-text-muted)">
+      <span style="width:12px;height:12px;background:var(--color-error);display:inline-block;border-radius:2px"></span> Classical bound: 75%
+      <span style="width:12px;height:12px;background:var(--color-success);display:inline-block;border-radius:2px;margin-left:1rem"></span> Tsirelson bound: ~85.4%
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var cWins=0,cTotal=0,qWins=0,qTotal=0;
+  var cDisp=document.getElementById("chsh-classical"),qDisp=document.getElementById("chsh-quantum");
+  var cFill=document.getElementById("chsh-cfill"),qFill=document.getElementById("chsh-qfill");
+  function update(){
+    var cp=cTotal?((cWins/cTotal)*100).toFixed(1):"0";
+    var qp=qTotal?((qWins/qTotal)*100).toFixed(1):"0";
+    cDisp.textContent="Wins: "+cWins+" / "+cTotal+" ("+cp+"%)";
+    qDisp.textContent="Wins: "+qWins+" / "+qTotal+" ("+qp+"%)";
+    cFill.style.width=cp+"%";qFill.style.width=qp+"%";
+  }
+  document.getElementById("chsh-play").addEventListener("click",function(){
+    for(var i=0;i<100;i++){
+      var x=Math.random()<0.5?1:0,y=Math.random()<0.5?1:0;
+      var goal=x&y; // a XOR b should equal x AND y
+      // Classical: both output 0
+      var cA=0,cB=0;
+      if((cA^cB)===goal)cWins++;
+      cTotal++;
+      // Quantum: cos^2(pi/8) probability of winning
+      var winProb=Math.pow(Math.cos(Math.PI/8),2);
+      if(Math.random()<winProb)qWins++;
+      qTotal++;
+    }
+    update();
+  });
+  document.getElementById("chsh-reset").addEventListener("click",function(){cWins=0;cTotal=0;qWins=0;qTotal=0;update();});
+  update();
+})();
+</script>
 
 <p>Below is a circuit implementing the quantum strategy for the input case $x = 0, y = 0$. Alice measures in the standard basis and Bob rotates by $\pi/4$ on the Bloch sphere. They should mostly output matching bits and win this round:</p>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="13">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-
-// Shared Bell pair
-h q[0];
-cx q[0], q[1];
-
-// Alice: x=0, measure in Z basis (no rotation)
-
-// Bob: y=0, rotate by -pi/4
-ry(-pi/4) q[1];
-
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
 
 <p>The matching outcomes ($|00\rangle$ and $|11\rangle$) should appear approximately $\cos^2(\pi/8) \approx 85\%$ of the time - significantly more than the 75% classical limit.</p>
 
 <p>Now try the critical case $x = 1, y = 1$, where they want <em>different</em> outputs:</p>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="14">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-
-// Shared Bell pair
-h q[0];
-cx q[0], q[1];
-
-// Alice: x=1, rotate by -pi/2
-ry(-pi/2) q[0];
-
-// Bob: y=1, rotate by pi/4
-ry(pi/4) q[1];
-
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
 
 <p>Here the <em>different</em> outcomes ($|01\rangle$ and $|10\rangle$) should again appear about 85% of the time. The quantum strategy manages to win approximately 85% in <em>all four</em> input cases, not just three out of four.</p>
 
@@ -832,27 +777,22 @@ $$H^{\otimes 3}|\text{GHZ}\rangle = \frac{1}{\sqrt{2}} \cdot \frac{1}{2\sqrt{2}}
 
 <p>Below is the quantum strategy for the input case $(x, y, z) = (0, 1, 1)$. Alice measures in $X$ (just $H$ then measure), Bob and Charlie measure in $Y$ ($S^\dagger$ then $H$ then measure). The outputs should XOR to 1:</p>
 
+<!-- Sandbox 4: GHZ Game for input (0,1,1) -->
 <div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="18">OPENQASM 3.0;
+  <textarea class="code" rows="13">OPENQASM 3.0;
 qubit[3] q;
 bit[3] c;
-
 // Create GHZ state
 h q[0];
 cx q[0], q[1];
 cx q[0], q[2];
-
-// Alice: input 0, measure in X basis
+// Input (x,y,z) = (0,1,1)
+// Alice (x=0): measure in X basis -> apply H
 h q[0];
-
-// Bob: input 1, measure in Y basis
-sdg q[1];
-h q[1];
-
-// Charlie: input 1, measure in Y basis
-sdg q[2];
-h q[2];
-
+// Bob (y=1): measure in Y basis -> apply Sdg then H
+sdg q[1]; h q[1];
+// Charlie (z=1): measure in Y basis -> apply Sdg then H
+sdg q[2]; h q[2];
 c = measure q;</textarea>
   <div class="sandbox-controls">
     <button data-action="run">Run</button>
@@ -865,21 +805,17 @@ c = measure q;</textarea>
 
 <p>Try the all-zeros case $(0, 0, 0)$ where all three players measure in the $X$ basis (all apply $H$ before measuring). You should see only outcomes where the bits XOR to 0.</p>
 
+<!-- Sandbox: GHZ Game for input (0,0,0) -->
 <div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="14">OPENQASM 3.0;
+  <textarea class="code" rows="11">OPENQASM 3.0;
 qubit[3] q;
 bit[3] c;
-
 // Create GHZ state
 h q[0];
 cx q[0], q[1];
 cx q[0], q[2];
-
-// All players: input 0, measure in X basis
-h q[0];
-h q[1];
-h q[2];
-
+// Input (0,0,0): all measure in X basis
+h q[0]; h q[1]; h q[2];
 c = measure q;</textarea>
   <div class="sandbox-controls">
     <button data-action="run">Run</button>
@@ -892,27 +828,19 @@ c = measure q;</textarea>
 
 <p>Finally, try the case $(1, 1, 0)$ where Alice and Bob measure in $Y$ and Charlie measures in $X$:</p>
 
+<!-- Sandbox: GHZ Game for input (1,1,0) -->
 <div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="17">OPENQASM 3.0;
+  <textarea class="code" rows="12">OPENQASM 3.0;
 qubit[3] q;
 bit[3] c;
-
 // Create GHZ state
 h q[0];
 cx q[0], q[1];
 cx q[0], q[2];
-
-// Alice: input 1, measure in Y basis
-sdg q[0];
-h q[0];
-
-// Bob: input 1, measure in Y basis
-sdg q[1];
-h q[1];
-
-// Charlie: input 0, measure in X basis
+// Input (1,1,0): Alice Y, Bob Y, Charlie X
+sdg q[0]; h q[0];
+sdg q[1]; h q[1];
 h q[2];
-
 c = measure q;</textarea>
   <div class="sandbox-controls">
     <button data-action="run">Run</button>
@@ -951,87 +879,7 @@ c = measure q;</textarea>
 <p>These protocols form the conceptual foundation of quantum communication. In Chapter 8, we will see how entanglement and quantum measurement lead to practical applications in cryptography - specifically, quantum key distribution protocols that offer security guaranteed by the laws of physics.</p>
 </section>
 
-<!-- ================================================================== -->
 
-<section id="review">
-<h2>Chapter 7 Review</h2>
-
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 7 Review</div>
-
-  <div class="flashcard" data-card-id="ch07-teleportation-protocol">
-    <div class="card-front">What are the three resources required for quantum teleportation, and what does each contribute?</div>
-    <div class="card-back">Teleportation requires: (1) a shared Bell pair between Alice and Bob, which provides the entanglement channel; (2) Alice's operations (CNOT + H) and measurement of her two qubits, which entangle her data with the Bell pair and produce two classical bits; (3) a classical communication channel for Alice to send the two measurement bits to Bob. Bob then applies correction gates ($I$, $X$, $Z$, or $ZX$) based on those bits to recover the teleported state.</div>
-    <div class="flashcard-controls">
-      <button class="easy">Easy</button>
-      <button class="hard">Hard</button>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch07-no-ftl">
-    <div class="card-front">Why can't quantum teleportation be used for faster-than-light communication?</div>
-    <div class="card-back">Without Alice's classical measurement results, Bob's qubit is in a completely mixed state - it looks uniformly random regardless of what state Alice teleported. Bob cannot extract any information until he receives the two classical bits, which must travel through a conventional channel at or below the speed of light. The classical communication step is essential for teleportation to work.</div>
-    <div class="flashcard-controls">
-      <button class="easy">Easy</button>
-      <button class="hard">Hard</button>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch07-superdense-coding">
-    <div class="card-front">How does superdense coding send 2 classical bits using only 1 qubit?</div>
-    <div class="card-back">Alice and Bob pre-share a Bell pair $|\Phi^+\rangle$. Alice encodes her two-bit message by applying one of four gates ($I$, $X$, $Z$, or $ZX$) to her qubit, transforming the Bell pair into one of four orthogonal Bell states. She sends her qubit to Bob, who applies the reverse Bell circuit (CNOT then H) and measures both qubits to recover the two bits. The entangled pair provides the "extra" bit of capacity beyond what a single qubit normally carries.</div>
-    <div class="flashcard-controls">
-      <button class="easy">Easy</button>
-      <button class="hard">Hard</button>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch07-teleport-superdense-duality">
-    <div class="card-front">In what sense are teleportation and superdense coding "dual" protocols?</div>
-    <div class="card-back">Teleportation uses 1 Bell pair + 2 classical bits to transmit 1 qubit. Superdense coding uses 1 Bell pair + 1 qubit to transmit 2 classical bits. They represent the two directions of converting between quantum and classical communication resources, with entanglement as the bridge. Both consume one shared Bell pair in the process.</div>
-    <div class="flashcard-controls">
-      <button class="easy">Easy</button>
-      <button class="hard">Hard</button>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch07-chsh-classical">
-    <div class="card-front">What is the CHSH game, and why can classical players win at most 75% of the time?</div>
-    <div class="card-back">Alice and Bob each receive a random bit ($x$ and $y$) and must output bits ($a$ and $b$) satisfying $a \oplus b = x \wedge y$ - they want matching outputs except when both inputs are 1. The best deterministic strategy (e.g., always output 0) wins 3 of 4 cases. Since randomized strategies are mixtures of deterministic ones, no classical strategy exceeds 75%. This is the Bell/CHSH inequality.</div>
-    <div class="flashcard-controls">
-      <button class="easy">Easy</button>
-      <button class="hard">Hard</button>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch07-chsh-quantum">
-    <div class="card-front">What win rate does the optimal quantum CHSH strategy achieve, and what is Tsirelson's bound?</div>
-    <div class="card-back">Using a shared Bell pair and appropriately chosen measurement angles, Alice and Bob can win the CHSH game with probability $\cos^2(\pi/8) \approx 85.36\%$. This corresponds to a CHSH value of $S = 2\sqrt{2} \approx 2.828$, which exceeds the classical bound of $S \leq 2$. Tsirelson's bound states that $2\sqrt{2}$ is the maximum value achievable by any quantum strategy.</div>
-    <div class="flashcard-controls">
-      <button class="easy">Easy</button>
-      <button class="hard">Hard</button>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch07-ghz-classical">
-    <div class="card-front">Why is it impossible for a classical strategy to always win the GHZ game?</div>
-    <div class="card-back">The GHZ game has three players receiving inputs $(x,y,z)$ with an even number of 1s. They must output bits with $a \oplus b \oplus c = x \vee y \vee z$. Writing the winning conditions as four equations and XOR-ing them all gives $0 = 1$, a contradiction. Therefore no consistent assignment of deterministic strategies exists, and the best classical success rate is 75%.</div>
-    <div class="flashcard-controls">
-      <button class="easy">Easy</button>
-      <button class="hard">Hard</button>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch07-ghz-quantum">
-    <div class="card-front">How does the GHZ state achieve a 100% win rate in the GHZ game?</div>
-    <div class="card-back">The players share the state $\frac{1}{\sqrt{2}}(|000\rangle + |111\rangle)$. Each player measures in the $X$ basis (apply $H$) if their input is 0, or in the $Y$ basis (apply $S^\dagger$ then $H$) if their input is 1. The GHZ state has the algebraic property that $XXX$ measurements yield even-parity outcomes, while $XYY$, $YXY$, and $YYX$ measurements yield odd-parity outcomes - exactly matching the winning condition for all four valid input triples.</div>
-    <div class="flashcard-controls">
-      <button class="easy">Easy</button>
-      <button class="hard">Hard</button>
-    </div>
-  </div>
-</div>
-</section>
     </article>
 
     
@@ -1059,7 +907,6 @@ c = measure q;</textarea>
   
   <script>
   "use strict";
-  
   function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
   function isDark() { return window.matchMedia("(prefers-color-scheme: dark)").matches; }
   function renderMath(el) {
@@ -1067,7 +914,6 @@ c = measure q;</textarea>
       renderMathInElement(el, { delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}], throwOnError: false });
   }
 
-  
   var wasmReady = null;
   function ensureWasm() {
     if (!wasmReady) {
@@ -1080,7 +926,6 @@ c = measure q;</textarea>
     return wasmReady;
   }
 
-  
   var SRS_KEY = "goqu-srs";
   function srsLoad() { try { return JSON.parse(localStorage.getItem(SRS_KEY) || "{}"); } catch(e) { return {}; } }
   function srsSave(d) { localStorage.setItem(SRS_KEY, JSON.stringify(d)); }
@@ -1098,7 +943,6 @@ c = measure q;</textarea>
     d[id] = s; srsSave(d);
   }
 
-  
   function initSandbox(el) {
     var code = el.querySelector(".code"), output = el.querySelector(".output");
     if (!code || !output) return;
@@ -1120,7 +964,6 @@ c = measure q;</textarea>
     if (el.hasAttribute("data-autorun")) run();
   }
 
-  
   function initSimulation(el) {
     var tmplEl = el.querySelector(".sim-qasm"), output = el.querySelector(".sim-output");
     var sliders = el.querySelectorAll('input[type="range"]');
@@ -1192,7 +1035,6 @@ c = measure q;</textarea>
     update();
   }
 
-  
   function formatStabilizer(s) {
     if (!s) return "";
     var sign = s[0], ops = s.slice(1), html = '<span class="stab-sign">' + esc(sign) + '</span>';
@@ -1203,7 +1045,6 @@ c = measure q;</textarea>
     return html;
   }
 
-  
   function initExercise(el) {
     var code = el.querySelector(".code"), feedback = el.querySelector(".exercise-feedback");
     var checkBtn = el.querySelector('[data-action="check"]');
@@ -1241,7 +1082,6 @@ c = measure q;</textarea>
     if (hintBtn && hintEl) hintBtn.addEventListener("click", function() { hintEl.style.display = hintEl.style.display === "none" ? "block" : "none"; });
   }
 
-  
   function initFlashcardDeck(el) {
     el.querySelectorAll(".flashcard").forEach(function(card) {
       var id = card.dataset.cardId;
@@ -1260,7 +1100,6 @@ c = measure q;</textarea>
     });
   }
 
-  
   function initPOE(el) {
     var steps = el.querySelectorAll(".poe-step"), prog = el.querySelectorAll(".poe-progress-step");
     if (steps.length === 0) return;
@@ -1277,7 +1116,6 @@ c = measure q;</textarea>
     show(0);
   }
 
-  
   function initStepThrough(el) {
     var qasmEl = el.querySelector(".step-qasm");
     var output = el.querySelector(".step-output");
@@ -1359,9 +1197,198 @@ c = measure q;</textarea>
     load();
   }
 
-  
+  function initComparison(el) {
+    var panels = el.querySelectorAll(".comparison-panel");
+    var sliders = el.querySelectorAll('.comparison-controls input[type="range"]');
+    var selects = el.querySelectorAll('.comparison-controls select[data-param]');
+    if (panels.length < 2) return;
+    var mode = el.dataset.mode || "default";
+    var pending = false, dirty = false;
+
+    function getParams() {
+      var params = {};
+      sliders.forEach(function(s) {
+        params[s.dataset.param] = parseFloat(s.value);
+        var o = s.parentElement.querySelector("output");
+        if (o) o.textContent = parseFloat(s.value).toFixed(2);
+      });
+      selects.forEach(function(s) { params[s.dataset.param] = s.value; });
+      return params;
+    }
+
+    function substituteQasm(tmpl, params) {
+      var qasm = tmpl;
+      for (var k in params) qasm = qasm.replaceAll("{" + k + "}", params[k].toString());
+      return qasm;
+    }
+
+    async function runPanel(panel, params) {
+      var tmplEl = panel.querySelector(".comparison-qasm");
+      var output = panel.querySelector(".comparison-output");
+      if (!tmplEl || !output) return;
+      var qasm = substituteQasm(tmplEl.textContent, params);
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var html = "", r;
+        if (mode === "ideal-noisy") {
+          var isLeft = panel === panels[0];
+          if (isLeft) {
+            r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+            if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+            html = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+          } else {
+            var noiseModel = el.dataset.noiseModel || params.noiseModel || "depolarizing";
+            var noiseParam = parseFloat(params.noiseParam || "0.1");
+            if (window.runNoisyQASM) {
+              r = JSON.parse(window.runNoisyQASM(qasm, 1024, noiseModel, noiseParam, isDark()));
+              if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+              html = (r.circuitSVG || r.circuit || "") + (r.histogramSVG || r.histogram || "") + (r.stateCitySVG || "");
+              if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span></div>';
+            }
+          }
+        } else if (mode === "transpile") {
+          var target = panel.dataset.target || "generic";
+          if (window.transpileQASM) {
+            r = JSON.parse(window.transpileQASM(qasm, target, isDark()));
+            if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+            html = (r.circuit || r.circuitSVG || "") + (r.info || "");
+          }
+        } else {
+          r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          html = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+        }
+        output.innerHTML = html;
+        renderMath(output);
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    async function runAll() {
+      if (pending) { dirty = true; return; }
+      pending = true;
+      await ensureWasm();
+      var params = getParams();
+      var promises = [];
+      panels.forEach(function(panel) { promises.push(runPanel(panel, params)); });
+      await Promise.all(promises);
+      pending = false;
+      if (dirty) { dirty = false; runAll(); }
+    }
+
+    sliders.forEach(function(s) { s.addEventListener("input", runAll); });
+    selects.forEach(function(s) { s.addEventListener("change", runAll); });
+
+    var runBtn = el.querySelector('[data-action="run"]');
+    if (!runBtn) {
+      var controls = el.querySelector(".comparison-controls");
+      if (controls) {
+        runBtn = document.createElement("button");
+        runBtn.setAttribute("data-action", "run");
+        runBtn.textContent = "Run";
+        controls.appendChild(runBtn);
+      }
+    }
+    if (runBtn) runBtn.addEventListener("click", runAll);
+
+    runAll();
+  }
+
+  function initAnimatedWalkthrough(el) {
+    var stages = el.querySelectorAll(".walkthrough-stage");
+    var progressBar = el.querySelector(".walkthrough-progress");
+    var prevBtn = el.querySelector('[data-action="prev"]');
+    var nextBtn = el.querySelector('[data-action="next"]');
+    var autoBtn = el.querySelector('[data-action="auto"]');
+    if (stages.length === 0) return;
+    var cur = 0, autoTimer = null, stageRan = {};
+
+    
+    if (progressBar) {
+      progressBar.textContent = "";
+      for (var i = 0; i < stages.length; i++) {
+        var pip = document.createElement("div");
+        pip.className = "walkthrough-pip" + (i === 0 ? " active" : "");
+        pip.setAttribute("data-index", i);
+        pip.textContent = i + 1;
+        progressBar.appendChild(pip);
+      }
+    }
+
+    function updateProgress() {
+      if (!progressBar) return;
+      var pips = progressBar.querySelectorAll(".walkthrough-pip");
+      pips.forEach(function(p, i) {
+        p.classList.remove("active", "done");
+        if (i < cur) p.classList.add("done");
+        if (i === cur) p.classList.add("active");
+      });
+    }
+
+    async function runStageQasm(stage) {
+      var idx = stage.dataset.stage || "0";
+      if (stageRan[idx]) return;
+      var qasmEl = stage.querySelector(".walkthrough-qasm");
+      var output = stage.querySelector(".walkthrough-output");
+      if (!qasmEl || !output) return;
+      stageRan[idx] = true;
+      await ensureWasm();
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(qasmEl.textContent, 1024, isDark()));
+        if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+        output.innerHTML = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+        renderMath(output);
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    function show(idx) {
+      if (idx < 0 || idx >= stages.length) return;
+      stages.forEach(function(s, i) {
+        s.classList.remove("active", "walkthrough-exit");
+        if (i === cur && i !== idx) s.classList.add("walkthrough-exit");
+      });
+      var prev = cur;
+      cur = idx;
+      setTimeout(function() {
+        stages.forEach(function(s, i) {
+          s.classList.remove("walkthrough-exit");
+          s.classList.toggle("active", i === cur);
+        });
+      }, prev !== idx ? 150 : 0);
+      updateProgress();
+      if (prevBtn) prevBtn.disabled = (cur === 0);
+      if (nextBtn) nextBtn.disabled = (cur >= stages.length - 1);
+      runStageQasm(stages[cur]);
+    }
+
+    function stopAuto() {
+      if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+      if (autoBtn) autoBtn.textContent = "Auto-play";
+    }
+
+    if (prevBtn) prevBtn.addEventListener("click", function() { stopAuto(); if (cur > 0) show(cur - 1); });
+    if (nextBtn) nextBtn.addEventListener("click", function() { stopAuto(); if (cur < stages.length - 1) show(cur + 1); });
+    if (autoBtn) autoBtn.addEventListener("click", function() {
+      if (autoTimer) { stopAuto(); return; }
+      autoBtn.textContent = "Pause";
+      autoTimer = setInterval(function() {
+        if (cur < stages.length - 1) { show(cur + 1); }
+        else { stopAuto(); }
+      }, 3000);
+    });
+
+    if (progressBar) progressBar.addEventListener("click", function(e) {
+      var pip = e.target.closest(".walkthrough-pip");
+      if (pip) { stopAuto(); show(parseInt(pip.dataset.index, 10)); }
+    });
+
+    show(0);
+  }
+
   document.addEventListener("DOMContentLoaded", function() {
-    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough};
+    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough, comparison: initComparison, "animated-walkthrough": initAnimatedWalkthrough};
     document.querySelectorAll("[data-component]").forEach(function(el) { var fn = reg[el.dataset.component]; if (fn) fn(el); });
   });
   </script>

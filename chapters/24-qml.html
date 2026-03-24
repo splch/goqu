@@ -379,42 +379,40 @@ $$|\phi(\mathbf{x})\rangle = U(\mathbf{x}) |0\rangle^{\otimes n}$$
   methods. Each architecture creates a different family of quantum states, affecting
   the model's expressiveness and trainability.
 </p>
-<div class="widget" id="fmap-widget">
-  <div class="widget-header">Quantum Feature Map Builder</div>
-  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
-    <label>Ansatz: <select id="fmap-type">
-      <option value="real_amplitudes">RealAmplitudes</option>
-      <option value="efficient_su2">EfficientSU2</option>
-      <option value="basic_entangler">BasicEntangler</option>
-      <option value="strongly_entangling">StronglyEntangling</option>
-    </select></label>
-    <label>Qubits: <select id="fmap-qubits"><option>2</option><option selected>3</option><option>4</option></select></label>
-    <label>Layers: <select id="fmap-layers"><option>1</option><option selected>2</option><option>3</option></select></label>
-    <label>Entanglement: <select id="fmap-ent"><option value="linear" selected>Linear</option><option value="full">Full</option><option value="circular">Circular</option></select></label>
-    <button onclick="runFeatureMap()">Build</button>
+
+<!-- Visualization 1: Feature Map Simulation -->
+<div class="simulation" data-component="simulation" data-bloch>
+  <div class="sim-controls">
+    <label>Encoding:
+      <select data-param="encoding">
+        <option value="angle">Angle (RY)</option>
+        <option value="iqp">IQP</option>
+      </select>
+    </label>
+    <label>$x_0$:
+      <input type="range" min="0" max="6.28" step="0.1" value="1.0" data-param="x0">
+      <output>1.00</output>
+    </label>
+    <label>$x_1$:
+      <input type="range" min="0" max="6.28" step="0.1" value="2.0" data-param="x1">
+      <output>2.00</output>
+    </label>
   </div>
-  <div class="widget-output" id="fmap-output"></div>
+  <div class="sim-qasm">OPENQASM 2.0;
+include "qelib1.inc";
+qreg q[2];
+creg c[2];
+ry({x0}) q[0];
+ry({x1}) q[1];
+cx q[0], q[1];
+c[0] = measure q[0];
+c[1] = measure q[1];</div>
+  <div class="sim-output"></div>
 </div>
-<script>
-async function runFeatureMap() {
-  await ensureWasm();
-  var out = document.getElementById('fmap-output');
-  out.innerHTML = '<p style="color:var(--color-text-muted)">Building...</p>';
-  await new Promise(r => setTimeout(r, 0));
-  try {
-    var name = document.getElementById('fmap-type').value;
-    var nq = parseInt(document.getElementById('fmap-qubits').value);
-    var layers = parseInt(document.getElementById('fmap-layers').value);
-    var ent = document.getElementById('fmap-ent').value;
-    var r = JSON.parse(window.buildAnsatz(name, nq, layers, ent, isDark()));
-    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
-    var html = (r.circuitSVG||'');
-    html += '<div class="sim-stats"><span>Parameters: ' + r.numParams + '</span><span>Depth: ' + r.depth + '</span></div>';
-    if (r.qasmCode) html += '<details><summary>Generated QASM</summary><pre>' + esc(r.qasmCode) + '</pre></details>';
-    out.innerHTML = html;
-  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
-}
-</script>
+<p style="font-size:0.9rem;color:var(--color-text-muted);margin-top:0.5rem;">
+  Adjust the data inputs $x_0$ and $x_1$ to see how different data points are encoded
+  into quantum states. The Bloch sphere shows the single-qubit reduced state.
+</p>
 
 <h3>Estimating the Quantum Kernel</h3>
 
@@ -432,34 +430,38 @@ async function runFeatureMap() {
   produce different kernel values.
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="16">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-// Encode data point x = (0.5, 1.2)
-ry(0.5) q[0];
-rz(1.2) q[1];
-// Entangling layer
-cx q[0], q[1];
-// Adjoint: undo encoding for x' = (0.7, 1.0)
-// (If x = x', all qubits return to |0>)
-inv @ cx q[0], q[1];
-inv @ rz(1.0) q[1];
-inv @ ry(0.7) q[0];
-// Measure: P(00) estimates the kernel value
-c = measure q;</textarea>
+<p>
+  The probability of measuring <code>00</code> estimates the kernel value
+  $k(\mathbf{x}, \mathbf{x}')$. When the two data points are identical, the circuit perfectly
+  uncomputes and you get <code>00</code> with certainty ($k = 1$). As the data points diverge,
+  the kernel value decreases. Try setting both data points to the same values to verify.
+</p>
+
+<!-- Visualization 2: Quantum Kernel Estimation Sandbox -->
+<div class="sandbox" data-component="sandbox">
+  <textarea class="code" rows="12">OPENQASM 2.0;
+include "qelib1.inc";
+qreg q[2];
+creg c[2];
+// Encode data point x = (1.0, 2.0) using angle encoding
+ry(1.0) q[0];
+ry(2.0) q[1];
+// Apply inverse encoding for x' = (0.5, 1.5)
+ry(-1.5) q[1];
+ry(-0.5) q[0];
+// P(00) estimates the kernel K(x, x')
+c[0] = measure q[0];
+c[1] = measure q[1];</textarea>
   <div class="sandbox-controls">
     <button data-action="run">Run</button>
     <button data-action="reset">Reset</button>
   </div>
   <div class="output"></div>
 </div>
-
-<p>
-  The probability of measuring <code>00</code> estimates the kernel value
-  $k(\mathbf{x}, \mathbf{x}')$. When the two data points are identical, the circuit perfectly
-  uncomputes and you get <code>00</code> with certainty ($k = 1$). As the data points diverge,
-  the kernel value decreases. Try setting both data points to the same values to verify.
+<p style="font-size:0.9rem;color:var(--color-text-muted);margin-top:0.5rem;">
+  The probability of measuring <code>00</code> estimates the kernel value $k(x, x')$.
+  Try making both data points identical to see $k = 1$. Adjust the angles to explore
+  how the kernel value changes with data similarity.
 </p>
 
 <h3>Quantum SVM Workflow</h3>
@@ -542,30 +544,6 @@ c = measure q;</textarea>
   encoded via $R_Y$ gates, followed by a CNOT for entanglement and trainable $R_Z$ rotations.
 </p>
 
-<div class="simulation" data-component="simulation">
-  <div class="sim-controls">
-    <label>Data $x_0$: <input type="range" data-param="x0" min="0" max="3.14" step="0.01" value="0.50"><output>0.50</output></label>
-    <label>Data $x_1$: <input type="range" data-param="x1" min="0" max="3.14" step="0.01" value="1.00"><output>1.00</output></label>
-    <label>Weight $\theta_0$: <input type="range" data-param="t0" min="0" max="6.28" step="0.01" value="0.00"><output>0.00</output></label>
-    <label>Weight $\theta_1$: <input type="range" data-param="t1" min="0" max="6.28" step="0.01" value="0.00"><output>0.00</output></label>
-  </div>
-  <pre class="sim-qasm">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-// Data encoding
-ry({x0}) q[0];
-ry({x1}) q[1];
-// Entangling layer
-cx q[0], q[1];
-// Trainable parameters
-rz({t0}) q[0];
-rz({t1}) q[1];
-// Second entangling layer
-cx q[1], q[0];
-c = measure q;</pre>
-  <div class="sim-output"></div>
-</div>
-
 <p>
   Adjust the data inputs ($x_0$, $x_1$) to see how different data points are encoded, and the
   weight parameters ($\theta_0$, $\theta_1$) to see how the trainable circuit transforms the
@@ -603,9 +581,190 @@ $$\frac{\partial}{\partial \theta} \langle O \rangle = \frac{1}{2} \left[ \langl
   </p>
 </div>
 
+<!-- Visualization 3: QNN Architecture Widget -->
+<div class="widget" id="qnn-architecture-widget">
+  <div class="widget-header">QNN Architecture Diagram</div>
+  <p style="font-size:0.9rem;margin-bottom:0.75rem;">
+    A quantum neural network has three stages: data encoding, variational layers
+    with trainable weights, and measurement. Adjust the weights to see how the
+    output distribution changes.
+  </p>
+  <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:0.75rem;">
+    <label style="font-family:var(--font-mono);font-size:0.85rem;">$\theta_0$:
+      <input type="range" min="0" max="6.28" step="0.1" value="0.5" id="qnn-w0" style="width:8rem;accent-color:var(--color-accent);">
+      <span id="qnn-w0-val" style="font-family:var(--font-mono);font-size:0.8rem;">0.5</span>
+    </label>
+    <label style="font-family:var(--font-mono);font-size:0.85rem;">$\theta_1$:
+      <input type="range" min="0" max="6.28" step="0.1" value="1.2" id="qnn-w1" style="width:8rem;accent-color:var(--color-accent);">
+      <span id="qnn-w1-val" style="font-family:var(--font-mono);font-size:0.8rem;">1.2</span>
+    </label>
+  </div>
+  <div id="qnn-diagram" style="border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-code-bg);padding:0.5rem;"></div>
+</div>
+<script>
+(function(){
+  var diagramEl = document.getElementById("qnn-diagram");
+  var w0El = document.getElementById("qnn-w0");
+  var w1El = document.getElementById("qnn-w1");
+  if(!diagramEl || !w0El || !w1El) return;
+
+  function draw(){
+    var w0=parseFloat(w0El.value), w1=parseFloat(w1El.value);
+    document.getElementById("qnn-w0-val").textContent = w0.toFixed(1);
+    document.getElementById("qnn-w1-val").textContent = w1.toFixed(1);
+
+    while(diagramEl.firstChild) diagramEl.removeChild(diagramEl.firstChild);
+    var svg = document.createElementNS("http://www.w3.org/2000/svg","svg");
+    svg.setAttribute("viewBox","0 0 500 120"); svg.setAttribute("width","100%"); svg.setAttribute("height","120");
+
+    var stages = [
+      {x:30, label:"|0>", color:"var(--color-text-muted)"},
+      {x:110, label:"Ry(x)", color:"var(--color-gate-1q)"},
+      {x:210, label:"CNOT", color:"var(--color-gate-2q)"},
+      {x:310, label:"Rz("+w0.toFixed(1)+")", color:"var(--color-gate-1q)"},
+      {x:410, label:"<Z>", color:"var(--color-measure)"}
+    ];
+
+    // Lines connecting stages
+    for(var r=0;r<2;r++){
+      var y = 35+r*50;
+      var line = document.createElementNS("http://www.w3.org/2000/svg","line");
+      line.setAttribute("x1","50"); line.setAttribute("y1",y);
+      line.setAttribute("x2","460"); line.setAttribute("y2",y);
+      line.setAttribute("stroke","var(--color-border)"); line.setAttribute("stroke-width","1");
+      svg.appendChild(line);
+    }
+
+    // Gate boxes
+    function addGate(x,y,w,h,label,fill){
+      var rect = document.createElementNS("http://www.w3.org/2000/svg","rect");
+      rect.setAttribute("x",x-w/2); rect.setAttribute("y",y-h/2);
+      rect.setAttribute("width",w); rect.setAttribute("height",h);
+      rect.setAttribute("fill",fill); rect.setAttribute("rx","4");
+      rect.setAttribute("stroke","var(--color-border)"); rect.setAttribute("stroke-width","1");
+      svg.appendChild(rect);
+      var t = document.createElementNS("http://www.w3.org/2000/svg","text");
+      t.setAttribute("x",x); t.setAttribute("y",y+4);
+      t.setAttribute("text-anchor","middle"); t.setAttribute("font-size","10");
+      t.setAttribute("font-family","var(--font-mono)"); t.setAttribute("fill","var(--color-text)");
+      t.textContent = label;
+      svg.appendChild(t);
+    }
+
+    // Init labels
+    for(var r=0;r<2;r++){
+      var t = document.createElementNS("http://www.w3.org/2000/svg","text");
+      t.setAttribute("x","25"); t.setAttribute("y",39+r*50);
+      t.setAttribute("text-anchor","middle"); t.setAttribute("font-size","11");
+      t.setAttribute("font-family","var(--font-mono)"); t.setAttribute("fill","var(--color-text-muted)");
+      t.textContent = "|0>";
+      svg.appendChild(t);
+    }
+
+    // Data encoding
+    addGate(110,35,50,24,"Ry(x0)","var(--color-gate-1q)");
+    addGate(110,85,50,24,"Ry(x1)","var(--color-gate-1q)");
+
+    // CNOT
+    var cx = document.createElementNS("http://www.w3.org/2000/svg","circle");
+    cx.setAttribute("cx","210"); cx.setAttribute("cy","35"); cx.setAttribute("r","5");
+    cx.setAttribute("fill","var(--color-gate-2q)");
+    svg.appendChild(cx);
+    var line = document.createElementNS("http://www.w3.org/2000/svg","line");
+    line.setAttribute("x1","210"); line.setAttribute("y1","35");
+    line.setAttribute("x2","210"); line.setAttribute("y2","85");
+    line.setAttribute("stroke","var(--color-gate-2q)"); line.setAttribute("stroke-width","2");
+    svg.appendChild(line);
+    var tgt = document.createElementNS("http://www.w3.org/2000/svg","circle");
+    tgt.setAttribute("cx","210"); tgt.setAttribute("cy","85"); tgt.setAttribute("r","10");
+    tgt.setAttribute("fill","none"); tgt.setAttribute("stroke","var(--color-gate-2q)"); tgt.setAttribute("stroke-width","2");
+    svg.appendChild(tgt);
+
+    // Variational
+    addGate(310,35,60,24,"Rz("+w0.toFixed(1)+")","var(--color-gate-1q)");
+    addGate(310,85,60,24,"Rz("+w1.toFixed(1)+")","var(--color-gate-1q)");
+
+    // Measurement
+    addGate(430,35,40,24,"<Z>","var(--color-measure)");
+    addGate(430,85,40,24,"<Z>","var(--color-measure)");
+
+    // Stage labels
+    var labels = [{x:110,t:"Data Encoding"},{x:210,t:"Entangling"},{x:310,t:"Weights"},{x:430,t:"Measure"}];
+    labels.forEach(function(l){
+      var t = document.createElementNS("http://www.w3.org/2000/svg","text");
+      t.setAttribute("x",l.x); t.setAttribute("y","115");
+      t.setAttribute("text-anchor","middle"); t.setAttribute("font-size","9");
+      t.setAttribute("fill","var(--color-text-muted)");
+      t.textContent = l.t;
+      svg.appendChild(t);
+    });
+
+    diagramEl.appendChild(svg);
+  }
+
+  w0El.addEventListener("input", draw);
+  w1El.addEventListener("input", draw);
+  draw();
+})();
+</script>
+
 </section>
 
 <!-- ================================================================== -->
+
+<!-- Visualization 4: Classical vs Quantum Decision Boundary Comparison -->
+<section id="classical-vs-quantum">
+<h3>Classical vs Quantum Kernel Comparison</h3>
+<p>
+  Compare how a classical RBF kernel and a quantum kernel classify the same dataset.
+  The decision boundary depends on the kernel's ability to separate the data in
+  feature space. For linearly separable data, both kernels perform similarly. The
+  quantum kernel's advantage, if any, appears on data with structure that aligns with
+  the quantum feature map.
+</p>
+
+<div class="comparison" data-component="comparison" data-mode="default">
+  <div class="comparison-controls">
+    <label>Circuit angle:
+      <input type="range" min="0.1" max="3.14" step="0.1" value="1.57" data-param="angle">
+      <output>1.57</output>
+    </label>
+  </div>
+  <div class="comparison-panels">
+    <div class="comparison-panel" data-label="Classical (RBF Kernel)">
+      <div class="comparison-qasm">OPENQASM 2.0;
+include "qelib1.inc";
+qreg q[2];
+creg c[2];
+ry(1.57) q[0];
+ry(1.57) q[1];
+c[0] = measure q[0];
+c[1] = measure q[1];</div>
+      <div class="comparison-output"></div>
+    </div>
+    <div class="comparison-panel" data-label="Quantum Kernel">
+      <div class="comparison-qasm">OPENQASM 2.0;
+include "qelib1.inc";
+qreg q[2];
+creg c[2];
+ry({angle}) q[0];
+ry({angle}) q[1];
+cx q[0], q[1];
+rz({angle}) q[1];
+cx q[0], q[1];
+c[0] = measure q[0];
+c[1] = measure q[1];</div>
+      <div class="comparison-output"></div>
+    </div>
+  </div>
+</div>
+<p style="font-size:0.9rem;color:var(--color-text-muted);margin-top:0.5rem;">
+  The left panel shows a simple product-state encoding (analogous to an RBF kernel).
+  The right panel adds entanglement via CNOT + RZ, creating richer correlations that
+  a quantum kernel can exploit. Adjust the angle to see how the distributions diverge.
+</p>
+
+</section>
 
 <section id="quantum-generative-models">
 
@@ -931,140 +1090,7 @@ $$\text{Var}\left[\frac{\partial \mathcal{L}}{\partial \theta_k}\right] \leq O\l
 
 </section>
 
-<!-- ================================================================== -->
 
-<section id="review">
-<h2>Chapter 24 Review</h2>
-
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 24 Review</div>
-
-  <div class="flashcard" data-card-id="ch24-quantum-feature-map">
-    <div class="card-front">What is a quantum feature map, and how does it relate to classical kernel methods?</div>
-    <div class="card-back">
-      A quantum feature map $U(\mathbf{x})$ encodes classical data $\mathbf{x}$ into a quantum
-      state $|\phi(\mathbf{x})\rangle = U(\mathbf{x})|0\rangle^{\otimes n}$ in an
-      exponentially large Hilbert space. The quantum kernel is the squared overlap
-      $k(\mathbf{x}, \mathbf{x}') = |\langle \phi(\mathbf{x})|\phi(\mathbf{x}')\rangle|^2$,
-      which can be estimated on a quantum computer. This directly parallels the classical kernel
-      trick, where data is implicitly mapped to a high-dimensional feature space.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch24-quantum-kernel-advantage">
-    <div class="card-front">Where does the potential quantum advantage lie in quantum kernel methods?</div>
-    <div class="card-back">
-      The potential advantage lies in the expressiveness of the quantum feature space, not in
-      speeding up the SVM optimization (which is done classically). A quantum advantage exists
-      only if the quantum feature map creates a kernel that captures data structure that no
-      efficiently computable classical kernel can. Theoretical separations exist for contrived
-      datasets, but practical advantage on real data remains undemonstrated.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch24-parameter-shift-rule">
-    <div class="card-front">How does the parameter-shift rule compute gradients of quantum circuits?</div>
-    <div class="card-back">
-      For a gate $R_\alpha(\theta) = e^{-i\theta\sigma/2}$, the gradient is computed exactly as
-      $\frac{\partial}{\partial\theta}\langle O\rangle = \frac{1}{2}[\langle O\rangle_{\theta+\pi/2}
-      - \langle O\rangle_{\theta-\pi/2}]$. This requires evaluating the same circuit at two
-      shifted parameter values, giving exact gradients from measurements. Computing the full
-      gradient of $m$ parameters requires $2m$ circuit evaluations.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch24-barren-plateaus">
-    <div class="card-front">What is the barren plateau problem, and why is it the central obstacle to scalable QML?</div>
-    <div class="card-back">
-      Barren plateaus occur when the gradient variance of a parameterized quantum circuit
-      vanishes exponentially with qubit count: $\text{Var}[\partial\mathcal{L}/\partial\theta_k]
-      \leq O(1/2^n)$. The optimization landscape becomes exponentially flat, making gradient-based
-      training impossible. A fundamental dilemma exists: circuits that avoid barren plateaus are
-      often classically simulable, while circuits with quantum advantage suffer from vanishing
-      gradients.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch24-qcbm">
-    <div class="card-front">What is a Quantum Circuit Born Machine, and why are quantum computers natural for generative modeling?</div>
-    <div class="card-back">
-      A QCBM uses a parameterized circuit $V(\theta)$ to produce quantum states whose
-      measurement statistics define the model distribution: $p_\theta(x) = |\langle x|V(\theta)
-      |0\rangle^{\otimes n}|^2$. Quantum computers are natural for generative modeling because
-      measurement inherently produces samples from a probability distribution, and quantum
-      circuits can produce distributions that are provably hard to sample classically. However,
-      whether such hard distributions arise in practical tasks is an open question.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch24-data-loading">
-    <div class="card-front">What is the data loading bottleneck in QML, and why does it matter?</div>
-    <div class="card-back">
-      Many QML algorithms assume efficient quantum access to classical data (loading $N$ data
-      points in $O(\log N)$ time), but in practice, encoding classical data into quantum states
-      is expensive. Amplitude encoding requires complex state preparation circuits, and angle
-      encoding uses one qubit per feature. This overhead can negate any quantum speedup,
-      especially for classical datasets that fit in classical memory.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch24-qml-quantum-data">
-    <div class="card-front">For which type of data is quantum advantage in ML most clearly established?</div>
-    <div class="card-back">
-      Quantum advantage is most clearly established when the data itself comes from quantum
-      systems (quantum states, channels, or Hamiltonians). Quantum computers can learn
-      properties of quantum systems exponentially faster than classical approaches because
-      quantum data can only be fully accessed by quantum measurements, and classical descriptions
-      of quantum states are exponentially large. This is the strongest and most rigorous QML
-      advantage.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch24-qml-honest-summary">
-    <div class="card-front">Summarize the honest assessment of QML: where is it promising and where does hype exceed evidence?</div>
-    <div class="card-back">
-      Promising: learning quantum systems (proven advantage), quantum chemistry/materials data
-      (natural fit), and fault-tolerant era applications. Hype exceeds evidence: QNNs beating
-      classical NNs on practical tasks, quantum speedups for standard ML benchmarks, and
-      near-term quantum advantage for classical data. Key obstacles: barren plateaus, data
-      loading bottleneck, dequantization of proposed advantages, and noise on near-term hardware.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-</div>
-</section>
 
     </article>
 
@@ -1093,7 +1119,6 @@ $$\text{Var}\left[\frac{\partial \mathcal{L}}{\partial \theta_k}\right] \leq O\l
   
   <script>
   "use strict";
-  
   function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
   function isDark() { return window.matchMedia("(prefers-color-scheme: dark)").matches; }
   function renderMath(el) {
@@ -1101,7 +1126,6 @@ $$\text{Var}\left[\frac{\partial \mathcal{L}}{\partial \theta_k}\right] \leq O\l
       renderMathInElement(el, { delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}], throwOnError: false });
   }
 
-  
   var wasmReady = null;
   function ensureWasm() {
     if (!wasmReady) {
@@ -1114,7 +1138,6 @@ $$\text{Var}\left[\frac{\partial \mathcal{L}}{\partial \theta_k}\right] \leq O\l
     return wasmReady;
   }
 
-  
   var SRS_KEY = "goqu-srs";
   function srsLoad() { try { return JSON.parse(localStorage.getItem(SRS_KEY) || "{}"); } catch(e) { return {}; } }
   function srsSave(d) { localStorage.setItem(SRS_KEY, JSON.stringify(d)); }
@@ -1132,7 +1155,6 @@ $$\text{Var}\left[\frac{\partial \mathcal{L}}{\partial \theta_k}\right] \leq O\l
     d[id] = s; srsSave(d);
   }
 
-  
   function initSandbox(el) {
     var code = el.querySelector(".code"), output = el.querySelector(".output");
     if (!code || !output) return;
@@ -1154,7 +1176,6 @@ $$\text{Var}\left[\frac{\partial \mathcal{L}}{\partial \theta_k}\right] \leq O\l
     if (el.hasAttribute("data-autorun")) run();
   }
 
-  
   function initSimulation(el) {
     var tmplEl = el.querySelector(".sim-qasm"), output = el.querySelector(".sim-output");
     var sliders = el.querySelectorAll('input[type="range"]');
@@ -1226,7 +1247,6 @@ $$\text{Var}\left[\frac{\partial \mathcal{L}}{\partial \theta_k}\right] \leq O\l
     update();
   }
 
-  
   function formatStabilizer(s) {
     if (!s) return "";
     var sign = s[0], ops = s.slice(1), html = '<span class="stab-sign">' + esc(sign) + '</span>';
@@ -1237,7 +1257,6 @@ $$\text{Var}\left[\frac{\partial \mathcal{L}}{\partial \theta_k}\right] \leq O\l
     return html;
   }
 
-  
   function initExercise(el) {
     var code = el.querySelector(".code"), feedback = el.querySelector(".exercise-feedback");
     var checkBtn = el.querySelector('[data-action="check"]');
@@ -1275,7 +1294,6 @@ $$\text{Var}\left[\frac{\partial \mathcal{L}}{\partial \theta_k}\right] \leq O\l
     if (hintBtn && hintEl) hintBtn.addEventListener("click", function() { hintEl.style.display = hintEl.style.display === "none" ? "block" : "none"; });
   }
 
-  
   function initFlashcardDeck(el) {
     el.querySelectorAll(".flashcard").forEach(function(card) {
       var id = card.dataset.cardId;
@@ -1294,7 +1312,6 @@ $$\text{Var}\left[\frac{\partial \mathcal{L}}{\partial \theta_k}\right] \leq O\l
     });
   }
 
-  
   function initPOE(el) {
     var steps = el.querySelectorAll(".poe-step"), prog = el.querySelectorAll(".poe-progress-step");
     if (steps.length === 0) return;
@@ -1311,7 +1328,6 @@ $$\text{Var}\left[\frac{\partial \mathcal{L}}{\partial \theta_k}\right] \leq O\l
     show(0);
   }
 
-  
   function initStepThrough(el) {
     var qasmEl = el.querySelector(".step-qasm");
     var output = el.querySelector(".step-output");
@@ -1393,9 +1409,198 @@ $$\text{Var}\left[\frac{\partial \mathcal{L}}{\partial \theta_k}\right] \leq O\l
     load();
   }
 
-  
+  function initComparison(el) {
+    var panels = el.querySelectorAll(".comparison-panel");
+    var sliders = el.querySelectorAll('.comparison-controls input[type="range"]');
+    var selects = el.querySelectorAll('.comparison-controls select[data-param]');
+    if (panels.length < 2) return;
+    var mode = el.dataset.mode || "default";
+    var pending = false, dirty = false;
+
+    function getParams() {
+      var params = {};
+      sliders.forEach(function(s) {
+        params[s.dataset.param] = parseFloat(s.value);
+        var o = s.parentElement.querySelector("output");
+        if (o) o.textContent = parseFloat(s.value).toFixed(2);
+      });
+      selects.forEach(function(s) { params[s.dataset.param] = s.value; });
+      return params;
+    }
+
+    function substituteQasm(tmpl, params) {
+      var qasm = tmpl;
+      for (var k in params) qasm = qasm.replaceAll("{" + k + "}", params[k].toString());
+      return qasm;
+    }
+
+    async function runPanel(panel, params) {
+      var tmplEl = panel.querySelector(".comparison-qasm");
+      var output = panel.querySelector(".comparison-output");
+      if (!tmplEl || !output) return;
+      var qasm = substituteQasm(tmplEl.textContent, params);
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var html = "", r;
+        if (mode === "ideal-noisy") {
+          var isLeft = panel === panels[0];
+          if (isLeft) {
+            r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+            if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+            html = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+          } else {
+            var noiseModel = el.dataset.noiseModel || params.noiseModel || "depolarizing";
+            var noiseParam = parseFloat(params.noiseParam || "0.1");
+            if (window.runNoisyQASM) {
+              r = JSON.parse(window.runNoisyQASM(qasm, 1024, noiseModel, noiseParam, isDark()));
+              if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+              html = (r.circuitSVG || r.circuit || "") + (r.histogramSVG || r.histogram || "") + (r.stateCitySVG || "");
+              if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span></div>';
+            }
+          }
+        } else if (mode === "transpile") {
+          var target = panel.dataset.target || "generic";
+          if (window.transpileQASM) {
+            r = JSON.parse(window.transpileQASM(qasm, target, isDark()));
+            if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+            html = (r.circuit || r.circuitSVG || "") + (r.info || "");
+          }
+        } else {
+          r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          html = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+        }
+        output.innerHTML = html;
+        renderMath(output);
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    async function runAll() {
+      if (pending) { dirty = true; return; }
+      pending = true;
+      await ensureWasm();
+      var params = getParams();
+      var promises = [];
+      panels.forEach(function(panel) { promises.push(runPanel(panel, params)); });
+      await Promise.all(promises);
+      pending = false;
+      if (dirty) { dirty = false; runAll(); }
+    }
+
+    sliders.forEach(function(s) { s.addEventListener("input", runAll); });
+    selects.forEach(function(s) { s.addEventListener("change", runAll); });
+
+    var runBtn = el.querySelector('[data-action="run"]');
+    if (!runBtn) {
+      var controls = el.querySelector(".comparison-controls");
+      if (controls) {
+        runBtn = document.createElement("button");
+        runBtn.setAttribute("data-action", "run");
+        runBtn.textContent = "Run";
+        controls.appendChild(runBtn);
+      }
+    }
+    if (runBtn) runBtn.addEventListener("click", runAll);
+
+    runAll();
+  }
+
+  function initAnimatedWalkthrough(el) {
+    var stages = el.querySelectorAll(".walkthrough-stage");
+    var progressBar = el.querySelector(".walkthrough-progress");
+    var prevBtn = el.querySelector('[data-action="prev"]');
+    var nextBtn = el.querySelector('[data-action="next"]');
+    var autoBtn = el.querySelector('[data-action="auto"]');
+    if (stages.length === 0) return;
+    var cur = 0, autoTimer = null, stageRan = {};
+
+    
+    if (progressBar) {
+      progressBar.textContent = "";
+      for (var i = 0; i < stages.length; i++) {
+        var pip = document.createElement("div");
+        pip.className = "walkthrough-pip" + (i === 0 ? " active" : "");
+        pip.setAttribute("data-index", i);
+        pip.textContent = i + 1;
+        progressBar.appendChild(pip);
+      }
+    }
+
+    function updateProgress() {
+      if (!progressBar) return;
+      var pips = progressBar.querySelectorAll(".walkthrough-pip");
+      pips.forEach(function(p, i) {
+        p.classList.remove("active", "done");
+        if (i < cur) p.classList.add("done");
+        if (i === cur) p.classList.add("active");
+      });
+    }
+
+    async function runStageQasm(stage) {
+      var idx = stage.dataset.stage || "0";
+      if (stageRan[idx]) return;
+      var qasmEl = stage.querySelector(".walkthrough-qasm");
+      var output = stage.querySelector(".walkthrough-output");
+      if (!qasmEl || !output) return;
+      stageRan[idx] = true;
+      await ensureWasm();
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(qasmEl.textContent, 1024, isDark()));
+        if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+        output.innerHTML = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+        renderMath(output);
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    function show(idx) {
+      if (idx < 0 || idx >= stages.length) return;
+      stages.forEach(function(s, i) {
+        s.classList.remove("active", "walkthrough-exit");
+        if (i === cur && i !== idx) s.classList.add("walkthrough-exit");
+      });
+      var prev = cur;
+      cur = idx;
+      setTimeout(function() {
+        stages.forEach(function(s, i) {
+          s.classList.remove("walkthrough-exit");
+          s.classList.toggle("active", i === cur);
+        });
+      }, prev !== idx ? 150 : 0);
+      updateProgress();
+      if (prevBtn) prevBtn.disabled = (cur === 0);
+      if (nextBtn) nextBtn.disabled = (cur >= stages.length - 1);
+      runStageQasm(stages[cur]);
+    }
+
+    function stopAuto() {
+      if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+      if (autoBtn) autoBtn.textContent = "Auto-play";
+    }
+
+    if (prevBtn) prevBtn.addEventListener("click", function() { stopAuto(); if (cur > 0) show(cur - 1); });
+    if (nextBtn) nextBtn.addEventListener("click", function() { stopAuto(); if (cur < stages.length - 1) show(cur + 1); });
+    if (autoBtn) autoBtn.addEventListener("click", function() {
+      if (autoTimer) { stopAuto(); return; }
+      autoBtn.textContent = "Pause";
+      autoTimer = setInterval(function() {
+        if (cur < stages.length - 1) { show(cur + 1); }
+        else { stopAuto(); }
+      }, 3000);
+    });
+
+    if (progressBar) progressBar.addEventListener("click", function(e) {
+      var pip = e.target.closest(".walkthrough-pip");
+      if (pip) { stopAuto(); show(parseInt(pip.dataset.index, 10)); }
+    });
+
+    show(0);
+  }
+
   document.addEventListener("DOMContentLoaded", function() {
-    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough};
+    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough, comparison: initComparison, "animated-walkthrough": initAnimatedWalkthrough};
     document.querySelectorAll("[data-component]").forEach(function(el) { var fn = reg[el.dataset.component]; if (fn) fn(el); });
   });
   </script>

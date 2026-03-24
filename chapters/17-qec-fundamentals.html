@@ -387,24 +387,6 @@ $$\alpha \lvert 0 \rangle + \beta \lvert 1 \rangle \to \alpha \lvert 000 \rangle
   The encoding circuit uses two CNOT gates with the data qubit as the control:
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="10">OPENQASM 3.0;
-qubit[3] q;
-bit[3] c;
-// Prepare input state |1> (try changing to |0> or |+>)
-x q[0];
-// Encoding: spread q[0] into 3-qubit code
-cx q[0], q[1];
-cx q[0], q[2];
-// Measure to verify encoding
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
 <p>
   With the input $\lvert 1 \rangle$, you should see the output <code>111</code> with 100%
   probability, confirming the encoding $\lvert 1 \rangle \to \lvert 111 \rangle$. Remove the
@@ -424,9 +406,9 @@ c = measure q;</textarea>
   </thead>
   <tbody>
     <tr><td>None ($I$)</td><td>$\alpha \lvert 000 \rangle + \beta \lvert 111 \rangle$</td><td>00</td></tr>
-    <tr><td>$X_1$ (flip qubit 1)</td><td>$\alpha \lvert 100 \rangle + \beta \lvert 011 \rangle$</td><td>10</td></tr>
-    <tr><td>$X_2$ (flip qubit 2)</td><td>$\alpha \lvert 010 \rangle + \beta \lvert 101 \rangle$</td><td>11</td></tr>
-    <tr><td>$X_3$ (flip qubit 3)</td><td>$\alpha \lvert 001 \rangle + \beta \lvert 110 \rangle$</td><td>01</td></tr>
+    <tr><td>$X_0$ (flip qubit 0)</td><td>$\alpha \lvert 100 \rangle + \beta \lvert 011 \rangle$</td><td>10</td></tr>
+    <tr><td>$X_1$ (flip qubit 1)</td><td>$\alpha \lvert 010 \rangle + \beta \lvert 101 \rangle$</td><td>11</td></tr>
+    <tr><td>$X_2$ (flip qubit 2)</td><td>$\alpha \lvert 001 \rangle + \beta \lvert 110 \rangle$</td><td>01</td></tr>
   </tbody>
 </table>
 
@@ -435,8 +417,8 @@ c = measure q;</textarea>
 </p>
 
 <ul>
-  <li><strong>Syndrome bit $s_1$:</strong> parity of qubits 1 and 2 (are they the same or different?)</li>
-  <li><strong>Syndrome bit $s_2$:</strong> parity of qubits 2 and 3 (are they the same or different?)</li>
+  <li><strong>Syndrome bit $s_1$:</strong> parity of qubits 0 and 1 (are they the same or different?)</li>
+  <li><strong>Syndrome bit $s_2$:</strong> parity of qubits 1 and 2 (are they the same or different?)</li>
 </ul>
 
 <p>
@@ -445,34 +427,6 @@ c = measure q;</textarea>
   is without learning what the encoded state is. The syndrome measurement circuit uses two
   ancilla qubits and four CNOT gates:
 </p>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="22">OPENQASM 3.0;
-qubit[5] q;
-bit[2] syndrome;
-// q[0]-q[2]: code qubits; q[3]-q[4]: ancilla
-// Encode |1> into bit-flip code
-x q[0];
-cx q[0], q[1];
-cx q[0], q[2];
-// Introduce a bit-flip error on qubit 1
-x q[1];
-// Syndrome extraction
-// s1 = parity of q[0],q[1]
-cx q[0], q[3];
-cx q[1], q[3];
-// s2 = parity of q[1],q[2]
-cx q[1], q[4];
-cx q[2], q[4];
-// Measure syndrome ancillas only
-syndrome[0] = measure q[3];
-syndrome[1] = measure q[4];</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
 
 <p>
   With a bit-flip on qubit 1 (<code>q[1]</code>), you should see syndrome <code>11</code>,
@@ -506,72 +460,36 @@ syndrome[1] = measure q[4];</textarea>
   </p>
 </div>
 
-<!-- POE for 3-qubit bit-flip code -->
-<div class="poe" data-component="poe">
-  <div class="poe-progress">
-    <div class="poe-progress-step">Predict</div>
-    <div class="poe-progress-step">Observe</div>
-    <div class="poe-progress-step">Explain</div>
-  </div>
-
-  <div class="poe-step active">
-    <h3>Predict</h3>
-    <p>
-      Consider the 3-qubit bit-flip code encoding the state
-      $\lvert + \rangle = \frac{1}{\sqrt{2}}(\lvert 0 \rangle + \lvert 1 \rangle)$.
-      The encoded state is $\frac{1}{\sqrt{2}}(\lvert 000 \rangle + \lvert 111 \rangle)$.
-      Now suppose a <em>phase-flip</em> error ($Z$ gate) is applied to qubit 0. What syndrome
-      will the two parity-check ancillas produce?
-    </p>
-    <textarea rows="3" placeholder="Write your prediction here..."></textarea>
-    <button data-action="next">Next: Observe</button>
-  </div>
-
-  <div class="poe-step">
-    <h3>Observe</h3>
-    <p>Run the circuit below to see what happens.</p>
-    <div class="sandbox" data-component="sandbox" data-shots="1024">
-      <textarea class="code" rows="18">OPENQASM 3.0;
+<!-- Visualization 1: Bit-flip code step-through -->
+<div class="step-through" data-component="step-through" data-mode="clifford">
+  <div class="step-qasm">
+OPENQASM 3.0;
+include "stdgates.inc";
 qubit[5] q;
-bit[2] syndrome;
-// Encode |+> into bit-flip code
-h q[0];
+// Encode: q[0] is data, q[1],q[2] are redundant
 cx q[0], q[1];
 cx q[0], q[2];
-// Apply Z error on qubit 0
-z q[0];
+// Error: bit flip on q[1]
+x q[1];
 // Syndrome extraction
 cx q[0], q[3];
 cx q[1], q[3];
 cx q[1], q[4];
 cx q[2], q[4];
-syndrome[0] = measure q[3];
-syndrome[1] = measure q[4];</textarea>
-      <div class="sandbox-controls">
-        <button data-action="run">Run</button>
-        <button data-action="reset">Reset</button>
-      </div>
-      <div class="output"></div>
-    </div>
-    <button data-action="next">Next: Explain</button>
   </div>
-
-  <div class="poe-step">
-    <h3>Explain</h3>
-    <p>
-      The syndrome is <code>00</code> - no error detected! The $Z$ gate applies a phase
-      flip: $Z \lvert 0 \rangle = \lvert 0 \rangle$, $Z \lvert 1 \rangle = -\lvert 1 \rangle$.
-      The encoded state becomes
-      $\frac{1}{\sqrt{2}}(\lvert 000 \rangle - \lvert 111 \rangle)$, which is still a valid
-      codeword in terms of bit-parity checks. The parities of neighboring qubits are
-      unchanged because $Z$ does not flip any bits - it only changes the relative phase.
-      This demonstrates the fundamental limitation of the bit-flip code: it is completely
-      blind to phase errors. Correcting phase errors requires a different approach, which
-      we develop next.
-    </p>
-    <button data-action="complete">Done</button>
+  <div class="step-controls">
+    <button data-action="prev">Previous</button>
+    <span class="step-info"></span>
+    <button data-action="next">Next</button>
   </div>
+  <div class="step-output"></div>
 </div>
+
+<p>
+  Step through the circuit gate by gate. Watch how the stabilizer generators change as the
+  code encodes, an error is injected, and the syndrome is extracted. The stabilizer tableau
+  reveals the error's effect on the code's parity structure.
+</p>
 
 </section>
 
@@ -636,40 +554,6 @@ $$\lvert 1_L \rangle = \lvert - - - \rangle = \frac{1}{2\sqrt{2}}(\lvert 0 \rang
   applies Hadamard again:
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="26">OPENQASM 3.0;
-qubit[5] q;
-bit[2] syndrome;
-// Encode |0> into phase-flip code
-// Step 1: bit-flip encoding
-cx q[0], q[1];
-cx q[0], q[2];
-// Step 2: rotate to Hadamard basis
-h q[0];
-h q[1];
-h q[2];
-// Apply phase-flip error on qubit 1
-z q[1];
-// Syndrome: rotate back, check parities, rotate again
-h q[0];
-h q[1];
-h q[2];
-cx q[0], q[3];
-cx q[1], q[3];
-cx q[1], q[4];
-cx q[2], q[4];
-h q[0];
-h q[1];
-h q[2];
-syndrome[0] = measure q[3];
-syndrome[1] = measure q[4];</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
 <p>
   With a $Z$ error on qubit 1, you should see syndrome <code>11</code>, just as we saw for
   an $X$ error on qubit 1 in the bit-flip code. The Hadamard transformation converts the
@@ -687,6 +571,75 @@ syndrome[1] = measure q[4];</textarea>
     basis rotation - is a recurring theme throughout quantum error correction.
   </p>
 </div>
+
+<!-- Visualization 2: Bit-flip vs Phase-flip Comparison -->
+<div class="comparison" data-component="comparison" data-mode="default">
+  <div class="comparison-controls">
+    <label>Error type:
+      <select data-param="errorType">
+        <option value="x">X (bit-flip)</option>
+        <option value="z">Z (phase-flip)</option>
+      </select>
+    </label>
+  </div>
+  <div class="comparison-panels">
+    <div class="comparison-panel" data-label="Bit-Flip Code">
+      <div class="comparison-qasm">
+OPENQASM 3.0;
+include "stdgates.inc";
+qubit[5] q;
+bit[5] c;
+// Encode in bit-flip code
+h q[0];
+cx q[0], q[1];
+cx q[0], q[2];
+// Inject error on q[1]
+x q[1];
+// Syndrome measurement
+cx q[0], q[3];
+cx q[1], q[3];
+cx q[1], q[4];
+cx q[2], q[4];
+c = measure q;
+      </div>
+      <div class="comparison-output"></div>
+    </div>
+    <div class="comparison-panel" data-label="Phase-Flip Code">
+      <div class="comparison-qasm">
+OPENQASM 3.0;
+include "stdgates.inc";
+qubit[5] q;
+bit[5] c;
+// Encode in phase-flip code
+h q[0];
+cx q[0], q[1];
+cx q[0], q[2];
+h q[0];
+h q[1];
+h q[2];
+// Inject Z error on q[1]
+z q[1];
+// Syndrome: convert to computational basis and check
+h q[0];
+h q[1];
+h q[2];
+cx q[0], q[3];
+cx q[1], q[3];
+cx q[1], q[4];
+cx q[2], q[4];
+c = measure q;
+      </div>
+      <div class="comparison-output"></div>
+    </div>
+  </div>
+</div>
+
+<p>
+  Compare the bit-flip and phase-flip codes side by side. The bit-flip code detects
+  $X$ errors through $ZZ$ parity checks, while the phase-flip code detects $Z$ errors
+  through $XX$ parity checks (in the Hadamard basis). The two codes are connected by
+  Hadamard conjugation.
+</p>
 
 <h3>Limitations of Both Codes</h3>
 
@@ -755,37 +708,6 @@ $$\lvert 1_L \rangle = \frac{1}{2\sqrt{2}} \big(\lvert 000 \rangle - \lvert 111 
   then CNOT gates for each bit-flip block:
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="28">OPENQASM 3.0;
-qubit[9] q;
-bit[9] c;
-// Logical |1>
-x q[0];
-// Stage 1: Phase-flip encoding
-cx q[0], q[3];
-cx q[0], q[6];
-// Hadamard on block leaders
-h q[0];
-h q[3];
-h q[6];
-// Stage 2: Bit-flip encoding within each block
-// Block 1: q[0], q[1], q[2]
-cx q[0], q[1];
-cx q[0], q[2];
-// Block 2: q[3], q[4], q[5]
-cx q[3], q[4];
-cx q[3], q[5];
-// Block 3: q[6], q[7], q[8]
-cx q[6], q[7];
-cx q[6], q[8];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
 <p>
   Because the encoded state involves superpositions, you will see a distribution over
   multiple measurement outcomes. For the encoded $\lvert 1_L \rangle$, you should see
@@ -833,6 +755,106 @@ c = measure q;</textarea>
   </p>
 </div>
 
+<!-- Visualization 3: Shor 9-Qubit Code Widget -->
+<div class="widget" id="widget-shor-code">
+  <div class="widget-header">Interactive: Shor 9-Qubit Code Structure</div>
+  <p style="margin-bottom:0.75rem;font-size:0.9rem;">The 9-qubit Shor code uses two-level concatenation: an outer phase-flip code protects three blocks, and each block uses an inner bit-flip code. Click a qubit to inject an error and see which syndrome bits activate.</p>
+  <div id="shor-diagram" style="display:flex;flex-direction:column;gap:0.5rem;"></div>
+  <div id="shor-info" class="widget-output" style="margin-top:0.75rem;"></div>
+  <script>
+  (function(){
+    var diagram = document.getElementById("shor-diagram");
+    var info = document.getElementById("shor-info");
+    var errorQubit = -1;
+    var errorType = "X";
+
+    function render() {
+      diagram.textContent = "";
+
+      // Controls
+      var controls = document.createElement("div");
+      controls.style.cssText = "display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;margin-bottom:0.5rem;";
+      var typeLabel = document.createElement("label");
+      typeLabel.style.cssText = "font-family:var(--font-mono);font-size:0.85rem;";
+      typeLabel.textContent = "Error type: ";
+      var typeSel = document.createElement("select");
+      typeSel.style.cssText = "font-family:var(--font-mono);font-size:0.85rem;padding:0.2rem 0.4rem;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-surface);color:var(--color-text);";
+      ["X","Z","Y"].forEach(function(t){ var o = document.createElement("option"); o.value = t; o.textContent = t; if (t===errorType) o.selected = true; typeSel.appendChild(o); });
+      typeSel.addEventListener("change", function(){ errorType = typeSel.value; render(); });
+      typeLabel.appendChild(typeSel);
+      controls.appendChild(typeLabel);
+      var resetBtn = document.createElement("button");
+      resetBtn.textContent = "Clear error";
+      resetBtn.addEventListener("click", function(){ errorQubit = -1; render(); });
+      controls.appendChild(resetBtn);
+      diagram.appendChild(controls);
+
+      // Draw blocks
+      var blocks = document.createElement("div");
+      blocks.style.cssText = "display:flex;gap:1.5rem;justify-content:center;flex-wrap:wrap;";
+      var blockNames = ["Block A", "Block B", "Block C"];
+
+      for (var b = 0; b < 3; b++) {
+        var blockDiv = document.createElement("div");
+        blockDiv.style.cssText = "border:2px solid var(--color-border);border-radius:var(--radius);padding:0.75rem;text-align:center;min-width:120px;";
+        var title = document.createElement("div");
+        title.style.cssText = "font-weight:600;font-size:0.85rem;margin-bottom:0.5rem;color:var(--color-accent);";
+        title.textContent = blockNames[b];
+        blockDiv.appendChild(title);
+
+        var qubits = document.createElement("div");
+        qubits.style.cssText = "display:flex;gap:4px;justify-content:center;";
+        for (var q = 0; q < 3; q++) {
+          var idx = b*3 + q;
+          var qDiv = document.createElement("div");
+          var isErr = (idx === errorQubit);
+          qDiv.style.cssText = "width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:4px;font-family:var(--font-mono);font-weight:600;font-size:0.75rem;cursor:pointer;border:2px solid " + (isErr ? "var(--color-error)" : "var(--color-border)") + ";background:" + (isErr ? "color-mix(in srgb, var(--color-error) 20%, transparent)" : "var(--color-code-bg)") + ";color:var(--color-text);transition:all 0.15s;";
+          qDiv.textContent = "q" + idx;
+          (function(i){
+            qDiv.addEventListener("click", function(){ errorQubit = (errorQubit === i) ? -1 : i; render(); });
+          })(idx);
+          qubits.appendChild(qDiv);
+        }
+        blockDiv.appendChild(qubits);
+
+        // Bit-flip syndrome for this block
+        var synDiv = document.createElement("div");
+        synDiv.style.cssText = "margin-top:0.5rem;font-size:0.8rem;font-family:var(--font-mono);";
+        var blockHasXerr = (errorQubit >= b*3 && errorQubit < (b+1)*3 && (errorType === "X" || errorType === "Y"));
+        synDiv.textContent = "X-syndrome: " + (blockHasXerr ? "detected" : "clean");
+        synDiv.style.color = blockHasXerr ? "var(--color-error)" : "var(--color-success)";
+        blockDiv.appendChild(synDiv);
+
+        blocks.appendChild(blockDiv);
+      }
+      diagram.appendChild(blocks);
+
+      // Phase-flip syndrome
+      var phaseDiv = document.createElement("div");
+      phaseDiv.style.cssText = "text-align:center;margin-top:0.75rem;";
+      var hasZerr = (errorQubit >= 0 && (errorType === "Z" || errorType === "Y"));
+      var phaseSyn = document.createElement("div");
+      phaseSyn.style.cssText = "font-family:var(--font-mono);font-size:0.85rem;padding:0.5rem;border:1px solid var(--color-border);border-radius:var(--radius);display:inline-block;";
+      phaseSyn.textContent = "Z-syndrome (cross-block): " + (hasZerr ? "detected in block " + (Math.floor(errorQubit/3)) : "clean");
+      phaseSyn.style.color = hasZerr ? "var(--color-error)" : "var(--color-success)";
+      phaseDiv.appendChild(phaseSyn);
+      diagram.appendChild(phaseDiv);
+
+      // Info
+      if (errorQubit >= 0) {
+        info.textContent = errorType + " error on qubit " + errorQubit + " (block " + String.fromCharCode(65+Math.floor(errorQubit/3)) + ", position " + (errorQubit%3) + "). " +
+          (errorType === "X" ? "Detected by bit-flip syndrome within the block." :
+           errorType === "Z" ? "Detected by phase-flip syndrome across blocks." :
+           "Detected by both syndromes (Y = iXZ).");
+      } else {
+        info.textContent = "Click a qubit to inject an error. The Shor code corrects any single-qubit X, Z, or Y error.";
+      }
+    }
+    render();
+  })();
+  </script>
+</div>
+
 <div class="callout callout-info">
   <strong>Historical Note.</strong>
   <p>
@@ -849,6 +871,62 @@ c = measure q;</textarea>
 </section>
 
 <!-- ================================================================== -->
+
+<!-- Visualization 4: POE - Z error invisible to bit-flip code -->
+<div class="poe" data-component="poe">
+  <div class="poe-progress">
+    <div class="poe-progress-step">Predict</div>
+    <div class="poe-progress-step">Observe</div>
+    <div class="poe-progress-step">Explain</div>
+  </div>
+
+  <div class="poe-step active">
+    <h3>Predict</h3>
+    <p>Consider the 3-qubit bit-flip code encoding $|+\rangle$ as $\alpha|000\rangle + \beta|111\rangle$. A $Z$ error is applied to the first qubit. When we measure the syndrome ($Z_0 Z_1$ and $Z_1 Z_2$ parities), what do you predict the syndrome bits will be?</p>
+    <textarea rows="3" placeholder="Write your prediction here. Will the syndrome detect the Z error? Why or why not?"></textarea>
+    <button data-action="next">Submit Prediction</button>
+  </div>
+
+  <div class="poe-step">
+    <h3>Observe</h3>
+    <p>Run the circuit below. The bit-flip code encodes, a $Z$ error is applied to q[0], and syndromes are measured. Look at the syndrome qubits q[3] and q[4].</p>
+    <div class="sandbox" data-shots="1024">
+      <textarea class="code" rows="14">OPENQASM 3.0;
+include "stdgates.inc";
+qubit[5] q;
+bit[5] c;
+
+// Encode in bit-flip code
+h q[0];
+cx q[0], q[1];
+cx q[0], q[2];
+
+// Z error on qubit 0
+z q[0];
+
+// Syndrome extraction (ZZ parities)
+cx q[0], q[3];
+cx q[1], q[3];
+cx q[1], q[4];
+cx q[2], q[4];
+
+c = measure q;</textarea>
+      <div class="sandbox-controls">
+        <button data-action="run">Run</button>
+        <button data-action="reset">Reset</button>
+      </div>
+      <div class="output"></div>
+    </div>
+    <button data-action="next">Continue to Explain</button>
+  </div>
+
+  <div class="poe-step">
+    <h3>Explain</h3>
+    <p>The syndrome reads <strong>00</strong> - no error detected! The $Z$ error is completely invisible to the bit-flip code because $Z$ commutes with the $ZZ$ parity checks. A $Z$ error flips the relative phase: $\alpha|000\rangle + \beta|111\rangle \to \alpha|000\rangle - \beta|111\rangle$. This changes the encoded information (it acts as a logical $\bar{Z}$) but does not change any parity. The bit-flip code can only detect errors that anticommute with its stabilizers ($ZZI$ and $IZZ$), and $Z$ on any single qubit commutes with both.</p>
+    <p>This is the fundamental limitation: the bit-flip code protects against $X$ errors but is completely transparent to $Z$ errors. To protect against both, we need a code like Shor's 9-qubit code.</p>
+    <button data-action="complete">Complete</button>
+  </div>
+</div>
 
 <section id="knill-laflamme-conditions">
 
@@ -1175,299 +1253,9 @@ $$\lvert x + C_2^\perp \rangle = \frac{1}{\sqrt{\lvert C_2^\perp \rvert}} \sum_{
 
 <h2>Exercises</h2>
 
-<div class="exercise" data-component="exercise">
-  <div class="exercise-header">Exercise 17.1 - Bit-Flip Code: Detect Two Errors</div>
-  <div class="exercise-prompt">
-    <p>
-      The 3-qubit bit-flip code can <em>correct</em> one bit-flip error but can only
-      <em>detect</em> (not correct) two simultaneous bit-flip errors. Modify the circuit
-      below to introduce $X$ errors on <em>two</em> qubits and observe the syndrome. What
-      syndrome do you get? Can you determine which two qubits were flipped from the syndrome
-      alone?
-    </p>
-  </div>
-  <textarea class="code" rows="18">OPENQASM 3.0;
-qubit[5] q;
-bit[2] syndrome;
-// Encode |0> into bit-flip code
-cx q[0], q[1];
-cx q[0], q[2];
-// TODO: Add X errors on two qubits
-// (Try different pairs: q[0]&q[1], q[0]&q[2], q[1]&q[2])
-
-// Syndrome extraction
-cx q[0], q[3];
-cx q[1], q[3];
-cx q[1], q[4];
-cx q[2], q[4];
-syndrome[0] = measure q[3];
-syndrome[1] = measure q[4];</textarea>
-  <div class="exercise-controls">
-    <button data-action="check">Check</button>
-    <button data-action="hint">Hint</button>
-  </div>
-  <div class="exercise-expected">
-  </div>
-  <div class="exercise-hint" style="display:none;">
-    Try <code>x q[0]; x q[1];</code> before the syndrome extraction. The syndrome for two
-    errors on qubits 0 and 1 is the same as a single error on qubit 2. This is why the
-    code can detect but not correct two errors - the syndrome is ambiguous.
-  </div>
-  <div class="exercise-feedback"></div>
-</div>
-
-<div class="exercise" data-component="exercise">
-  <div class="exercise-header">Exercise 17.2 - Build the Phase-Flip Encoder</div>
-  <div class="exercise-prompt">
-    <p>
-      Write a circuit that encodes $\lvert 0 \rangle$ into the 3-qubit phase-flip code
-      ($\lvert 0_L \rangle = \lvert +++ \rangle$) and then measures all three qubits. You
-      should see all 8 possible 3-bit outcomes with roughly equal probability (each around
-      12.5%), because $\lvert +++ \rangle$ is an equal superposition of all computational
-      basis states.
-    </p>
-  </div>
-  <textarea class="code" rows="10">OPENQASM 3.0;
-qubit[3] q;
-bit[3] c;
-// TODO: Encode |0> into phase-flip code
-// Hint: Use cx and h gates
-
-c = measure q;</textarea>
-  <div class="exercise-controls">
-    <button data-action="check">Check</button>
-    <button data-action="hint">Hint</button>
-  </div>
-  <div class="exercise-expected">
-    <span data-state="000" data-prob="0.125" data-tolerance="0.05"></span>
-    <span data-state="001" data-prob="0.125" data-tolerance="0.05"></span>
-    <span data-state="010" data-prob="0.125" data-tolerance="0.05"></span>
-    <span data-state="011" data-prob="0.125" data-tolerance="0.05"></span>
-    <span data-state="100" data-prob="0.125" data-tolerance="0.05"></span>
-    <span data-state="101" data-prob="0.125" data-tolerance="0.05"></span>
-    <span data-state="110" data-prob="0.125" data-tolerance="0.05"></span>
-    <span data-state="111" data-prob="0.125" data-tolerance="0.05"></span>
-  </div>
-  <div class="exercise-hint" style="display:none;">
-    First apply the bit-flip encoding (two CNOT gates), then apply Hadamard to all three
-    qubits: <code>cx q[0], q[1]; cx q[0], q[2]; h q[0]; h q[1]; h q[2];</code>
-  </div>
-  <div class="exercise-feedback"></div>
-</div>
-
-<div class="exercise" data-component="exercise">
-  <div class="exercise-header">Exercise 17.3 - Verify Knill-Laflamme for Z Errors</div>
-  <div class="exercise-prompt">
-    <p>
-      The 3-qubit phase-flip code has codewords $\lvert 0_L \rangle = \lvert +++ \rangle$
-      and $\lvert 1_L \rangle = \lvert --- \rangle$. Consider the error set $\{I, Z_1\}$.
-      Compute $\langle 0_L \rvert Z_1 \lvert 0_L \rangle$ and
-      $\langle 1_L \rvert Z_1 \lvert 1_L \rangle$. Are they equal? Does this code satisfy
-      the Knill-Laflamme conditions for $Z$ errors? Build a circuit that encodes
-      $\lvert + \rangle$ in the phase-flip code, applies $Z_1$, extracts a syndrome, and
-      verify your answer.
-    </p>
-  </div>
-  <textarea class="code" rows="16">OPENQASM 3.0;
-qubit[5] q;
-bit[2] syndrome;
-// TODO: Encode a state into phase-flip code,
-// apply Z on qubit 0, extract syndrome
-// Hint: Use the phase-flip syndrome circuit from Section 17.3
-
-syndrome[0] = measure q[3];
-syndrome[1] = measure q[4];</textarea>
-  <div class="exercise-controls">
-    <button data-action="check">Check</button>
-    <button data-action="hint">Hint</button>
-  </div>
-  <div class="exercise-expected">
-  </div>
-  <div class="exercise-hint" style="display:none;">
-    $Z_1 \lvert + \rangle = \lvert - \rangle$ and $Z_1 \lvert - \rangle = \lvert + \rangle$,
-    so $\langle +++ \rvert Z_1 \lvert +++ \rangle = \langle -++ \lvert +++ \rangle = 0$ and
-    similarly $\langle --- \rvert Z_1 \lvert --- \rangle = 0$. Both diagonal entries equal 0,
-    so the non-deformation condition is satisfied. The off-diagonal terms also vanish. The
-    phase-flip code does satisfy the Knill-Laflamme conditions for $\{I, Z_1, Z_2, Z_3\}$.
-  </div>
-  <div class="exercise-feedback"></div>
-</div>
-
 </section>
 
-<!-- ================================================================== -->
 
-<section id="review">
-<h2>Chapter 17 Review</h2>
-
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 17 Review</div>
-
-  <div class="flashcard" data-card-id="ch17-no-cloning">
-    <div class="card-front">What is the no-cloning theorem, and why does it matter for quantum error correction?</div>
-    <div class="card-back">
-      The no-cloning theorem states that no physical process can duplicate an arbitrary unknown
-      quantum state. It prevents the classical "copy and vote" strategy for error correction.
-      Quantum codes must instead encode information in entangled states that spread the
-      information across multiple qubits without copying it.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch17-error-discretization">
-    <div class="card-front">How can a quantum code correct continuous errors with a discrete syndrome?</div>
-    <div class="card-back">
-      Any single-qubit error can be decomposed as a linear combination of Pauli operators
-      $\{I, X, Y, Z\}$. Syndrome measurement projects the continuous error onto one of these
-      discrete Pauli components. If the code corrects each Pauli error, linearity of the
-      Knill-Laflamme conditions guarantees it corrects any linear combination - hence any
-      continuous error.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch17-syndrome-measurement">
-    <div class="card-front">How does quantum syndrome measurement extract error information without destroying the encoded state?</div>
-    <div class="card-back">
-      Ancilla qubits are entangled with the code qubits via CNOT gates that compute parity
-      checks. Measuring the ancillas reveals which parity conditions are violated (the error
-      syndrome) without measuring the code qubits directly. The parity checks are designed
-      to commute with the logical operators, so the measurement extracts only error
-      information and leaves the encoded superposition intact.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch17-bit-flip-code">
-    <div class="card-front">Describe the 3-qubit bit-flip code: encoding, syndrome, and limitation.</div>
-    <div class="card-back">
-      Encoding: $\lvert 0 \rangle \to \lvert 000 \rangle$, $\lvert 1 \rangle \to \lvert 111 \rangle$
-      using two CNOT gates. Syndrome: two ancilla qubits measure parities of qubit pairs
-      (1,2) and (2,3), giving a 2-bit syndrome that identifies which qubit flipped. Limitation:
-      it only corrects $X$ (bit-flip) errors and is completely blind to $Z$ (phase-flip) errors.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch17-phase-flip-duality">
-    <div class="card-front">What is the relationship between the bit-flip and phase-flip codes?</div>
-    <div class="card-back">
-      The phase-flip code is the Hadamard conjugate of the bit-flip code. Since $HZH = X$
-      and $HXH = Z$, applying Hadamard to all qubits converts $Z$ errors into $X$ errors
-      and vice versa. The phase-flip code encodes
-      $\lvert 0_L \rangle = \lvert +++ \rangle$,
-      $\lvert 1_L \rangle = \lvert --- \rangle$ and corrects single $Z$ errors but not $X$ errors.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch17-shor-code">
-    <div class="card-front">How does Shor's 9-qubit code combine the bit-flip and phase-flip codes?</div>
-    <div class="card-back">
-      The Shor code concatenates the phase-flip code (outer) with the bit-flip code (inner).
-      First encode 1 qubit into 3 using the phase-flip code, then encode each of those 3
-      qubits into 3 using the bit-flip code, giving 9 physical qubits. The inner code
-      corrects $X$ errors within each block; the outer code corrects $Z$ errors across
-      blocks. Together they correct any single-qubit error. It is a $[\![9,1,3]\!]$ code.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch17-knill-laflamme">
-    <div class="card-front">State the Knill-Laflamme conditions and explain what each part means.</div>
-    <div class="card-back">
-      A code with projector $P$ corrects errors $\{E_a\}$ iff
-      $P E_a^\dagger E_b P = C_{ab} P$ for all $a, b$, where $C_{ab}$ is a Hermitian matrix
-      independent of the codeword. The diagonal condition ($i = j$) ensures all codewords are
-      equally affected by errors (non-deformation). The off-diagonal condition ($i \neq j$)
-      ensures corrupted codewords remain distinguishable (orthogonality). Together they are
-      necessary and sufficient.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch17-css-construction">
-    <div class="card-front">What is the CSS construction, and what condition must the two classical codes satisfy?</div>
-    <div class="card-back">
-      The CSS construction builds a quantum code from two classical linear codes $C_1$ and
-      $C_2$ satisfying $C_2^\perp \subseteq C_1$ (the dual of $C_2$ is contained in $C_1$).
-      $C_1$ corrects $X$ errors and $C_2$ corrects $Z$ errors, independently. The
-      containment condition ensures the stabilizers commute. The code encodes
-      $k_1 + k_2 - n$ logical qubits into $n$ physical qubits with distance
-      $\min(d_1, d_2^\perp)$.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch17-steane-code">
-    <div class="card-front">What is the Steane code, and why is it significant?</div>
-    <div class="card-back">
-      The Steane code is a $[\![7,1,3]\!]$ CSS code built from the classical $[7,4,3]$
-      Hamming code (using $C_1 = C_2 = C$, the Hamming code). It encodes 1 logical qubit
-      into 7 physical qubits and corrects any single-qubit error. It is more efficient than
-      Shor's 9-qubit code and supports transversal implementations of several important
-      logical gates, making it a key building block for fault-tolerant quantum computation.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch17-degenerate-codes">
-    <div class="card-front">What is a degenerate quantum code?</div>
-    <div class="card-back">
-      A degenerate code is one where the matrix $C_{ab}$ in the Knill-Laflamme conditions
-      is non-diagonal - distinct physical errors have the same effect on the code space. The
-      code can correct these errors without distinguishing between them. Degeneracy is
-      uniquely quantum (classical codes are always non-degenerate). The Shor 9-qubit code
-      is degenerate: for example, $X$ errors on different qubits within the same block
-      produce different physical states but the same logical effect.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-</div>
-
-<p>
-  This chapter established the fundamental concepts of quantum error correction: the
-  obstacles that make it harder than classical error correction, the first codes that
-  overcame those obstacles, and the mathematical framework that governs all quantum codes.
-  In Chapter 18, we will develop the <strong>stabilizer formalism</strong> - an algebraic
-  framework based on the Pauli group that provides a unified, efficient description of the
-  most important quantum error-correcting codes. The stabilizer perspective will transform
-  the specific constructions of this chapter into a general theory with deep connections
-  to group theory, classical coding theory, and fault-tolerant quantum computation.
-</p>
-
-</section>
 
     </article>
 
@@ -1496,7 +1284,6 @@ syndrome[1] = measure q[4];</textarea>
   
   <script>
   "use strict";
-  
   function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
   function isDark() { return window.matchMedia("(prefers-color-scheme: dark)").matches; }
   function renderMath(el) {
@@ -1504,7 +1291,6 @@ syndrome[1] = measure q[4];</textarea>
       renderMathInElement(el, { delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}], throwOnError: false });
   }
 
-  
   var wasmReady = null;
   function ensureWasm() {
     if (!wasmReady) {
@@ -1517,7 +1303,6 @@ syndrome[1] = measure q[4];</textarea>
     return wasmReady;
   }
 
-  
   var SRS_KEY = "goqu-srs";
   function srsLoad() { try { return JSON.parse(localStorage.getItem(SRS_KEY) || "{}"); } catch(e) { return {}; } }
   function srsSave(d) { localStorage.setItem(SRS_KEY, JSON.stringify(d)); }
@@ -1535,7 +1320,6 @@ syndrome[1] = measure q[4];</textarea>
     d[id] = s; srsSave(d);
   }
 
-  
   function initSandbox(el) {
     var code = el.querySelector(".code"), output = el.querySelector(".output");
     if (!code || !output) return;
@@ -1557,7 +1341,6 @@ syndrome[1] = measure q[4];</textarea>
     if (el.hasAttribute("data-autorun")) run();
   }
 
-  
   function initSimulation(el) {
     var tmplEl = el.querySelector(".sim-qasm"), output = el.querySelector(".sim-output");
     var sliders = el.querySelectorAll('input[type="range"]');
@@ -1629,7 +1412,6 @@ syndrome[1] = measure q[4];</textarea>
     update();
   }
 
-  
   function formatStabilizer(s) {
     if (!s) return "";
     var sign = s[0], ops = s.slice(1), html = '<span class="stab-sign">' + esc(sign) + '</span>';
@@ -1640,7 +1422,6 @@ syndrome[1] = measure q[4];</textarea>
     return html;
   }
 
-  
   function initExercise(el) {
     var code = el.querySelector(".code"), feedback = el.querySelector(".exercise-feedback");
     var checkBtn = el.querySelector('[data-action="check"]');
@@ -1678,7 +1459,6 @@ syndrome[1] = measure q[4];</textarea>
     if (hintBtn && hintEl) hintBtn.addEventListener("click", function() { hintEl.style.display = hintEl.style.display === "none" ? "block" : "none"; });
   }
 
-  
   function initFlashcardDeck(el) {
     el.querySelectorAll(".flashcard").forEach(function(card) {
       var id = card.dataset.cardId;
@@ -1697,7 +1477,6 @@ syndrome[1] = measure q[4];</textarea>
     });
   }
 
-  
   function initPOE(el) {
     var steps = el.querySelectorAll(".poe-step"), prog = el.querySelectorAll(".poe-progress-step");
     if (steps.length === 0) return;
@@ -1714,7 +1493,6 @@ syndrome[1] = measure q[4];</textarea>
     show(0);
   }
 
-  
   function initStepThrough(el) {
     var qasmEl = el.querySelector(".step-qasm");
     var output = el.querySelector(".step-output");
@@ -1796,9 +1574,198 @@ syndrome[1] = measure q[4];</textarea>
     load();
   }
 
-  
+  function initComparison(el) {
+    var panels = el.querySelectorAll(".comparison-panel");
+    var sliders = el.querySelectorAll('.comparison-controls input[type="range"]');
+    var selects = el.querySelectorAll('.comparison-controls select[data-param]');
+    if (panels.length < 2) return;
+    var mode = el.dataset.mode || "default";
+    var pending = false, dirty = false;
+
+    function getParams() {
+      var params = {};
+      sliders.forEach(function(s) {
+        params[s.dataset.param] = parseFloat(s.value);
+        var o = s.parentElement.querySelector("output");
+        if (o) o.textContent = parseFloat(s.value).toFixed(2);
+      });
+      selects.forEach(function(s) { params[s.dataset.param] = s.value; });
+      return params;
+    }
+
+    function substituteQasm(tmpl, params) {
+      var qasm = tmpl;
+      for (var k in params) qasm = qasm.replaceAll("{" + k + "}", params[k].toString());
+      return qasm;
+    }
+
+    async function runPanel(panel, params) {
+      var tmplEl = panel.querySelector(".comparison-qasm");
+      var output = panel.querySelector(".comparison-output");
+      if (!tmplEl || !output) return;
+      var qasm = substituteQasm(tmplEl.textContent, params);
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var html = "", r;
+        if (mode === "ideal-noisy") {
+          var isLeft = panel === panels[0];
+          if (isLeft) {
+            r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+            if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+            html = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+          } else {
+            var noiseModel = el.dataset.noiseModel || params.noiseModel || "depolarizing";
+            var noiseParam = parseFloat(params.noiseParam || "0.1");
+            if (window.runNoisyQASM) {
+              r = JSON.parse(window.runNoisyQASM(qasm, 1024, noiseModel, noiseParam, isDark()));
+              if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+              html = (r.circuitSVG || r.circuit || "") + (r.histogramSVG || r.histogram || "") + (r.stateCitySVG || "");
+              if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span></div>';
+            }
+          }
+        } else if (mode === "transpile") {
+          var target = panel.dataset.target || "generic";
+          if (window.transpileQASM) {
+            r = JSON.parse(window.transpileQASM(qasm, target, isDark()));
+            if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+            html = (r.circuit || r.circuitSVG || "") + (r.info || "");
+          }
+        } else {
+          r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          html = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+        }
+        output.innerHTML = html;
+        renderMath(output);
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    async function runAll() {
+      if (pending) { dirty = true; return; }
+      pending = true;
+      await ensureWasm();
+      var params = getParams();
+      var promises = [];
+      panels.forEach(function(panel) { promises.push(runPanel(panel, params)); });
+      await Promise.all(promises);
+      pending = false;
+      if (dirty) { dirty = false; runAll(); }
+    }
+
+    sliders.forEach(function(s) { s.addEventListener("input", runAll); });
+    selects.forEach(function(s) { s.addEventListener("change", runAll); });
+
+    var runBtn = el.querySelector('[data-action="run"]');
+    if (!runBtn) {
+      var controls = el.querySelector(".comparison-controls");
+      if (controls) {
+        runBtn = document.createElement("button");
+        runBtn.setAttribute("data-action", "run");
+        runBtn.textContent = "Run";
+        controls.appendChild(runBtn);
+      }
+    }
+    if (runBtn) runBtn.addEventListener("click", runAll);
+
+    runAll();
+  }
+
+  function initAnimatedWalkthrough(el) {
+    var stages = el.querySelectorAll(".walkthrough-stage");
+    var progressBar = el.querySelector(".walkthrough-progress");
+    var prevBtn = el.querySelector('[data-action="prev"]');
+    var nextBtn = el.querySelector('[data-action="next"]');
+    var autoBtn = el.querySelector('[data-action="auto"]');
+    if (stages.length === 0) return;
+    var cur = 0, autoTimer = null, stageRan = {};
+
+    
+    if (progressBar) {
+      progressBar.textContent = "";
+      for (var i = 0; i < stages.length; i++) {
+        var pip = document.createElement("div");
+        pip.className = "walkthrough-pip" + (i === 0 ? " active" : "");
+        pip.setAttribute("data-index", i);
+        pip.textContent = i + 1;
+        progressBar.appendChild(pip);
+      }
+    }
+
+    function updateProgress() {
+      if (!progressBar) return;
+      var pips = progressBar.querySelectorAll(".walkthrough-pip");
+      pips.forEach(function(p, i) {
+        p.classList.remove("active", "done");
+        if (i < cur) p.classList.add("done");
+        if (i === cur) p.classList.add("active");
+      });
+    }
+
+    async function runStageQasm(stage) {
+      var idx = stage.dataset.stage || "0";
+      if (stageRan[idx]) return;
+      var qasmEl = stage.querySelector(".walkthrough-qasm");
+      var output = stage.querySelector(".walkthrough-output");
+      if (!qasmEl || !output) return;
+      stageRan[idx] = true;
+      await ensureWasm();
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(qasmEl.textContent, 1024, isDark()));
+        if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+        output.innerHTML = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+        renderMath(output);
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    function show(idx) {
+      if (idx < 0 || idx >= stages.length) return;
+      stages.forEach(function(s, i) {
+        s.classList.remove("active", "walkthrough-exit");
+        if (i === cur && i !== idx) s.classList.add("walkthrough-exit");
+      });
+      var prev = cur;
+      cur = idx;
+      setTimeout(function() {
+        stages.forEach(function(s, i) {
+          s.classList.remove("walkthrough-exit");
+          s.classList.toggle("active", i === cur);
+        });
+      }, prev !== idx ? 150 : 0);
+      updateProgress();
+      if (prevBtn) prevBtn.disabled = (cur === 0);
+      if (nextBtn) nextBtn.disabled = (cur >= stages.length - 1);
+      runStageQasm(stages[cur]);
+    }
+
+    function stopAuto() {
+      if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+      if (autoBtn) autoBtn.textContent = "Auto-play";
+    }
+
+    if (prevBtn) prevBtn.addEventListener("click", function() { stopAuto(); if (cur > 0) show(cur - 1); });
+    if (nextBtn) nextBtn.addEventListener("click", function() { stopAuto(); if (cur < stages.length - 1) show(cur + 1); });
+    if (autoBtn) autoBtn.addEventListener("click", function() {
+      if (autoTimer) { stopAuto(); return; }
+      autoBtn.textContent = "Pause";
+      autoTimer = setInterval(function() {
+        if (cur < stages.length - 1) { show(cur + 1); }
+        else { stopAuto(); }
+      }, 3000);
+    });
+
+    if (progressBar) progressBar.addEventListener("click", function(e) {
+      var pip = e.target.closest(".walkthrough-pip");
+      if (pip) { stopAuto(); show(parseInt(pip.dataset.index, 10)); }
+    });
+
+    show(0);
+  }
+
   document.addEventListener("DOMContentLoaded", function() {
-    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough};
+    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough, comparison: initComparison, "animated-walkthrough": initAnimatedWalkthrough};
     document.querySelectorAll("[data-component]").forEach(function(el) { var fn = reg[el.dataset.component]; if (fn) fn(el); });
   });
   </script>

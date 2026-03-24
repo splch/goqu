@@ -314,6 +314,60 @@
   destroy information?
 </p>
 
+<!-- Widget 1: Irreversibility Demo -->
+<div class="widget" id="irrev-demo-widget">
+  <div class="widget-header">Irreversibility Demo: AND vs NOT</div>
+  <div class="widget-body">
+    <p style="font-size:0.85rem;color:var(--color-text-muted);margin-bottom:0.75rem">The AND gate maps multiple inputs to the same output (information loss). The NOT gate is one-to-one (reversible). Toggle inputs and try to reverse the operation.</p>
+    <div style="display:flex;gap:2rem;flex-wrap:wrap;justify-content:center">
+      <div style="text-align:center">
+        <strong style="font-size:0.9rem">AND Gate (Irreversible)</strong>
+        <div style="display:flex;gap:0.5rem;align-items:center;justify-content:center;margin:0.5rem 0">
+          <button id="irr-a" style="min-width:2.5rem">0</button>
+          <button id="irr-b" style="min-width:2.5rem">0</button>
+          <span style="font-size:1.2rem;margin:0 0.5rem">&rarr; AND &rarr;</span>
+          <span id="irr-out" style="font-family:var(--font-mono);font-size:1.2rem;font-weight:700">0</span>
+        </div>
+        <div id="irr-rev" style="font-size:0.85rem;color:var(--color-text-muted);margin-top:0.25rem"></div>
+      </div>
+      <div style="text-align:center">
+        <strong style="font-size:0.9rem">NOT Gate (Reversible)</strong>
+        <div style="display:flex;gap:0.5rem;align-items:center;justify-content:center;margin:0.5rem 0">
+          <button id="irr-n" style="min-width:2.5rem">0</button>
+          <span style="font-size:1.2rem;margin:0 0.5rem">&rarr; NOT &rarr;</span>
+          <span id="irr-nout" style="font-family:var(--font-mono);font-size:1.2rem;font-weight:700">1</span>
+        </div>
+        <div id="irr-nrev" style="font-size:0.85rem;color:var(--color-success);margin-top:0.25rem"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var ia=0,ib=0,inn=0;
+  var ba=document.getElementById("irr-a"),bb=document.getElementById("irr-b"),outE=document.getElementById("irr-out"),revE=document.getElementById("irr-rev");
+  var bn=document.getElementById("irr-n"),noutE=document.getElementById("irr-nout"),nrevE=document.getElementById("irr-nrev");
+  function upAnd(){
+    var o=ia&ib;
+    outE.textContent=o;
+    outE.style.color=o?"var(--color-success)":"var(--color-error)";
+    if(o===0) revE.textContent="Output=0. Could have been 00, 01, or 10. Cannot reverse! (3 inputs -> 1 output)";
+    else revE.textContent="Output=1. Must have been 11. Reversible only for this case.";
+    revE.style.color=o===0?"var(--color-error)":"var(--color-success)";
+  }
+  function upNot(){
+    var o=1-inn;
+    noutE.textContent=o;
+    noutE.style.color=o?"var(--color-success)":"var(--color-error)";
+    nrevE.textContent="Output="+o+". Input must have been "+inn+". Always reversible!";
+  }
+  ba.addEventListener("click",function(){ia=1-ia;ba.textContent=ia;upAnd();});
+  bb.addEventListener("click",function(){ib=1-ib;bb.textContent=ib;upAnd();});
+  bn.addEventListener("click",function(){inn=1-inn;bn.textContent=inn;upNot();});
+  upAnd();upNot();
+})();
+</script>
+
 <div class="callout callout-info">
   <strong>Historical Note.</strong>
   <p>
@@ -391,20 +445,6 @@
   value to <code>q[1]</code>. You should see the output <code>11</code> with 100% probability.
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="6">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-x q[0];
-cx q[0], q[1];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
 <p>
   Try modifying the code: remove the <code>x q[0];</code> line so that the control stays
   <code>0</code>. The CNOT should leave the target alone, and you will see <code>00</code> with
@@ -454,21 +494,6 @@ c = measure q;</textarea>
   <code>0</code>. The Toffoli gate (<code>ccx</code>) computes AND, so the target flips to
   <code>1</code>, giving output <code>111</code>.
 </p>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="7">OPENQASM 3.0;
-qubit[3] q;
-bit[3] c;
-x q[0];
-x q[1];
-ccx q[0], q[1], q[2];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
 
 <p>
   Try changing the inputs: set only one of the controls to <code>1</code> (remove one of the
@@ -550,27 +575,80 @@ c = measure q;</textarea>
   (<code>cswap</code>) should swap them, giving output <code>101</code>.
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="7">OPENQASM 3.0;
-qubit[3] q;
-bit[3] c;
-x q[0];
-x q[1];
-cswap q[0], q[1], q[2];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
 <p>
   Try turning off the control by removing <code>x q[0];</code>. The swap should not happen,
   and you will see <code>010</code> instead. The conditional nature of the gate is the key -
   the control bit determines whether information flows or stays put, and this decision is itself
   made reversibly.
 </p>
+
+<!-- Widget 2: CNOT/Toffoli/Fredkin Explorer -->
+<div class="widget" id="rev-gate-explorer">
+  <div class="widget-header">Reversible Gate Explorer</div>
+  <div class="widget-body">
+    <p style="font-size:0.85rem;color:var(--color-text-muted);margin-bottom:0.5rem">Toggle inputs and observe outputs. Apply the gate twice to verify reversibility (output returns to input).</p>
+    <div style="display:flex;gap:0.5rem;align-items:center;margin-bottom:0.5rem;flex-wrap:wrap">
+      <label style="font-size:0.85rem;font-weight:600">Gate:
+        <select id="rge-gate" style="font-family:var(--font-mono);font-size:0.9rem;padding:0.3rem;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-surface);color:var(--color-text)">
+          <option value="CNOT">CNOT (2-bit)</option>
+          <option value="Toffoli">Toffoli/CCX (3-bit)</option>
+          <option value="Fredkin">Fredkin/CSWAP (3-bit)</option>
+        </select>
+      </label>
+      <button id="rge-apply" style="font-size:0.85rem">Apply Gate</button>
+      <button id="rge-reset" style="font-size:0.8rem;background:var(--color-surface);color:var(--color-text);border-color:var(--color-border)">Reset</button>
+    </div>
+    <div style="display:flex;gap:1.5rem;align-items:center;margin-bottom:0.5rem;flex-wrap:wrap">
+      <div id="rge-bits" style="display:flex;gap:0.5rem"></div>
+      <span id="rge-arrow" style="font-size:1.2rem">&rarr;</span>
+      <div id="rge-out" style="display:flex;gap:0.5rem"></div>
+    </div>
+    <div id="rge-info" style="font-family:var(--font-mono);font-size:0.85rem;color:var(--color-text-muted)"></div>
+  </div>
+</div>
+<script>
+(function(){
+  var bits=[0,0,0],outBits=[0,0,0];
+  var gateSel=document.getElementById("rge-gate");
+  var bitsC=document.getElementById("rge-bits"),outC=document.getElementById("rge-out"),infoE=document.getElementById("rge-info");
+  function getN(){return gateSel.value==="CNOT"?2:3;}
+  function applyGate(b){
+    var r=b.slice();
+    if(gateSel.value==="CNOT"){r[1]=b[0]^b[1];}
+    else if(gateSel.value==="Toffoli"){r[2]=b[2]^(b[0]&b[1]);}
+    else{if(b[0]===1){var tmp=r[1];r[1]=r[2];r[2]=tmp;}}
+    return r;
+  }
+  function render(){
+    var n=getN();
+    outBits=applyGate(bits.slice(0,n));
+    while(bitsC.firstChild)bitsC.removeChild(bitsC.firstChild);
+    while(outC.firstChild)outC.removeChild(outC.firstChild);
+    var labels=gateSel.value==="CNOT"?["ctrl","tgt"]:gateSel.value==="Toffoli"?["c1","c2","tgt"]:["ctrl","a","b"];
+    for(var i=0;i<n;i++){
+      var btn=document.createElement("button");
+      btn.textContent=labels[i]+"="+bits[i];
+      btn.style.cssText="min-width:3.5rem;font-size:0.85rem";
+      (function(idx){btn.addEventListener("click",function(){bits[idx]=1-bits[idx];render();});})(i);
+      bitsC.appendChild(btn);
+    }
+    for(var i=0;i<n;i++){
+      var sp=document.createElement("span");
+      sp.textContent=labels[i]+"="+outBits[i];
+      sp.style.cssText="font-family:var(--font-mono);font-size:0.95rem;font-weight:700;padding:0.25rem 0.5rem;border-radius:4px;background:var(--color-code-bg)";
+      if(outBits[i]!==bits[i])sp.style.color="var(--color-accent)";
+      outC.appendChild(sp);
+    }
+    var rev=applyGate(outBits);
+    var same=true;for(var i=0;i<n;i++)if(rev[i]!==bits[i])same=false;
+    infoE.textContent="Apply twice: "+bits.slice(0,n).join("")+" -> "+outBits.join("")+" -> "+rev.join("")+(same?" (returned to input - reversible!)":"");
+  }
+  gateSel.addEventListener("change",function(){bits=[0,0,0];render();});
+  document.getElementById("rge-apply").addEventListener("click",function(){bits=outBits.slice();render();});
+  document.getElementById("rge-reset").addEventListener("click",function(){bits=[0,0,0];render();});
+  render();
+})();
+</script>
 
 </section>
 
@@ -687,27 +765,6 @@ c = measure q;</textarea>
   scratch bit <code>q[2]</code> should return to <code>0</code>.
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="12">OPENQASM 3.0;
-qubit[4] q;
-bit[4] c;
-// Inputs: q[0]=a, q[1]=b, q[2]=scratch, q[3]=output
-x q[0];
-x q[1];
-// Stage 1: Compute AND into scratch
-ccx q[0], q[1], q[2];
-// Stage 2: Copy answer to output
-cx q[2], q[3];
-// Stage 3: Uncompute scratch
-ccx q[0], q[1], q[2];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
 <p>
   You should see the result <code>1101</code> - inputs <code>q[0]=1</code> and
   <code>q[1]=1</code> are preserved, the scratch bit <code>q[2]=0</code> has been cleaned up,
@@ -715,6 +772,70 @@ c = measure q;</textarea>
   in action. Try changing the inputs (remove one or both <code>x</code> gates) and verify that
   the scratch bit always returns to <code>0</code>.
 </p>
+
+<!-- Animated Walkthrough 3: Bennett's Compute-Copy-Uncompute -->
+<div class="animated-walkthrough" data-component="animated-walkthrough">
+  <div class="walkthrough-progress"></div>
+  <div class="walkthrough-stage active" data-stage="1">
+    <div class="walkthrough-narration">
+      <h4>Stage 1: Compute Forward</h4>
+      <p>Apply a Toffoli gate to compute AND of inputs a=1, b=1. The scratch bit q[2] now holds the result (1), but the computation is "dirty" - all intermediate values are entangled.</p>
+      <p>State: q[0]=1, q[1]=1, q[2]=<strong>1</strong> (AND result), q[3]=0 (output, still clean)</p>
+    </div>
+    <div class="walkthrough-viz">
+      <div class="walkthrough-qasm" hidden>OPENQASM 3.0;
+qubit[4] q;
+bit[4] c;
+x q[0];
+x q[1];
+ccx q[0], q[1], q[2];
+c = measure q;</div>
+      <div class="walkthrough-output"></div>
+    </div>
+  </div>
+  <div class="walkthrough-stage" data-stage="2">
+    <div class="walkthrough-narration">
+      <h4>Stage 2: Copy the Answer</h4>
+      <p>Use a CNOT to copy the AND result from q[2] to the clean output bit q[3]. Now the answer exists in two places.</p>
+      <p>State: q[0]=1, q[1]=1, q[2]=1, q[3]=<strong>1</strong> (copy of result)</p>
+    </div>
+    <div class="walkthrough-viz">
+      <div class="walkthrough-qasm" hidden>OPENQASM 3.0;
+qubit[4] q;
+bit[4] c;
+x q[0];
+x q[1];
+ccx q[0], q[1], q[2];
+cx q[2], q[3];
+c = measure q;</div>
+      <div class="walkthrough-output"></div>
+    </div>
+  </div>
+  <div class="walkthrough-stage" data-stage="3">
+    <div class="walkthrough-narration">
+      <h4>Stage 3: Uncompute (Run Backward)</h4>
+      <p>Apply the Toffoli again (it is its own inverse). This restores q[2] to 0, cleaning up the garbage. The final state has clean inputs, a clean scratch bit, and the correct output.</p>
+      <p>State: q[0]=1, q[1]=1, q[2]=<strong>0</strong> (cleaned!), q[3]=1 (output preserved)</p>
+    </div>
+    <div class="walkthrough-viz">
+      <div class="walkthrough-qasm" hidden>OPENQASM 3.0;
+qubit[4] q;
+bit[4] c;
+x q[0];
+x q[1];
+ccx q[0], q[1], q[2];
+cx q[2], q[3];
+ccx q[0], q[1], q[2];
+c = measure q;</div>
+      <div class="walkthrough-output"></div>
+    </div>
+  </div>
+  <div class="walkthrough-controls">
+    <button data-action="prev" disabled>Previous</button>
+    <button data-action="next">Next</button>
+    <button data-action="auto">Auto-play</button>
+  </div>
+</div>
 
 <h3>The Reversibility Overhead</h3>
 
@@ -907,6 +1028,15 @@ $$\text{CNOT} = \begin{pmatrix} 1 & 0 & 0 & 0 \\ 0 & 1 & 0 & 0 \\ 0 & 0 & 0 & 1 
   <code>00</code> and 50% <code>11</code>, but never <code>01</code> or <code>10</code>.
 </p>
 
+<p>
+  This is a preview of quantum behavior that we will explore fully in Chapter 4 and beyond. The
+  circuit above creates a <em>Bell state</em>, one of the most important quantum states in all
+  of quantum information science. The same CNOT gate that classically copies a bit quantum
+  mechanically creates entanglement. The gate is the same; the magic comes from the
+  superposition of the input.
+</p>
+
+<!-- Sandbox 4: Bell State Preview -->
 <div class="sandbox" data-component="sandbox" data-shots="1024">
   <textarea class="code" rows="7">OPENQASM 3.0;
 qubit[2] q;
@@ -920,14 +1050,6 @@ c = measure q;</textarea>
   </div>
   <div class="output"></div>
 </div>
-
-<p>
-  This is a preview of quantum behavior that we will explore fully in Chapter 4 and beyond. The
-  circuit above creates a <em>Bell state</em>, one of the most important quantum states in all
-  of quantum information science. The same CNOT gate that classically copies a bit quantum
-  mechanically creates entanglement. The gate is the same; the magic comes from the
-  superposition of the input.
-</p>
 
 <div class="callout callout-warning">
   <strong>Common Misconception.</strong>
@@ -1000,133 +1122,7 @@ c = measure q;</textarea>
 
 </section>
 
-<!-- ================================================================== -->
 
-<section id="review">
-<h2>Chapter 3 Review</h2>
-
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 3 Review</div>
-
-  <div class="flashcard" data-card-id="ch03-landauer-principle">
-    <div class="card-front">What is Landauer's principle, and what is the minimum energy to erase one bit?</div>
-    <div class="card-back">
-      Landauer's principle states that erasing one bit of information necessarily dissipates at
-      least $k_B T \ln 2$ joules of energy as heat, where $k_B$ is Boltzmann's constant and $T$
-      is the temperature. At room temperature (~300 K), this is approximately
-      $2.85 \times 10^{-21}$ J. The principle connects information to thermodynamics: destroying
-      information increases the entropy of the environment.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch03-reversible-gate-definition">
-    <div class="card-front">What makes a logic gate reversible, and what constraint does this place on the number of inputs and outputs?</div>
-    <div class="card-back">
-      A gate is reversible if it computes a one-to-one (bijective) function: every distinct input
-      maps to a distinct output, so the input can always be recovered from the output. A reversible
-      gate must have the same number of input and output bits - it implements a permutation of all
-      possible bit strings of that length.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch03-cnot-operation">
-    <div class="card-front">Describe the CNOT gate. What are its inputs, outputs, and operation?</div>
-    <div class="card-back">
-      The CNOT (controlled-NOT) gate has two inputs: a control bit and a target bit. The control
-      passes through unchanged. The target is flipped (XORed) if and only if the control is 1.
-      Output: $c_{\text{out}} = c$, $t_{\text{out}} = c \oplus t$. CNOT is its own inverse and,
-      when the target starts at 0, acts as a copy gate.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch03-toffoli-universality">
-    <div class="card-front">What is the Toffoli gate, and why is it called "universal"?</div>
-    <div class="card-back">
-      The Toffoli gate (CCNOT) is a three-bit gate with two controls and one target. It flips
-      the target if and only if both controls are 1. It is classically universal because any
-      Boolean function can be computed using only Toffoli gates and constant inputs. With the
-      target set to 0, it computes AND reversibly. This proves reversibility does not limit
-      computational power.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch03-fredkin-gate">
-    <div class="card-front">How does the Fredkin gate (CSWAP) operate, and what is its distinguishing property?</div>
-    <div class="card-back">
-      The Fredkin gate has one control bit and two target bits. If the control is 1, the two
-      targets are swapped; if the control is 0, they pass through unchanged. Its distinguishing
-      property is that it is conservative: the number of 1s in the output always equals the
-      number of 1s in the input. Like the Toffoli gate, it is classically universal.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch03-bennett-uncomputation">
-    <div class="card-front">Describe Bennett's three-stage uncomputation technique for making computations reversible.</div>
-    <div class="card-back">
-      (1) Compute forward using reversible gates, producing the answer plus garbage bits holding
-      intermediate values. (2) Copy the final answer to clean output bits using CNOT gates.
-      (3) Run the entire forward computation in reverse order, uncomputing all garbage bits back
-      to zero. Result: a clean reversible computation with only inputs and outputs, no leftover
-      garbage. Cost: roughly 2x the original computation time.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch03-unitarity-reversibility">
-    <div class="card-front">Why does quantum mechanics require that all quantum gates be reversible?</div>
-    <div class="card-back">
-      Quantum time evolution is governed by unitary operators ($U U^\dagger = I$), a consequence
-      of the Schrodinger equation's time-reversal symmetry. Every unitary operator has an inverse
-      ($U^\dagger$), so every quantum operation can be undone. An irreversible gate like AND
-      would require a non-square matrix (e.g., $2 \times 4$), which cannot be unitary. Quantum
-      mechanics simply does not permit irreversible operations on closed systems.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch03-classical-quantum-bridge">
-    <div class="card-front">How does reversible computing bridge classical and quantum computation?</div>
-    <div class="card-back">
-      Classical reversible gates (NOT, CNOT, Toffoli) are directly quantum gates (Pauli-X,
-      quantum CNOT, quantum Toffoli). Since reversible classical gates are computationally
-      universal, the quantum requirement of unitarity does not limit what can be computed.
-      Quantum computing adds power not from reversibility itself, but from combining reversible
-      gates with superposition and entanglement, enabling interference - a resource with no
-      classical analog.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-</div>
-</section>
 
     </article>
 
@@ -1155,7 +1151,6 @@ c = measure q;</textarea>
   
   <script>
   "use strict";
-  
   function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
   function isDark() { return window.matchMedia("(prefers-color-scheme: dark)").matches; }
   function renderMath(el) {
@@ -1163,7 +1158,6 @@ c = measure q;</textarea>
       renderMathInElement(el, { delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}], throwOnError: false });
   }
 
-  
   var wasmReady = null;
   function ensureWasm() {
     if (!wasmReady) {
@@ -1176,7 +1170,6 @@ c = measure q;</textarea>
     return wasmReady;
   }
 
-  
   var SRS_KEY = "goqu-srs";
   function srsLoad() { try { return JSON.parse(localStorage.getItem(SRS_KEY) || "{}"); } catch(e) { return {}; } }
   function srsSave(d) { localStorage.setItem(SRS_KEY, JSON.stringify(d)); }
@@ -1194,7 +1187,6 @@ c = measure q;</textarea>
     d[id] = s; srsSave(d);
   }
 
-  
   function initSandbox(el) {
     var code = el.querySelector(".code"), output = el.querySelector(".output");
     if (!code || !output) return;
@@ -1216,7 +1208,6 @@ c = measure q;</textarea>
     if (el.hasAttribute("data-autorun")) run();
   }
 
-  
   function initSimulation(el) {
     var tmplEl = el.querySelector(".sim-qasm"), output = el.querySelector(".sim-output");
     var sliders = el.querySelectorAll('input[type="range"]');
@@ -1288,7 +1279,6 @@ c = measure q;</textarea>
     update();
   }
 
-  
   function formatStabilizer(s) {
     if (!s) return "";
     var sign = s[0], ops = s.slice(1), html = '<span class="stab-sign">' + esc(sign) + '</span>';
@@ -1299,7 +1289,6 @@ c = measure q;</textarea>
     return html;
   }
 
-  
   function initExercise(el) {
     var code = el.querySelector(".code"), feedback = el.querySelector(".exercise-feedback");
     var checkBtn = el.querySelector('[data-action="check"]');
@@ -1337,7 +1326,6 @@ c = measure q;</textarea>
     if (hintBtn && hintEl) hintBtn.addEventListener("click", function() { hintEl.style.display = hintEl.style.display === "none" ? "block" : "none"; });
   }
 
-  
   function initFlashcardDeck(el) {
     el.querySelectorAll(".flashcard").forEach(function(card) {
       var id = card.dataset.cardId;
@@ -1356,7 +1344,6 @@ c = measure q;</textarea>
     });
   }
 
-  
   function initPOE(el) {
     var steps = el.querySelectorAll(".poe-step"), prog = el.querySelectorAll(".poe-progress-step");
     if (steps.length === 0) return;
@@ -1373,7 +1360,6 @@ c = measure q;</textarea>
     show(0);
   }
 
-  
   function initStepThrough(el) {
     var qasmEl = el.querySelector(".step-qasm");
     var output = el.querySelector(".step-output");
@@ -1455,9 +1441,198 @@ c = measure q;</textarea>
     load();
   }
 
-  
+  function initComparison(el) {
+    var panels = el.querySelectorAll(".comparison-panel");
+    var sliders = el.querySelectorAll('.comparison-controls input[type="range"]');
+    var selects = el.querySelectorAll('.comparison-controls select[data-param]');
+    if (panels.length < 2) return;
+    var mode = el.dataset.mode || "default";
+    var pending = false, dirty = false;
+
+    function getParams() {
+      var params = {};
+      sliders.forEach(function(s) {
+        params[s.dataset.param] = parseFloat(s.value);
+        var o = s.parentElement.querySelector("output");
+        if (o) o.textContent = parseFloat(s.value).toFixed(2);
+      });
+      selects.forEach(function(s) { params[s.dataset.param] = s.value; });
+      return params;
+    }
+
+    function substituteQasm(tmpl, params) {
+      var qasm = tmpl;
+      for (var k in params) qasm = qasm.replaceAll("{" + k + "}", params[k].toString());
+      return qasm;
+    }
+
+    async function runPanel(panel, params) {
+      var tmplEl = panel.querySelector(".comparison-qasm");
+      var output = panel.querySelector(".comparison-output");
+      if (!tmplEl || !output) return;
+      var qasm = substituteQasm(tmplEl.textContent, params);
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var html = "", r;
+        if (mode === "ideal-noisy") {
+          var isLeft = panel === panels[0];
+          if (isLeft) {
+            r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+            if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+            html = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+          } else {
+            var noiseModel = el.dataset.noiseModel || params.noiseModel || "depolarizing";
+            var noiseParam = parseFloat(params.noiseParam || "0.1");
+            if (window.runNoisyQASM) {
+              r = JSON.parse(window.runNoisyQASM(qasm, 1024, noiseModel, noiseParam, isDark()));
+              if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+              html = (r.circuitSVG || r.circuit || "") + (r.histogramSVG || r.histogram || "") + (r.stateCitySVG || "");
+              if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span></div>';
+            }
+          }
+        } else if (mode === "transpile") {
+          var target = panel.dataset.target || "generic";
+          if (window.transpileQASM) {
+            r = JSON.parse(window.transpileQASM(qasm, target, isDark()));
+            if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+            html = (r.circuit || r.circuitSVG || "") + (r.info || "");
+          }
+        } else {
+          r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          html = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+        }
+        output.innerHTML = html;
+        renderMath(output);
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    async function runAll() {
+      if (pending) { dirty = true; return; }
+      pending = true;
+      await ensureWasm();
+      var params = getParams();
+      var promises = [];
+      panels.forEach(function(panel) { promises.push(runPanel(panel, params)); });
+      await Promise.all(promises);
+      pending = false;
+      if (dirty) { dirty = false; runAll(); }
+    }
+
+    sliders.forEach(function(s) { s.addEventListener("input", runAll); });
+    selects.forEach(function(s) { s.addEventListener("change", runAll); });
+
+    var runBtn = el.querySelector('[data-action="run"]');
+    if (!runBtn) {
+      var controls = el.querySelector(".comparison-controls");
+      if (controls) {
+        runBtn = document.createElement("button");
+        runBtn.setAttribute("data-action", "run");
+        runBtn.textContent = "Run";
+        controls.appendChild(runBtn);
+      }
+    }
+    if (runBtn) runBtn.addEventListener("click", runAll);
+
+    runAll();
+  }
+
+  function initAnimatedWalkthrough(el) {
+    var stages = el.querySelectorAll(".walkthrough-stage");
+    var progressBar = el.querySelector(".walkthrough-progress");
+    var prevBtn = el.querySelector('[data-action="prev"]');
+    var nextBtn = el.querySelector('[data-action="next"]');
+    var autoBtn = el.querySelector('[data-action="auto"]');
+    if (stages.length === 0) return;
+    var cur = 0, autoTimer = null, stageRan = {};
+
+    
+    if (progressBar) {
+      progressBar.textContent = "";
+      for (var i = 0; i < stages.length; i++) {
+        var pip = document.createElement("div");
+        pip.className = "walkthrough-pip" + (i === 0 ? " active" : "");
+        pip.setAttribute("data-index", i);
+        pip.textContent = i + 1;
+        progressBar.appendChild(pip);
+      }
+    }
+
+    function updateProgress() {
+      if (!progressBar) return;
+      var pips = progressBar.querySelectorAll(".walkthrough-pip");
+      pips.forEach(function(p, i) {
+        p.classList.remove("active", "done");
+        if (i < cur) p.classList.add("done");
+        if (i === cur) p.classList.add("active");
+      });
+    }
+
+    async function runStageQasm(stage) {
+      var idx = stage.dataset.stage || "0";
+      if (stageRan[idx]) return;
+      var qasmEl = stage.querySelector(".walkthrough-qasm");
+      var output = stage.querySelector(".walkthrough-output");
+      if (!qasmEl || !output) return;
+      stageRan[idx] = true;
+      await ensureWasm();
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(qasmEl.textContent, 1024, isDark()));
+        if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+        output.innerHTML = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+        renderMath(output);
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    function show(idx) {
+      if (idx < 0 || idx >= stages.length) return;
+      stages.forEach(function(s, i) {
+        s.classList.remove("active", "walkthrough-exit");
+        if (i === cur && i !== idx) s.classList.add("walkthrough-exit");
+      });
+      var prev = cur;
+      cur = idx;
+      setTimeout(function() {
+        stages.forEach(function(s, i) {
+          s.classList.remove("walkthrough-exit");
+          s.classList.toggle("active", i === cur);
+        });
+      }, prev !== idx ? 150 : 0);
+      updateProgress();
+      if (prevBtn) prevBtn.disabled = (cur === 0);
+      if (nextBtn) nextBtn.disabled = (cur >= stages.length - 1);
+      runStageQasm(stages[cur]);
+    }
+
+    function stopAuto() {
+      if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+      if (autoBtn) autoBtn.textContent = "Auto-play";
+    }
+
+    if (prevBtn) prevBtn.addEventListener("click", function() { stopAuto(); if (cur > 0) show(cur - 1); });
+    if (nextBtn) nextBtn.addEventListener("click", function() { stopAuto(); if (cur < stages.length - 1) show(cur + 1); });
+    if (autoBtn) autoBtn.addEventListener("click", function() {
+      if (autoTimer) { stopAuto(); return; }
+      autoBtn.textContent = "Pause";
+      autoTimer = setInterval(function() {
+        if (cur < stages.length - 1) { show(cur + 1); }
+        else { stopAuto(); }
+      }, 3000);
+    });
+
+    if (progressBar) progressBar.addEventListener("click", function(e) {
+      var pip = e.target.closest(".walkthrough-pip");
+      if (pip) { stopAuto(); show(parseInt(pip.dataset.index, 10)); }
+    });
+
+    show(0);
+  }
+
   document.addEventListener("DOMContentLoaded", function() {
-    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough};
+    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough, comparison: initComparison, "animated-walkthrough": initAnimatedWalkthrough};
     document.querySelectorAll("[data-component]").forEach(function(el) { var fn = reg[el.dataset.component]; if (fn) fn(el); });
   });
   </script>

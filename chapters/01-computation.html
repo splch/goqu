@@ -332,114 +332,61 @@ $$1 \times 2^5 + 0 \times 2^4 + 1 \times 2^3 + 0 \times 2^2 + 1 \times 2^1 + 0 \
   value. The colored boxes show each bit's place value.
 </p>
 
+<!-- Widget 1: Binary/Decimal/Hex Converter -->
 <div class="widget" id="binary-converter-widget">
-  <div class="widget-header">Binary-Decimal Converter</div>
-  <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-start;">
-    <div>
-      <label for="bc-decimal-input" style="display: block; font-size: 0.85rem; margin-bottom: 0.25rem; font-weight: 500;">Decimal</label>
-      <input type="text" id="bc-decimal-input" placeholder="e.g. 42" maxlength="10"
-             style="width: 10rem; font-family: var(--font-mono); font-size: 0.95rem; padding: 0.35rem 0.5rem; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-code-bg); color: var(--color-text);"
-             aria-label="Decimal number">
+  <div class="widget-header">Binary / Decimal / Hex Converter</div>
+  <div class="widget-body">
+    <div style="display:flex;flex-wrap:wrap;gap:0.75rem;align-items:center;margin-bottom:0.75rem">
+      <label style="font-size:0.9rem;font-weight:600">Decimal:
+        <input type="number" id="bc-dec" value="42" min="0" max="255" style="width:5rem;margin-left:0.25rem">
+      </label>
+      <label style="font-size:0.9rem;font-weight:600">Binary:
+        <input type="text" id="bc-bin" value="101010" style="width:7rem;margin-left:0.25rem">
+      </label>
+      <label style="font-size:0.9rem;font-weight:600">Hex:
+        <input type="text" id="bc-hex" value="2A" style="width:4rem;margin-left:0.25rem">
+      </label>
     </div>
-    <div style="display: flex; align-items: flex-end; padding-bottom: 0.3rem; font-size: 1.2rem; color: var(--color-text-muted);">
-      <span aria-hidden="true">&harr;</span>
-    </div>
-    <div>
-      <label for="bc-binary-input" style="display: block; font-size: 0.85rem; margin-bottom: 0.25rem; font-weight: 500;">Binary</label>
-      <input type="text" id="bc-binary-input" placeholder="e.g. 101010" maxlength="32"
-             style="width: 14rem; font-family: var(--font-mono); font-size: 0.95rem; padding: 0.35rem 0.5rem; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-code-bg); color: var(--color-text);"
-             aria-label="Binary number">
-    </div>
+    <div id="bc-placevalues" style="display:flex;gap:2px;flex-wrap:wrap;justify-content:center;margin-bottom:0.5rem"></div>
+    <div id="bc-divide" style="font-family:var(--font-mono);font-size:0.85rem;color:var(--color-text-muted);min-height:1.5rem"></div>
   </div>
-  <div id="bc-output" aria-live="polite" style="min-height: 1.5rem; margin-top: 0.5rem; font-size: 0.9rem; color: var(--color-text-muted);"></div>
-  <div id="bc-bit-viz" style="display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.75rem;"></div>
 </div>
 <script>
-(function() {
-  "use strict";
-  var decInput = document.getElementById("bc-decimal-input");
-  var binInput = document.getElementById("bc-binary-input");
-  var output   = document.getElementById("bc-output");
-  var bitViz   = document.getElementById("bc-bit-viz");
-
-  function renderBitBoxes(binary) {
-    bitViz.innerHTML = "";
-    if (!binary) return;
-    // Pad to at least 8 bits for visual clarity
-    while (binary.length < 8) binary = "0" + binary;
-    for (var i = 0; i < binary.length; i++) {
-      var placeVal = Math.pow(2, binary.length - 1 - i);
-      var isOne = binary[i] === "1";
-      var wrapper = document.createElement("span");
-      wrapper.style.cssText = "display:inline-flex;flex-direction:column;align-items:center;";
-      var box = document.createElement("span");
-      box.textContent = binary[i];
-      box.style.cssText = "display:inline-flex;align-items:center;justify-content:center;" +
-        "width:2.2rem;height:2.2rem;border-radius:var(--radius);font-family:var(--font-mono);" +
-        "font-size:1rem;font-weight:700;border:2px solid " +
-        (isOne ? "var(--color-accent)" : "var(--color-border)") + ";" +
-        (isOne
-          ? "background:var(--color-accent);color:#fff;"
-          : "background:var(--color-code-bg);color:var(--color-text-muted);");
-      var label = document.createElement("span");
-      label.textContent = placeVal;
-      label.style.cssText = "display:block;font-size:0.6rem;color:var(--color-text-muted);text-align:center;margin-top:0.15rem;font-family:var(--font-mono);";
-      wrapper.appendChild(box);
-      wrapper.appendChild(label);
-      bitViz.appendChild(wrapper);
+(function(){
+  var dec=document.getElementById("bc-dec"),bin=document.getElementById("bc-bin"),hex=document.getElementById("bc-hex");
+  var pv=document.getElementById("bc-placevalues"),dv=document.getElementById("bc-divide");
+  function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+  function update(src){
+    var n=0;
+    if(src==="dec"){n=parseInt(dec.value,10)||0;if(n<0)n=0;if(n>255)n=255;dec.value=n;bin.value=n.toString(2);hex.value=n.toString(16).toUpperCase();}
+    else if(src==="bin"){var s=bin.value.replace(/[^01]/g,"");bin.value=s;n=parseInt(s,2)||0;dec.value=n;hex.value=n.toString(16).toUpperCase();}
+    else{var s=hex.value.replace(/[^0-9a-fA-F]/g,"");hex.value=s.toUpperCase();n=parseInt(s,16)||0;dec.value=n;bin.value=n.toString(2);}
+    var bits=bin.value.split("");
+    while(pv.firstChild)pv.removeChild(pv.firstChild);
+    for(var i=0;i<bits.length;i++){
+      var pw=bits.length-1-i;
+      var val=parseInt(bits[i])*Math.pow(2,pw);
+      var box=document.createElement("div");
+      box.style.cssText="text-align:center;border:1px solid var(--color-border);border-radius:4px;padding:0.25rem 0.4rem;min-width:2.5rem;";
+      if(bits[i]==="1"){box.style.background="var(--color-accent)";box.style.color="#fff";}
+      else{box.style.background="var(--color-code-bg)";box.style.color="var(--color-text-muted)";}
+      var lbl=document.createElement("div");
+      lbl.style.cssText="font-size:0.7rem;opacity:0.8";
+      lbl.textContent="2^"+pw+"="+Math.pow(2,pw);
+      var dig=document.createElement("div");
+      dig.style.cssText="font-size:1.1rem;font-weight:700;font-family:var(--font-mono)";
+      dig.textContent=bits[i];
+      box.appendChild(lbl);box.appendChild(dig);pv.appendChild(box);
     }
+    if(n===0){dv.textContent="0 in binary is 0";return;}
+    var steps=[],m=n;
+    while(m>0){steps.push(m+" / 2 = "+Math.floor(m/2)+" r "+( m%2));m=Math.floor(m/2);}
+    dv.textContent="Divide-by-2: "+steps.join(" -> ")+" -> read remainders bottom-up: "+bin.value;
   }
-
-  if (!decInput || !binInput) return;
-
-  decInput.addEventListener("input", function() {
-    var val = decInput.value.replace(/[^0-9]/g, "");
-    decInput.value = val;
-    if (val === "") {
-      binInput.value = "";
-      output.textContent = "";
-      renderBitBoxes("");
-      return;
-    }
-    var num = parseInt(val, 10);
-    if (isNaN(num) || num < 0) {
-      output.textContent = "Enter a non-negative integer.";
-      binInput.value = "";
-      renderBitBoxes("");
-      return;
-    }
-    if (num > 4294967295) {
-      output.textContent = "Maximum value is 4,294,967,295 (32 bits).";
-      binInput.value = "";
-      renderBitBoxes("");
-      return;
-    }
-    var bin = num.toString(2);
-    binInput.value = bin;
-    output.textContent = val + " in decimal = " + bin + " in binary (" + bin.length + " bits)";
-    renderBitBoxes(bin);
-  });
-
-  binInput.addEventListener("input", function() {
-    var val = binInput.value.replace(/[^01]/g, "");
-    binInput.value = val;
-    if (val === "") {
-      decInput.value = "";
-      output.textContent = "";
-      renderBitBoxes("");
-      return;
-    }
-    if (val.length > 32) {
-      output.textContent = "Maximum 32 bits.";
-      decInput.value = "";
-      renderBitBoxes("");
-      return;
-    }
-    var num = parseInt(val, 2);
-    decInput.value = num;
-    output.textContent = val + " in binary = " + num + " in decimal (" + val.length + " bits)";
-    renderBitBoxes(val);
-  });
+  dec.addEventListener("input",function(){update("dec");});
+  bin.addEventListener("input",function(){update("bin");});
+  hex.addEventListener("input",function(){update("hex");});
+  update("dec");
 })();
 </script>
 
@@ -591,98 +538,74 @@ $$1 \times 2^5 + 0 \times 2^4 + 1 \times 2^3 + 0 \times 2^2 + 1 \times 2^1 + 0 \
   inputs.
 </p>
 
+<!-- Widget 2: Truth Table Explorer -->
 <div class="widget" id="truth-table-widget">
-  <div class="widget-header">Interactive Truth Table Explorer</div>
-  <div style="margin-bottom: 0.75rem;">
-    <label for="tt-gate-select" style="font-size: 0.85rem; font-weight: 500; margin-right: 0.5rem;">Gate:</label>
-    <select id="tt-gate-select" style="font-family: var(--font-mono); font-size: 0.85rem; padding: 0.3rem 0.5rem; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-code-bg); color: var(--color-text);">
-      <option value="AND">AND</option>
-      <option value="OR">OR</option>
-      <option value="XOR">XOR</option>
-      <option value="NAND">NAND</option>
-      <option value="NOR">NOR</option>
-      <option value="XNOR">XNOR</option>
-    </select>
+  <div class="widget-header">Truth Table Explorer</div>
+  <div class="widget-body">
+    <div style="display:flex;gap:0.75rem;align-items:center;margin-bottom:0.75rem;flex-wrap:wrap">
+      <label style="font-size:0.9rem;font-weight:600">Gate:
+        <select id="tt-gate" style="font-family:var(--font-mono);font-size:0.9rem;padding:0.3rem 0.5rem;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-surface);color:var(--color-text);margin-left:0.25rem">
+          <option value="NOT">NOT</option>
+          <option value="AND" selected>AND</option>
+          <option value="OR">OR</option>
+          <option value="XOR">XOR</option>
+          <option value="NAND">NAND</option>
+          <option value="NOR">NOR</option>
+          <option value="XNOR">XNOR</option>
+        </select>
+      </label>
+      <span id="tt-expr" style="font-family:var(--font-mono);font-size:0.9rem;color:var(--color-text-muted)"></span>
+    </div>
+    <div id="tt-table-container"></div>
   </div>
-  <table id="tt-table" style="width: auto; min-width: 16rem;">
-    <thead>
-      <tr><th>$A$</th><th>$B$</th><th id="tt-header">$A \text{ AND } B$</th></tr>
-    </thead>
-    <tbody id="tt-body">
-    </tbody>
-  </table>
-  <div id="tt-formula" style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--color-text-muted);" aria-live="polite"></div>
-  <div id="tt-description" style="margin-top: 0.25rem; font-size: 0.85rem; color: var(--color-text-muted);" aria-live="polite"></div>
 </div>
 <script>
-(function() {
-  "use strict";
-  var select  = document.getElementById("tt-gate-select");
-  var header  = document.getElementById("tt-header");
-  var body    = document.getElementById("tt-body");
-  var formula = document.getElementById("tt-formula");
-  var desc    = document.getElementById("tt-description");
-
-  if (!select || !body) return;
-
-  var gates = {
-    AND:  { fn: function(a,b){return a&b;},     tex: "A \\land B",      label: "AND",  desc: "Output is 1 only when both inputs are 1." },
-    OR:   { fn: function(a,b){return a|b;},      tex: "A \\lor B",       label: "OR",   desc: "Output is 1 when at least one input is 1." },
-    XOR:  { fn: function(a,b){return a^b;},      tex: "A \\oplus B",     label: "XOR",  desc: "Output is 1 when inputs differ." },
-    NAND: { fn: function(a,b){return (a&b)^1;},  tex: "\\overline{A \\land B}", label: "NAND", desc: "Output is 0 only when both inputs are 1. (NOT of AND)" },
-    NOR:  { fn: function(a,b){return (a|b)^1;},  tex: "\\overline{A \\lor B}",  label: "NOR",  desc: "Output is 1 only when both inputs are 0. (NOT of OR)" },
-    XNOR: { fn: function(a,b){return (a^b)^1;},  tex: "\\overline{A \\oplus B}", label: "XNOR", desc: "Output is 1 when inputs are the same. (NOT of XOR)" }
+(function(){
+  var sel=document.getElementById("tt-gate"),expr=document.getElementById("tt-expr"),cont=document.getElementById("tt-table-container");
+  var gates={
+    NOT:{inputs:1,fn:function(a){return a?0:1;},expr:"NOT(A) = ~A"},
+    AND:{inputs:2,fn:function(a,b){return a&b;},expr:"A AND B = A . B"},
+    OR:{inputs:2,fn:function(a,b){return a|b;},expr:"A OR B = A + B"},
+    XOR:{inputs:2,fn:function(a,b){return a^b;},expr:"A XOR B = A (+) B"},
+    NAND:{inputs:2,fn:function(a,b){return (a&b)?0:1;},expr:"A NAND B = ~(A . B)"},
+    NOR:{inputs:2,fn:function(a,b){return (a|b)?0:1;},expr:"A NOR B = ~(A + B)"},
+    XNOR:{inputs:2,fn:function(a,b){return (a^b)?0:1;},expr:"A XNOR B = ~(A (+) B)"}
   };
-
-  var rows = [[0,0],[0,1],[1,0],[1,1]];
-
-  function render() {
-    var g = gates[select.value];
-    if (!g) return;
-
-    header.textContent = "$A \\text{ " + g.label + " } B$";
-    body.innerHTML = "";
-
-    for (var i = 0; i < rows.length; i++) {
-      var a = rows[i][0], b = rows[i][1];
-      var r = g.fn(a, b);
-      var tr = document.createElement("tr");
-      var tdA = document.createElement("td"); tdA.textContent = a;
-      var tdB = document.createElement("td"); tdB.textContent = b;
-      var tdR = document.createElement("td");
-      tdR.textContent = r;
-      tdR.style.fontWeight = "700";
-      tdR.style.color = r ? "var(--color-success)" : "var(--color-text-muted)";
-      tr.appendChild(tdA);
-      tr.appendChild(tdB);
-      tr.appendChild(tdR);
-      body.appendChild(tr);
+  function render(){
+    var g=gates[sel.value];
+    expr.textContent=g.expr;
+    while(cont.firstChild)cont.removeChild(cont.firstChild);
+    var tbl=document.createElement("table");
+    tbl.style.cssText="width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:0.9rem";
+    var thead=document.createElement("thead");
+    var hr=document.createElement("tr");
+    if(g.inputs===1){
+      ["A","Output"].forEach(function(t){var th=document.createElement("th");th.textContent=t;th.style.cssText="padding:0.4rem 0.75rem;text-align:center;border-bottom:2px solid var(--color-border);background:var(--color-code-bg)";hr.appendChild(th);});
+    }else{
+      ["A","B","Output"].forEach(function(t){var th=document.createElement("th");th.textContent=t;th.style.cssText="padding:0.4rem 0.75rem;text-align:center;border-bottom:2px solid var(--color-border);background:var(--color-code-bg)";hr.appendChild(th);});
     }
-
-    formula.textContent = "Boolean expression: $" + g.tex + "$";
-    desc.textContent = g.desc;
-
-    // Re-render KaTeX in the widget
-    if (typeof renderMathInElement === "function") {
-      var widget = document.getElementById("truth-table-widget");
-      renderMathInElement(widget, {
-        delimiters: [
-          {left: "$$", right: "$$", display: true},
-          {left: "$", right: "$", display: false}
-        ],
-        throwOnError: false
+    thead.appendChild(hr);tbl.appendChild(thead);
+    var tbody=document.createElement("tbody");
+    var rows=g.inputs===1?[[0],[1]]:[[0,0],[0,1],[1,0],[1,1]];
+    rows.forEach(function(r){
+      var tr=document.createElement("tr");
+      r.forEach(function(v){
+        var td=document.createElement("td");td.textContent=v;
+        td.style.cssText="padding:0.4rem 0.75rem;text-align:center;border-bottom:1px solid var(--color-border)";
+        tr.appendChild(td);
       });
-    }
+      var out=g.inputs===1?g.fn(r[0]):g.fn(r[0],r[1]);
+      var otd=document.createElement("td");
+      otd.textContent=out;
+      otd.style.cssText="padding:0.4rem 0.75rem;text-align:center;border-bottom:1px solid var(--color-border);font-weight:700;";
+      otd.style.color=out?"var(--color-success)":"var(--color-error)";
+      otd.style.background=out?"color-mix(in srgb, var(--color-success) 10%, transparent)":"color-mix(in srgb, var(--color-error) 10%, transparent)";
+      tr.appendChild(otd);tbody.appendChild(tr);
+    });
+    tbl.appendChild(tbody);cont.appendChild(tbl);
   }
-
-  select.addEventListener("change", render);
-
-  // Initial render after KaTeX loads
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", function() { setTimeout(render, 100); });
-  } else {
-    setTimeout(render, 100);
-  }
+  sel.addEventListener("change",render);
+  render();
 })();
 </script>
 
@@ -734,35 +657,6 @@ $$S = A \oplus B \qquad\qquad C = A \land B$$
   carry coming in from a previous column.
 </p>
 
-<svg viewBox="0 0 460 120" role="img" aria-labelledby="ha-title"
-     style="display:block;max-width:460px;margin:1rem auto;font-family:var(--font-mono);font-size:13px;">
-  <title id="ha-title">Half adder circuit: inputs A and B pass through XOR and AND gates to produce sum and carry outputs</title>
-  <!-- Wires -->
-  <g stroke="var(--color-text)" stroke-width="1.5" fill="none">
-    <line x1="30" y1="30" x2="160" y2="30"/>
-    <line x1="30" y1="90" x2="160" y2="90"/>
-    <line x1="100" y1="30" x2="100" y2="90"/>
-    <line x1="240" y1="30" x2="350" y2="30"/>
-    <line x1="240" y1="90" x2="350" y2="90"/>
-  </g>
-  <!-- Branch dots -->
-  <circle cx="100" cy="30" r="3" fill="var(--color-text)"/>
-  <circle cx="100" cy="90" r="3" fill="var(--color-text)"/>
-  <!-- XOR gate -->
-  <rect x="160" y="10" width="80" height="40" rx="4" fill="var(--color-gate-1q)" stroke="var(--color-text)" stroke-width="1.5"/>
-  <text x="200" y="30" fill="var(--color-text)" text-anchor="middle" dominant-baseline="middle">XOR</text>
-  <!-- AND gate -->
-  <rect x="160" y="70" width="80" height="40" rx="4" fill="var(--color-gate-1q)" stroke="var(--color-text)" stroke-width="1.5"/>
-  <text x="200" y="90" fill="var(--color-text)" text-anchor="middle" dominant-baseline="middle">AND</text>
-  <!-- Labels -->
-  <g fill="var(--color-text)">
-    <text x="25" y="34" text-anchor="end" dominant-baseline="middle">A</text>
-    <text x="25" y="94" text-anchor="end" dominant-baseline="middle">B</text>
-    <text x="355" y="34" dominant-baseline="middle">S (sum)</text>
-    <text x="355" y="94" dominant-baseline="middle">C (carry)</text>
-  </g>
-</svg>
-
 <h3>The Full Adder</h3>
 
 <p>
@@ -784,57 +678,91 @@ $$S = A \oplus B \qquad\qquad C = A \land B$$
 $$S = A \oplus B \oplus C_{in}$$
 $$C_{out} = (A \land B) \lor \bigl((A \oplus B) \land C_{in}\bigr)$$
 
-<svg viewBox="0 0 590 200" role="img" aria-labelledby="fa-title"
-     style="display:block;max-width:590px;margin:1rem auto;font-family:var(--font-mono);font-size:12px;">
-  <title id="fa-title">Full adder circuit: two half adder blocks and an OR gate combine inputs A, B, and carry-in to produce sum and carry-out</title>
-  <!--
-    HA1: (85,10) 90x60   edges: L85 R175 T10 B70
-    HA2: (310,75) 90x60  edges: L310 R400 T75 B135
-    OR:  (435,150) 60x36 edges: L435 R495 T150 B186
-    Routing: carry1 at x=220 (45px from HA1, 90px from HA2)
-             psum   at x=245 (70px from HA1, 65px from HA2)
-             carry2 at x=418 (18px from HA2, 17px from OR)
-  -->
-  <!-- Wires -->
-  <g stroke="var(--color-text)" stroke-width="1.5" fill="none">
-    <line x1="35" y1="30" x2="85" y2="30"/>
-    <line x1="35" y1="50" x2="85" y2="50"/>
-    <line x1="35" y1="115" x2="310" y2="115"/>
-    <polyline points="175,30 245,30 245,95 310,95"/>
-    <polyline points="175,50 220,50 220,162 435,162"/>
-    <line x1="400" y1="95" x2="535" y2="95"/>
-    <polyline points="400,115 418,115 418,174 435,174"/>
-    <line x1="495" y1="168" x2="535" y2="168"/>
-  </g>
-  <!-- Half Adder 1 -->
-  <rect x="85" y="10" width="90" height="60" rx="4" fill="var(--color-gate-2q)" stroke="var(--color-text)" stroke-width="1.5"/>
-  <text x="130" y="33" fill="var(--color-text)" text-anchor="middle" dominant-baseline="middle" font-size="11">Half</text>
-  <text x="130" y="49" fill="var(--color-text)" text-anchor="middle" dominant-baseline="middle" font-size="11">Adder</text>
-  <!-- Half Adder 2 -->
-  <rect x="310" y="75" width="90" height="60" rx="4" fill="var(--color-gate-2q)" stroke="var(--color-text)" stroke-width="1.5"/>
-  <text x="355" y="98" fill="var(--color-text)" text-anchor="middle" dominant-baseline="middle" font-size="11">Half</text>
-  <text x="355" y="114" fill="var(--color-text)" text-anchor="middle" dominant-baseline="middle" font-size="11">Adder</text>
-  <!-- OR gate -->
-  <rect x="435" y="150" width="60" height="36" rx="4" fill="var(--color-measure)" stroke="var(--color-text)" stroke-width="1.5"/>
-  <text x="465" y="168" fill="var(--color-text)" text-anchor="middle" dominant-baseline="middle">OR</text>
-  <!-- Input labels -->
-  <g fill="var(--color-text)">
-    <text x="30" y="30" text-anchor="end" dominant-baseline="middle">A</text>
-    <text x="30" y="50" text-anchor="end" dominant-baseline="middle">B</text>
-    <text x="30" y="115" text-anchor="end" dominant-baseline="middle">C_in</text>
-  </g>
-  <!-- Output labels -->
-  <g fill="var(--color-text)">
-    <text x="540" y="95" dominant-baseline="middle">S</text>
-    <text x="540" y="168" dominant-baseline="middle">C_out</text>
-  </g>
-  <!-- Wire annotations -->
-  <g fill="var(--color-text-muted)" font-size="10">
-    <text x="210" y="22" text-anchor="middle">partial sum</text>
-    <text x="217" y="106" text-anchor="end">carry1</text>
-    <text x="415" y="145" text-anchor="end">carry2</text>
-  </g>
-</svg>
+<!-- Widget 3: Full Adder Circuit Interactive -->
+<div class="widget" id="full-adder-widget">
+  <div class="widget-header">Full Adder Circuit</div>
+  <div class="widget-body">
+    <p style="font-size:0.9rem;margin-bottom:0.75rem">Toggle input bits and watch signals propagate through the gates. The carry ripples from one column to the next.</p>
+    <div style="display:flex;gap:1rem;align-items:center;margin-bottom:0.75rem;flex-wrap:wrap">
+      <button id="fa-a" style="min-width:3rem">A = 0</button>
+      <button id="fa-b" style="min-width:3rem">B = 0</button>
+      <button id="fa-cin" style="min-width:4rem">Cin = 0</button>
+    </div>
+    <div id="fa-svg-container" style="display:flex;justify-content:center"></div>
+    <div id="fa-result" style="font-family:var(--font-mono);font-size:0.95rem;text-align:center;margin-top:0.5rem"></div>
+  </div>
+</div>
+<script>
+(function(){
+  var a=0,b=0,cin=0;
+  var btnA=document.getElementById("fa-a"),btnB=document.getElementById("fa-b"),btnC=document.getElementById("fa-cin");
+  var svgC=document.getElementById("fa-svg-container"),res=document.getElementById("fa-result");
+  function toggle(btn,varName){
+    if(varName==="a"){a=1-a;btnA.textContent="A = "+a;}
+    else if(varName==="b"){b=1-b;btnB.textContent="B = "+b;}
+    else{cin=1-cin;btnC.textContent="Cin = "+cin;}
+    render();
+  }
+  btnA.addEventListener("click",function(){toggle(btnA,"a");});
+  btnB.addEventListener("click",function(){toggle(btnB,"b");});
+  btnC.addEventListener("click",function(){toggle(btnC,"cin");});
+  function render(){
+    var xor1=a^b, and1=a&b, xor2=xor1^cin, and2=xor1&cin, cout=and1|and2, s=xor2;
+    var on="var(--color-accent)",off="var(--color-border)";
+    function c(v){return v?on:off;}
+    function fw(v){return v?"2.5":"1.5";}
+    var svg='<svg viewBox="0 0 460 200" width="460" height="200" style="max-width:100%;height:auto;font-family:var(--font-mono);font-size:11px">';
+    // Input labels
+    svg+='<text x="5" y="40" fill="var(--color-text)" font-weight="600">A='+a+'</text>';
+    svg+='<text x="5" y="90" fill="var(--color-text)" font-weight="600">B='+b+'</text>';
+    svg+='<text x="5" y="150" fill="var(--color-text)" font-weight="600">Cin='+cin+'</text>';
+    // Wires to XOR1
+    svg+='<line x1="40" y1="38" x2="80" y2="38" stroke="'+c(a)+'" stroke-width="'+fw(a)+'"/>';
+    svg+='<line x1="40" y1="88" x2="80" y2="68" stroke="'+c(b)+'" stroke-width="'+fw(b)+'"/>';
+    // XOR1 gate
+    svg+='<rect x="80" y="30" width="50" height="46" rx="4" fill="var(--color-code-bg)" stroke="var(--color-border)" stroke-width="1"/>';
+    svg+='<text x="105" y="57" text-anchor="middle" fill="var(--color-text)" font-weight="600">XOR</text>';
+    // Wire from XOR1 to XOR2
+    svg+='<line x1="130" y1="53" x2="200" y2="53" stroke="'+c(xor1)+'" stroke-width="'+fw(xor1)+'"/>';
+    // Cin wire to XOR2
+    svg+='<line x1="40" y1="148" x2="170" y2="148" stroke="'+c(cin)+'" stroke-width="'+fw(cin)+'"/>';
+    svg+='<line x1="170" y1="148" x2="200" y2="73" stroke="'+c(cin)+'" stroke-width="'+fw(cin)+'"/>';
+    // XOR2 gate
+    svg+='<rect x="200" y="45" width="50" height="46" rx="4" fill="var(--color-code-bg)" stroke="var(--color-border)" stroke-width="1"/>';
+    svg+='<text x="225" y="72" text-anchor="middle" fill="var(--color-text)" font-weight="600">XOR</text>';
+    // S output
+    svg+='<line x1="250" y1="68" x2="310" y2="68" stroke="'+c(s)+'" stroke-width="'+fw(s)+'"/>';
+    svg+='<text x="320" y="72" fill="'+(s?'var(--color-success)':'var(--color-text-muted)')+'" font-weight="700">S='+s+'</text>';
+    // AND1 gate (from a,b)
+    svg+='<line x1="40" y1="38" x2="60" y2="38" stroke="'+c(a)+'" stroke-width="'+fw(a)+'"/>';
+    svg+='<line x1="60" y1="38" x2="80" y2="120" stroke="'+c(a)+'" stroke-width="'+fw(a)+'"/>';
+    svg+='<line x1="40" y1="88" x2="60" y2="88" stroke="'+c(b)+'" stroke-width="'+fw(b)+'"/>';
+    svg+='<line x1="60" y1="88" x2="80" y2="140" stroke="'+c(b)+'" stroke-width="'+fw(b)+'"/>';
+    svg+='<rect x="80" y="112" width="50" height="46" rx="4" fill="var(--color-code-bg)" stroke="var(--color-border)" stroke-width="1"/>';
+    svg+='<text x="105" y="139" text-anchor="middle" fill="var(--color-text)" font-weight="600">AND</text>';
+    // AND2 gate (from xor1, cin)
+    svg+='<line x1="150" y1="53" x2="200" y2="130" stroke="'+c(xor1)+'" stroke-width="'+fw(xor1)+'"/>';
+    svg+='<line x1="170" y1="148" x2="200" y2="150" stroke="'+c(cin)+'" stroke-width="'+fw(cin)+'"/>';
+    svg+='<rect x="200" y="122" width="50" height="46" rx="4" fill="var(--color-code-bg)" stroke="var(--color-border)" stroke-width="1"/>';
+    svg+='<text x="225" y="149" text-anchor="middle" fill="var(--color-text)" font-weight="600">AND</text>';
+    // OR gate
+    svg+='<line x1="130" y1="135" x2="290" y2="135" stroke="'+c(and1)+'" stroke-width="'+fw(and1)+'"/>';
+    svg+='<line x1="250" y1="145" x2="290" y2="155" stroke="'+c(and2)+'" stroke-width="'+fw(and2)+'"/>';
+    svg+='<rect x="290" y="127" width="50" height="46" rx="4" fill="var(--color-code-bg)" stroke="var(--color-border)" stroke-width="1"/>';
+    svg+='<text x="315" y="154" text-anchor="middle" fill="var(--color-text)" font-weight="600">OR</text>';
+    // Cout output
+    svg+='<line x1="340" y1="150" x2="400" y2="150" stroke="'+c(cout)+'" stroke-width="'+fw(cout)+'"/>';
+    svg+='<text x="410" y="154" fill="'+(cout?'var(--color-success)':'var(--color-text-muted)')+'" font-weight="700">Cout='+cout+'</text>';
+    svg+='</svg>';
+    svgC.textContent="";
+    var d=document.createElement("div");
+    d.insertAdjacentHTML("afterbegin",svg);
+    svgC.appendChild(d.firstChild);
+    res.textContent=a+" + "+b+" + "+cin+" = "+s+" (sum) with carry "+cout+" -> full result: "+(cout*2+s);
+  }
+  render();
+})();
+</script>
 
 <h3>Scaling Up: The Ripple-Carry Adder</h3>
 
@@ -1231,6 +1159,83 @@ $$C_{out} = (A \land B) \lor \bigl((A \oplus B) \land C_{in}\bigr)$$
   </tbody>
 </table>
 
+<!-- Widget 4: Complexity Growth Chart -->
+<div class="widget" id="complexity-chart-widget">
+  <div class="widget-header">Complexity Growth Chart</div>
+  <div class="widget-body">
+    <div style="display:flex;gap:0.75rem;align-items:center;margin-bottom:0.75rem;flex-wrap:wrap">
+      <label style="font-size:0.9rem">Problem size n: <input type="range" id="cg-n" min="2" max="40" value="10" style="width:12rem;accent-color:var(--color-accent)"> <output id="cg-n-val" style="font-family:var(--font-mono);font-size:0.85rem;min-width:2rem">10</output></label>
+    </div>
+    <div id="cg-svg-container" style="display:flex;justify-content:center"></div>
+    <div id="cg-values" style="font-family:var(--font-mono);font-size:0.8rem;color:var(--color-text-muted);margin-top:0.5rem"></div>
+  </div>
+</div>
+<script>
+(function(){
+  var slider=document.getElementById("cg-n"),nval=document.getElementById("cg-n-val");
+  var svgC=document.getElementById("cg-svg-container"),vals=document.getElementById("cg-values");
+  var W=440,H=260,pad=50,padR=10,padT=10,padB=30;
+  var colors=["#4C72B0","#55A868","#C44E52","#8172B2","#CCB974"];
+  var names=["O(log n)","O(n)","O(n^2)","O(n^3)","O(2^n)"];
+  function fns(n){return[Math.log2(Math.max(n,1)),n,n*n,n*n*n,Math.pow(2,n)];}
+  function render(){
+    var n=parseInt(slider.value);nval.textContent=n;
+    var points=[];
+    for(var i=0;i<5;i++)points.push([]);
+    var maxY=0;
+    for(var x=1;x<=n;x++){
+      var vs=fns(x);
+      for(var i=0;i<5;i++){
+        var v=vs[i];
+        points[i].push({x:x,y:v});
+        if(i<4 && v>maxY)maxY=v; // exclude 2^n for scale unless it fits
+      }
+    }
+    // include 2^n if not too large
+    var expMax=fns(n)[4];
+    if(expMax<=maxY*5)maxY=Math.max(maxY,expMax);
+    else maxY=Math.max(maxY,fns(n)[3])*1.2;
+    if(maxY<10)maxY=10;
+    var gW=W-pad-padR,gH=H-padT-padB;
+    function sx(v){return pad+(v-1)/(Math.max(n-1,1))*gW;}
+    function sy(v){var capped=Math.min(v,maxY);return padT+gH-(capped/maxY)*gH;}
+    var svg='<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" style="max-width:100%;height:auto;font-family:var(--font-mono);font-size:10px">';
+    // axes
+    svg+='<line x1="'+pad+'" y1="'+(padT)+'" x2="'+pad+'" y2="'+(H-padB)+'" stroke="var(--color-border)" stroke-width="1"/>';
+    svg+='<line x1="'+pad+'" y1="'+(H-padB)+'" x2="'+(W-padR)+'" y2="'+(H-padB)+'" stroke="var(--color-border)" stroke-width="1"/>';
+    svg+='<text x="'+(W/2)+'" y="'+(H-4)+'" text-anchor="middle" fill="var(--color-text-muted)" font-size="11">n</text>';
+    // draw lines
+    for(var c=0;c<5;c++){
+      var d="";
+      for(var j=0;j<points[c].length;j++){
+        var px=sx(points[c][j].x),py=sy(points[c][j].y);
+        d+=(j===0?"M":"L")+px.toFixed(1)+","+py.toFixed(1);
+      }
+      svg+='<path d="'+d+'" fill="none" stroke="'+colors[c]+'" stroke-width="2" stroke-linecap="round"/>';
+    }
+    // legend
+    for(var c=0;c<5;c++){
+      var ly=padT+12+c*14;
+      svg+='<line x1="'+(pad+10)+'" y1="'+ly+'" x2="'+(pad+25)+'" y2="'+ly+'" stroke="'+colors[c]+'" stroke-width="2"/>';
+      svg+='<text x="'+(pad+28)+'" y="'+(ly+4)+'" fill="var(--color-text)" font-size="10">'+names[c]+'</text>';
+    }
+    svg+='</svg>';
+    svgC.textContent="";
+    var d2=document.createElement("div");d2.insertAdjacentHTML("afterbegin",svg);svgC.appendChild(d2.firstChild);
+    var vs=fns(n);
+    var vstr=names.map(function(nm,i){
+      var v=vs[i];
+      if(v>1e15)return nm+"="+v.toExponential(1);
+      if(v>1e6)return nm+"="+(v/1e6).toFixed(1)+"M";
+      return nm+"="+Math.round(v);
+    });
+    vals.textContent="At n="+n+": "+vstr.join(", ");
+  }
+  slider.addEventListener("input",render);
+  render();
+})();
+</script>
+
 <p>
   For $n = 100$, a quadratic algorithm does 10,000 operations - trivial for a modern
   computer. An exponential algorithm requires approximately $10^{30}$ operations. Even a
@@ -1309,126 +1314,7 @@ $$C_{out} = (A \land B) \lor \bigl((A \oplus B) \land C_{in}\bigr)$$
 
 </section>
 
-<!-- ================================================================== -->
-<section id="review">
-<h2>Chapter 1 Review</h2>
 
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 1 Review</div>
-
-  <div class="flashcard" data-card-id="ch01-bit-definition">
-    <div class="card-front">What is a bit, and why is it considered the fundamental unit of information?</div>
-    <div class="card-back">
-      A bit (binary digit) is the smallest possible unit of information, representing a single choice between two alternatives: 0 or 1. It is fundamental because all data - numbers, text, images, sound - can be encoded as sequences of bits, but a single bit cannot be subdivided into anything simpler while still carrying information.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch01-n-bits-values">
-    <div class="card-front">How many distinct values can $n$ bits represent?</div>
-    <div class="card-back">
-      $2^n$ distinct values. For example, 1 bit gives 2 values, 8 bits (one byte) give 256 values, and 10 bits give 1,024 values. Each additional bit doubles the number of possible values.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch01-xor-vs-or">
-    <div class="card-front">How does XOR differ from OR?</div>
-    <div class="card-back">
-      OR outputs 1 when <em>at least one</em> input is 1, including when both are 1. XOR (exclusive or) outputs 1 only when the inputs are <em>different</em> - it outputs 0 when both inputs are the same. In short: OR is inclusive, XOR is exclusive.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch01-de-morgan">
-    <div class="card-front">State De Morgan's laws.</div>
-    <div class="card-back">
-      $\overline{A \land B} = \overline{A} \lor \overline{B}$ (the complement of AND equals the OR of complements) and $\overline{A \lor B} = \overline{A} \land \overline{B}$ (the complement of OR equals the AND of complements). These laws let us convert between AND and OR by negating inputs and outputs.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch01-half-adder">
-    <div class="card-front">What two gates make up a half adder, and what does each compute?</div>
-    <div class="card-back">
-      A half adder uses an XOR gate for the sum bit ($S = A \oplus B$) and an AND gate for the carry bit ($C = A \land B$). It adds two single-bit numbers and outputs a one-bit sum and a one-bit carry.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch01-stored-program">
-    <div class="card-front">What is the stored-program concept?</div>
-    <div class="card-back">
-      The idea that both instructions (the program) and data are stored as bits in the same memory. This allows a computer to load and run different programs without physical rewiring, and to treat programs themselves as data that can be analyzed, modified, or generated by other programs.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch01-class-p">
-    <div class="card-front">What is the complexity class P?</div>
-    <div class="card-back">
-      P is the set of decision problems solvable in <em>polynomial time</em> - meaning the computational steps grow as a polynomial function of the input size (e.g., $O(n)$, $O(n^2)$, $O(n^3)$). Problems in P are considered "efficiently solvable" by classical computers. Examples include sorting, shortest-path finding, and primality testing.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch01-p-vs-np">
-    <div class="card-front">What is the P vs NP question, and why does it matter?</div>
-    <div class="card-back">
-      The P vs NP question asks: if a solution to a problem can be quickly <em>verified</em> (class NP), can it also be quickly <em>found</em> (class P)? Most experts believe P does not equal NP, but no proof exists. It matters because a proof either way would fundamentally reshape our understanding of what computers can and cannot do efficiently. It is one of the Clay Mathematics Institute's million-dollar Millennium Prize Problems.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch01-exponential-wall">
-    <div class="card-front">Why is exponential time complexity ($O(2^n)$) considered intractable?</div>
-    <div class="card-back">
-      Because the number of steps doubles with each unit increase in $n$, the work explodes beyond what any computer can handle for moderate inputs. For $n = 100$, an exponential algorithm needs roughly $10^{30}$ operations - a computer doing a trillion operations per second would require over 30 billion years. No engineering improvement can overcome this kind of growth.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch01-shor-factoring">
-    <div class="card-front">What is the significance of Shor's algorithm for the relationship between classical and quantum computing?</div>
-    <div class="card-back">
-      Peter Shor showed in 1994 that a quantum computer can factor large integers in polynomial time, while the best known classical algorithms require sub-exponential (super-polynomial) time. This demonstrated that quantum computers can solve certain problems exponentially faster than any known classical approach, and it threatens the RSA cryptosystem that secures much of the internet.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-</div>
-
-</section>
 
     </article>
 
@@ -1457,7 +1343,6 @@ $$C_{out} = (A \land B) \lor \bigl((A \oplus B) \land C_{in}\bigr)$$
   
   <script>
   "use strict";
-  
   function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
   function isDark() { return window.matchMedia("(prefers-color-scheme: dark)").matches; }
   function renderMath(el) {
@@ -1465,7 +1350,6 @@ $$C_{out} = (A \land B) \lor \bigl((A \oplus B) \land C_{in}\bigr)$$
       renderMathInElement(el, { delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}], throwOnError: false });
   }
 
-  
   var wasmReady = null;
   function ensureWasm() {
     if (!wasmReady) {
@@ -1478,7 +1362,6 @@ $$C_{out} = (A \land B) \lor \bigl((A \oplus B) \land C_{in}\bigr)$$
     return wasmReady;
   }
 
-  
   var SRS_KEY = "goqu-srs";
   function srsLoad() { try { return JSON.parse(localStorage.getItem(SRS_KEY) || "{}"); } catch(e) { return {}; } }
   function srsSave(d) { localStorage.setItem(SRS_KEY, JSON.stringify(d)); }
@@ -1496,7 +1379,6 @@ $$C_{out} = (A \land B) \lor \bigl((A \oplus B) \land C_{in}\bigr)$$
     d[id] = s; srsSave(d);
   }
 
-  
   function initSandbox(el) {
     var code = el.querySelector(".code"), output = el.querySelector(".output");
     if (!code || !output) return;
@@ -1518,7 +1400,6 @@ $$C_{out} = (A \land B) \lor \bigl((A \oplus B) \land C_{in}\bigr)$$
     if (el.hasAttribute("data-autorun")) run();
   }
 
-  
   function initSimulation(el) {
     var tmplEl = el.querySelector(".sim-qasm"), output = el.querySelector(".sim-output");
     var sliders = el.querySelectorAll('input[type="range"]');
@@ -1590,7 +1471,6 @@ $$C_{out} = (A \land B) \lor \bigl((A \oplus B) \land C_{in}\bigr)$$
     update();
   }
 
-  
   function formatStabilizer(s) {
     if (!s) return "";
     var sign = s[0], ops = s.slice(1), html = '<span class="stab-sign">' + esc(sign) + '</span>';
@@ -1601,7 +1481,6 @@ $$C_{out} = (A \land B) \lor \bigl((A \oplus B) \land C_{in}\bigr)$$
     return html;
   }
 
-  
   function initExercise(el) {
     var code = el.querySelector(".code"), feedback = el.querySelector(".exercise-feedback");
     var checkBtn = el.querySelector('[data-action="check"]');
@@ -1639,7 +1518,6 @@ $$C_{out} = (A \land B) \lor \bigl((A \oplus B) \land C_{in}\bigr)$$
     if (hintBtn && hintEl) hintBtn.addEventListener("click", function() { hintEl.style.display = hintEl.style.display === "none" ? "block" : "none"; });
   }
 
-  
   function initFlashcardDeck(el) {
     el.querySelectorAll(".flashcard").forEach(function(card) {
       var id = card.dataset.cardId;
@@ -1658,7 +1536,6 @@ $$C_{out} = (A \land B) \lor \bigl((A \oplus B) \land C_{in}\bigr)$$
     });
   }
 
-  
   function initPOE(el) {
     var steps = el.querySelectorAll(".poe-step"), prog = el.querySelectorAll(".poe-progress-step");
     if (steps.length === 0) return;
@@ -1675,7 +1552,6 @@ $$C_{out} = (A \land B) \lor \bigl((A \oplus B) \land C_{in}\bigr)$$
     show(0);
   }
 
-  
   function initStepThrough(el) {
     var qasmEl = el.querySelector(".step-qasm");
     var output = el.querySelector(".step-output");
@@ -1757,9 +1633,198 @@ $$C_{out} = (A \land B) \lor \bigl((A \oplus B) \land C_{in}\bigr)$$
     load();
   }
 
-  
+  function initComparison(el) {
+    var panels = el.querySelectorAll(".comparison-panel");
+    var sliders = el.querySelectorAll('.comparison-controls input[type="range"]');
+    var selects = el.querySelectorAll('.comparison-controls select[data-param]');
+    if (panels.length < 2) return;
+    var mode = el.dataset.mode || "default";
+    var pending = false, dirty = false;
+
+    function getParams() {
+      var params = {};
+      sliders.forEach(function(s) {
+        params[s.dataset.param] = parseFloat(s.value);
+        var o = s.parentElement.querySelector("output");
+        if (o) o.textContent = parseFloat(s.value).toFixed(2);
+      });
+      selects.forEach(function(s) { params[s.dataset.param] = s.value; });
+      return params;
+    }
+
+    function substituteQasm(tmpl, params) {
+      var qasm = tmpl;
+      for (var k in params) qasm = qasm.replaceAll("{" + k + "}", params[k].toString());
+      return qasm;
+    }
+
+    async function runPanel(panel, params) {
+      var tmplEl = panel.querySelector(".comparison-qasm");
+      var output = panel.querySelector(".comparison-output");
+      if (!tmplEl || !output) return;
+      var qasm = substituteQasm(tmplEl.textContent, params);
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var html = "", r;
+        if (mode === "ideal-noisy") {
+          var isLeft = panel === panels[0];
+          if (isLeft) {
+            r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+            if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+            html = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+          } else {
+            var noiseModel = el.dataset.noiseModel || params.noiseModel || "depolarizing";
+            var noiseParam = parseFloat(params.noiseParam || "0.1");
+            if (window.runNoisyQASM) {
+              r = JSON.parse(window.runNoisyQASM(qasm, 1024, noiseModel, noiseParam, isDark()));
+              if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+              html = (r.circuitSVG || r.circuit || "") + (r.histogramSVG || r.histogram || "") + (r.stateCitySVG || "");
+              if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span></div>';
+            }
+          }
+        } else if (mode === "transpile") {
+          var target = panel.dataset.target || "generic";
+          if (window.transpileQASM) {
+            r = JSON.parse(window.transpileQASM(qasm, target, isDark()));
+            if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+            html = (r.circuit || r.circuitSVG || "") + (r.info || "");
+          }
+        } else {
+          r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          html = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+        }
+        output.innerHTML = html;
+        renderMath(output);
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    async function runAll() {
+      if (pending) { dirty = true; return; }
+      pending = true;
+      await ensureWasm();
+      var params = getParams();
+      var promises = [];
+      panels.forEach(function(panel) { promises.push(runPanel(panel, params)); });
+      await Promise.all(promises);
+      pending = false;
+      if (dirty) { dirty = false; runAll(); }
+    }
+
+    sliders.forEach(function(s) { s.addEventListener("input", runAll); });
+    selects.forEach(function(s) { s.addEventListener("change", runAll); });
+
+    var runBtn = el.querySelector('[data-action="run"]');
+    if (!runBtn) {
+      var controls = el.querySelector(".comparison-controls");
+      if (controls) {
+        runBtn = document.createElement("button");
+        runBtn.setAttribute("data-action", "run");
+        runBtn.textContent = "Run";
+        controls.appendChild(runBtn);
+      }
+    }
+    if (runBtn) runBtn.addEventListener("click", runAll);
+
+    runAll();
+  }
+
+  function initAnimatedWalkthrough(el) {
+    var stages = el.querySelectorAll(".walkthrough-stage");
+    var progressBar = el.querySelector(".walkthrough-progress");
+    var prevBtn = el.querySelector('[data-action="prev"]');
+    var nextBtn = el.querySelector('[data-action="next"]');
+    var autoBtn = el.querySelector('[data-action="auto"]');
+    if (stages.length === 0) return;
+    var cur = 0, autoTimer = null, stageRan = {};
+
+    
+    if (progressBar) {
+      progressBar.textContent = "";
+      for (var i = 0; i < stages.length; i++) {
+        var pip = document.createElement("div");
+        pip.className = "walkthrough-pip" + (i === 0 ? " active" : "");
+        pip.setAttribute("data-index", i);
+        pip.textContent = i + 1;
+        progressBar.appendChild(pip);
+      }
+    }
+
+    function updateProgress() {
+      if (!progressBar) return;
+      var pips = progressBar.querySelectorAll(".walkthrough-pip");
+      pips.forEach(function(p, i) {
+        p.classList.remove("active", "done");
+        if (i < cur) p.classList.add("done");
+        if (i === cur) p.classList.add("active");
+      });
+    }
+
+    async function runStageQasm(stage) {
+      var idx = stage.dataset.stage || "0";
+      if (stageRan[idx]) return;
+      var qasmEl = stage.querySelector(".walkthrough-qasm");
+      var output = stage.querySelector(".walkthrough-output");
+      if (!qasmEl || !output) return;
+      stageRan[idx] = true;
+      await ensureWasm();
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(qasmEl.textContent, 1024, isDark()));
+        if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+        output.innerHTML = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+        renderMath(output);
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    function show(idx) {
+      if (idx < 0 || idx >= stages.length) return;
+      stages.forEach(function(s, i) {
+        s.classList.remove("active", "walkthrough-exit");
+        if (i === cur && i !== idx) s.classList.add("walkthrough-exit");
+      });
+      var prev = cur;
+      cur = idx;
+      setTimeout(function() {
+        stages.forEach(function(s, i) {
+          s.classList.remove("walkthrough-exit");
+          s.classList.toggle("active", i === cur);
+        });
+      }, prev !== idx ? 150 : 0);
+      updateProgress();
+      if (prevBtn) prevBtn.disabled = (cur === 0);
+      if (nextBtn) nextBtn.disabled = (cur >= stages.length - 1);
+      runStageQasm(stages[cur]);
+    }
+
+    function stopAuto() {
+      if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+      if (autoBtn) autoBtn.textContent = "Auto-play";
+    }
+
+    if (prevBtn) prevBtn.addEventListener("click", function() { stopAuto(); if (cur > 0) show(cur - 1); });
+    if (nextBtn) nextBtn.addEventListener("click", function() { stopAuto(); if (cur < stages.length - 1) show(cur + 1); });
+    if (autoBtn) autoBtn.addEventListener("click", function() {
+      if (autoTimer) { stopAuto(); return; }
+      autoBtn.textContent = "Pause";
+      autoTimer = setInterval(function() {
+        if (cur < stages.length - 1) { show(cur + 1); }
+        else { stopAuto(); }
+      }, 3000);
+    });
+
+    if (progressBar) progressBar.addEventListener("click", function(e) {
+      var pip = e.target.closest(".walkthrough-pip");
+      if (pip) { stopAuto(); show(parseInt(pip.dataset.index, 10)); }
+    });
+
+    show(0);
+  }
+
   document.addEventListener("DOMContentLoaded", function() {
-    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough};
+    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough, comparison: initComparison, "animated-walkthrough": initAnimatedWalkthrough};
     document.querySelectorAll("[data-component]").forEach(function(el) { var fn = reg[el.dataset.component]; if (fn) fn(el); });
   });
   </script>

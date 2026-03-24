@@ -292,6 +292,127 @@ $$p^{(l)} \approx \frac{1}{c}\left(cp\right)^{2^l}$$
   dominates current fault-tolerant architecture designs.
 </p>
 
+<!-- Visualization 1: Concatenated Coding Widget -->
+<div class="widget" id="widget-concatenated">
+  <div class="widget-header">Interactive: Concatenated Coding Threshold</div>
+  <p style="margin-bottom:0.75rem;font-size:0.9rem;">Adjust the physical error rate and see how concatenation levels drive the logical error rate down. Below threshold ($p < p_{th}$), each level provides exponential suppression. Above threshold, adding levels makes things worse.</p>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label style="font-family:var(--font-mono);font-size:0.9rem;">Physical error rate $p$: <input type="range" id="concat-p" min="-5" max="-1" step="0.1" value="-3" style="width:12rem;accent-color:var(--color-accent);"><output id="concat-pval">0.001</output></label>
+    <label style="font-family:var(--font-mono);font-size:0.9rem;">Threshold $p_{th}$: <input type="range" id="concat-th" min="-3" max="-1" step="0.1" value="-2" style="width:8rem;accent-color:var(--color-accent);"><output id="concat-thval">0.01</output></label>
+  </div>
+  <div style="display:flex;justify-content:center;">
+    <canvas id="concat-canvas" width="480" height="280" style="border:1px solid var(--color-border);border-radius:var(--radius);max-width:100%;"></canvas>
+  </div>
+  <script>
+  (function(){
+    var canvas = document.getElementById("concat-canvas");
+    var ctx = canvas.getContext("2d");
+    var pSlider = document.getElementById("concat-p");
+    var thSlider = document.getElementById("concat-th");
+    var pOut = document.getElementById("concat-pval");
+    var thOut = document.getElementById("concat-thval");
+    var W = canvas.width, H = canvas.height;
+    var pad = {l:70, r:20, t:20, b:40};
+    var dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+    function draw() {
+      var p = Math.pow(10, parseFloat(pSlider.value));
+      var pth = Math.pow(10, parseFloat(thSlider.value));
+      pOut.textContent = p.toExponential(1);
+      thOut.textContent = pth.toExponential(1);
+
+      var gw = W - pad.l - pad.r, gh = H - pad.t - pad.b;
+      ctx.fillStyle = dark ? "#262626" : "#fff";
+      ctx.fillRect(0,0,W,H);
+
+      // Axes
+      ctx.strokeStyle = dark ? "#555" : "#ccc";
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(pad.l, pad.t); ctx.lineTo(pad.l, H-pad.b); ctx.lineTo(W-pad.r, H-pad.b); ctx.stroke();
+
+      // Y axis: log scale from 10^-20 to 10^0
+      var yMin = -20, yMax = 0;
+      ctx.fillStyle = dark ? "#999" : "#666";
+      ctx.font = "10px system-ui";
+      ctx.textAlign = "right";
+      for (var y = yMax; y >= yMin; y -= 5) {
+        var py = pad.t + (yMax - y) / (yMax - yMin) * gh;
+        ctx.fillText("10^" + y, pad.l - 5, py + 4);
+        ctx.beginPath(); ctx.moveTo(pad.l, py); ctx.lineTo(W-pad.r, py);
+        ctx.strokeStyle = dark ? "#333" : "#eee"; ctx.lineWidth = 0.5; ctx.stroke();
+      }
+
+      // X axis: concatenation levels 0-5
+      ctx.textAlign = "center";
+      var maxL = 5;
+      for (var l = 0; l <= maxL; l++) {
+        var px = pad.l + l/maxL * gw;
+        ctx.fillStyle = dark ? "#999" : "#666";
+        ctx.fillText(l, px, H - pad.b + 15);
+      }
+      ctx.fillText("Concatenation level", W/2, H - 5);
+      ctx.save(); ctx.translate(12, H/2); ctx.rotate(-Math.PI/2);
+      ctx.fillText("Logical error rate", 0, 0); ctx.restore();
+
+      // Threshold line
+      var thY = pad.t + (yMax - Math.log10(pth)) / (yMax - yMin) * gh;
+      ctx.setLineDash([6,4]);
+      ctx.strokeStyle = "#f59e0b";
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(pad.l, thY); ctx.lineTo(W-pad.r, thY); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = "#f59e0b";
+      ctx.textAlign = "left";
+      ctx.fillText("threshold", W - pad.r - 50, thY - 5);
+
+      // Compute concatenated error rates
+      var c = 1 / pth; // p_logical ~ (1/c)(cp)^(2^l)
+      var points = [];
+      for (var l = 0; l <= maxL; l++) {
+        var pLogical;
+        if (l === 0) pLogical = p;
+        else pLogical = (1/c) * Math.pow(c * p, Math.pow(2, l));
+        points.push({l: l, p: pLogical});
+      }
+
+      // Draw curve
+      ctx.beginPath();
+      ctx.strokeStyle = dark ? "#6A9BD2" : "#4C72B0";
+      ctx.lineWidth = 2;
+      points.forEach(function(pt, i) {
+        var logP = Math.log10(Math.max(pt.p, 1e-25));
+        var px = pad.l + pt.l/maxL * gw;
+        var py = pad.t + (yMax - logP) / (yMax - yMin) * gh;
+        py = Math.max(pad.t, Math.min(H - pad.b, py));
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      });
+      ctx.stroke();
+
+      // Draw points
+      points.forEach(function(pt) {
+        var logP = Math.log10(Math.max(pt.p, 1e-25));
+        var px = pad.l + pt.l/maxL * gw;
+        var py = pad.t + (yMax - logP) / (yMax - yMin) * gh;
+        py = Math.max(pad.t, Math.min(H - pad.b, py));
+        ctx.beginPath(); ctx.arc(px, py, 5, 0, 2*Math.PI);
+        ctx.fillStyle = (p < pth) ? (dark?"#22c55e":"#16a34a") : (dark?"#E07070":"#C44E52");
+        ctx.fill();
+      });
+
+      // Label
+      ctx.textAlign = "center";
+      ctx.fillStyle = (p < pth) ? "var(--color-success)" : "var(--color-error)";
+      ctx.font = "bold 12px system-ui";
+      ctx.fillText(p < pth ? "BELOW THRESHOLD - errors suppressed" : "ABOVE THRESHOLD - errors grow", W/2, pad.t + 15);
+    }
+
+    pSlider.addEventListener("input", draw);
+    thSlider.addEventListener("input", draw);
+    draw();
+  })();
+  </script>
+</div>
+
 <h3>What the Theorem Requires</h3>
 
 <p>
@@ -337,24 +458,6 @@ $$p^{(l)} \approx \frac{1}{c}\left(cp\right)^{2^l}$$
   degrades a simple quantum state - this demonstrates the challenge that error correction
   must overcome.
 </p>
-<div class="simulation" data-component="simulation" data-comparison="true">
-  <div class="sim-controls">
-    <label>Channel:
-      <select data-param="noiseModel">
-        <option value="depolarizing" selected>Depolarizing</option>
-        <option value="bit_flip">Bit Flip</option>
-      </select>
-    </label>
-    <label>Error rate: <input type="range" data-param="noiseParam" min="0" max="0.15" step="0.005" value="0.02"><output>0.02</output></label>
-  </div>
-  <pre class="sim-qasm">OPENQASM 3.0;
-qubit[1] q;
-bit[1] c;
-h q[0];
-c = measure q;</pre>
-  <div class="sim-output"></div>
-</div>
-
 <h3>Interactive: Noise Accumulation with Depth</h3>
 <p>
   Observe how noise degrades a quantum computation as circuit depth increases. The
@@ -363,27 +466,6 @@ c = measure q;</pre>
   more steeply with depth, illustrating why there must exist a threshold below which
   error correction can keep up with the noise.
 </p>
-<div class="simulation" data-component="simulation" data-comparison="true">
-  <div class="sim-controls">
-    <label>Noise: <input type="range" data-param="noiseParam" min="0.01" max="0.3" step="0.01" value="0.05"><output>0.05</output></label>
-    <select data-param="noiseModel" style="display:none"><option value="depolarizing" selected>depolarizing</option></select>
-  </div>
-  <pre class="sim-qasm">OPENQASM 3.0;
-qubit[3] q;
-bit[3] c;
-h q[0];
-cx q[0], q[1];
-cx q[1], q[2];
-h q[0];
-cx q[0], q[1];
-cx q[1], q[2];
-h q[0];
-cx q[0], q[1];
-cx q[1], q[2];
-c = measure q;</pre>
-  <div class="sim-output"></div>
-</div>
-
 <h3>Interactive: Noise Simplification via Twirling</h3>
 <p>
   A key assumption of the threshold theorem is that errors behave stochastically.
@@ -394,32 +476,6 @@ c = measure q;</pre>
   ideal computation is unchanged, but the noise structure is randomized into a form
   amenable to threshold analysis.
 </p>
-<div class="widget" id="ft-twirl-widget">
-  <div class="widget-header">Pauli Twirling</div>
-  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
-    <button onclick="runFTTwirlWidget()">Twirl Circuit</button>
-  </div>
-  <div class="widget-output" id="ft-twirl-output"></div>
-</div>
-<script>
-async function runFTTwirlWidget() {
-  await ensureWasm();
-  var out = document.getElementById('ft-twirl-output');
-  out.innerHTML = '<p style="color:var(--color-text-muted)">Processing...</p>';
-  await new Promise(function(r) { setTimeout(r, 0); });
-  try {
-    var qasm = "OPENQASM 3.0;\nqubit[3] q;\nbit[3] c;\nh q[0];\ncx q[0], q[1];\ncx q[1], q[2];\nc = measure q;";
-    var r = JSON.parse(window.twirlCircuit(qasm, isDark()));
-    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
-    var html = '<div class="comparison-panels">';
-    html += '<div class="comparison-panel"><h4>Original</h4>' + (r.originalCircuitSVG||'') + '</div>';
-    html += '<div class="comparison-panel"><h4>Twirled</h4>' + (r.twirledCircuitSVG||'') + '</div>';
-    html += '</div>';
-    out.innerHTML = html;
-  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
-}
-</script>
-
 </section>
 
 <!-- ================================================================== -->
@@ -499,6 +555,76 @@ $$|A\rangle = T|+\rangle = \frac{1}{\sqrt{2}}\left(|0\rangle + e^{i\pi/4}|1\rang
     circuit; the magic state provides the "non-Cliffordness." This separation is the
     foundation of the Clifford + $T$ approach to fault-tolerant universal computation.
   </p>
+</div>
+
+<!-- Visualization 2: Magic State Injection Walkthrough -->
+<div class="animated-walkthrough" data-component="animated-walkthrough">
+  <div class="walkthrough-progress"></div>
+
+  <div class="walkthrough-stage active" data-stage="0">
+    <div class="walkthrough-narration">
+      <h4>Step 1: Prepare Magic State</h4>
+      <p>Prepare the magic state $|A\rangle = T|+\rangle = \frac{1}{\sqrt{2}}(|0\rangle + e^{i\pi/4}|1\rangle)$ on an ancilla qubit. This state encodes the "non-Cliffordness" of the $T$ gate. In practice, this magic state is prepared noisily and then distilled to high fidelity.</p>
+    </div>
+    <div class="walkthrough-viz">
+      <div style="text-align:center;font-family:var(--font-mono);font-size:0.9rem;">
+        <div style="display:flex;gap:2rem;justify-content:center;align-items:center;">
+          <div style="padding:1rem;border:2px solid var(--color-accent);border-radius:var(--radius);">Data: $|\psi\rangle = \alpha|0\rangle + \beta|1\rangle$</div>
+          <div style="padding:1rem;border:2px solid var(--color-state);border-radius:var(--radius);">Ancilla: $|A\rangle = T|+\rangle$</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="walkthrough-stage" data-stage="1">
+    <div class="walkthrough-narration">
+      <h4>Step 2: CNOT (Data -> Ancilla)</h4>
+      <p>Apply a CNOT gate with the data qubit as control and the ancilla as target. This entangles the data qubit with the magic state. Since CNOT is a Clifford gate, it can be performed fault-tolerantly using transversal operations or lattice surgery.</p>
+    </div>
+    <div class="walkthrough-viz">
+      <div style="text-align:center;font-family:var(--font-mono);font-size:0.9rem;">
+        <div>$|\psi\rangle \otimes |A\rangle \xrightarrow{\text{CNOT}}$ entangled state</div>
+        <div style="margin-top:0.5rem;">$\alpha|0\rangle|A\rangle + \beta|1\rangle X|A\rangle$</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="walkthrough-stage" data-stage="2">
+    <div class="walkthrough-narration">
+      <h4>Step 3: Measure Ancilla in Z Basis</h4>
+      <p>Measure the ancilla qubit in the computational ($Z$) basis. The outcome is either $|0\rangle$ or $|1\rangle$. This measurement collapses the entanglement and projects the data qubit into a known state that depends on the measurement outcome.</p>
+    </div>
+    <div class="walkthrough-viz">
+      <div style="text-align:center;font-family:var(--font-mono);font-size:0.9rem;">
+        <div style="display:flex;gap:2rem;justify-content:center;align-items:center;">
+          <div style="padding:1rem;border:2px solid var(--color-accent);border-radius:var(--radius);">Data: depends on outcome</div>
+          <div style="padding:1rem;border:2px solid var(--color-success);border-radius:var(--radius);">Ancilla: measured $\rightarrow m \in \{0, 1\}$</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="walkthrough-stage" data-stage="3">
+    <div class="walkthrough-narration">
+      <h4>Step 4: Conditional S Correction</h4>
+      <p>If the measurement outcome is $m = 1$, apply an $S$ gate correction to the data qubit. If $m = 0$, no correction is needed. After this conditional correction, the data qubit has had the logical $T$ gate applied: $|\psi\rangle \to T|\psi\rangle$. The entire operation consumed one magic state and used only Clifford operations plus measurement.</p>
+    </div>
+    <div class="walkthrough-viz">
+      <div style="text-align:center;font-family:var(--font-mono);font-size:0.9rem;">
+        <div style="padding:1rem;border:2px solid var(--color-success);border-radius:var(--radius);display:inline-block;">
+          If $m = 0$: data = $T|\psi\rangle$ (done!)<br>
+          If $m = 1$: apply $S$ correction $\rightarrow$ data = $T|\psi\rangle$
+        </div>
+        <div style="margin-top:0.75rem;font-weight:600;color:var(--color-success);">Result: $T|\psi\rangle$ using only Clifford + measurement</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="walkthrough-controls">
+    <button data-action="prev" disabled>Previous</button>
+    <button data-action="next">Next</button>
+    <button data-action="auto">Auto-play</button>
+  </div>
 </div>
 
 <h3>Why Not Just Make $T$ Transversal?</h3>
@@ -608,6 +734,95 @@ $$p \xrightarrow{\text{round 1}} 35p^3 \xrightarrow{\text{round 2}} 35(35p^3)^3 
     <strong>catalytic distillation</strong> schemes reuse partially distilled states to
     improve efficiency. The field of magic state distillation optimization is very active.
   </p>
+</div>
+
+<!-- Visualization 3: Distillation Funnel Widget -->
+<div class="widget" id="widget-distillation">
+  <div class="widget-header">Interactive: Magic State Distillation Funnel</div>
+  <p style="margin-bottom:0.75rem;font-size:0.9rem;">The 15-to-1 protocol takes 15 noisy magic states and produces 1 cleaner one. Iterate to drive the error rate to any desired level. Adjust the input error rate to see how fast distillation converges.</p>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label style="font-family:var(--font-mono);font-size:0.9rem;">Input error rate: <input type="range" id="distill-p" min="-4" max="-1.5" step="0.1" value="-3" style="width:10rem;accent-color:var(--color-accent);"><output id="distill-pval">0.001</output></label>
+  </div>
+  <div id="distill-output" class="widget-output"></div>
+  <script>
+  (function(){
+    var slider = document.getElementById("distill-p");
+    var pOut = document.getElementById("distill-pval");
+    var output = document.getElementById("distill-output");
+
+    function update() {
+      var p0 = Math.pow(10, parseFloat(slider.value));
+      pOut.textContent = p0.toExponential(1);
+
+      var rounds = [];
+      var p = p0;
+      var totalCopies = 1;
+      rounds.push({round: 0, error: p, copies: 1, label: "Input"});
+
+      for (var r = 1; r <= 4; r++) {
+        var pNew = 35 * Math.pow(p, 3);
+        totalCopies *= 15;
+        if (pNew < 1e-30) pNew = 0;
+        rounds.push({round: r, error: pNew, copies: totalCopies, label: "Round " + r});
+        p = pNew;
+        if (p < 1e-25) break;
+      }
+
+      var container = document.createElement("div");
+
+      // Funnel visualization
+      var funnel = document.createElement("div");
+      funnel.style.cssText = "display:flex;flex-direction:column;align-items:center;gap:4px;margin-bottom:0.75rem;";
+      rounds.forEach(function(r, i) {
+        var width = Math.max(60, 300 - i * 60);
+        var row = document.createElement("div");
+        row.style.cssText = "display:flex;align-items:center;gap:0.5rem;";
+        var bar = document.createElement("div");
+        bar.style.cssText = "height:28px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:0.75rem;color:#fff;font-weight:600;width:" + width + "px;background:" + (i === 0 ? "var(--color-state)" : "color-mix(in srgb, var(--color-success) " + Math.min(100, (i+1)*25) + "%, var(--color-accent))") + ";";
+        bar.textContent = r.error > 0 ? r.error.toExponential(1) : "< 10^-30";
+        row.appendChild(bar);
+        var label = document.createElement("span");
+        label.style.cssText = "font-size:0.8rem;color:var(--color-text-muted);min-width:80px;";
+        label.textContent = r.label + " (" + r.copies + " copies)";
+        row.appendChild(label);
+        funnel.appendChild(row);
+        if (i < rounds.length - 1) {
+          var arrow = document.createElement("div");
+          arrow.style.cssText = "font-size:0.85rem;color:var(--color-text-muted);";
+          arrow.textContent = "15 -> 1";
+          funnel.appendChild(arrow);
+        }
+      });
+
+      container.appendChild(funnel);
+
+      // Table
+      var table = document.createElement("table");
+      table.style.cssText = "width:100%;font-size:0.85rem;";
+      table.insertAdjacentHTML("beforeend", "<thead><tr><th>Round</th><th>Error rate</th><th>Total input copies</th><th>Suppression</th></tr></thead>");
+      var tbody = document.createElement("tbody");
+      rounds.forEach(function(r) {
+        var tr = document.createElement("tr");
+        var suppression = r.round === 0 ? "-" : (p0 / r.error > 1e20 ? "> 10^20 x" : (p0 / r.error).toExponential(1) + "x");
+        tr.insertAdjacentHTML("beforeend",
+          "<td>" + r.label + "</td>" +
+          "<td style='font-family:var(--font-mono);'>" + (r.error > 0 ? r.error.toExponential(2) : "< 10^-30") + "</td>" +
+          "<td>" + r.copies + "</td>" +
+          "<td>" + suppression + "</td>"
+        );
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      container.appendChild(table);
+
+      output.textContent = "";
+      output.appendChild(container);
+    }
+
+    slider.addEventListener("input", update);
+    update();
+  })();
+  </script>
 </div>
 
 <h3>Alternatives to Distillation</h3>
@@ -735,6 +950,100 @@ $$p \xrightarrow{\text{round 1}} 35p^3 \xrightarrow{\text{round 2}} 35(35p^3)^3 
     decoders, and real-time control. The total physical qubit count for useful computations
     is currently estimated in the millions, with magic state distillation as the dominant cost.
   </p>
+</div>
+
+<!-- Visualization 4: Resource Calculator Widget -->
+<div class="widget" id="widget-resource-calc">
+  <div class="widget-header">Interactive: Fault-Tolerant Resource Calculator</div>
+  <p style="margin-bottom:0.75rem;font-size:0.9rem;">Estimate the physical qubit count needed for a fault-tolerant computation. Adjust the physical error rate, target logical error rate, and application parameters.</p>
+  <div style="display:flex;flex-direction:column;gap:0.5rem;margin-bottom:0.75rem;">
+    <label style="font-family:var(--font-mono);font-size:0.85rem;">Physical error rate: <input type="range" id="res-p" min="-4" max="-2" step="0.1" value="-3" style="width:10rem;accent-color:var(--color-accent);"><output id="res-pval">10^-3</output></label>
+    <label style="font-family:var(--font-mono);font-size:0.85rem;">Target logical error / gate: <input type="range" id="res-target" min="-15" max="-6" step="1" value="-10" style="width:10rem;accent-color:var(--color-accent);"><output id="res-tval">10^-10</output></label>
+    <label style="font-family:var(--font-mono);font-size:0.85rem;">Application:
+      <select id="res-app" style="font-family:var(--font-mono);font-size:0.85rem;padding:0.2rem 0.4rem;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-surface);color:var(--color-text);">
+        <option value="small">Small chemistry (~50 logical qubits, 10^8 T gates)</option>
+        <option value="femo" selected>FeMoCo (~200 logical qubits, 10^10 T gates)</option>
+        <option value="rsa">RSA-2048 (~4000 logical qubits, 10^10 T gates)</option>
+      </select>
+    </label>
+  </div>
+  <div id="res-output" class="widget-output"></div>
+  <script>
+  (function(){
+    var pSlider = document.getElementById("res-p");
+    var tSlider = document.getElementById("res-target");
+    var appSel = document.getElementById("res-app");
+    var pOut = document.getElementById("res-pval");
+    var tOut = document.getElementById("res-tval");
+    var output = document.getElementById("res-output");
+
+    var apps = {
+      small: {qubits: 50, tGates: 1e8, name: "Small chemistry"},
+      femo: {qubits: 200, tGates: 1e10, name: "FeMoCo"},
+      rsa: {qubits: 4000, tGates: 1e10, name: "RSA-2048"}
+    };
+
+    function update() {
+      var p = Math.pow(10, parseFloat(pSlider.value));
+      var pTarget = Math.pow(10, parseFloat(tSlider.value));
+      pOut.textContent = "10^" + parseFloat(pSlider.value).toFixed(0);
+      tOut.textContent = "10^" + parseFloat(tSlider.value).toFixed(0);
+
+      var app = apps[appSel.value];
+      var pth = 0.01; // surface code threshold
+
+      // Estimate code distance: p_L ~ (p/p_th)^((d+1)/2)
+      // Need p_L < pTarget
+      // (d+1)/2 * log(p/pth) < log(pTarget)
+      // d = 2 * ceil(log(pTarget) / log(p/pth)) - 1
+      var ratio = p / pth;
+      var d;
+      if (ratio >= 1) {
+        d = Infinity; // Above threshold
+      } else {
+        var logRatio = Math.log10(ratio);
+        var logTarget = Math.log10(pTarget);
+        var halfDp1 = logTarget / logRatio;
+        d = Math.max(3, 2 * Math.ceil(halfDp1) - 1);
+        if (d % 2 === 0) d++;
+      }
+
+      var physPerLogical = isFinite(d) ? 2 * d * d : Infinity;
+      var totalPhysical = isFinite(physPerLogical) ? app.qubits * physPerLogical : Infinity;
+      // Add ~50% routing overhead and factory overhead
+      var withOverhead = isFinite(totalPhysical) ? Math.round(totalPhysical * 2.5) : Infinity;
+
+      var table = document.createElement("table");
+      table.style.cssText = "width:100%;font-size:0.85rem;";
+      table.insertAdjacentHTML("beforeend",
+        "<thead><tr><th>Parameter</th><th>Value</th></tr></thead><tbody>" +
+        "<tr><td>Application</td><td>" + app.name + "</td></tr>" +
+        "<tr><td>Logical qubits needed</td><td>" + app.qubits.toLocaleString() + "</td></tr>" +
+        "<tr><td>T gates needed</td><td>" + app.tGates.toExponential(0) + "</td></tr>" +
+        "<tr><td>Required code distance $d$</td><td>" + (isFinite(d) ? d : "<span style='color:var(--color-error);'>Impossible (above threshold)</span>") + "</td></tr>" +
+        "<tr><td>Physical qubits per logical qubit ($2d^2$)</td><td>" + (isFinite(physPerLogical) ? physPerLogical.toLocaleString() : "-") + "</td></tr>" +
+        "<tr><td>Data qubits (logical x physical/logical)</td><td>" + (isFinite(totalPhysical) ? totalPhysical.toLocaleString() : "-") + "</td></tr>" +
+        "<tr><td style='font-weight:600;'>Total with routing + factories (~2.5x)</td><td style='font-weight:600;'>" + (isFinite(withOverhead) ? withOverhead.toLocaleString() : "<span style='color:var(--color-error);'>N/A</span>") + "</td></tr>" +
+        "</tbody>"
+      );
+
+      output.textContent = "";
+      output.appendChild(table);
+
+      if (!isFinite(d)) {
+        var warn = document.createElement("p");
+        warn.style.cssText = "color:var(--color-error);font-weight:600;margin-top:0.5rem;";
+        warn.textContent = "Physical error rate is at or above the surface code threshold. Error correction cannot help - improve hardware first.";
+        output.appendChild(warn);
+      }
+    }
+
+    pSlider.addEventListener("input", update);
+    tSlider.addEventListener("input", update);
+    appSel.addEventListener("change", update);
+    update();
+  })();
+  </script>
 </div>
 
 <h3>Alternative Architectures</h3>
@@ -919,104 +1228,7 @@ $$p \xrightarrow{\text{round 1}} 35p^3 \xrightarrow{\text{round 2}} 35(35p^3)^3 
 
 </section>
 
-<!-- ================================================================== -->
-<section id="review">
-<h2>Chapter 20 Review</h2>
 
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 20 Review</div>
-
-  <div class="flashcard" data-card-id="ch20-threshold-theorem">
-    <div class="card-front">State the threshold theorem for fault-tolerant quantum computation.</div>
-    <div class="card-back">
-      If each physical gate, measurement, and state preparation has an error rate $p$ below a critical threshold $p_{\text{th}}$, then an arbitrarily long quantum computation can be performed with an arbitrarily small logical error rate, using a number of physical qubits that scales polylogarithmically in the computation length. The proof uses concatenated coding to achieve doubly exponential error suppression.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch20-transversal-gate">
-    <div class="card-front">What is a transversal gate, and why is it automatically fault-tolerant?</div>
-    <div class="card-back">
-      A transversal gate applies the same physical gate independently to corresponding qubits in one or two code blocks (qubit $i$ in block 1 interacts only with qubit $i$ in block 2). It is automatically fault-tolerant because a single physical error on one qubit cannot spread to other qubits within the same block, ensuring that one physical fault produces at most one error per code block.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch20-magic-state">
-    <div class="card-front">What is a magic state, and how is it used to implement a logical $T$ gate?</div>
-    <div class="card-back">
-      The magic state $|A\rangle = T|+\rangle = \frac{1}{\sqrt{2}}(|0\rangle + e^{i\pi/4}|1\rangle)$ enables the logical $T$ gate via magic state injection: perform a logical CNOT from the data qubit to an ancilla prepared in $|A\rangle$, measure the ancilla, and apply a Clifford correction ($S$ gate) conditioned on the outcome. This uses only fault-tolerant Clifford operations; the quality depends entirely on the magic state purity.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch20-distillation">
-    <div class="card-front">How does the 15-to-1 magic state distillation protocol work?</div>
-    <div class="card-back">
-      Take 15 noisy copies of the magic state (each with error rate $p$), encode them into the $[[15, 1, 3]]$ Reed-Muller code using Clifford operations, measure the stabilizers, and if all syndromes are trivial, decode to one output state with error rate $\sim 35p^3$. The cubic error suppression means each round dramatically improves quality. The protocol works because the $T$ gate is transversal for the Reed-Muller code.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch20-concatenation">
-    <div class="card-front">How does concatenated coding achieve doubly exponential error suppression?</div>
-    <div class="card-back">
-      At each level of concatenation, the effective error rate is approximately squared: $p^{(l+1)} \approx c(p^{(l)})^2$. After $l$ levels, the error rate is $\sim (cp)^{2^l}/c$. If $cp < 1$ (below threshold), $l$ levels give error suppression exponential in $2^l$ - doubly exponential in $l$. Each level multiplies qubit count by the code size $n$, giving polynomial total overhead in the concatenation depth.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch20-resource-estimates">
-    <div class="card-front">Approximately how many physical qubits are needed for useful fault-tolerant computations like factoring RSA-2048?</div>
-    <div class="card-back">
-      Current estimates suggest approximately 20 million physical qubits for factoring RSA-2048, using a surface code with distance $d \approx 17$-$27$ and physical error rates around $10^{-3}$ to $10^{-4}$. The dominant cost is magic state distillation for the billions of $T$ gates required. Smaller quantum chemistry problems might need 1-4 million physical qubits.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch20-willow">
-    <div class="card-front">What was the significance of Google's Willow result in December 2024?</div>
-    <div class="card-back">
-      Willow was the first demonstration that increasing the surface code distance (from 3 to 5 to 7) consistently reduced the logical error rate, with each step roughly halving it. This exponential error suppression with code distance is the defining signature of operating below the fault-tolerance threshold, confirming the central prediction of the threshold theorem in hardware. The per-round logical error rate reached below $10^{-3}$ at distance 7.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch20-challenges">
-    <div class="card-front">What are the four major remaining challenges for practical fault-tolerant quantum computing?</div>
-    <div class="card-back">
-      (1) <strong>Scale:</strong> bridging from ~100 qubits to millions while maintaining error rates. (2) <strong>Speed:</strong> real-time decoding must keep pace with microsecond syndrome extraction cycles. (3) <strong>Overhead reduction:</strong> magic state distillation dominates costs; qLDPC codes and new distillation schemes could help. (4) <strong>Integration:</strong> tight coupling of cryogenic hardware, classical control, communication, and software.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-</div>
-
-</section>
 
     </article>
 
@@ -1045,7 +1257,6 @@ $$p \xrightarrow{\text{round 1}} 35p^3 \xrightarrow{\text{round 2}} 35(35p^3)^3 
   
   <script>
   "use strict";
-  
   function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
   function isDark() { return window.matchMedia("(prefers-color-scheme: dark)").matches; }
   function renderMath(el) {
@@ -1053,7 +1264,6 @@ $$p \xrightarrow{\text{round 1}} 35p^3 \xrightarrow{\text{round 2}} 35(35p^3)^3 
       renderMathInElement(el, { delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}], throwOnError: false });
   }
 
-  
   var wasmReady = null;
   function ensureWasm() {
     if (!wasmReady) {
@@ -1066,7 +1276,6 @@ $$p \xrightarrow{\text{round 1}} 35p^3 \xrightarrow{\text{round 2}} 35(35p^3)^3 
     return wasmReady;
   }
 
-  
   var SRS_KEY = "goqu-srs";
   function srsLoad() { try { return JSON.parse(localStorage.getItem(SRS_KEY) || "{}"); } catch(e) { return {}; } }
   function srsSave(d) { localStorage.setItem(SRS_KEY, JSON.stringify(d)); }
@@ -1084,7 +1293,6 @@ $$p \xrightarrow{\text{round 1}} 35p^3 \xrightarrow{\text{round 2}} 35(35p^3)^3 
     d[id] = s; srsSave(d);
   }
 
-  
   function initSandbox(el) {
     var code = el.querySelector(".code"), output = el.querySelector(".output");
     if (!code || !output) return;
@@ -1106,7 +1314,6 @@ $$p \xrightarrow{\text{round 1}} 35p^3 \xrightarrow{\text{round 2}} 35(35p^3)^3 
     if (el.hasAttribute("data-autorun")) run();
   }
 
-  
   function initSimulation(el) {
     var tmplEl = el.querySelector(".sim-qasm"), output = el.querySelector(".sim-output");
     var sliders = el.querySelectorAll('input[type="range"]');
@@ -1178,7 +1385,6 @@ $$p \xrightarrow{\text{round 1}} 35p^3 \xrightarrow{\text{round 2}} 35(35p^3)^3 
     update();
   }
 
-  
   function formatStabilizer(s) {
     if (!s) return "";
     var sign = s[0], ops = s.slice(1), html = '<span class="stab-sign">' + esc(sign) + '</span>';
@@ -1189,7 +1395,6 @@ $$p \xrightarrow{\text{round 1}} 35p^3 \xrightarrow{\text{round 2}} 35(35p^3)^3 
     return html;
   }
 
-  
   function initExercise(el) {
     var code = el.querySelector(".code"), feedback = el.querySelector(".exercise-feedback");
     var checkBtn = el.querySelector('[data-action="check"]');
@@ -1227,7 +1432,6 @@ $$p \xrightarrow{\text{round 1}} 35p^3 \xrightarrow{\text{round 2}} 35(35p^3)^3 
     if (hintBtn && hintEl) hintBtn.addEventListener("click", function() { hintEl.style.display = hintEl.style.display === "none" ? "block" : "none"; });
   }
 
-  
   function initFlashcardDeck(el) {
     el.querySelectorAll(".flashcard").forEach(function(card) {
       var id = card.dataset.cardId;
@@ -1246,7 +1450,6 @@ $$p \xrightarrow{\text{round 1}} 35p^3 \xrightarrow{\text{round 2}} 35(35p^3)^3 
     });
   }
 
-  
   function initPOE(el) {
     var steps = el.querySelectorAll(".poe-step"), prog = el.querySelectorAll(".poe-progress-step");
     if (steps.length === 0) return;
@@ -1263,7 +1466,6 @@ $$p \xrightarrow{\text{round 1}} 35p^3 \xrightarrow{\text{round 2}} 35(35p^3)^3 
     show(0);
   }
 
-  
   function initStepThrough(el) {
     var qasmEl = el.querySelector(".step-qasm");
     var output = el.querySelector(".step-output");
@@ -1345,9 +1547,198 @@ $$p \xrightarrow{\text{round 1}} 35p^3 \xrightarrow{\text{round 2}} 35(35p^3)^3 
     load();
   }
 
-  
+  function initComparison(el) {
+    var panels = el.querySelectorAll(".comparison-panel");
+    var sliders = el.querySelectorAll('.comparison-controls input[type="range"]');
+    var selects = el.querySelectorAll('.comparison-controls select[data-param]');
+    if (panels.length < 2) return;
+    var mode = el.dataset.mode || "default";
+    var pending = false, dirty = false;
+
+    function getParams() {
+      var params = {};
+      sliders.forEach(function(s) {
+        params[s.dataset.param] = parseFloat(s.value);
+        var o = s.parentElement.querySelector("output");
+        if (o) o.textContent = parseFloat(s.value).toFixed(2);
+      });
+      selects.forEach(function(s) { params[s.dataset.param] = s.value; });
+      return params;
+    }
+
+    function substituteQasm(tmpl, params) {
+      var qasm = tmpl;
+      for (var k in params) qasm = qasm.replaceAll("{" + k + "}", params[k].toString());
+      return qasm;
+    }
+
+    async function runPanel(panel, params) {
+      var tmplEl = panel.querySelector(".comparison-qasm");
+      var output = panel.querySelector(".comparison-output");
+      if (!tmplEl || !output) return;
+      var qasm = substituteQasm(tmplEl.textContent, params);
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var html = "", r;
+        if (mode === "ideal-noisy") {
+          var isLeft = panel === panels[0];
+          if (isLeft) {
+            r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+            if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+            html = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+          } else {
+            var noiseModel = el.dataset.noiseModel || params.noiseModel || "depolarizing";
+            var noiseParam = parseFloat(params.noiseParam || "0.1");
+            if (window.runNoisyQASM) {
+              r = JSON.parse(window.runNoisyQASM(qasm, 1024, noiseModel, noiseParam, isDark()));
+              if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+              html = (r.circuitSVG || r.circuit || "") + (r.histogramSVG || r.histogram || "") + (r.stateCitySVG || "");
+              if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span></div>';
+            }
+          }
+        } else if (mode === "transpile") {
+          var target = panel.dataset.target || "generic";
+          if (window.transpileQASM) {
+            r = JSON.parse(window.transpileQASM(qasm, target, isDark()));
+            if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+            html = (r.circuit || r.circuitSVG || "") + (r.info || "");
+          }
+        } else {
+          r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          html = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+        }
+        output.innerHTML = html;
+        renderMath(output);
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    async function runAll() {
+      if (pending) { dirty = true; return; }
+      pending = true;
+      await ensureWasm();
+      var params = getParams();
+      var promises = [];
+      panels.forEach(function(panel) { promises.push(runPanel(panel, params)); });
+      await Promise.all(promises);
+      pending = false;
+      if (dirty) { dirty = false; runAll(); }
+    }
+
+    sliders.forEach(function(s) { s.addEventListener("input", runAll); });
+    selects.forEach(function(s) { s.addEventListener("change", runAll); });
+
+    var runBtn = el.querySelector('[data-action="run"]');
+    if (!runBtn) {
+      var controls = el.querySelector(".comparison-controls");
+      if (controls) {
+        runBtn = document.createElement("button");
+        runBtn.setAttribute("data-action", "run");
+        runBtn.textContent = "Run";
+        controls.appendChild(runBtn);
+      }
+    }
+    if (runBtn) runBtn.addEventListener("click", runAll);
+
+    runAll();
+  }
+
+  function initAnimatedWalkthrough(el) {
+    var stages = el.querySelectorAll(".walkthrough-stage");
+    var progressBar = el.querySelector(".walkthrough-progress");
+    var prevBtn = el.querySelector('[data-action="prev"]');
+    var nextBtn = el.querySelector('[data-action="next"]');
+    var autoBtn = el.querySelector('[data-action="auto"]');
+    if (stages.length === 0) return;
+    var cur = 0, autoTimer = null, stageRan = {};
+
+    
+    if (progressBar) {
+      progressBar.textContent = "";
+      for (var i = 0; i < stages.length; i++) {
+        var pip = document.createElement("div");
+        pip.className = "walkthrough-pip" + (i === 0 ? " active" : "");
+        pip.setAttribute("data-index", i);
+        pip.textContent = i + 1;
+        progressBar.appendChild(pip);
+      }
+    }
+
+    function updateProgress() {
+      if (!progressBar) return;
+      var pips = progressBar.querySelectorAll(".walkthrough-pip");
+      pips.forEach(function(p, i) {
+        p.classList.remove("active", "done");
+        if (i < cur) p.classList.add("done");
+        if (i === cur) p.classList.add("active");
+      });
+    }
+
+    async function runStageQasm(stage) {
+      var idx = stage.dataset.stage || "0";
+      if (stageRan[idx]) return;
+      var qasmEl = stage.querySelector(".walkthrough-qasm");
+      var output = stage.querySelector(".walkthrough-output");
+      if (!qasmEl || !output) return;
+      stageRan[idx] = true;
+      await ensureWasm();
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(qasmEl.textContent, 1024, isDark()));
+        if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+        output.innerHTML = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+        renderMath(output);
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    function show(idx) {
+      if (idx < 0 || idx >= stages.length) return;
+      stages.forEach(function(s, i) {
+        s.classList.remove("active", "walkthrough-exit");
+        if (i === cur && i !== idx) s.classList.add("walkthrough-exit");
+      });
+      var prev = cur;
+      cur = idx;
+      setTimeout(function() {
+        stages.forEach(function(s, i) {
+          s.classList.remove("walkthrough-exit");
+          s.classList.toggle("active", i === cur);
+        });
+      }, prev !== idx ? 150 : 0);
+      updateProgress();
+      if (prevBtn) prevBtn.disabled = (cur === 0);
+      if (nextBtn) nextBtn.disabled = (cur >= stages.length - 1);
+      runStageQasm(stages[cur]);
+    }
+
+    function stopAuto() {
+      if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+      if (autoBtn) autoBtn.textContent = "Auto-play";
+    }
+
+    if (prevBtn) prevBtn.addEventListener("click", function() { stopAuto(); if (cur > 0) show(cur - 1); });
+    if (nextBtn) nextBtn.addEventListener("click", function() { stopAuto(); if (cur < stages.length - 1) show(cur + 1); });
+    if (autoBtn) autoBtn.addEventListener("click", function() {
+      if (autoTimer) { stopAuto(); return; }
+      autoBtn.textContent = "Pause";
+      autoTimer = setInterval(function() {
+        if (cur < stages.length - 1) { show(cur + 1); }
+        else { stopAuto(); }
+      }, 3000);
+    });
+
+    if (progressBar) progressBar.addEventListener("click", function(e) {
+      var pip = e.target.closest(".walkthrough-pip");
+      if (pip) { stopAuto(); show(parseInt(pip.dataset.index, 10)); }
+    });
+
+    show(0);
+  }
+
   document.addEventListener("DOMContentLoaded", function() {
-    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough};
+    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough, comparison: initComparison, "animated-walkthrough": initAnimatedWalkthrough};
     document.querySelectorAll("[data-component]").forEach(function(el) { var fn = reg[el.dataset.component]; if (fn) fn(el); });
   });
   </script>

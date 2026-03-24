@@ -222,6 +222,88 @@
   weaknesses. The table below summarizes the leading approaches and their key players.
 </p>
 
+<!-- Widget 1: Hardware Comparison Matrix -->
+<div class="widget" id="hardware-comparison">
+  <div class="widget-header">Hardware Comparison Matrix</div>
+  <div style="display:flex; gap:0.5rem; margin-bottom:0.75rem;">
+    <label style="font-family:var(--font-mono); font-size:0.85rem;">Sort by:
+      <select id="hw-sort" style="font-family:var(--font-mono); font-size:0.85rem; padding:0.3rem 0.5rem; border:1px solid var(--color-border); border-radius:var(--radius); background:var(--color-surface); color:var(--color-text);">
+        <option value="qubits">Qubit Count</option>
+        <option value="fidelity">Gate Fidelity</option>
+        <option value="coherence">Coherence Time</option>
+        <option value="speed">Gate Speed</option>
+      </select>
+    </label>
+  </div>
+  <div id="hw-table" style="overflow-x:auto;"></div>
+</div>
+
+<script>
+(function(){
+  var tableBox = document.getElementById('hw-table');
+  var sortSelect = document.getElementById('hw-sort');
+
+  var platforms = [
+    {name:"IBM (Heron r2)", tech:"Superconducting", qubits:156, fidelity:99.5, coherence:"100 \u00B5s", speed:"10-100 ns", connectivity:"Heavy-hex", coherenceVal:100, speedVal:50},
+    {name:"Google (Willow)", tech:"Superconducting", qubits:105, fidelity:99.7, coherence:"100 \u00B5s", speed:"10-40 ns", connectivity:"Grid", coherenceVal:100, speedVal:25},
+    {name:"Quantinuum (Helios)", tech:"Trapped Ion", qubits:98, fidelity:99.9, coherence:">1 s", speed:"1-100 \u00B5s", connectivity:"All-to-all", coherenceVal:1000000, speedVal:50000},
+    {name:"IonQ (Forte Enterprise)", tech:"Trapped Ion", qubits:36, fidelity:99.6, coherence:">1 s", speed:"10-600 \u00B5s", connectivity:"All-to-all", coherenceVal:1000000, speedVal:300000},
+    {name:"QuEra", tech:"Neutral Atom", qubits:3000, fidelity:99.5, coherence:"1-10 s", speed:"1-10 \u00B5s", connectivity:"Reconfigurable", coherenceVal:5000000, speedVal:5000},
+    {name:"Rigetti (Ankaa-3)", tech:"Superconducting", qubits:84, fidelity:99.5, coherence:"30 \u00B5s", speed:"40-100 ns", connectivity:"Octagonal", coherenceVal:30, speedVal:70},
+    {name:"Microsoft", tech:"Topological", qubits:8, fidelity:"TBD", coherence:"TBD", speed:"TBD", connectivity:"Tetron", coherenceVal:0, speedVal:0},
+    {name:"PsiQuantum", tech:"Photonic", qubits:0, fidelity:"TBD", coherence:"N/A", speed:"~GHz", connectivity:"Linear optical", coherenceVal:0, speedVal:1}
+  ];
+
+  sortSelect.addEventListener('change', draw);
+
+  function draw(){
+    var sortKey = sortSelect.value;
+    var sorted = platforms.slice().sort(function(a,b){
+      if(sortKey==='qubits') return b.qubits - a.qubits;
+      if(sortKey==='fidelity') return (typeof b.fidelity==='number'?b.fidelity:0) - (typeof a.fidelity==='number'?a.fidelity:0);
+      if(sortKey==='coherence') return b.coherenceVal - a.coherenceVal;
+      if(sortKey==='speed') return a.speedVal - b.speedVal;
+      return 0;
+    });
+
+    var table = document.createElement('table');
+    table.style.cssText = 'width:100%;border-collapse:collapse;font-size:0.85rem;';
+
+    var headers = ['Platform','Technology','Qubits','2Q Fidelity','Coherence','Gate Speed','Connectivity'];
+    var thead = document.createElement('thead');
+    var tr = document.createElement('tr');
+    for(var i=0;i<headers.length;i++){
+      var th = document.createElement('th');
+      th.textContent = headers[i];
+      th.style.cssText = 'padding:0.5rem 0.5rem;text-align:left;border-bottom:2px solid var(--color-border);background:var(--color-code-bg);font-weight:600;white-space:nowrap;';
+      tr.appendChild(th);
+    }
+    thead.appendChild(tr);
+    table.appendChild(thead);
+
+    var tbody = document.createElement('tbody');
+    for(var j=0;j<sorted.length;j++){
+      var p = sorted[j];
+      var row = document.createElement('tr');
+      var vals = [p.name, p.tech, p.qubits>0?p.qubits.toLocaleString():"TBD", typeof p.fidelity==='number'?p.fidelity+"%":p.fidelity, p.coherence, p.speed, p.connectivity];
+      for(var k=0;k<vals.length;k++){
+        var td = document.createElement('td');
+        td.textContent = vals[k];
+        td.style.cssText = 'padding:0.4rem 0.5rem;border-bottom:1px solid var(--color-border);white-space:nowrap;';
+        row.appendChild(td);
+      }
+      tbody.appendChild(row);
+    }
+    table.appendChild(tbody);
+
+    while(tableBox.firstChild) tableBox.removeChild(tableBox.firstChild);
+    tableBox.appendChild(table);
+  }
+
+  draw();
+})();
+</script>
+
 <h3>Superconducting Qubits</h3>
 
 <p>
@@ -436,6 +518,80 @@
   funding for quantum technology, with the figure rising rapidly.
 </p>
 
+<!-- Widget 2: Global Investment Map -->
+<div class="widget" id="global-investment">
+  <div class="widget-header">Global Quantum Investment</div>
+  <div id="invest-svg" style="width:100%; overflow-x:auto;"></div>
+</div>
+
+<script>
+(function(){
+  var svgBox = document.getElementById('invest-svg');
+
+  function isDk(){ return window.matchMedia("(prefers-color-scheme: dark)").matches; }
+
+  function draw(){
+    var dark = isDk();
+    var textC = dark ? '#ccc' : '#333';
+
+    var countries = [
+      {name:"China", amount:15.0, color:"#e74c3c"},
+      {name:"EU", amount:10.0, color:"#3498db"},
+      {name:"Japan", amount:7.4, color:"#e67e22"},
+      {name:"United States", amount:5.0, color:"#2ecc71"},
+      {name:"UK", amount:3.2, color:"#9b59b6"},
+      {name:"Germany", amount:3.0, color:"#1abc9c"},
+      {name:"France", amount:2.2, color:"#f1c40f"},
+      {name:"South Korea", amount:2.0, color:"#e74c3c"},
+      {name:"Canada", amount:1.7, color:"#34495e"},
+      {name:"India", amount:1.2, color:"#e67e22"},
+      {name:"Australia", amount:0.8, color:"#3498db"},
+      {name:"Spain", amount:0.9, color:"#c0392b"}
+    ];
+
+    countries.sort(function(a,b){ return b.amount - a.amount; });
+
+    var W = 520, H = 20 + countries.length * 28 + 20;
+    var pl = 110, pr = 80, pt = 25, pb = 10;
+    var pw = W - pl - pr;
+    var maxAmt = countries[0].amount;
+
+    var ns = document.createElementNS("http://www.w3.org/2000/svg","svg");
+    ns.setAttribute("viewBox","0 0 "+W+" "+H);
+    ns.setAttribute("style","font-family:system-ui,sans-serif;max-width:100%;height:auto;");
+
+    function mkEl(tag,attrs){
+      var e = document.createElementNS("http://www.w3.org/2000/svg",tag);
+      for(var k in attrs) e.setAttribute(k,attrs[k]);
+      return e;
+    }
+    function addText(x,y,txt,sz,anch,col,fw){
+      var t = mkEl("text",{x:x,y:y,"text-anchor":anch||"middle",fill:col||textC,"font-size":sz||"11"});
+      if(fw) t.setAttribute("font-weight",fw);
+      t.textContent = txt;
+      ns.appendChild(t);
+    }
+
+    addText(W/2,16,"Public Quantum Investment by Country/Region ($B)","12","middle",textC,"600");
+
+    for(var i=0;i<countries.length;i++){
+      var c = countries[i];
+      var y = pt + i * 28;
+      var barW = c.amount / maxAmt * pw;
+      addText(pl-6,y+16,c.name,"10","end",textC);
+      ns.appendChild(mkEl("rect",{x:pl,y:y+4,width:Math.max(barW,3),height:18,rx:3,fill:c.color,opacity:"0.8"}));
+      addText(pl+barW+6,y+16,"$"+c.amount.toFixed(1)+"B","10","start",c.color,"600");
+    }
+
+    while(svgBox.firstChild) svgBox.removeChild(svgBox.firstChild);
+    svgBox.appendChild(ns);
+  }
+
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener('change', draw);
+  draw();
+})();
+</script>
+
 <h3>Global Investment Overview</h3>
 
 <p>
@@ -506,6 +662,113 @@
   honest assessment of where quantum applications stand in 2026 - what is real, what
   is promising, and what is still hype.
 </p>
+
+<!-- Widget 3: Application Readiness Matrix -->
+<div class="widget" id="app-readiness">
+  <div class="widget-header">Application Readiness Matrix</div>
+  <div id="arm-svg" style="width:100%; overflow-x:auto;"></div>
+  <div id="arm-legend" style="font-size:0.8rem; color:var(--color-text-muted); margin-top:0.5rem; display:flex; gap:1rem; flex-wrap:wrap; justify-content:center;"></div>
+</div>
+
+<script>
+(function(){
+  var svgBox = document.getElementById('arm-svg');
+  var legendBox = document.getElementById('arm-legend');
+
+  function isDk(){ return window.matchMedia("(prefers-color-scheme: dark)").matches; }
+
+  var levels = ["Hype","Research","POC","Advantage","Production"];
+  var levelColors = ["#e74c3c","#e67e22","#f1c40f","#2ecc71","#27ae60"];
+  var sectors = [
+    {name:"Cybersecurity (PQC)", level:4},
+    {name:"Finance (optimization)", level:2},
+    {name:"Chemistry (small mol.)", level:2},
+    {name:"Drug Discovery", level:1},
+    {name:"Materials Science", level:1},
+    {name:"Logistics", level:2},
+    {name:"Machine Learning", level:1},
+    {name:"Climate/Energy", level:1},
+    {name:"Sensing/Metrology", level:3}
+  ];
+
+  function draw(){
+    var dark = isDk();
+    var textC = dark ? '#ccc' : '#333';
+    var gridC = dark ? '#444' : '#ddd';
+
+    var W = 520, H = 30 + sectors.length * 32 + 10;
+    var pl = 140, pr = 20, pt = 25, pb = 10;
+    var pw = W - pl - pr;
+    var colW = pw / levels.length;
+
+    var ns = document.createElementNS("http://www.w3.org/2000/svg","svg");
+    ns.setAttribute("viewBox","0 0 "+W+" "+H);
+    ns.setAttribute("style","font-family:system-ui,sans-serif;max-width:100%;height:auto;");
+
+    function mkEl(tag,attrs){
+      var e = document.createElementNS("http://www.w3.org/2000/svg",tag);
+      for(var k in attrs) e.setAttribute(k,attrs[k]);
+      return e;
+    }
+    function addText(x,y,txt,sz,anch,col,fw){
+      var t = mkEl("text",{x:x,y:y,"text-anchor":anch||"middle",fill:col||textC,"font-size":sz||"11"});
+      if(fw) t.setAttribute("font-weight",fw);
+      t.textContent = txt;
+      ns.appendChild(t);
+    }
+
+    // Column headers
+    for(var l=0;l<levels.length;l++){
+      var x = pl + l * colW + colW/2;
+      addText(x,16,levels[l],"9","middle",levelColors[l],"600");
+    }
+
+    // Rows
+    for(var s=0;s<sectors.length;s++){
+      var sec = sectors[s];
+      var y = pt + s * 32;
+      addText(pl-6,y+18,sec.name,"10","end",textC);
+
+      // Fill up to current level
+      for(var l=0;l<levels.length;l++){
+        var x = pl + l * colW + 2;
+        var filled = l < sec.level;
+        ns.appendChild(mkEl("rect",{
+          x:x, y:y+4, width:colW-4, height:22, rx:3,
+          fill: filled ? levelColors[l] : (dark?"#333":"#f0f0f0"),
+          opacity: filled ? "0.7" : "0.3"
+        }));
+      }
+
+      // Current level dot
+      var dotX = pl + (sec.level - 0.5) * colW;
+      if(sec.level > 0){
+        ns.appendChild(mkEl("circle",{cx:dotX,cy:y+15,r:6,fill:"#fff",stroke:levelColors[sec.level-1],"stroke-width":"2"}));
+      }
+
+      // Grid line
+      ns.appendChild(mkEl("line",{x1:pl,y1:y+28,x2:W-pr,y2:y+28,stroke:gridC,"stroke-width":"0.5"}));
+    }
+
+    while(svgBox.firstChild) svgBox.removeChild(svgBox.firstChild);
+    svgBox.appendChild(ns);
+
+    // Legend
+    while(legendBox.firstChild) legendBox.removeChild(legendBox.firstChild);
+    for(var l=0;l<levels.length;l++){
+      var span = document.createElement('span');
+      var dot = document.createElement('span');
+      dot.style.cssText = 'display:inline-block;width:10px;height:10px;border-radius:2px;background:'+levelColors[l]+';margin-right:4px;vertical-align:middle;';
+      span.appendChild(dot);
+      span.appendChild(document.createTextNode((l+1)+": "+levels[l]));
+      legendBox.appendChild(span);
+    }
+  }
+
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener('change', draw);
+  draw();
+})();
+</script>
 
 <h3>Finance</h3>
 
@@ -587,81 +850,7 @@
 
 <hr />
 
-<!-- ================================================================== -->
-<section id="review">
-<h2>Chapter 40 Review</h2>
 
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 40 Review</div>
-
-  <div class="flashcard" data-card-id="ch40-hardware-tradeoffs">
-    <div class="card-front">Name three qubit technologies and one key strength of each.</div>
-    <div class="card-back">
-      (1) Superconducting qubits (IBM, Google): fast gate speeds (~10-100 ns). (2) Trapped ions (Quantinuum, IonQ): highest gate fidelities (>99.9%) and all-to-all connectivity. (3) Neutral atoms (QuEra, Pasqal): scalable to thousands of qubits with reconfigurable connectivity. Others include photonic (room-temperature operation) and topological (hardware-level fault tolerance).
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch40-software-frameworks">
-    <div class="card-front">Match each quantum software framework to its primary developer and specialty.</div>
-    <div class="card-back">
-      Qiskit (IBM): most widely used, full-stack framework. Cirq (Google): noise-aware circuits and error correction research. PennyLane (Xanadu): quantum ML and differentiable programming. Q#/Azure Quantum (Microsoft): high-level language, multi-backend cloud. Amazon Braket (AWS): hardware-agnostic cloud access. CUDA-Q (NVIDIA): hybrid quantum-GPU programming.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch40-global-investment">
-    <div class="card-front">What are the approximate government quantum investments for China, the EU, and the US?</div>
-    <div class="card-back">
-      China: ~$15 billion (largest, including the National Lab in Hefei). EU: ~$10 billion (driven by Germany, plus the Quantum Flagship program). US: ~$5 billion (National Quantum Initiative Act, proposed Quantum Leadership Act adding $2.5B for 2026-2030). Global total exceeds $40 billion. Japan announced $7.4B in 2025.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch40-pqc-standards">
-    <div class="card-front">What are the NIST post-quantum cryptography standards and why do they matter now?</div>
-    <div class="card-back">
-      NIST finalized FIPS 203 (ML-KEM, key encapsulation), FIPS 204 (ML-DSA, digital signatures), and FIPS 205 (SLH-DSA, hash-based signatures) in August 2024. HQC was selected as a fifth algorithm in March 2025. These matter now because "harvest now, decrypt later" attacks mean data encrypted today could be broken by future quantum computers. Organizations must migrate to PQC before fault-tolerant quantum computers exist.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch40-finance-status">
-    <div class="card-front">What is the honest status of quantum computing in finance as of 2026?</div>
-    <div class="card-back">
-      Active exploration but limited deployment. Use cases include portfolio optimization, Monte Carlo risk analysis, and derivative pricing. Major banks (JPMorgan, Goldman Sachs, HSBC) have dedicated quantum teams. However, current hardware is too noisy and small for production-scale financial applications. Most work is proof-of-concept on simulators or small quantum devices. Organizations are building expertise in anticipation of capable hardware.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch40-honest-bottom-line">
-    <div class="card-front">What is the most commercially mature quantum application area in 2026?</div>
-    <div class="card-back">
-      Cybersecurity and post-quantum cryptography migration. Unlike other applications, this does not require waiting for fault-tolerant quantum computers - the <em>threat</em> of future quantum computers breaking RSA/ECC drives action today. NIST standards are finalized and organizations are migrating. This is the only area where quantum computing creates immediate, production-level business requirements.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-</div>
-</section>
 
     </article>
 
@@ -690,7 +879,6 @@
   
   <script>
   "use strict";
-  
   function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
   function isDark() { return window.matchMedia("(prefers-color-scheme: dark)").matches; }
   function renderMath(el) {
@@ -698,7 +886,6 @@
       renderMathInElement(el, { delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}], throwOnError: false });
   }
 
-  
   var wasmReady = null;
   function ensureWasm() {
     if (!wasmReady) {
@@ -711,7 +898,6 @@
     return wasmReady;
   }
 
-  
   var SRS_KEY = "goqu-srs";
   function srsLoad() { try { return JSON.parse(localStorage.getItem(SRS_KEY) || "{}"); } catch(e) { return {}; } }
   function srsSave(d) { localStorage.setItem(SRS_KEY, JSON.stringify(d)); }
@@ -729,7 +915,6 @@
     d[id] = s; srsSave(d);
   }
 
-  
   function initSandbox(el) {
     var code = el.querySelector(".code"), output = el.querySelector(".output");
     if (!code || !output) return;
@@ -751,7 +936,6 @@
     if (el.hasAttribute("data-autorun")) run();
   }
 
-  
   function initSimulation(el) {
     var tmplEl = el.querySelector(".sim-qasm"), output = el.querySelector(".sim-output");
     var sliders = el.querySelectorAll('input[type="range"]');
@@ -823,7 +1007,6 @@
     update();
   }
 
-  
   function formatStabilizer(s) {
     if (!s) return "";
     var sign = s[0], ops = s.slice(1), html = '<span class="stab-sign">' + esc(sign) + '</span>';
@@ -834,7 +1017,6 @@
     return html;
   }
 
-  
   function initExercise(el) {
     var code = el.querySelector(".code"), feedback = el.querySelector(".exercise-feedback");
     var checkBtn = el.querySelector('[data-action="check"]');
@@ -872,7 +1054,6 @@
     if (hintBtn && hintEl) hintBtn.addEventListener("click", function() { hintEl.style.display = hintEl.style.display === "none" ? "block" : "none"; });
   }
 
-  
   function initFlashcardDeck(el) {
     el.querySelectorAll(".flashcard").forEach(function(card) {
       var id = card.dataset.cardId;
@@ -891,7 +1072,6 @@
     });
   }
 
-  
   function initPOE(el) {
     var steps = el.querySelectorAll(".poe-step"), prog = el.querySelectorAll(".poe-progress-step");
     if (steps.length === 0) return;
@@ -908,7 +1088,6 @@
     show(0);
   }
 
-  
   function initStepThrough(el) {
     var qasmEl = el.querySelector(".step-qasm");
     var output = el.querySelector(".step-output");
@@ -990,9 +1169,198 @@
     load();
   }
 
-  
+  function initComparison(el) {
+    var panels = el.querySelectorAll(".comparison-panel");
+    var sliders = el.querySelectorAll('.comparison-controls input[type="range"]');
+    var selects = el.querySelectorAll('.comparison-controls select[data-param]');
+    if (panels.length < 2) return;
+    var mode = el.dataset.mode || "default";
+    var pending = false, dirty = false;
+
+    function getParams() {
+      var params = {};
+      sliders.forEach(function(s) {
+        params[s.dataset.param] = parseFloat(s.value);
+        var o = s.parentElement.querySelector("output");
+        if (o) o.textContent = parseFloat(s.value).toFixed(2);
+      });
+      selects.forEach(function(s) { params[s.dataset.param] = s.value; });
+      return params;
+    }
+
+    function substituteQasm(tmpl, params) {
+      var qasm = tmpl;
+      for (var k in params) qasm = qasm.replaceAll("{" + k + "}", params[k].toString());
+      return qasm;
+    }
+
+    async function runPanel(panel, params) {
+      var tmplEl = panel.querySelector(".comparison-qasm");
+      var output = panel.querySelector(".comparison-output");
+      if (!tmplEl || !output) return;
+      var qasm = substituteQasm(tmplEl.textContent, params);
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var html = "", r;
+        if (mode === "ideal-noisy") {
+          var isLeft = panel === panels[0];
+          if (isLeft) {
+            r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+            if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+            html = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+          } else {
+            var noiseModel = el.dataset.noiseModel || params.noiseModel || "depolarizing";
+            var noiseParam = parseFloat(params.noiseParam || "0.1");
+            if (window.runNoisyQASM) {
+              r = JSON.parse(window.runNoisyQASM(qasm, 1024, noiseModel, noiseParam, isDark()));
+              if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+              html = (r.circuitSVG || r.circuit || "") + (r.histogramSVG || r.histogram || "") + (r.stateCitySVG || "");
+              if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span></div>';
+            }
+          }
+        } else if (mode === "transpile") {
+          var target = panel.dataset.target || "generic";
+          if (window.transpileQASM) {
+            r = JSON.parse(window.transpileQASM(qasm, target, isDark()));
+            if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+            html = (r.circuit || r.circuitSVG || "") + (r.info || "");
+          }
+        } else {
+          r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          html = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+        }
+        output.innerHTML = html;
+        renderMath(output);
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    async function runAll() {
+      if (pending) { dirty = true; return; }
+      pending = true;
+      await ensureWasm();
+      var params = getParams();
+      var promises = [];
+      panels.forEach(function(panel) { promises.push(runPanel(panel, params)); });
+      await Promise.all(promises);
+      pending = false;
+      if (dirty) { dirty = false; runAll(); }
+    }
+
+    sliders.forEach(function(s) { s.addEventListener("input", runAll); });
+    selects.forEach(function(s) { s.addEventListener("change", runAll); });
+
+    var runBtn = el.querySelector('[data-action="run"]');
+    if (!runBtn) {
+      var controls = el.querySelector(".comparison-controls");
+      if (controls) {
+        runBtn = document.createElement("button");
+        runBtn.setAttribute("data-action", "run");
+        runBtn.textContent = "Run";
+        controls.appendChild(runBtn);
+      }
+    }
+    if (runBtn) runBtn.addEventListener("click", runAll);
+
+    runAll();
+  }
+
+  function initAnimatedWalkthrough(el) {
+    var stages = el.querySelectorAll(".walkthrough-stage");
+    var progressBar = el.querySelector(".walkthrough-progress");
+    var prevBtn = el.querySelector('[data-action="prev"]');
+    var nextBtn = el.querySelector('[data-action="next"]');
+    var autoBtn = el.querySelector('[data-action="auto"]');
+    if (stages.length === 0) return;
+    var cur = 0, autoTimer = null, stageRan = {};
+
+    
+    if (progressBar) {
+      progressBar.textContent = "";
+      for (var i = 0; i < stages.length; i++) {
+        var pip = document.createElement("div");
+        pip.className = "walkthrough-pip" + (i === 0 ? " active" : "");
+        pip.setAttribute("data-index", i);
+        pip.textContent = i + 1;
+        progressBar.appendChild(pip);
+      }
+    }
+
+    function updateProgress() {
+      if (!progressBar) return;
+      var pips = progressBar.querySelectorAll(".walkthrough-pip");
+      pips.forEach(function(p, i) {
+        p.classList.remove("active", "done");
+        if (i < cur) p.classList.add("done");
+        if (i === cur) p.classList.add("active");
+      });
+    }
+
+    async function runStageQasm(stage) {
+      var idx = stage.dataset.stage || "0";
+      if (stageRan[idx]) return;
+      var qasmEl = stage.querySelector(".walkthrough-qasm");
+      var output = stage.querySelector(".walkthrough-output");
+      if (!qasmEl || !output) return;
+      stageRan[idx] = true;
+      await ensureWasm();
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(qasmEl.textContent, 1024, isDark()));
+        if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+        output.innerHTML = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+        renderMath(output);
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    function show(idx) {
+      if (idx < 0 || idx >= stages.length) return;
+      stages.forEach(function(s, i) {
+        s.classList.remove("active", "walkthrough-exit");
+        if (i === cur && i !== idx) s.classList.add("walkthrough-exit");
+      });
+      var prev = cur;
+      cur = idx;
+      setTimeout(function() {
+        stages.forEach(function(s, i) {
+          s.classList.remove("walkthrough-exit");
+          s.classList.toggle("active", i === cur);
+        });
+      }, prev !== idx ? 150 : 0);
+      updateProgress();
+      if (prevBtn) prevBtn.disabled = (cur === 0);
+      if (nextBtn) nextBtn.disabled = (cur >= stages.length - 1);
+      runStageQasm(stages[cur]);
+    }
+
+    function stopAuto() {
+      if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+      if (autoBtn) autoBtn.textContent = "Auto-play";
+    }
+
+    if (prevBtn) prevBtn.addEventListener("click", function() { stopAuto(); if (cur > 0) show(cur - 1); });
+    if (nextBtn) nextBtn.addEventListener("click", function() { stopAuto(); if (cur < stages.length - 1) show(cur + 1); });
+    if (autoBtn) autoBtn.addEventListener("click", function() {
+      if (autoTimer) { stopAuto(); return; }
+      autoBtn.textContent = "Pause";
+      autoTimer = setInterval(function() {
+        if (cur < stages.length - 1) { show(cur + 1); }
+        else { stopAuto(); }
+      }, 3000);
+    });
+
+    if (progressBar) progressBar.addEventListener("click", function(e) {
+      var pip = e.target.closest(".walkthrough-pip");
+      if (pip) { stopAuto(); show(parseInt(pip.dataset.index, 10)); }
+    });
+
+    show(0);
+  }
+
   document.addEventListener("DOMContentLoaded", function() {
-    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough};
+    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough, comparison: initComparison, "animated-walkthrough": initAnimatedWalkthrough};
     document.querySelectorAll("[data-component]").forEach(function(el) { var fn = reg[el.dataset.component]; if (fn) fn(el); });
   });
   </script>

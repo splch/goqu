@@ -382,6 +382,88 @@
     remaining bits, producing a shorter but perfectly secret shared key.</li>
 </ol>
 
+<h3>Interactive: BB84 Protocol Simulator</h3>
+
+<p>
+  Step through a complete BB84 key exchange. Alice and Bob each choose random bases and bits.
+  Toggle Eve's interception to see how eavesdropping introduces detectable errors. The error
+  rate panel shows the fraction of mismatched bits in the sifted key.
+</p>
+
+<div class="widget" id="bb84-widget">
+  <div class="widget-header">BB84 Protocol Simulator</div>
+  <div class="widget-body" style="display:flex;flex-wrap:wrap;gap:0.75rem;align-items:center;margin-bottom:0.75rem;">
+    <label style="font-size:0.85rem;display:flex;align-items:center;gap:0.4rem;">
+      Qubits: <input type="number" id="bb84-n" value="16" min="8" max="64" step="4" style="width:4rem;">
+    </label>
+    <label style="font-size:0.85rem;display:flex;align-items:center;gap:0.4rem;">
+      <input type="checkbox" id="bb84-eve"> Eve intercepts
+    </label>
+    <button id="bb84-run">Run Protocol</button>
+  </div>
+  <div class="widget-output" id="bb84-output" style="overflow-x:auto;"></div>
+</div>
+<script>
+(function(){
+  var nEl=document.getElementById("bb84-n"), eveEl=document.getElementById("bb84-eve"),
+      runBtn=document.getElementById("bb84-run"), outEl=document.getElementById("bb84-output");
+  function rand01(){return Math.random()<0.5?0:1;}
+  function basisLabel(b){return b===0?"Z":"X";}
+  function stateLabel(bit,basis){
+    if(basis===0) return bit===0?"|0\u27E9":"|1\u27E9";
+    return bit===0?"|+\u27E9":"|-\u27E9"; }
+  function measure(bit,prepBasis,measBasis){
+    if(prepBasis===measBasis) return bit;
+    return rand01(); }
+  function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+  function run(){
+    var n=parseInt(nEl.value)||16; if(n<4) n=4; if(n>64) n=64;
+    var eve=eveEl.checked;
+    var aBits=[],aBases=[],bBases=[],eBases=[],eBits=[],bBits=[],siftA=[],siftB=[];
+    for(var i=0;i<n;i++){
+      aBits.push(rand01()); aBases.push(rand01()); bBases.push(rand01());
+      var sentBit=aBits[i], sentBasis=aBases[i];
+      if(eve){
+        eBases.push(rand01());
+        eBits.push(measure(sentBit,sentBasis,eBases[i]));
+        sentBit=eBits[i]; sentBasis=eBases[i];
+      }
+      bBits.push(measure(sentBit,sentBasis,bBases[i]));
+      if(aBases[i]===bBases[i]){siftA.push(aBits[i]);siftB.push(bBits[i]);}
+    }
+    var errors=0;for(var j=0;j<siftA.length;j++) if(siftA[j]!==siftB[j]) errors++;
+    var errRate=siftA.length>0?(errors/siftA.length*100).toFixed(1):"N/A";
+    var el=document.createElement("div");
+    var summary=document.createElement("div");
+    summary.style.cssText="font-size:0.8rem;margin-bottom:0.5rem";
+    summary.textContent="Sifted key length: "+siftA.length+" / "+n+" | Error rate: "+errRate+"%";
+    if(eve){var sp=document.createElement("span");sp.style.color="var(--color-error)";sp.textContent=" (Eve detected!)";summary.appendChild(sp);}
+    else{var sp=document.createElement("span");sp.style.color="var(--color-success)";sp.textContent=" (No eavesdropper)";summary.appendChild(sp);}
+    el.appendChild(summary);
+    var tbl=document.createElement("table");
+    tbl.style.cssText="font-size:0.75rem;border-collapse:collapse;width:100%";
+    var hdr=tbl.createTHead().insertRow();
+    ["#","A bit","A basis","State",eve?"E basis":null,eve?"E gets":null,"B basis","B gets","Match?","Key"].forEach(function(t){if(t!==null){var th=document.createElement("th");th.style.padding="2px 4px";th.textContent=t;hdr.appendChild(th);}});
+    var tb=tbl.createTBody();
+    for(var i=0;i<n;i++){
+      var m=aBases[i]===bBases[i];
+      var row=tb.insertRow();
+      if(m&&aBits[i]!==bBits[i]) row.style.background="color-mix(in srgb,var(--color-error) 15%,transparent)";
+      else if(m) row.style.background="color-mix(in srgb,var(--color-success) 10%,transparent)";
+      var cells=[i+1,aBits[i],basisLabel(aBases[i]),stateLabel(aBits[i],aBases[i])];
+      if(eve){cells.push(basisLabel(eBases[i]));cells.push(eBits[i]);}
+      cells.push(basisLabel(bBases[i]),bBits[i],m?"Yes":"",m?aBits[i]:"");
+      cells.forEach(function(v){var td=row.insertCell();td.style.padding="2px 4px";td.textContent=v;});
+    }
+    el.appendChild(tbl);
+    outEl.textContent="";
+    outEl.appendChild(el);
+  }
+  runBtn.addEventListener("click",run);
+  run();
+})();
+</script>
+
 <h3>Why Eavesdropping Is Detectable</h3>
 
 <p>
@@ -417,6 +499,50 @@
   mechanics: the uncertainty principle and the no-cloning theorem.
 </p>
 
+<h3>Predict-Observe-Explain: Eavesdropper Detection</h3>
+
+<p>
+  Eve intercepts a qubit that Alice prepared as $|+\rangle$ (bit 0 in the $X$-basis).
+  Eve measures in the $Z$-basis, getting either $|0\rangle$ or $|1\rangle$, and re-sends
+  what she measured. Bob measures in the $X$-basis (matching Alice). Will Bob always get 0?
+</p>
+
+<div class="poe" data-component="poe">
+  <div class="poe-progress">
+    <div class="poe-progress-step active">Predict</div>
+    <div class="poe-progress-step">Observe</div>
+    <div class="poe-progress-step">Explain</div>
+  </div>
+  <div class="poe-step poe-predict active">
+    <h4>Predict</h4>
+    <p>Alice prepares $|+\rangle$ and sends it to Bob. Eve intercepts and measures in the $Z$-basis,
+    then re-sends her result. Bob measures in the $X$-basis (same as Alice). What does Bob get?</p>
+    <textarea rows="3" placeholder="Write your prediction: will Bob always measure 0 (matching Alice's bit), or something else?"></textarea>
+    <button data-action="next">Submit Prediction</button>
+  </div>
+  <div class="poe-step poe-observe">
+    <h4>Observe</h4>
+    <p>Eve's $Z$-basis measurement collapses $|+\rangle$ to $|0\rangle$. She re-sends $|0\rangle$ to Bob.
+    Bob measures $|0\rangle$ in the $X$-basis (apply H then measure). Run this circuit:</p>
+    <div class="sandbox" data-component="sandbox" data-shots="1024" data-autorun>
+      <textarea class="code" rows="7">OPENQASM 3.0;
+qubit[1] q; bit[1] c;
+// Eve re-sends |0> (after collapsing |+>)
+// Bob applies H then measures (X-basis measurement)
+h q[0];
+c = measure q;</textarea>
+      <div class="sandbox-controls"><button data-action="run">Run Again</button></div>
+      <div class="output"></div>
+    </div>
+    <p>Bob gets 0 or 1 with equal probability - but Alice sent bit 0, so Bob should always get 0!</p>
+    <button data-action="next">Continue</button>
+  </div>
+  <div class="poe-step poe-explain">
+    <h4>Explain</h4>
+    <p>Eve's measurement in the wrong basis destroyed the quantum state. She collapsed $|+\rangle = \frac{1}{\sqrt{2}}(|0\rangle + |1\rangle)$ into $|0\rangle$ (or $|1\rangle$). When Bob measures $|0\rangle$ in the $X$-basis, the outcome is completely random - 50% chance of 0 or 1. Alice sent bit 0, but Bob gets a random bit. This 50% error rate (on the qubits where Eve guessed the wrong basis) produces the detectable ~25% overall error rate in the sifted key.</p>
+  </div>
+</div>
+
 <h3>Sandbox: The Four BB84 States</h3>
 
 <p>
@@ -429,10 +555,8 @@
 <p><strong>$|0\rangle$ - Bit 0 in $Z$-basis:</strong></p>
 
 <div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="5">OPENQASM 3.0;
-qubit[1] q;
-bit[1] c;
-// |0> - no gates needed
+  <textarea class="code" rows="4">OPENQASM 3.0;
+qubit[1] q; bit[1] c;
 c = measure q;</textarea>
   <div class="sandbox-controls">
     <button data-action="run">Run</button>
@@ -444,9 +568,8 @@ c = measure q;</textarea>
 <p><strong>$|1\rangle$ - Bit 1 in $Z$-basis:</strong></p>
 
 <div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="5">OPENQASM 3.0;
-qubit[1] q;
-bit[1] c;
+  <textarea class="code" rows="4">OPENQASM 3.0;
+qubit[1] q; bit[1] c;
 x q[0];
 c = measure q;</textarea>
   <div class="sandbox-controls">
@@ -459,9 +582,8 @@ c = measure q;</textarea>
 <p><strong>$|+\rangle$ - Bit 0 in $X$-basis:</strong></p>
 
 <div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="5">OPENQASM 3.0;
-qubit[1] q;
-bit[1] c;
+  <textarea class="code" rows="4">OPENQASM 3.0;
+qubit[1] q; bit[1] c;
 h q[0];
 c = measure q;</textarea>
   <div class="sandbox-controls">
@@ -475,8 +597,7 @@ c = measure q;</textarea>
 
 <div class="sandbox" data-component="sandbox" data-shots="1024">
   <textarea class="code" rows="5">OPENQASM 3.0;
-qubit[1] q;
-bit[1] c;
+qubit[1] q; bit[1] c;
 x q[0];
 h q[0];
 c = measure q;</textarea>
@@ -740,7 +861,8 @@ c = measure q;</textarea>
   In 1994, Peter Shor discovered a quantum algorithm that factors integers in
   <strong>polynomial time</strong>. On a classical computer, the best known factoring
   algorithm (the general number field sieve) runs in sub-exponential time. Shor's algorithm
-  runs in $O((\log n)^3)$ time, making it exponentially faster.
+  runs in $O(n^3)$ time (where $n$ is the number of bits in $N$, equivalently $O((\log N)^3)$),
+  making it exponentially faster.
 </p>
 
 <p>
@@ -856,6 +978,73 @@ c = measure q;</textarea>
   window for comfortable migration is already narrowing.
 </p>
 
+<h3>Interactive: Mosca Inequality Timeline</h3>
+
+<div class="widget" id="mosca-widget">
+  <div class="widget-header">Mosca Inequality: When to Migrate</div>
+  <div class="widget-body">
+    <div style="display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:0.75rem;">
+      <label style="font-size:0.85rem;">Data shelf life (x): <input type="range" id="mosca-x" min="1" max="40" value="15" style="width:8rem;vertical-align:middle;"> <span id="mosca-x-val">15</span> years</label>
+      <label style="font-size:0.85rem;">Migration time (y): <input type="range" id="mosca-y" min="1" max="20" value="7" style="width:8rem;vertical-align:middle;"> <span id="mosca-y-val">7</span> years</label>
+      <label style="font-size:0.85rem;">QC arrival (z): <input type="range" id="mosca-z" min="1" max="40" value="12" style="width:8rem;vertical-align:middle;"> <span id="mosca-z-val">12</span> years</label>
+    </div>
+  </div>
+  <div class="widget-output" id="mosca-output"></div>
+</div>
+<script>
+(function(){
+  var xS=document.getElementById("mosca-x"),yS=document.getElementById("mosca-y"),zS=document.getElementById("mosca-z");
+  var xV=document.getElementById("mosca-x-val"),yV=document.getElementById("mosca-y-val"),zV=document.getElementById("mosca-z-val");
+  var out=document.getElementById("mosca-output");
+  function update(){
+    var x=parseInt(xS.value),y=parseInt(yS.value),z=parseInt(zS.value);
+    xV.textContent=x;yV.textContent=y;zV.textContent=z;
+    var urgent=x+y>z;
+    var W=Math.min(out.clientWidth||460,460),H=120,pad=40,barH=18;
+    var maxT=Math.max(x+y,z,x,30)+2;
+    var scale=(W-2*pad)/maxT;
+    var svg='<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" style="font-family:var(--font-mono);font-size:11px;">';
+    // axis
+    svg+='<line x1="'+pad+'" y1="'+(H-25)+'" x2="'+(W-10)+'" y2="'+(H-25)+'" stroke="var(--color-text-muted)" stroke-width="1"/>';
+    for(var t=0;t<=maxT;t+=5){
+      var cx=pad+t*scale;
+      svg+='<line x1="'+cx+'" y1="'+(H-28)+'" x2="'+cx+'" y2="'+(H-22)+'" stroke="var(--color-text-muted)" stroke-width="1"/>';
+      svg+='<text x="'+cx+'" y="'+(H-10)+'" text-anchor="middle" fill="var(--color-text-muted)" font-size="9">'+t+'</text>';
+    }
+    svg+='<text x="'+(W/2)+'" y="'+(H-1)+'" text-anchor="middle" fill="var(--color-text-muted)" font-size="9">Years from now</text>';
+    // x bar (data shelf life)
+    var y0=12;
+    svg+='<rect x="'+pad+'" y="'+y0+'" width="'+(x*scale)+'" height="'+barH+'" rx="3" fill="var(--color-accent)" opacity="0.7"/>';
+    svg+='<text x="'+(pad+x*scale/2)+'" y="'+(y0+13)+'" text-anchor="middle" fill="#fff" font-size="10">x = '+x+'</text>';
+    // y bar (migration)
+    svg+='<rect x="'+(pad+x*scale)+'" y="'+y0+'" width="'+(y*scale)+'" height="'+barH+'" rx="3" fill="var(--color-gate-2q)" opacity="0.7"/>';
+    svg+='<text x="'+(pad+x*scale+y*scale/2)+'" y="'+(y0+13)+'" text-anchor="middle" fill="var(--color-text)" font-size="10">y = '+y+'</text>';
+    // z bar
+    var y1=y0+barH+6;
+    svg+='<rect x="'+pad+'" y="'+y1+'" width="'+(z*scale)+'" height="'+barH+'" rx="3" fill="'+(urgent?"var(--color-error)":"var(--color-success)")+'" opacity="0.6"/>';
+    svg+='<text x="'+(pad+z*scale/2)+'" y="'+(y1+13)+'" text-anchor="middle" fill="var(--color-text)" font-size="10">z = '+z+'</text>';
+    // x+y line
+    var xyPx=pad+(x+y)*scale;
+    svg+='<line x1="'+xyPx+'" y1="'+(y0-2)+'" x2="'+xyPx+'" y2="'+(y1+barH+2)+'" stroke="var(--color-text)" stroke-width="1.5" stroke-dasharray="4,3"/>';
+    svg+='<text x="'+(xyPx+3)+'" y="'+(y0-2)+'" fill="var(--color-text)" font-size="9">x+y='+(x+y)+'</text>';
+    // verdict
+    var verdY=y1+barH+18;
+    if(urgent) svg+='<text x="'+pad+'" y="'+verdY+'" fill="var(--color-error)" font-weight="600" font-size="12">x + y > z : Begin migration NOW</text>';
+    else svg+='<text x="'+pad+'" y="'+verdY+'" fill="var(--color-success)" font-weight="600" font-size="12">x + y \u2264 z : Migration can proceed on schedule</text>';
+    // labels
+    svg+='<text x="'+(pad-3)+'" y="'+(y0+13)+'" text-anchor="end" fill="var(--color-text-muted)" font-size="9">Need</text>';
+    svg+='<text x="'+(pad-3)+'" y="'+(y1+13)+'" text-anchor="end" fill="var(--color-text-muted)" font-size="9">QC</text>';
+    svg+='</svg>';
+    out.textContent="";
+    var div=document.createElement("div");
+    div.insertAdjacentHTML("afterbegin",svg);
+    out.appendChild(div);
+  }
+  [xS,yS,zS].forEach(function(s){s.addEventListener("input",update);});
+  update();
+})();
+</script>
+
 <p>
   Major standards bodies and governments have responded with concrete timelines. NIST
   recommends transitioning to post-quantum algorithms by 2035, with the goal of
@@ -933,103 +1122,7 @@ c = measure q;</textarea>
 
 </section>
 
-<!-- ================================================================== -->
-<section id="review">
-<h2>Chapter 8 Review</h2>
 
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 8 Review</div>
-
-  <div class="flashcard" data-card-id="ch08-computational-vs-info-sec">
-    <div class="card-front">What is the difference between computational security and information-theoretic security?</div>
-    <div class="card-back">
-      Computational security means a scheme is safe only because breaking it is believed to require infeasible computation (e.g., factoring large numbers for RSA). Information-theoretic security means the adversary gains zero information about the secret regardless of their computational power. BB84 achieves information-theoretic security; RSA provides only computational security.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch08-bb84-bases">
-    <div class="card-front">What are the two bases used in BB84, and what states does each encode?</div>
-    <div class="card-back">
-      The $Z$-basis (computational basis) encodes bit 0 as $|0\rangle$ and bit 1 as $|1\rangle$. The $X$-basis (Hadamard basis) encodes bit 0 as $|+\rangle$ and bit 1 as $|-\rangle$. If a qubit prepared in one basis is measured in the other, the outcome is uniformly random.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch08-bb84-sifting">
-    <div class="card-front">In BB84, what information do Alice and Bob share publicly, and what do they keep secret?</div>
-    <div class="card-back">
-      They publicly share which <em>basis</em> they used for each qubit and discard bits where their bases differ. They never reveal the actual bit values of the kept bits. They also sacrifice a random subset of matching bits to estimate the error rate, but the remaining bits form the secret key.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch08-eve-error-rate">
-    <div class="card-front">What error rate does an eavesdropper introduce in BB84 if she intercepts and re-sends every qubit?</div>
-    <div class="card-back">
-      Approximately 25%. Eve guesses the wrong basis half the time, and in those cases introduces a 50% error rate: $\frac{1}{2} \times \frac{1}{2} = \frac{1}{4}$. Alice and Bob detect this elevated error rate when they compare a subset of their sifted key bits.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch08-e91-bell">
-    <div class="card-front">How does the E91 protocol detect eavesdropping?</div>
-    <div class="card-back">
-      E91 uses entangled Bell pairs. Alice and Bob measure in randomly chosen angles and use pairs with different angle choices to compute the CHSH correlation $S$. Quantum mechanics predicts $S = 2\sqrt{2}$. If Eve has disturbed the entanglement, correlations weaken and $S$ drops toward the classical bound of 2, revealing her presence.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch08-no-cloning-crypto">
-    <div class="card-front">Why is the no-cloning theorem essential to quantum cryptography?</div>
-    <div class="card-back">
-      The no-cloning theorem prevents an eavesdropper from copying an unknown quantum state. In BB84, Eve cannot clone a qubit to keep a copy and forward the original to Bob; she must measure (and thus disturb) the original. In quantum money, it prevents counterfeiting by making it impossible to duplicate quantum banknotes.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch08-shor-threat">
-    <div class="card-front">Which classical cryptosystems does Shor's algorithm threaten, and which does it not?</div>
-    <div class="card-back">
-      Shor's algorithm breaks RSA (factoring), Diffie-Hellman (discrete log), and elliptic curve cryptography (elliptic curve discrete log) - all public-key systems. It does <em>not</em> break symmetric ciphers like AES. Grover's algorithm provides a quadratic speedup against symmetric keys, but AES-256 remains secure (128-bit effective security).
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch08-harvest-now">
-    <div class="card-front">What is the "harvest now, decrypt later" (HNDL) threat?</div>
-    <div class="card-back">
-      Adversaries record encrypted communications today and store them until a quantum computer capable of running Shor's algorithm becomes available. Data that must stay secret for decades (diplomatic cables, medical records, trade secrets) is already at risk from HNDL, even though large quantum computers do not yet exist.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-</div>
-</section>
 
     </article>
 
@@ -1058,7 +1151,6 @@ c = measure q;</textarea>
   
   <script>
   "use strict";
-  
   function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
   function isDark() { return window.matchMedia("(prefers-color-scheme: dark)").matches; }
   function renderMath(el) {
@@ -1066,7 +1158,6 @@ c = measure q;</textarea>
       renderMathInElement(el, { delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}], throwOnError: false });
   }
 
-  
   var wasmReady = null;
   function ensureWasm() {
     if (!wasmReady) {
@@ -1079,7 +1170,6 @@ c = measure q;</textarea>
     return wasmReady;
   }
 
-  
   var SRS_KEY = "goqu-srs";
   function srsLoad() { try { return JSON.parse(localStorage.getItem(SRS_KEY) || "{}"); } catch(e) { return {}; } }
   function srsSave(d) { localStorage.setItem(SRS_KEY, JSON.stringify(d)); }
@@ -1097,7 +1187,6 @@ c = measure q;</textarea>
     d[id] = s; srsSave(d);
   }
 
-  
   function initSandbox(el) {
     var code = el.querySelector(".code"), output = el.querySelector(".output");
     if (!code || !output) return;
@@ -1119,7 +1208,6 @@ c = measure q;</textarea>
     if (el.hasAttribute("data-autorun")) run();
   }
 
-  
   function initSimulation(el) {
     var tmplEl = el.querySelector(".sim-qasm"), output = el.querySelector(".sim-output");
     var sliders = el.querySelectorAll('input[type="range"]');
@@ -1191,7 +1279,6 @@ c = measure q;</textarea>
     update();
   }
 
-  
   function formatStabilizer(s) {
     if (!s) return "";
     var sign = s[0], ops = s.slice(1), html = '<span class="stab-sign">' + esc(sign) + '</span>';
@@ -1202,7 +1289,6 @@ c = measure q;</textarea>
     return html;
   }
 
-  
   function initExercise(el) {
     var code = el.querySelector(".code"), feedback = el.querySelector(".exercise-feedback");
     var checkBtn = el.querySelector('[data-action="check"]');
@@ -1240,7 +1326,6 @@ c = measure q;</textarea>
     if (hintBtn && hintEl) hintBtn.addEventListener("click", function() { hintEl.style.display = hintEl.style.display === "none" ? "block" : "none"; });
   }
 
-  
   function initFlashcardDeck(el) {
     el.querySelectorAll(".flashcard").forEach(function(card) {
       var id = card.dataset.cardId;
@@ -1259,7 +1344,6 @@ c = measure q;</textarea>
     });
   }
 
-  
   function initPOE(el) {
     var steps = el.querySelectorAll(".poe-step"), prog = el.querySelectorAll(".poe-progress-step");
     if (steps.length === 0) return;
@@ -1276,7 +1360,6 @@ c = measure q;</textarea>
     show(0);
   }
 
-  
   function initStepThrough(el) {
     var qasmEl = el.querySelector(".step-qasm");
     var output = el.querySelector(".step-output");
@@ -1358,9 +1441,198 @@ c = measure q;</textarea>
     load();
   }
 
-  
+  function initComparison(el) {
+    var panels = el.querySelectorAll(".comparison-panel");
+    var sliders = el.querySelectorAll('.comparison-controls input[type="range"]');
+    var selects = el.querySelectorAll('.comparison-controls select[data-param]');
+    if (panels.length < 2) return;
+    var mode = el.dataset.mode || "default";
+    var pending = false, dirty = false;
+
+    function getParams() {
+      var params = {};
+      sliders.forEach(function(s) {
+        params[s.dataset.param] = parseFloat(s.value);
+        var o = s.parentElement.querySelector("output");
+        if (o) o.textContent = parseFloat(s.value).toFixed(2);
+      });
+      selects.forEach(function(s) { params[s.dataset.param] = s.value; });
+      return params;
+    }
+
+    function substituteQasm(tmpl, params) {
+      var qasm = tmpl;
+      for (var k in params) qasm = qasm.replaceAll("{" + k + "}", params[k].toString());
+      return qasm;
+    }
+
+    async function runPanel(panel, params) {
+      var tmplEl = panel.querySelector(".comparison-qasm");
+      var output = panel.querySelector(".comparison-output");
+      if (!tmplEl || !output) return;
+      var qasm = substituteQasm(tmplEl.textContent, params);
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var html = "", r;
+        if (mode === "ideal-noisy") {
+          var isLeft = panel === panels[0];
+          if (isLeft) {
+            r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+            if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+            html = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+          } else {
+            var noiseModel = el.dataset.noiseModel || params.noiseModel || "depolarizing";
+            var noiseParam = parseFloat(params.noiseParam || "0.1");
+            if (window.runNoisyQASM) {
+              r = JSON.parse(window.runNoisyQASM(qasm, 1024, noiseModel, noiseParam, isDark()));
+              if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+              html = (r.circuitSVG || r.circuit || "") + (r.histogramSVG || r.histogram || "") + (r.stateCitySVG || "");
+              if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span></div>';
+            }
+          }
+        } else if (mode === "transpile") {
+          var target = panel.dataset.target || "generic";
+          if (window.transpileQASM) {
+            r = JSON.parse(window.transpileQASM(qasm, target, isDark()));
+            if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+            html = (r.circuit || r.circuitSVG || "") + (r.info || "");
+          }
+        } else {
+          r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          html = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+        }
+        output.innerHTML = html;
+        renderMath(output);
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    async function runAll() {
+      if (pending) { dirty = true; return; }
+      pending = true;
+      await ensureWasm();
+      var params = getParams();
+      var promises = [];
+      panels.forEach(function(panel) { promises.push(runPanel(panel, params)); });
+      await Promise.all(promises);
+      pending = false;
+      if (dirty) { dirty = false; runAll(); }
+    }
+
+    sliders.forEach(function(s) { s.addEventListener("input", runAll); });
+    selects.forEach(function(s) { s.addEventListener("change", runAll); });
+
+    var runBtn = el.querySelector('[data-action="run"]');
+    if (!runBtn) {
+      var controls = el.querySelector(".comparison-controls");
+      if (controls) {
+        runBtn = document.createElement("button");
+        runBtn.setAttribute("data-action", "run");
+        runBtn.textContent = "Run";
+        controls.appendChild(runBtn);
+      }
+    }
+    if (runBtn) runBtn.addEventListener("click", runAll);
+
+    runAll();
+  }
+
+  function initAnimatedWalkthrough(el) {
+    var stages = el.querySelectorAll(".walkthrough-stage");
+    var progressBar = el.querySelector(".walkthrough-progress");
+    var prevBtn = el.querySelector('[data-action="prev"]');
+    var nextBtn = el.querySelector('[data-action="next"]');
+    var autoBtn = el.querySelector('[data-action="auto"]');
+    if (stages.length === 0) return;
+    var cur = 0, autoTimer = null, stageRan = {};
+
+    
+    if (progressBar) {
+      progressBar.textContent = "";
+      for (var i = 0; i < stages.length; i++) {
+        var pip = document.createElement("div");
+        pip.className = "walkthrough-pip" + (i === 0 ? " active" : "");
+        pip.setAttribute("data-index", i);
+        pip.textContent = i + 1;
+        progressBar.appendChild(pip);
+      }
+    }
+
+    function updateProgress() {
+      if (!progressBar) return;
+      var pips = progressBar.querySelectorAll(".walkthrough-pip");
+      pips.forEach(function(p, i) {
+        p.classList.remove("active", "done");
+        if (i < cur) p.classList.add("done");
+        if (i === cur) p.classList.add("active");
+      });
+    }
+
+    async function runStageQasm(stage) {
+      var idx = stage.dataset.stage || "0";
+      if (stageRan[idx]) return;
+      var qasmEl = stage.querySelector(".walkthrough-qasm");
+      var output = stage.querySelector(".walkthrough-output");
+      if (!qasmEl || !output) return;
+      stageRan[idx] = true;
+      await ensureWasm();
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(qasmEl.textContent, 1024, isDark()));
+        if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+        output.innerHTML = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+        renderMath(output);
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    function show(idx) {
+      if (idx < 0 || idx >= stages.length) return;
+      stages.forEach(function(s, i) {
+        s.classList.remove("active", "walkthrough-exit");
+        if (i === cur && i !== idx) s.classList.add("walkthrough-exit");
+      });
+      var prev = cur;
+      cur = idx;
+      setTimeout(function() {
+        stages.forEach(function(s, i) {
+          s.classList.remove("walkthrough-exit");
+          s.classList.toggle("active", i === cur);
+        });
+      }, prev !== idx ? 150 : 0);
+      updateProgress();
+      if (prevBtn) prevBtn.disabled = (cur === 0);
+      if (nextBtn) nextBtn.disabled = (cur >= stages.length - 1);
+      runStageQasm(stages[cur]);
+    }
+
+    function stopAuto() {
+      if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+      if (autoBtn) autoBtn.textContent = "Auto-play";
+    }
+
+    if (prevBtn) prevBtn.addEventListener("click", function() { stopAuto(); if (cur > 0) show(cur - 1); });
+    if (nextBtn) nextBtn.addEventListener("click", function() { stopAuto(); if (cur < stages.length - 1) show(cur + 1); });
+    if (autoBtn) autoBtn.addEventListener("click", function() {
+      if (autoTimer) { stopAuto(); return; }
+      autoBtn.textContent = "Pause";
+      autoTimer = setInterval(function() {
+        if (cur < stages.length - 1) { show(cur + 1); }
+        else { stopAuto(); }
+      }, 3000);
+    });
+
+    if (progressBar) progressBar.addEventListener("click", function(e) {
+      var pip = e.target.closest(".walkthrough-pip");
+      if (pip) { stopAuto(); show(parseInt(pip.dataset.index, 10)); }
+    });
+
+    show(0);
+  }
+
   document.addEventListener("DOMContentLoaded", function() {
-    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough};
+    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough, comparison: initComparison, "animated-walkthrough": initAnimatedWalkthrough};
     document.querySelectorAll("[data-component]").forEach(function(el) { var fn = reg[el.dataset.component]; if (fn) fn(el); });
   });
   </script>

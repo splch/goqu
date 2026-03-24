@@ -252,6 +252,56 @@
   </p>
 </div>
 
+<!-- Visualization 1: Software Stack Widget -->
+<div class="widget" id="widget-software-stack">
+  <div class="widget-header">Interactive: Software Stack Diagram</div>
+  <p style="margin-bottom:0.75rem;font-size:0.9rem;">Click any layer to see what that level looks like for a Bell state circuit.</p>
+  <div id="stack-layers"></div>
+  <div id="stack-detail" class="widget-output" style="min-height:4rem;"></div>
+  <script>
+  (function(){
+    var layers = [
+      {name:"Algorithm", color:"var(--color-gate-2q)", desc:"Create a Bell pair: maximally entangled state of two qubits.", code:"Bell state: (|00> + |11>) / sqrt(2)\nPrepare EPR pair for teleportation or superdense coding."},
+      {name:"Circuit (OpenQASM)", color:"var(--color-gate-1q)", desc:"Express the algorithm as gates acting on qubits.", code:'OPENQASM 3.0;\ninclude "stdgates.inc";\nqubit[2] q;\nbit[2] c;\nh q[0];\ncx q[0], q[1];\nc = measure q;'},
+      {name:"Transpilation", color:"var(--color-measure)", desc:"Map abstract gates to hardware-native gates and insert SWAPs for connectivity.", code:"// IBM Heron native gates: {SX, RZ, CZ}\nrz(pi/2) q[0];\nsx q[0];\nrz(pi/2) q[0];\n// CZ is native on Heron\ncz q[0], q[1];\n// + Hadamard on q[1] for Bell measurement\nrz(pi/2) q[1];\nsx q[1];\nrz(pi/2) q[1];"},
+      {name:"Pulse Schedule", color:"var(--color-accent)", desc:"Convert native gates into timed microwave/laser pulse sequences.", code:"t=0ns:   GaussianSquare(amp=0.21, sigma=8ns) on Q0  [SX]\nt=28ns:  VirtualZ(phase=pi/2) on Q0                 [RZ]\nt=28ns:  GaussianSquare(amp=0.21, sigma=8ns) on Q0  [SX]\nt=56ns:  CrossResonance(amp=0.45, dur=260ns) Q0-Q1   [CZ]\nt=316ns: Measurement pulse on Q0, Q1"},
+      {name:"Hardware", color:"var(--color-state)", desc:"Physical execution on superconducting qubits at 15 millikelvin. Results are classical bitstrings.", code:"Shot 1:    00\nShot 2:    11\nShot 3:    11\n...\nShot 1024: 00\n\nResults: {00: 518, 11: 506}"}
+    ];
+    var container = document.getElementById("stack-layers");
+    var detail = document.getElementById("stack-detail");
+    container.style.cssText = "display:flex;flex-direction:column;gap:4px;";
+    layers.forEach(function(l, i){
+      var div = document.createElement("div");
+      div.style.cssText = "padding:0.6rem 1rem;border-radius:var(--radius);cursor:pointer;font-weight:600;font-size:0.9rem;border:2px solid transparent;transition:all 0.15s;background:" + l.color + ";color:#fff;text-align:center;";
+      div.textContent = (i+1) + ". " + l.name;
+      div.addEventListener("click", function(){
+        container.querySelectorAll("div").forEach(function(d,j){
+          d.style.borderColor = j === i ? "var(--color-text)" : "transparent";
+          d.style.transform = j === i ? "scale(1.02)" : "scale(1)";
+        });
+        var h = document.createElement("div");
+        var title = document.createElement("p");
+        title.style.cssText = "margin:0 0 0.5rem;font-weight:600;color:var(--color-accent);";
+        title.textContent = l.name;
+        var desc = document.createElement("p");
+        desc.style.cssText = "margin:0 0 0.5rem;font-size:0.9rem;";
+        desc.textContent = l.desc;
+        var pre = document.createElement("pre");
+        pre.style.cssText = "margin:0;font-size:0.8rem;white-space:pre-wrap;";
+        pre.textContent = l.code;
+        h.appendChild(title);
+        h.appendChild(desc);
+        h.appendChild(pre);
+        detail.textContent = "";
+        detail.appendChild(h);
+      });
+      container.appendChild(div);
+    });
+    container.querySelector("div").click();
+  })();
+  </script>
+</div>
+
 <h3>OpenQASM: The Assembly Language of Quantum Computing</h3>
 
 <p>
@@ -260,22 +310,6 @@
   you have been writing quantum assembly language since Chapter 3. Here is a GHZ state
   circuit demonstrating the structure of an OpenQASM program:
 </p>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="9">OPENQASM 3.0;
-qubit[3] q;
-bit[3] c;
-// Create GHZ state: |000> + |111>
-h q[0];
-cx q[0], q[1];
-cx q[0], q[2];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
 
 <p>
   You should see roughly 50% <code>000</code> and 50% <code>111</code>. The Hadamard puts
@@ -320,20 +354,6 @@ print(result[0].data.c.get_counts())  # {'00': ~512, '11': ~512}</code></pre>
   The equivalent OpenQASM circuit in our sandbox:
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="7">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-h q[0];
-cx q[0], q[1];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
 <h3>Gate Library and U3</h3>
 
 <p>
@@ -347,42 +367,9 @@ $$U(\theta, \phi, \lambda) = \begin{pmatrix} \cos(\theta/2) & -e^{i\lambda}\sin(
   The sandbox below shows U3 preparing a specific Bloch sphere state:
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="7">OPENQASM 3.0;
-qubit[1] q;
-bit[1] c;
-// U3 gate with Euler angles
-U(pi/3, pi/4, pi/6) q[0];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
 <p>
   A comprehensive gate showcase using Clifford gates (H, S, X, Y, Z) and the non-Clifford T:
 </p>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="12">OPENQASM 3.0;
-qubit[3] q;
-bit[3] c;
-h q[0];       // Hadamard
-s q[0];       // S gate: pi/2 phase
-t q[0];       // T gate: pi/4 phase
-cx q[0], q[1]; // CNOT
-cz q[1], q[2]; // Controlled-Z
-tdg q[0];     // T-dagger
-sdg q[0];     // S-dagger
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
 
 <div class="callout callout-info">
   <strong>Simulation Limits.</strong>
@@ -422,20 +409,6 @@ result = cirq.Simulator().run(circuit, repetitions=1024)</code></pre>
   The Sycamore gate combines an iSWAP-like interaction with a controlled phase. Try it:
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="7">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-x q[0];
-sycamore q[0], q[1];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
 <h3>PennyLane: Differentiable Quantum Computing</h3>
 
 <p>
@@ -463,24 +436,6 @@ gradients = grad_fn(np.array([0.5, 0.3]))</code></pre>
 <p>
   A variational ansatz in the sandbox with parametric rotations and entangling layers:
 </p>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="11">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-// Variational ansatz
-ry(pi/4) q[0];
-ry(pi/3) q[1];
-cx q[0], q[1];  // Entangling layer
-rz(pi/6) q[0];
-rx(pi/5) q[1];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
 
 <h3>Framework Comparison</h3>
 
@@ -538,18 +493,67 @@ counts = job.result()[0].data.c.get_counts()</code></pre>
   deviation ~16, even with no hardware noise.
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="7">OPENQASM 3.0;
+<!-- Visualization 4: Shot Noise Simulation -->
+<div class="simulation" data-component="simulation">
+  <div class="sim-qasm" hidden>
+OPENQASM 3.0;
+include "stdgates.inc";
 qubit[2] q;
 bit[2] c;
 h q[0];
 cx q[0], q[1];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
+c = measure q;
   </div>
-  <div class="output"></div>
+  <div class="sim-controls">
+    <label>Shots: <input type="range" data-param="shots" min="10" max="10000" value="1024" step="10"><output>1024</output></label>
+  </div>
+  <div class="sim-output"></div>
+  <script>
+  // Override default simulation to use dynamic shot count
+  (function(){
+    var el = document.currentScript.closest(".simulation");
+    var tmplEl = el.querySelector(".sim-qasm");
+    var output = el.querySelector(".sim-output");
+    var slider = el.querySelector('input[data-param="shots"]');
+    if (!tmplEl || !output || !slider) return;
+    el.removeAttribute("data-component");
+    var qasm = tmplEl.textContent;
+    var pending = false;
+
+    async function update() {
+      if (pending) return; pending = true;
+      await ensureWasm();
+      var shots = parseInt(slider.value, 10);
+      var out = slider.parentElement.querySelector("output");
+      if (out) out.textContent = shots;
+      output.textContent = "Running " + shots + " shots...";
+      output.style.color = "var(--color-text-muted)";
+      await new Promise(function(r){setTimeout(r,0);});
+      try {
+        var r = JSON.parse(window.runQASM(qasm, shots, isDark()));
+        output.style.color = "";
+        if (r.error) { output.textContent = r.error; output.style.color = "var(--color-error)"; pending = false; return; }
+        var container = document.createElement("div");
+        container.style.cssText = "display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;align-items:flex-start;";
+        if (r.circuit) { var d = document.createElement("div"); d.insertAdjacentHTML("beforeend", r.circuit); container.appendChild(d); }
+        if (r.histogram) { var d = document.createElement("div"); d.insertAdjacentHTML("beforeend", r.histogram); container.appendChild(d); }
+        var stats = document.createElement("div");
+        stats.className = "sim-stats";
+        stats.style.width = "100%";
+        var s1 = document.createElement("span"); s1.textContent = "Shots: " + shots;
+        var s2 = document.createElement("span"); s2.textContent = "Expected std dev: ~" + Math.round(Math.sqrt(shots * 0.5 * 0.5));
+        stats.appendChild(s1); stats.appendChild(s2);
+        container.appendChild(stats);
+        output.textContent = "";
+        output.appendChild(container);
+      } catch(e) { output.textContent = e.message; output.style.color = "var(--color-error)"; }
+      pending = false;
+    }
+    slider.addEventListener("input", update);
+    document.addEventListener("DOMContentLoaded", function(){ setTimeout(update, 100); });
+    update();
+  })();
+  </script>
 </div>
 
 <h3>Hardware Errors</h3>
@@ -608,6 +612,46 @@ c = measure q;</textarea>
   challenges drive it: gate decomposition, qubit routing, and optimization.
 </p>
 
+<!-- Visualization 2: Transpilation Comparison -->
+<div class="comparison" data-component="comparison" data-mode="transpile">
+  <div class="comparison-controls">
+    <label>Circuit:
+      <select data-param="circuit">
+        <option value="bell">Bell State</option>
+        <option value="ghz3">3-Qubit GHZ</option>
+      </select>
+    </label>
+  </div>
+  <div class="comparison-panels">
+    <div class="comparison-panel" data-label="Abstract Circuit" data-target="generic">
+      <div class="comparison-qasm">
+OPENQASM 3.0;
+include "stdgates.inc";
+qubit[3] q;
+bit[3] c;
+h q[0];
+cx q[0], q[1];
+cx q[0], q[2];
+c = measure q;
+      </div>
+      <div class="comparison-output"></div>
+    </div>
+    <div class="comparison-panel" data-label="Hardware-Native (IBM)" data-target="ibm_heron">
+      <div class="comparison-qasm">
+OPENQASM 3.0;
+include "stdgates.inc";
+qubit[3] q;
+bit[3] c;
+h q[0];
+cx q[0], q[1];
+cx q[0], q[2];
+c = measure q;
+      </div>
+      <div class="comparison-output"></div>
+    </div>
+  </div>
+</div>
+
 <h3>Gate Decomposition</h3>
 
 <p>
@@ -615,22 +659,6 @@ c = measure q;</textarea>
   Any other gate must be decomposed. The Hadamard decomposes as $H = RZ(\pi/2) \cdot SX \cdot RZ(\pi/2)$.
   A Toffoli requires ~6 CNOTs plus single-qubit gates:
 </p>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="9">OPENQASM 3.0;
-qubit[3] q;
-bit[3] c;
-x q[0];
-x q[1];
-// Toffoli: decomposes to ~6 CNOTs on hardware
-ccx q[0], q[1], q[2];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
 
 <h3>Qubit Routing and SWAP Networks</h3>
 
@@ -640,41 +668,161 @@ c = measure q;</textarea>
   SWAP decomposition:
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="10">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-x q[0];  // q[0]=1, q[1]=0
-// SWAP = 3 CNOTs
-cx q[0], q[1];
-cx q[1], q[0];
-cx q[0], q[1];
-// States are now swapped: q[0]=0, q[1]=1
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
+<!-- Visualization 3: Qubit Connectivity Widget -->
+<div class="widget" id="widget-connectivity">
+  <div class="widget-header">Interactive: Qubit Connectivity Graph</div>
+  <p style="margin-bottom:0.75rem;font-size:0.9rem;">Select a topology and click two non-adjacent qubits to see the SWAP route needed to connect them.</p>
+  <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label style="font-size:0.9rem;font-family:var(--font-mono);">Topology:
+      <select id="conn-topo" style="font-family:var(--font-mono);font-size:0.85rem;padding:0.3rem 0.5rem;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-surface);color:var(--color-text);">
+        <option value="linear">Linear Chain</option>
+        <option value="heavy-hex" selected>Heavy-Hex (IBM)</option>
+        <option value="grid">Square Grid</option>
+        <option value="all-to-all">All-to-All (Ions)</option>
+      </select>
+    </label>
+    <span id="conn-info" style="font-size:0.85rem;color:var(--color-text-muted);"></span>
   </div>
-  <div class="output"></div>
+  <div style="display:flex;justify-content:center;">
+    <canvas id="conn-canvas" width="480" height="320" style="border:1px solid var(--color-border);border-radius:var(--radius);max-width:100%;"></canvas>
+  </div>
+  <div id="conn-result" class="widget-output" style="min-height:1.5rem;margin-top:0.5rem;"></div>
+  <script>
+  (function(){
+    var canvas = document.getElementById("conn-canvas");
+    var ctx = canvas.getContext("2d");
+    var topoSel = document.getElementById("conn-topo");
+    var infoEl = document.getElementById("conn-info");
+    var resultEl = document.getElementById("conn-result");
+    var W = canvas.width, H = canvas.height;
+    var nodes = [], edges = [], selected = [];
+    var dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    var bgCol = dark ? "#262626" : "#fff";
+    var edgeCol = dark ? "#555" : "#ccc";
+    var pathCol = "#22c55e";
+
+    function buildTopology(type) {
+      nodes = []; edges = []; selected = [];
+      if (type === "linear") {
+        for (var i = 0; i < 7; i++) nodes.push({x: 50 + i*60, y: H/2, id: i});
+        for (var i = 0; i < 6; i++) edges.push([i, i+1]);
+      } else if (type === "grid") {
+        var cols = 4, rows = 3;
+        for (var r = 0; r < rows; r++) for (var c = 0; c < cols; c++)
+          nodes.push({x: 100 + c*90, y: 60 + r*90, id: r*cols+c});
+        for (var r = 0; r < rows; r++) for (var c = 0; c < cols; c++) {
+          var idx = r*cols+c;
+          if (c < cols-1) edges.push([idx, idx+1]);
+          if (r < rows-1) edges.push([idx, idx+cols]);
+        }
+      } else if (type === "heavy-hex") {
+        var positions = [
+          {x:120,y:60},{x:240,y:60},{x:360,y:60},
+          {x:60,y:160},{x:180,y:160},{x:300,y:160},{x:420,y:160},
+          {x:120,y:260},{x:240,y:260},{x:360,y:260}
+        ];
+        for (var i = 0; i < positions.length; i++) nodes.push({x:positions[i].x, y:positions[i].y, id:i});
+        edges = [[0,1],[1,2],[3,4],[4,5],[5,6],[7,8],[8,9],[0,3],[1,4],[2,5],[4,7],[5,8],[6,9]];
+      } else {
+        for (var i = 0; i < 7; i++) {
+          var a = 2*Math.PI*i/7 - Math.PI/2;
+          nodes.push({x: W/2 + 120*Math.cos(a), y: H/2 + 120*Math.sin(a), id: i});
+        }
+        for (var i = 0; i < 7; i++) for (var j = i+1; j < 7; j++) edges.push([i,j]);
+      }
+      infoEl.textContent = nodes.length + " qubits, " + edges.length + " connections";
+    }
+
+    function adjacent(a, b) {
+      for (var i = 0; i < edges.length; i++)
+        if ((edges[i][0]===a && edges[i][1]===b) || (edges[i][0]===b && edges[i][1]===a)) return true;
+      return false;
+    }
+
+    function bfs(start, end) {
+      if (start === end) return [start];
+      var visited = {}; visited[start] = true;
+      var queue = [[start]];
+      while (queue.length > 0) {
+        var path = queue.shift();
+        var node = path[path.length-1];
+        for (var i = 0; i < edges.length; i++) {
+          var nb = -1;
+          if (edges[i][0]===node && !visited[edges[i][1]]) nb = edges[i][1];
+          if (edges[i][1]===node && !visited[edges[i][0]]) nb = edges[i][0];
+          if (nb < 0) continue;
+          var np = path.concat([nb]);
+          if (nb === end) return np;
+          visited[nb] = true;
+          queue.push(np);
+        }
+      }
+      return null;
+    }
+
+    function draw(path) {
+      ctx.fillStyle = bgCol;
+      ctx.fillRect(0,0,W,H);
+      edges.forEach(function(e){
+        ctx.beginPath();
+        ctx.moveTo(nodes[e[0]].x, nodes[e[0]].y);
+        ctx.lineTo(nodes[e[1]].x, nodes[e[1]].y);
+        ctx.strokeStyle = edgeCol; ctx.lineWidth = 2; ctx.stroke();
+      });
+      if (path && path.length > 1) {
+        for (var i = 0; i < path.length-1; i++) {
+          ctx.beginPath();
+          ctx.moveTo(nodes[path[i]].x, nodes[path[i]].y);
+          ctx.lineTo(nodes[path[i+1]].x, nodes[path[i+1]].y);
+          ctx.strokeStyle = pathCol; ctx.lineWidth = 4; ctx.stroke();
+        }
+      }
+      nodes.forEach(function(n, i){
+        ctx.beginPath(); ctx.arc(n.x, n.y, 14, 0, 2*Math.PI);
+        var isSel = selected.indexOf(i) >= 0;
+        var isPath = path && path.indexOf(i) >= 0;
+        ctx.fillStyle = isSel ? (dark?"#E07070":"#C44E52") : isPath ? pathCol : (dark?"#6A9BD2":"#4C72B0");
+        ctx.fill();
+        ctx.fillStyle = "#fff"; ctx.font = "bold 11px system-ui";
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillText("Q"+i, n.x, n.y);
+      });
+    }
+
+    canvas.addEventListener("click", function(e){
+      var rect = canvas.getBoundingClientRect();
+      var sx = W / rect.width, sy = H / rect.height;
+      var mx = (e.clientX - rect.left)*sx, my = (e.clientY - rect.top)*sy;
+      var clicked = -1;
+      nodes.forEach(function(n,i){ if (Math.hypot(mx-n.x, my-n.y) < 18) clicked = i; });
+      if (clicked < 0) return;
+      if (selected.length < 2) selected.push(clicked); else selected = [clicked];
+      if (selected.length === 2) {
+        var a = selected[0], b = selected[1];
+        if (a === b) { selected = [a]; draw(null); resultEl.textContent = ""; return; }
+        if (adjacent(a, b)) {
+          draw([a,b]);
+          resultEl.textContent = "Q" + a + " and Q" + b + " are directly connected. No SWAPs needed.";
+        } else {
+          var path = bfs(a, b);
+          draw(path);
+          if (path) {
+            var swaps = path.length - 2;
+            resultEl.textContent = "Route: " + path.map(function(p){return "Q"+p;}).join(" -> ") + " | " + swaps + " SWAP" + (swaps!==1?"s":"") + " (" + (swaps*3) + " CX gates)";
+          } else resultEl.textContent = "No path found.";
+        }
+      } else { draw(null); resultEl.textContent = "Select a second qubit."; }
+    });
+    topoSel.addEventListener("change", function(){ buildTopology(topoSel.value); draw(null); resultEl.textContent = "Click two qubits."; });
+    buildTopology(topoSel.value); draw(null);
+    resultEl.textContent = "Click two qubits to see the SWAP route between them.";
+  })();
+  </script>
 </div>
 
 <p>
   Verify with the native SWAP gate:
 </p>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="6">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-x q[0];
-swap q[0], q[1];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
 
 <h3>Optimization Levels</h3>
 
@@ -701,22 +849,6 @@ c = measure q;</textarea>
   and commutation analysis are core techniques. Verify gate cancellation:
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="10">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-// Self-inverse cancellation
-x q[0]; x q[0];  // X*X = I
-h q[1]; h q[1];  // H*H = I
-// Both qubits still |0>
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
 <h3>Multi-Qubit Gate Decomposition Costs</h3>
 
 <table>
@@ -738,110 +870,16 @@ c = measure q;</textarea>
   The iSWAP gate, native to some Google processors, and the ECR gate, native to IBM:
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="7">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-x q[0];
-iswap q[0], q[1];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="7">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-x q[0];
-ecr q[0], q[1];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
 <h3>Advanced Gate Patterns</h3>
 
 <p>
   Controlled-Hadamard (CH), controlled-SX (CSX), DCX (double-CNOT), and CCZ:
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="9">OPENQASM 3.0;
-qubit[3] q;
-bit[3] c;
-x q[0];
-ch q[0], q[1];   // Controlled-Hadamard
-csx q[0], q[2];  // Controlled-sqrt(X)
-dcx q[1], q[2];  // Double-CNOT
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="9">OPENQASM 3.0;
-qubit[3] q;
-bit[3] c;
-// CCZ: symmetric three-qubit phase gate
-x q[0]; x q[1]; x q[2];
-ccz q[0], q[1], q[2];
-h q[2];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
 <p>
   Two-qubit Ising rotation gates (RXX, RYY, RZZ) and controlled rotations (CRX, CRY, CRZ, CP)
   are essential for variational ansatze and phase estimation:
 </p>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="10">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-// Ising interaction gates
-h q[0]; h q[1];
-rxx(pi/4) q[0], q[1];
-ryy(pi/4) q[0], q[1];
-rzz(pi/4) q[0], q[1];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="10">OPENQASM 3.0;
-qubit[3] q;
-bit[3] c;
-x q[0];
-crx(pi/2) q[0], q[1];
-cry(pi/3) q[0], q[2];
-crz(pi/4) q[1], q[2];
-cp(pi/8) q[0], q[2];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
 
 <h3>Building a Quantum Fourier Transform</h3>
 
@@ -850,28 +888,6 @@ c = measure q;</textarea>
   phase rotations with decreasing angles. Each controlled-phase decomposes to 2 CNOTs on
   hardware, making transpilation cost significant:
 </p>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="14">OPENQASM 3.0;
-qubit[3] q;
-bit[3] c;
-// 3-qubit QFT on input |101>
-x q[0]; x q[2];
-// QFT circuit
-h q[0];
-cp(pi/2) q[1], q[0];
-cp(pi/4) q[2], q[0];
-h q[1];
-cp(pi/2) q[2], q[1];
-h q[2];
-swap q[0], q[2];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
 
 </section>
 
@@ -951,29 +967,6 @@ c = measure q;</textarea>
   among 4 items uses a CZ oracle and a diffusion operator:
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="14">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-// Grover's algorithm: search for |11>
-// Superposition
-h q[0]; h q[1];
-// Oracle: mark |11> with phase flip
-cz q[0], q[1];
-// Diffusion operator
-h q[0]; h q[1];
-x q[0]; x q[1];
-cz q[0], q[1];
-x q[0]; x q[1];
-h q[0]; h q[1];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
 <p>
   One Grover iteration finds <code>11</code> with 100% probability for 4 items. On IBM Heron,
   CZ is native, H decomposes to SX+RZ, and the full circuit needs ~2 two-qubit gates.
@@ -982,27 +975,6 @@ c = measure q;</textarea>
 <p>
   A more complex example: quantum teleportation, transferring a state using entanglement:
 </p>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="14">OPENQASM 3.0;
-qubit[3] q;
-bit[3] c;
-// Quantum teleportation
-// Prepare state to teleport
-rx(pi/3) q[0];
-// Create Bell pair
-h q[1];
-cx q[1], q[2];
-// Bell measurement
-cx q[0], q[1];
-h q[0];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
 
 </section>
 
@@ -1015,11 +987,18 @@ c = measure q;</textarea>
   $\tfrac{1}{\sqrt{2}}(|0000\rangle + |1111\rangle)$. How many CNOTs does it need?
 </p>
 
+<!-- Visualization 5: GHZ Sandbox -->
 <div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="8">OPENQASM 3.0;
+  <textarea class="code" rows="12">OPENQASM 3.0;
+include "stdgates.inc";
 qubit[4] q;
 bit[4] c;
-// Exercise 15.1: 4-qubit GHZ state
+
+// Build a 4-qubit GHZ state
+h q[0];
+cx q[0], q[1];
+cx q[1], q[2];
+cx q[2], q[3];
 
 c = measure q;</textarea>
   <div class="sandbox-controls">
@@ -1035,60 +1014,17 @@ c = measure q;</textarea>
   (Hint: $\text{CX} = (I \otimes H) \cdot \text{CZ} \cdot (I \otimes H)$.)
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="8">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-x q[0]; // Start: q[0]=1, q[1]=0
-// Your CZ-based SWAP here
-
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
 <p>
   <strong>Exercise 15.3.</strong> Implement a 2-qubit phase estimation circuit. Use an
   eigenstate $|1\rangle$ on the target, a controlled-T gate, and inverse QFT on the
   estimation register. What outcomes do you expect?
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="8">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-// Exercise 15.3: Phase estimation
-
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
 <p>
   <strong>Exercise 15.4.</strong> Create the W state:
   $\tfrac{1}{\sqrt{3}}(|001\rangle + |010\rangle + |100\rangle)$. Unlike GHZ, the W state
   remains entangled if one qubit is lost. (Hint: use $R_y$ rotations and controlled gates.)
 </p>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="8">OPENQASM 3.0;
-qubit[3] q;
-bit[3] c;
-// Exercise 15.4: W state
-
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
 
 <p>
   <strong>Exercise 15.5.</strong> Consider H on q[0], CNOT(q[0],q[1]), CZ(q[1],q[2]) on a
@@ -1099,22 +1035,6 @@ c = measure q;</textarea>
   <strong>Exercise 15.6.</strong> Decompose H into IBM's native gates (RZ and SX only). Verify:
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="8">OPENQASM 3.0;
-qubit[1] q;
-bit[1] c;
-// Exercise 15.6: H = RZ(pi/2) * SX * RZ(pi/2)
-rz(pi/2) q[0];
-sx q[0];
-rz(pi/2) q[0];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
 <p>
   <strong>Exercise 15.7.</strong> For all-to-all connectivity among 5 qubits, estimate minimum
   SWAPs needed on heavy-hex (max 3 neighbors) vs. grid (max 4 neighbors) topology.
@@ -1124,119 +1044,6 @@ c = measure q;</textarea>
   <strong>Exercise 15.8.</strong> Run this circuit and explain the measurement statistics:
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="10">OPENQASM 3.0;
-qubit[3] q;
-bit[3] c;
-h q[0]; h q[1];
-ccx q[0], q[1], q[2];
-h q[0]; h q[1];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
-</section>
-
-<!-- ================================================================== -->
-
-<section id="review">
-<h2>Chapter 15 Review</h2>
-
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 15 Review</div>
-
-  <div class="flashcard" data-card-id="ch15-software-stack">
-    <div class="card-front">Name the five layers of the quantum software stack, from top to bottom.</div>
-    <div class="card-back">
-      (1) Algorithm layer - the high-level quantum algorithm. (2) Circuit layer - gates on qubits in OpenQASM or framework IR. (3) Transpilation layer - mapping to hardware gate set and connectivity. (4) Pulse layer - timed control signals for each native gate. (5) Hardware layer - physical execution and measurement. Each layer transforms the computation into a more concrete representation.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch15-transpilation">
-    <div class="card-front">What three main tasks does quantum circuit transpilation perform?</div>
-    <div class="card-back">
-      (1) Gate decomposition - expressing abstract gates using the hardware's native gate set. (2) Qubit routing - mapping logical qubits to physical qubits and inserting SWAP gates for connectivity constraints. (3) Circuit optimization - reducing gate count and depth through cancellation, rotation merging, and commutation analysis. All three are needed because real hardware has limited gate sets, restricted connectivity, and finite coherence times.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch15-shot-noise">
-    <div class="card-front">What is shot noise, and how does it scale with the number of shots $N$?</div>
-    <div class="card-back">
-      Shot noise is the statistical uncertainty from sampling a probability distribution. For a state with probability $p$, the relative uncertainty scales as $1/\sqrt{Np}$. Doubling shots reduces uncertainty by $\sqrt{2}$, not 2. Even a perfect quantum computer has shot noise because measurement is inherently probabilistic.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch15-qiskit-vs-cirq">
-    <div class="card-front">What is the key design difference between Qiskit and Cirq?</div>
-    <div class="card-back">
-      Qiskit abstracts hardware details: you build circuits with logical qubits and generic gates, and the transpiler handles hardware mapping. Cirq is hardware-aware: qubits are defined with physical grid coordinates, circuits are organized into parallel moments, and native gates are used from the start. Qiskit prioritizes portability; Cirq prioritizes hardware-specific optimization.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch15-pennylane-diff">
-    <div class="card-front">What makes PennyLane unique, and what is the parameter-shift rule?</div>
-    <div class="card-back">
-      PennyLane treats quantum circuits as differentiable programs, enabling automatic differentiation through quantum computations. The parameter-shift rule computes exact gradients by evaluating the circuit at two shifted parameter values: $\partial f/\partial \theta = [f(\theta + \pi/2) - f(\theta - \pi/2)] / 2$. This makes PennyLane ideal for variational algorithms and quantum machine learning.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch15-swap-cost">
-    <div class="card-front">How many CNOTs implement a SWAP, and why does this matter?</div>
-    <div class="card-back">
-      A SWAP decomposes into exactly 3 CNOTs. This matters because when the transpiler routes qubits on hardware with limited connectivity, each SWAP adds 3 two-qubit gates. Since two-qubit gate error rates are 10-100x higher than single-qubit gates, each SWAP significantly increases total circuit error. Minimizing SWAP insertions is critical for circuit quality.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch15-hardware-errors">
-    <div class="card-front">Name four types of errors on real quantum processors.</div>
-    <div class="card-back">
-      (1) Gate errors: incorrect unitary applied (~0.01-0.1% single-qubit, ~0.1-1% two-qubit). (2) Measurement errors: misclassifying qubit state during readout (~0.5-2%). (3) Decoherence: loss of quantum information over time, characterized by $T_1$ (relaxation) and $T_2$ (dephasing), typically 100-300 us. (4) Crosstalk: operations on one qubit inadvertently affecting neighbors.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch15-cloud-platforms">
-    <div class="card-front">Compare the four major quantum cloud platforms on hardware diversity.</div>
-    <div class="card-back">
-      IBM Quantum: IBM superconducting only, up to 156 qubits (Heron), largest free-access fleet. Amazon Braket: multi-vendor (IQM, Rigetti, IonQ, QuEra, AQT) spanning superconducting, trapped-ion, and neutral-atom technologies. Azure Quantum: IonQ and Quantinuum trapped-ion processors with high fidelity. Google QAI: Google superconducting only, primarily research access. Braket and Azure offer the most hardware diversity.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-</div>
 </section>
 
     </article>
@@ -1266,7 +1073,6 @@ c = measure q;</textarea>
   
   <script>
   "use strict";
-  
   function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
   function isDark() { return window.matchMedia("(prefers-color-scheme: dark)").matches; }
   function renderMath(el) {
@@ -1274,7 +1080,6 @@ c = measure q;</textarea>
       renderMathInElement(el, { delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}], throwOnError: false });
   }
 
-  
   var wasmReady = null;
   function ensureWasm() {
     if (!wasmReady) {
@@ -1287,7 +1092,6 @@ c = measure q;</textarea>
     return wasmReady;
   }
 
-  
   var SRS_KEY = "goqu-srs";
   function srsLoad() { try { return JSON.parse(localStorage.getItem(SRS_KEY) || "{}"); } catch(e) { return {}; } }
   function srsSave(d) { localStorage.setItem(SRS_KEY, JSON.stringify(d)); }
@@ -1305,7 +1109,6 @@ c = measure q;</textarea>
     d[id] = s; srsSave(d);
   }
 
-  
   function initSandbox(el) {
     var code = el.querySelector(".code"), output = el.querySelector(".output");
     if (!code || !output) return;
@@ -1327,7 +1130,6 @@ c = measure q;</textarea>
     if (el.hasAttribute("data-autorun")) run();
   }
 
-  
   function initSimulation(el) {
     var tmplEl = el.querySelector(".sim-qasm"), output = el.querySelector(".sim-output");
     var sliders = el.querySelectorAll('input[type="range"]');
@@ -1399,7 +1201,6 @@ c = measure q;</textarea>
     update();
   }
 
-  
   function formatStabilizer(s) {
     if (!s) return "";
     var sign = s[0], ops = s.slice(1), html = '<span class="stab-sign">' + esc(sign) + '</span>';
@@ -1410,7 +1211,6 @@ c = measure q;</textarea>
     return html;
   }
 
-  
   function initExercise(el) {
     var code = el.querySelector(".code"), feedback = el.querySelector(".exercise-feedback");
     var checkBtn = el.querySelector('[data-action="check"]');
@@ -1448,7 +1248,6 @@ c = measure q;</textarea>
     if (hintBtn && hintEl) hintBtn.addEventListener("click", function() { hintEl.style.display = hintEl.style.display === "none" ? "block" : "none"; });
   }
 
-  
   function initFlashcardDeck(el) {
     el.querySelectorAll(".flashcard").forEach(function(card) {
       var id = card.dataset.cardId;
@@ -1467,7 +1266,6 @@ c = measure q;</textarea>
     });
   }
 
-  
   function initPOE(el) {
     var steps = el.querySelectorAll(".poe-step"), prog = el.querySelectorAll(".poe-progress-step");
     if (steps.length === 0) return;
@@ -1484,7 +1282,6 @@ c = measure q;</textarea>
     show(0);
   }
 
-  
   function initStepThrough(el) {
     var qasmEl = el.querySelector(".step-qasm");
     var output = el.querySelector(".step-output");
@@ -1566,9 +1363,198 @@ c = measure q;</textarea>
     load();
   }
 
-  
+  function initComparison(el) {
+    var panels = el.querySelectorAll(".comparison-panel");
+    var sliders = el.querySelectorAll('.comparison-controls input[type="range"]');
+    var selects = el.querySelectorAll('.comparison-controls select[data-param]');
+    if (panels.length < 2) return;
+    var mode = el.dataset.mode || "default";
+    var pending = false, dirty = false;
+
+    function getParams() {
+      var params = {};
+      sliders.forEach(function(s) {
+        params[s.dataset.param] = parseFloat(s.value);
+        var o = s.parentElement.querySelector("output");
+        if (o) o.textContent = parseFloat(s.value).toFixed(2);
+      });
+      selects.forEach(function(s) { params[s.dataset.param] = s.value; });
+      return params;
+    }
+
+    function substituteQasm(tmpl, params) {
+      var qasm = tmpl;
+      for (var k in params) qasm = qasm.replaceAll("{" + k + "}", params[k].toString());
+      return qasm;
+    }
+
+    async function runPanel(panel, params) {
+      var tmplEl = panel.querySelector(".comparison-qasm");
+      var output = panel.querySelector(".comparison-output");
+      if (!tmplEl || !output) return;
+      var qasm = substituteQasm(tmplEl.textContent, params);
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var html = "", r;
+        if (mode === "ideal-noisy") {
+          var isLeft = panel === panels[0];
+          if (isLeft) {
+            r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+            if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+            html = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+          } else {
+            var noiseModel = el.dataset.noiseModel || params.noiseModel || "depolarizing";
+            var noiseParam = parseFloat(params.noiseParam || "0.1");
+            if (window.runNoisyQASM) {
+              r = JSON.parse(window.runNoisyQASM(qasm, 1024, noiseModel, noiseParam, isDark()));
+              if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+              html = (r.circuitSVG || r.circuit || "") + (r.histogramSVG || r.histogram || "") + (r.stateCitySVG || "");
+              if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span></div>';
+            }
+          }
+        } else if (mode === "transpile") {
+          var target = panel.dataset.target || "generic";
+          if (window.transpileQASM) {
+            r = JSON.parse(window.transpileQASM(qasm, target, isDark()));
+            if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+            html = (r.circuit || r.circuitSVG || "") + (r.info || "");
+          }
+        } else {
+          r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          html = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+        }
+        output.innerHTML = html;
+        renderMath(output);
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    async function runAll() {
+      if (pending) { dirty = true; return; }
+      pending = true;
+      await ensureWasm();
+      var params = getParams();
+      var promises = [];
+      panels.forEach(function(panel) { promises.push(runPanel(panel, params)); });
+      await Promise.all(promises);
+      pending = false;
+      if (dirty) { dirty = false; runAll(); }
+    }
+
+    sliders.forEach(function(s) { s.addEventListener("input", runAll); });
+    selects.forEach(function(s) { s.addEventListener("change", runAll); });
+
+    var runBtn = el.querySelector('[data-action="run"]');
+    if (!runBtn) {
+      var controls = el.querySelector(".comparison-controls");
+      if (controls) {
+        runBtn = document.createElement("button");
+        runBtn.setAttribute("data-action", "run");
+        runBtn.textContent = "Run";
+        controls.appendChild(runBtn);
+      }
+    }
+    if (runBtn) runBtn.addEventListener("click", runAll);
+
+    runAll();
+  }
+
+  function initAnimatedWalkthrough(el) {
+    var stages = el.querySelectorAll(".walkthrough-stage");
+    var progressBar = el.querySelector(".walkthrough-progress");
+    var prevBtn = el.querySelector('[data-action="prev"]');
+    var nextBtn = el.querySelector('[data-action="next"]');
+    var autoBtn = el.querySelector('[data-action="auto"]');
+    if (stages.length === 0) return;
+    var cur = 0, autoTimer = null, stageRan = {};
+
+    
+    if (progressBar) {
+      progressBar.textContent = "";
+      for (var i = 0; i < stages.length; i++) {
+        var pip = document.createElement("div");
+        pip.className = "walkthrough-pip" + (i === 0 ? " active" : "");
+        pip.setAttribute("data-index", i);
+        pip.textContent = i + 1;
+        progressBar.appendChild(pip);
+      }
+    }
+
+    function updateProgress() {
+      if (!progressBar) return;
+      var pips = progressBar.querySelectorAll(".walkthrough-pip");
+      pips.forEach(function(p, i) {
+        p.classList.remove("active", "done");
+        if (i < cur) p.classList.add("done");
+        if (i === cur) p.classList.add("active");
+      });
+    }
+
+    async function runStageQasm(stage) {
+      var idx = stage.dataset.stage || "0";
+      if (stageRan[idx]) return;
+      var qasmEl = stage.querySelector(".walkthrough-qasm");
+      var output = stage.querySelector(".walkthrough-output");
+      if (!qasmEl || !output) return;
+      stageRan[idx] = true;
+      await ensureWasm();
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(qasmEl.textContent, 1024, isDark()));
+        if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+        output.innerHTML = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+        renderMath(output);
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    function show(idx) {
+      if (idx < 0 || idx >= stages.length) return;
+      stages.forEach(function(s, i) {
+        s.classList.remove("active", "walkthrough-exit");
+        if (i === cur && i !== idx) s.classList.add("walkthrough-exit");
+      });
+      var prev = cur;
+      cur = idx;
+      setTimeout(function() {
+        stages.forEach(function(s, i) {
+          s.classList.remove("walkthrough-exit");
+          s.classList.toggle("active", i === cur);
+        });
+      }, prev !== idx ? 150 : 0);
+      updateProgress();
+      if (prevBtn) prevBtn.disabled = (cur === 0);
+      if (nextBtn) nextBtn.disabled = (cur >= stages.length - 1);
+      runStageQasm(stages[cur]);
+    }
+
+    function stopAuto() {
+      if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+      if (autoBtn) autoBtn.textContent = "Auto-play";
+    }
+
+    if (prevBtn) prevBtn.addEventListener("click", function() { stopAuto(); if (cur > 0) show(cur - 1); });
+    if (nextBtn) nextBtn.addEventListener("click", function() { stopAuto(); if (cur < stages.length - 1) show(cur + 1); });
+    if (autoBtn) autoBtn.addEventListener("click", function() {
+      if (autoTimer) { stopAuto(); return; }
+      autoBtn.textContent = "Pause";
+      autoTimer = setInterval(function() {
+        if (cur < stages.length - 1) { show(cur + 1); }
+        else { stopAuto(); }
+      }, 3000);
+    });
+
+    if (progressBar) progressBar.addEventListener("click", function(e) {
+      var pip = e.target.closest(".walkthrough-pip");
+      if (pip) { stopAuto(); show(parseInt(pip.dataset.index, 10)); }
+    });
+
+    show(0);
+  }
+
   document.addEventListener("DOMContentLoaded", function() {
-    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough};
+    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough, comparison: initComparison, "animated-walkthrough": initAnimatedWalkthrough};
     document.querySelectorAll("[data-component]").forEach(function(el) { var fn = reg[el.dataset.component]; if (fn) fn(el); });
   });
   </script>

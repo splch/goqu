@@ -304,6 +304,86 @@
   </p>
 </div>
 
+<!-- Widget 1: HSP Unification Flowchart -->
+<div class="widget" id="hsp-unification-widget">
+  <div class="widget-header">HSP Unification: One Template, Many Algorithms</div>
+  <p style="font-size:0.9rem;margin-bottom:0.5rem">Click an algorithm to see how it maps to the HSP framework.</p>
+  <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.75rem" id="hsp-btns"></div>
+  <canvas id="hsp-canvas" width="600" height="360" style="width:100%;border:1px solid var(--color-border);border-radius:var(--radius)"></canvas>
+</div>
+<script>
+(function(){
+  var canvas=document.getElementById("hsp-canvas"),ctx=canvas.getContext("2d");
+  var btnsEl=document.getElementById("hsp-btns");
+  var algos=[
+    {name:"Deutsch-Jozsa",group:"Z_2^n",subgroup:"H = G (constant) or {0} (balanced)",hiding:"f: {0,1}^n -> {0,1}",qft:"Hadamard (QFT over Z_2^n)",result:"All-zeros iff constant",col:"#4C72B0"},
+    {name:"Simon",group:"Z_2^n",subgroup:"H = {0^n, s}",hiding:"f: {0,1}^n -> {0,1}^n with f(x)=f(x+s)",qft:"Hadamard (QFT over Z_2^n)",result:"Random y with y . s = 0",col:"#55a868"},
+    {name:"Shor",group:"Z_M",subgroup:"H = rZ (multiples of period r)",hiding:"f(x) = a^x mod N",qft:"QFT over Z_M",result:"Multiple of M/r (extract r via continued fractions)",col:"#C44E52"},
+    {name:"Discrete Log",group:"Z_{p-1}",subgroup:"H = {(0,0)} or related",hiding:"f(x,y) = g^x h^y mod p",qft:"QFT over Z_{p-1}^2",result:"Reveals log_g(h)",col:"#8172B2"}
+  ];
+  var selected=0;
+  function isDk(){return window.matchMedia("(prefers-color-scheme:dark)").matches;}
+  function draw(){
+    var a=algos[selected];
+    var dpr=window.devicePixelRatio||1;
+    var rect=canvas.getBoundingClientRect();
+    canvas.width=rect.width*dpr;canvas.height=rect.height*dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    var W=rect.width,H=rect.height;
+    var dk=isDk();
+    ctx.fillStyle=dk?"#262626":"#ffffff";ctx.fillRect(0,0,W,H);
+    // Draw the template pipeline
+    var steps=["Uniform superposition over G","Evaluate oracle f","Apply QFT over G","Measure"];
+    var boxW=W*0.7,boxH=45,startX=(W-boxW)/2,gapY=12;
+    var mono=getComputedStyle(document.body).getPropertyValue("--font-mono");
+    var body=getComputedStyle(document.body).getPropertyValue("--font-body");
+    steps.forEach(function(step,i){
+      var y=25+i*(boxH+gapY+20);
+      // Box
+      ctx.fillStyle=dk?"rgba(255,255,255,0.05)":"rgba(0,0,0,0.03)";
+      ctx.strokeStyle=a.col;ctx.lineWidth=2;
+      ctx.beginPath();
+      ctx.roundRect(startX,y,boxW,boxH,6);
+      ctx.fill();ctx.stroke();
+      // Step label
+      ctx.fillStyle=dk?"#ccc":"#333";ctx.font="13px "+body;ctx.textAlign="center";
+      ctx.fillText("Step "+(i+1)+": "+step,W/2,y+20);
+      // Detail for selected algorithm
+      var detail="";
+      if(i===0)detail="G = "+a.group;
+      if(i===1)detail=a.hiding;
+      if(i===2)detail=a.qft;
+      if(i===3)detail=a.result;
+      ctx.fillStyle=a.col;ctx.font="11px "+mono;
+      ctx.fillText(detail,W/2,y+37);
+      // Arrow
+      if(i<steps.length-1){
+        var ay=y+boxH;
+        ctx.strokeStyle=dk?"#666":"#aaa";ctx.lineWidth=1.5;
+        ctx.beginPath();ctx.moveTo(W/2,ay+2);ctx.lineTo(W/2,ay+gapY+18);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(W/2-5,ay+gapY+12);ctx.lineTo(W/2,ay+gapY+18);ctx.lineTo(W/2+5,ay+gapY+12);ctx.stroke();
+      }
+    });
+    // Hidden subgroup info at bottom
+    var bottomY=25+steps.length*(boxH+gapY+20)-15;
+    ctx.fillStyle=dk?"#888":"#666";ctx.font="12px "+mono;ctx.textAlign="center";
+    ctx.fillText("Hidden subgroup: "+a.subgroup,W/2,bottomY);
+    // Title
+    ctx.fillStyle=a.col;ctx.font="bold 14px "+body;
+    ctx.fillText(a.name+" as HSP",W/2,16);
+  }
+  algos.forEach(function(a,i){
+    var btn=document.createElement("button");
+    btn.textContent=a.name;
+    btn.style.cssText="font-family:var(--font-mono);font-size:0.85rem;padding:0.3rem 0.7rem;border:2px solid "+a.col+";border-radius:var(--radius);background:var(--color-surface);color:var(--color-text);cursor:pointer";
+    btn.addEventListener("click",function(){selected=i;draw();});
+    btnsEl.appendChild(btn);
+  });
+  window.addEventListener("resize",draw);
+  setTimeout(draw,50);
+})();
+</script>
+
 <h3>The General Abelian HSP Algorithm</h3>
 
 <p>
@@ -525,6 +605,143 @@ $$C = H = \frac{1}{\sqrt{2}}\begin{pmatrix} 1 & 1 \\ 1 & -1 \end{pmatrix}$$
   </p>
 </div>
 
+<!-- Widget 2: Quantum Walk Simulation -->
+<div class="widget" id="qwalk-widget">
+  <div class="widget-header">Classical vs Quantum Walk on the Line</div>
+  <p style="font-size:0.9rem;margin-bottom:0.5rem">
+    Compare the probability distributions of a classical random walk (binomial, spreads as $\sqrt{t}$)
+    and a Hadamard quantum walk (asymmetric, spreads linearly in $t$).
+  </p>
+  <div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:center;margin-bottom:0.75rem">
+    <label style="font-size:0.9rem;font-family:var(--font-mono)">Steps t:
+      <input type="range" id="qw-steps" min="1" max="60" step="1" value="20" style="width:10rem;accent-color:var(--color-accent)">
+      <output id="qw-steps-out">20</output>
+    </label>
+  </div>
+  <canvas id="qw-canvas" width="600" height="280" style="width:100%;border:1px solid var(--color-border);border-radius:var(--radius)"></canvas>
+  <div id="qw-info" style="font-family:var(--font-mono);font-size:0.85rem;color:var(--color-text-muted);margin-top:0.5rem"></div>
+</div>
+<script>
+(function(){
+  var stSlider=document.getElementById("qw-steps"),stOut=document.getElementById("qw-steps-out");
+  var canvas=document.getElementById("qw-canvas"),ctx=canvas.getContext("2d");
+  var infoEl=document.getElementById("qw-info");
+  function isDk(){return window.matchMedia("(prefers-color-scheme:dark)").matches;}
+  function classicalWalk(t){
+    // Binomial distribution centered at 0
+    var probs={};
+    var total=Math.pow(2,t);
+    for(var k=0;k<=t;k++){
+      var pos=-t+2*k;
+      // C(t,k)/2^t
+      var logP=0;
+      for(var j=1;j<=k;j++)logP+=Math.log(t-k+j)-Math.log(j);
+      logP-=t*Math.LN2;
+      probs[pos]=(probs[pos]||0)+Math.exp(logP);
+    }
+    return probs;
+  }
+  function quantumWalk(t){
+    // Hadamard coin walk starting from |R,0>
+    var size=2*t+1;
+    // State: for each position x in [-t,t], store [ampL, ampR] as complex [re,im]
+    var state={};
+    state[0]={Lr:0,Li:0,Rr:1,Ri:0};
+    var sq=1/Math.sqrt(2);
+    for(var step=0;step<t;step++){
+      var newState={};
+      for(var pos in state){
+        var s=state[pos];
+        var p=parseInt(pos,10);
+        // Hadamard coin: |L'> = (|L>+|R>)/sqrt2, |R'> = (|L>-|R>)/sqrt2
+        var Lr=sq*(s.Lr+s.Rr),Li=sq*(s.Li+s.Ri);
+        var Rr=sq*(s.Lr-s.Rr),Ri=sq*(s.Li-s.Ri);
+        // Shift: L goes left, R goes right
+        var pl=p-1,pr=p+1;
+        if(!newState[pl])newState[pl]={Lr:0,Li:0,Rr:0,Ri:0};
+        if(!newState[pr])newState[pr]={Lr:0,Li:0,Rr:0,Ri:0};
+        newState[pl].Lr+=Lr;newState[pl].Li+=Li;
+        newState[pr].Rr+=Rr;newState[pr].Ri+=Ri;
+      }
+      state=newState;
+    }
+    var probs={};
+    for(var pos in state){
+      var s=state[pos];
+      probs[parseInt(pos,10)]=s.Lr*s.Lr+s.Li*s.Li+s.Rr*s.Rr+s.Ri*s.Ri;
+    }
+    return probs;
+  }
+  function draw(){
+    var t=parseInt(stSlider.value,10);stOut.textContent=t;
+    var cProbs=classicalWalk(t),qProbs=quantumWalk(t);
+    var dpr=window.devicePixelRatio||1;
+    var rect=canvas.getBoundingClientRect();
+    canvas.width=rect.width*dpr;canvas.height=rect.height*dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    var W=rect.width,H=rect.height;
+    var dk=isDk();
+    ctx.fillStyle=dk?"#262626":"#ffffff";ctx.fillRect(0,0,W,H);
+    var pad={l:45,r:20,t:25,b:35};
+    var pw=W-pad.l-pad.r,ph=H-pad.t-pad.b;
+    var minPos=-t,maxPos=t;
+    var range=maxPos-minPos;
+    var maxProb=0;
+    for(var p=minPos;p<=maxPos;p++){
+      var cp=cProbs[p]||0,qp=qProbs[p]||0;
+      if(cp>maxProb)maxProb=cp;
+      if(qp>maxProb)maxProb=qp;
+    }
+    maxProb*=1.1;
+    var colC=dk?"rgba(224,112,112,0.7)":"rgba(196,78,82,0.7)";
+    var colQ=dk?"rgba(106,155,210,0.8)":"rgba(76,114,176,0.8)";
+    // Classical bars
+    ctx.fillStyle=colC;
+    for(var p=minPos;p<=maxPos;p++){
+      var cp=cProbs[p]||0;
+      var x=pad.l+(p-minPos)/range*pw;
+      var bw=pw/range*0.4;
+      var bh=cp/maxProb*ph;
+      ctx.fillRect(x-bw,pad.t+ph-bh,bw,bh);
+    }
+    // Quantum line
+    ctx.strokeStyle=colQ;ctx.lineWidth=2;
+    ctx.beginPath();
+    var first=true;
+    for(var p=minPos;p<=maxPos;p++){
+      var qp=qProbs[p]||0;
+      var x=pad.l+(p-minPos)/range*pw;
+      var y=pad.t+ph-qp/maxProb*ph;
+      if(first){ctx.moveTo(x,y);first=false;}else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    // Axes
+    ctx.strokeStyle=dk?"#555":"#ccc";ctx.lineWidth=0.5;
+    ctx.beginPath();ctx.moveTo(pad.l,pad.t+ph);ctx.lineTo(pad.l+pw,pad.t+ph);ctx.stroke();
+    ctx.fillStyle=dk?"#999":"#666";ctx.font="10px "+getComputedStyle(document.body).getPropertyValue("--font-mono");
+    ctx.textAlign="center";
+    ctx.fillText("Position",pad.l+pw/2,H-5);
+    for(var i=-1;i<=1;i+=0.5){
+      var pos=Math.round(i*t);
+      var x=pad.l+(pos-minPos)/range*pw;
+      ctx.fillText(pos,x,pad.t+ph+14);
+    }
+    // Legend
+    ctx.fillStyle=colC;ctx.fillRect(pad.l+5,pad.t+5,12,12);
+    ctx.fillStyle=dk?"#ccc":"#333";ctx.font="10px "+getComputedStyle(document.body).getPropertyValue("--font-mono");
+    ctx.textAlign="left";ctx.fillText("Classical (binomial)",pad.l+22,pad.t+15);
+    ctx.strokeStyle=colQ;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(pad.l+5,pad.t+28);ctx.lineTo(pad.l+17,pad.t+28);ctx.stroke();
+    ctx.fillStyle=dk?"#ccc":"#333";ctx.fillText("Quantum (Hadamard coin)",pad.l+22,pad.t+32);
+    // Classical std dev
+    var cStd=Math.sqrt(t);
+    infoEl.textContent="After "+t+" steps: classical std dev = "+cStd.toFixed(1)+" (sqrt(t)), quantum spread ~"+t+" (linear in t). The asymmetry is a signature of the Hadamard coin.";
+  }
+  stSlider.addEventListener("input",draw);
+  window.addEventListener("resize",draw);
+  setTimeout(draw,50);
+})();
+</script>
+
 <h3>Continuous-Time Quantum Walks</h3>
 
 <p>
@@ -561,33 +778,6 @@ $$C = H = \frac{1}{\sqrt{2}}\begin{pmatrix} 1 & 1 \\ 1 & -1 \end{pmatrix}$$
   $O(\sqrt{T})$ time (under certain conditions on the spectral gap). Szegedy's framework
   underpins the qubitization technique used in advanced Hamiltonian simulation (Chapter 33).
 </p>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="16">OPENQASM 3.0;
-// Quantum walk on a 4-node cycle graph (2 qubits for position)
-// Coin: Hadamard on ancilla qubit
-// Shift: increment/decrement position mod 4
-qubit[3] q; // q[0]=coin, q[1..2]=position
-bit[2] c;
-// Initialize: position |00>, coin |0>
-h q[0]; // coin flip
-// Conditional shift: if coin=0, decrement; if coin=1, increment
-// Simplified: CNOT-based shift on position register
-cx q[0], q[1];
-// Second step
-h q[0];
-cx q[0], q[2];
-// Third step
-h q[0];
-cx q[0], q[1];
-c[0] = measure q[1];
-c[1] = measure q[2];</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
 
 <p>
   The sandbox above illustrates the coin-flip-then-conditional-shift structure of a discrete-time
@@ -748,6 +938,88 @@ c[1] = measure q[2];</textarea>
   </li>
 </ul>
 
+<!-- Widget 3: HHL Pipeline Diagram -->
+<div class="widget" id="hhl-pipeline-widget">
+  <div class="widget-header">HHL Algorithm Pipeline</div>
+  <p style="font-size:0.9rem;margin-bottom:0.5rem">Click a stage to see details. The pipeline transforms $|b\rangle$ into $|x\rangle \propto A^{-1}|b\rangle$.</p>
+  <canvas id="hhl-canvas" width="600" height="200" style="width:100%;border:1px solid var(--color-border);border-radius:var(--radius)"></canvas>
+  <div id="hhl-info" style="padding:0.5rem;font-size:0.9rem;color:var(--color-text-muted);font-family:var(--font-mono);min-height:2.5rem;margin-top:0.5rem"></div>
+</div>
+<script>
+(function(){
+  var canvas=document.getElementById("hhl-canvas"),ctx=canvas.getContext("2d");
+  var infoEl=document.getElementById("hhl-info");
+  var stages=[
+    {name:"State\nPrep",short:"Encode b as |b>",detail:"Load the vector b into a quantum state |b> = sum_i b_i|i>. Requires efficient state preparation (the input bottleneck)."},
+    {name:"QPE",short:"Extract eigenvalues",detail:"Quantum Phase Estimation with e^(iAt) extracts eigenvalues lambda_j of A into an ancilla register: sum_j beta_j|lambda_j>|u_j>."},
+    {name:"Controlled\nRotation",short:"Invert eigenvalues",detail:"Rotate an ancilla qubit by angle arcsin(C/lambda_j), conditioned on the eigenvalue register. This encodes 1/lambda_j in the amplitudes."},
+    {name:"Inverse\nQPE",short:"Uncompute eigenvalues",detail:"Reverse the phase estimation to disentangle the eigenvalue register, leaving the solution encoded in the main register."},
+    {name:"Post-\nselect",short:"Extract |x>",detail:"Measure the ancilla qubit. On success (outcome |1>), the remaining state is |x> proportional to A^{-1}|b>. Success probability ~ (C/kappa)^2."}
+  ];
+  var selected=-1;
+  function isDk(){return window.matchMedia("(prefers-color-scheme:dark)").matches;}
+  function draw(){
+    var dpr=window.devicePixelRatio||1;
+    var rect=canvas.getBoundingClientRect();
+    canvas.width=rect.width*dpr;canvas.height=rect.height*dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    var W=rect.width,H=rect.height;
+    var dk=isDk();
+    ctx.fillStyle=dk?"#262626":"#ffffff";ctx.fillRect(0,0,W,H);
+    var n=stages.length;
+    var bw=Math.min(100,(W-40)/(n+0.3)),bh=80,gap=8;
+    var totalW=n*bw+(n-1)*gap;
+    var startX=(W-totalW)/2,startY=(H-bh)/2;
+    var cols=[dk?"#6A9BD2":"#4C72B0",dk?"#78C87C":"#55a868",dk?"#E07070":"#C44E52",dk?"#78C87C":"#55a868",dk?"#CCB974":"#B8A960"];
+    var mono=getComputedStyle(document.body).getPropertyValue("--font-mono");
+    stages.forEach(function(s,i){
+      var x=startX+i*(bw+gap);
+      ctx.fillStyle=i===selected?(dk?"rgba(106,155,210,0.3)":"rgba(76,114,176,0.15)"):(dk?"rgba(255,255,255,0.05)":"rgba(0,0,0,0.03)");
+      ctx.strokeStyle=cols[i];ctx.lineWidth=i===selected?3:1.5;
+      ctx.beginPath();ctx.roundRect(x,startY,bw,bh,6);ctx.fill();ctx.stroke();
+      ctx.fillStyle=dk?"#ccc":"#333";ctx.font="11px "+mono;ctx.textAlign="center";
+      var lines=s.name.split("\n");
+      lines.forEach(function(line,li){
+        ctx.fillText(line,x+bw/2,startY+bh/2-((lines.length-1)*7)+li*14);
+      });
+      ctx.fillStyle=dk?"#888":"#999";ctx.font="9px "+mono;
+      ctx.fillText(s.short,x+bw/2,startY+bh-8);
+      // Arrow
+      if(i<n-1){
+        var ax=x+bw+2,ay=startY+bh/2;
+        ctx.strokeStyle=dk?"#666":"#aaa";ctx.lineWidth=1.5;
+        ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(ax+gap-4,ay);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(ax+gap-8,ay-4);ctx.lineTo(ax+gap-4,ay);ctx.lineTo(ax+gap-8,ay+4);ctx.stroke();
+      }
+    });
+    // Input/output labels
+    ctx.fillStyle=dk?"#888":"#999";ctx.font="12px "+mono;
+    ctx.textAlign="right";ctx.fillText("|b>",startX-8,startY+bh/2+4);
+    ctx.textAlign="left";ctx.fillText("|x>",startX+totalW+8,startY+bh/2+4);
+  }
+  canvas.addEventListener("click",function(e){
+    var rect=canvas.getBoundingClientRect();
+    var mx=e.clientX-rect.left;
+    var W=rect.width,H=rect.height;
+    var n=stages.length;
+    var bw=Math.min(100,(W-40)/(n+0.3)),gap=8;
+    var totalW=n*bw+(n-1)*gap;
+    var startX=(W-totalW)/2;
+    for(var i=0;i<n;i++){
+      var x=startX+i*(bw+gap);
+      if(mx>=x&&mx<=x+bw){
+        selected=i;
+        infoEl.textContent="Stage "+(i+1)+" ("+stages[i].name.replace("\n"," ")+"): "+stages[i].detail;
+        draw();return;
+      }
+    }
+  });
+  infoEl.textContent="Click a stage to see its role in the HHL pipeline.";
+  window.addEventListener("resize",draw);
+  setTimeout(draw,50);
+})();
+</script>
+
 </section>
 
 <!-- ================================================================== -->
@@ -901,137 +1173,96 @@ $$U_\Phi = e^{i\phi_0 Z} \prod_{k=1}^{d} \left( W \cdot e^{i\phi_k Z} \right)$$
   design now has QSVT as a foundational framework.
 </p>
 
-</section>
-
-<!-- ================================================================== -->
-
-<section id="review">
-<h2>Chapter 31 Review</h2>
-
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 31 Review</div>
-
-  <div class="flashcard" data-card-id="ch31-hsp-definition">
-    <div class="card-front">Define the Hidden Subgroup Problem. What are the input and output?</div>
-    <div class="card-back">
-      Given a group $G$ and black-box access to $f : G \to S$ that is constant on left cosets of an
-      unknown subgroup $H \leq G$ and distinct across cosets, determine $H$. The input is oracle
-      access to $f$; the output is a description of $H$. When $G$ is abelian, this can be solved
-      in quantum polynomial time via the QFT over $G$.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch31-shor-as-hsp">
-    <div class="card-front">How is Shor's factoring algorithm an instance of the Hidden Subgroup Problem?</div>
-    <div class="card-back">
-      Shor's algorithm finds the order $r$ of $a$ modulo $N$ by defining $f(x) = a^x \bmod N$.
-      This function hides the subgroup $H = r\mathbb{Z}$ in the group $G = \mathbb{Z}$, since
-      $f(x_1) = f(x_2)$ iff $r | (x_1 - x_2)$. The QFT over $\mathbb{Z}_M$ concentrates
-      amplitude at multiples of $M/r$, revealing $r$ via continued fractions.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch31-non-abelian-difficulty">
-    <div class="card-front">Why is the non-abelian HSP (e.g., over $S_n$) harder than the abelian case?</div>
-    <div class="card-back">
-      For non-abelian groups, irreducible representations can be high-dimensional, so measuring in
-      the Fourier basis gives much less information about $H$. For the symmetric group $S_n$
-      (relevant to Graph Isomorphism), weak Fourier sampling provably gives exponentially little
-      information. Entangled measurements across $\Omega(n \log n)$ coset states are necessary,
-      and efficient algorithms remain unknown.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch31-quantum-walk-speedup">
-    <div class="card-front">How do quantum walks differ from classical random walks in their spreading behavior?</div>
-    <div class="card-back">
-      A classical random walk on the integer line spreads as $\sqrt{t}$ (standard deviation after
-      $t$ steps), while a quantum walk spreads linearly in $t$ - a quadratic speedup. This
-      ballistic spreading, caused by quantum interference, is the basis for quantum walk search
-      algorithms like Szegedy's framework, which generically provides $O(\sqrt{T})$ search time
-      when the classical walk takes expected time $T$.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch31-hhl-caveats">
-    <div class="card-front">List the four main caveats of the HHL algorithm for solving $Ax = b$.</div>
-    <div class="card-back">
-      (1) <strong>Input problem:</strong> Loading classical $b$ into $|b\rangle$ may take $O(N)$
-      time, negating the speedup. (2) <strong>Output problem:</strong> HHL produces a quantum
-      state $|x\rangle$, not the classical vector; extracting all components takes $O(N)$ time.
-      (3) <strong>Sparsity:</strong> $A$ must be sparse for efficient Hamiltonian simulation.
-      (4) <strong>Condition number:</strong> Runtime scales as poly($\kappa$); ill-conditioned
-      systems are expensive.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch31-qsvt-definition">
-    <div class="card-front">What is QSVT, and why is it called a "grand unification" of quantum algorithms?</div>
-    <div class="card-back">
-      Quantum Singular Value Transformation (QSVT) applies an arbitrary polynomial transformation
-      to the singular values of a block-encoded matrix, using a sequence of signal processing
-      angles. It unifies quantum algorithms because Grover's search, phase estimation, HHL,
-      Hamiltonian simulation, and amplitude amplification are all recovered by choosing different
-      polynomials. The circuit structure (alternating oracle calls and single-qubit rotations)
-      stays the same.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch31-block-encoding">
-    <div class="card-front">What is a block encoding, and why is it important for QSVT?</div>
-    <div class="card-back">
-      A block encoding of a matrix $A$ is a unitary $U$ where $A/\alpha$ appears as a subblock:
-      $\langle 0^a | U | 0^a \rangle = A/\alpha$. Block encodings can be constructed from sparse
-      matrix oracles, LCU decompositions, or other quantum procedures. They cleanly separate data
-      access (how to encode $A$) from computation (what polynomial to apply via QSVT), enabling
-      modular quantum algorithm design.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch31-qsp-polynomial">
-    <div class="card-front">In Quantum Signal Processing, what can the processing angles $\phi_k$ achieve?</div>
-    <div class="card-back">
-      Given a signal operator encoding a value $a \in [-1,1]$, a sequence of processing angles
-      $\phi_0, \ldots, \phi_d$ can realize any degree-$d$ polynomial $P(a)$ in the top-left entry
-      of the resulting unitary, subject to parity constraints ($P$ has the same parity as $d$) and
-      boundedness ($|P(a)| \leq 1$ for $a \in [-1,1]$). This is the foundation of QSVT's
-      universality.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
+<!-- Widget 4: QSVT Unification Diagram -->
+<div class="widget" id="qsvt-unification-widget">
+  <div class="widget-header">QSVT: Grand Unification of Quantum Algorithms</div>
+  <p style="font-size:0.9rem;margin-bottom:0.5rem">Click an algorithm to see the polynomial choice that recovers it from QSVT.</p>
+  <canvas id="qsvt-canvas" width="600" height="380" style="width:100%;border:1px solid var(--color-border);border-radius:var(--radius)"></canvas>
+  <div id="qsvt-info" style="padding:0.5rem;font-size:0.9rem;min-height:2.5rem;border:1px solid var(--color-border);border-radius:var(--radius);margin-top:0.5rem;background:var(--color-code-bg)"></div>
 </div>
+<script>
+(function(){
+  var canvas=document.getElementById("qsvt-canvas"),ctx=canvas.getContext("2d");
+  var infoEl=document.getElementById("qsvt-info");
+  var spokes=[
+    {name:"Grover\nSearch",angle:0,poly:"Chebyshev amplification polynomial",detail:"P(x) amplifies small amplitude a to near 1 using O(1/a) applications. Recovers Grover's quadratic speedup.",col:"#C44E52"},
+    {name:"Phase\nEstimation",angle:60,poly:"Step function polynomial",detail:"P(x) approximates a step function: 1 for eigenvalues above threshold, 0 below. Degree O(1/epsilon).",col:"#4C72B0"},
+    {name:"HHL\n(Ax=b)",angle:120,poly:"Reciprocal polynomial P(x) ~ 1/x",detail:"P(sigma) ~ 1/sigma inverts singular values. Degree O(kappa * log(1/epsilon)) where kappa is condition number.",col:"#55a868"},
+    {name:"Hamiltonian\nSimulation",angle:180,poly:"e^{-ixt} approximation",detail:"P(x) ~ e^{-ixt} approximates the complex exponential. Degree O(t + log(1/epsilon)). Optimal in both t and epsilon.",col:"#8172B2"},
+    {name:"Amplitude\nAmplification",angle:240,poly:"Sign function polynomial",detail:"P(x) approximates sign(x), amplifying the marked subspace. Generalization of Grover for arbitrary initial overlaps.",col:"#CCB974"},
+    {name:"Eigenvalue\nFiltering",angle:300,poly:"Rectangular window polynomial",detail:"P(x) = 1 on [a,b], 0 outside. Projects onto eigenspace in a desired energy range. Key for ground state preparation.",col:"#E07070"}
+  ];
+  var selected=-1;
+  function isDk(){return window.matchMedia("(prefers-color-scheme:dark)").matches;}
+  function draw(){
+    var dpr=window.devicePixelRatio||1;
+    var rect=canvas.getBoundingClientRect();
+    canvas.width=rect.width*dpr;canvas.height=rect.height*dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    var W=rect.width,H=rect.height;
+    var dk=isDk();
+    ctx.fillStyle=dk?"#262626":"#ffffff";ctx.fillRect(0,0,W,H);
+    var cx=W/2,cy=H/2;
+    var R=Math.min(W,H)*0.35;
+    var innerR=R*0.32;
+    var mono=getComputedStyle(document.body).getPropertyValue("--font-mono");
+    var body=getComputedStyle(document.body).getPropertyValue("--font-body");
+    // Center circle: QSVT
+    ctx.fillStyle=dk?"rgba(106,155,210,0.15)":"rgba(76,114,176,0.1)";
+    ctx.strokeStyle=dk?"#6A9BD2":"#4C72B0";ctx.lineWidth=3;
+    ctx.beginPath();ctx.arc(cx,cy,innerR,0,2*Math.PI);ctx.fill();ctx.stroke();
+    ctx.fillStyle=dk?"#eee":"#222";ctx.font="bold 14px "+mono;ctx.textAlign="center";ctx.textBaseline="middle";
+    ctx.fillText("QSVT",cx,cy-7);
+    ctx.font="9px "+mono;ctx.fillStyle=dk?"#aaa":"#666";
+    ctx.fillText("Choose polynomial P(x)",cx,cy+10);
+    // Spokes
+    spokes.forEach(function(s,i){
+      var ang=(s.angle-90)*Math.PI/180;
+      var ex=cx+R*Math.cos(ang),ey=cy+R*Math.sin(ang);
+      var ix=cx+innerR*Math.cos(ang),iy=cy+innerR*Math.sin(ang);
+      // Line
+      ctx.strokeStyle=i===selected?s.col:(dk?"#555":"#bbb");
+      ctx.lineWidth=i===selected?2.5:1.5;
+      ctx.beginPath();ctx.moveTo(ix,iy);ctx.lineTo(ex,ey);ctx.stroke();
+      // Outer node
+      var nr=32;
+      ctx.fillStyle=i===selected?(dk?"rgba(255,255,255,0.1)":"rgba(0,0,0,0.05)"):"transparent";
+      ctx.strokeStyle=s.col;ctx.lineWidth=i===selected?3:1.5;
+      ctx.beginPath();ctx.arc(ex,ey,nr,0,2*Math.PI);ctx.fill();ctx.stroke();
+      ctx.fillStyle=dk?"#ddd":"#333";ctx.font=(i===selected?"bold ":"")+"10px "+mono;
+      ctx.textAlign="center";ctx.textBaseline="middle";
+      var lines=s.name.split("\n");
+      lines.forEach(function(line,li){
+        ctx.fillText(line,ex,ey-((lines.length-1)*6)+li*12);
+      });
+    });
+  }
+  canvas.addEventListener("click",function(e){
+    var rect=canvas.getBoundingClientRect();
+    var mx=e.clientX-rect.left,my=e.clientY-rect.top;
+    var W=rect.width,H=rect.height;
+    var cx=W/2,cy=H/2;
+    var R=Math.min(W,H)*0.35;
+    for(var i=0;i<spokes.length;i++){
+      var ang=(spokes[i].angle-90)*Math.PI/180;
+      var ex=cx+R*Math.cos(ang),ey=cy+R*Math.sin(ang);
+      var dx=mx-ex,dy=my-ey;
+      if(dx*dx+dy*dy<40*40){
+        selected=i;
+        infoEl.textContent=spokes[i].name.replace("\n"," ")+": "+spokes[i].poly+". "+spokes[i].detail;
+        draw();return;
+      }
+    }
+  });
+  infoEl.textContent="Click an algorithm around the ring to see how QSVT recovers it via polynomial choice.";
+  window.addEventListener("resize",draw);
+  setTimeout(draw,50);
+})();
+</script>
+
 </section>
+
+
 
     </article>
 
@@ -1060,7 +1291,6 @@ $$U_\Phi = e^{i\phi_0 Z} \prod_{k=1}^{d} \left( W \cdot e^{i\phi_k Z} \right)$$
   
   <script>
   "use strict";
-  
   function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
   function isDark() { return window.matchMedia("(prefers-color-scheme: dark)").matches; }
   function renderMath(el) {
@@ -1068,7 +1298,6 @@ $$U_\Phi = e^{i\phi_0 Z} \prod_{k=1}^{d} \left( W \cdot e^{i\phi_k Z} \right)$$
       renderMathInElement(el, { delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}], throwOnError: false });
   }
 
-  
   var wasmReady = null;
   function ensureWasm() {
     if (!wasmReady) {
@@ -1081,7 +1310,6 @@ $$U_\Phi = e^{i\phi_0 Z} \prod_{k=1}^{d} \left( W \cdot e^{i\phi_k Z} \right)$$
     return wasmReady;
   }
 
-  
   var SRS_KEY = "goqu-srs";
   function srsLoad() { try { return JSON.parse(localStorage.getItem(SRS_KEY) || "{}"); } catch(e) { return {}; } }
   function srsSave(d) { localStorage.setItem(SRS_KEY, JSON.stringify(d)); }
@@ -1099,7 +1327,6 @@ $$U_\Phi = e^{i\phi_0 Z} \prod_{k=1}^{d} \left( W \cdot e^{i\phi_k Z} \right)$$
     d[id] = s; srsSave(d);
   }
 
-  
   function initSandbox(el) {
     var code = el.querySelector(".code"), output = el.querySelector(".output");
     if (!code || !output) return;
@@ -1121,7 +1348,6 @@ $$U_\Phi = e^{i\phi_0 Z} \prod_{k=1}^{d} \left( W \cdot e^{i\phi_k Z} \right)$$
     if (el.hasAttribute("data-autorun")) run();
   }
 
-  
   function initSimulation(el) {
     var tmplEl = el.querySelector(".sim-qasm"), output = el.querySelector(".sim-output");
     var sliders = el.querySelectorAll('input[type="range"]');
@@ -1193,7 +1419,6 @@ $$U_\Phi = e^{i\phi_0 Z} \prod_{k=1}^{d} \left( W \cdot e^{i\phi_k Z} \right)$$
     update();
   }
 
-  
   function formatStabilizer(s) {
     if (!s) return "";
     var sign = s[0], ops = s.slice(1), html = '<span class="stab-sign">' + esc(sign) + '</span>';
@@ -1204,7 +1429,6 @@ $$U_\Phi = e^{i\phi_0 Z} \prod_{k=1}^{d} \left( W \cdot e^{i\phi_k Z} \right)$$
     return html;
   }
 
-  
   function initExercise(el) {
     var code = el.querySelector(".code"), feedback = el.querySelector(".exercise-feedback");
     var checkBtn = el.querySelector('[data-action="check"]');
@@ -1242,7 +1466,6 @@ $$U_\Phi = e^{i\phi_0 Z} \prod_{k=1}^{d} \left( W \cdot e^{i\phi_k Z} \right)$$
     if (hintBtn && hintEl) hintBtn.addEventListener("click", function() { hintEl.style.display = hintEl.style.display === "none" ? "block" : "none"; });
   }
 
-  
   function initFlashcardDeck(el) {
     el.querySelectorAll(".flashcard").forEach(function(card) {
       var id = card.dataset.cardId;
@@ -1261,7 +1484,6 @@ $$U_\Phi = e^{i\phi_0 Z} \prod_{k=1}^{d} \left( W \cdot e^{i\phi_k Z} \right)$$
     });
   }
 
-  
   function initPOE(el) {
     var steps = el.querySelectorAll(".poe-step"), prog = el.querySelectorAll(".poe-progress-step");
     if (steps.length === 0) return;
@@ -1278,7 +1500,6 @@ $$U_\Phi = e^{i\phi_0 Z} \prod_{k=1}^{d} \left( W \cdot e^{i\phi_k Z} \right)$$
     show(0);
   }
 
-  
   function initStepThrough(el) {
     var qasmEl = el.querySelector(".step-qasm");
     var output = el.querySelector(".step-output");
@@ -1360,9 +1581,198 @@ $$U_\Phi = e^{i\phi_0 Z} \prod_{k=1}^{d} \left( W \cdot e^{i\phi_k Z} \right)$$
     load();
   }
 
-  
+  function initComparison(el) {
+    var panels = el.querySelectorAll(".comparison-panel");
+    var sliders = el.querySelectorAll('.comparison-controls input[type="range"]');
+    var selects = el.querySelectorAll('.comparison-controls select[data-param]');
+    if (panels.length < 2) return;
+    var mode = el.dataset.mode || "default";
+    var pending = false, dirty = false;
+
+    function getParams() {
+      var params = {};
+      sliders.forEach(function(s) {
+        params[s.dataset.param] = parseFloat(s.value);
+        var o = s.parentElement.querySelector("output");
+        if (o) o.textContent = parseFloat(s.value).toFixed(2);
+      });
+      selects.forEach(function(s) { params[s.dataset.param] = s.value; });
+      return params;
+    }
+
+    function substituteQasm(tmpl, params) {
+      var qasm = tmpl;
+      for (var k in params) qasm = qasm.replaceAll("{" + k + "}", params[k].toString());
+      return qasm;
+    }
+
+    async function runPanel(panel, params) {
+      var tmplEl = panel.querySelector(".comparison-qasm");
+      var output = panel.querySelector(".comparison-output");
+      if (!tmplEl || !output) return;
+      var qasm = substituteQasm(tmplEl.textContent, params);
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var html = "", r;
+        if (mode === "ideal-noisy") {
+          var isLeft = panel === panels[0];
+          if (isLeft) {
+            r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+            if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+            html = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+          } else {
+            var noiseModel = el.dataset.noiseModel || params.noiseModel || "depolarizing";
+            var noiseParam = parseFloat(params.noiseParam || "0.1");
+            if (window.runNoisyQASM) {
+              r = JSON.parse(window.runNoisyQASM(qasm, 1024, noiseModel, noiseParam, isDark()));
+              if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+              html = (r.circuitSVG || r.circuit || "") + (r.histogramSVG || r.histogram || "") + (r.stateCitySVG || "");
+              if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span></div>';
+            }
+          }
+        } else if (mode === "transpile") {
+          var target = panel.dataset.target || "generic";
+          if (window.transpileQASM) {
+            r = JSON.parse(window.transpileQASM(qasm, target, isDark()));
+            if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+            html = (r.circuit || r.circuitSVG || "") + (r.info || "");
+          }
+        } else {
+          r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          html = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+        }
+        output.innerHTML = html;
+        renderMath(output);
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    async function runAll() {
+      if (pending) { dirty = true; return; }
+      pending = true;
+      await ensureWasm();
+      var params = getParams();
+      var promises = [];
+      panels.forEach(function(panel) { promises.push(runPanel(panel, params)); });
+      await Promise.all(promises);
+      pending = false;
+      if (dirty) { dirty = false; runAll(); }
+    }
+
+    sliders.forEach(function(s) { s.addEventListener("input", runAll); });
+    selects.forEach(function(s) { s.addEventListener("change", runAll); });
+
+    var runBtn = el.querySelector('[data-action="run"]');
+    if (!runBtn) {
+      var controls = el.querySelector(".comparison-controls");
+      if (controls) {
+        runBtn = document.createElement("button");
+        runBtn.setAttribute("data-action", "run");
+        runBtn.textContent = "Run";
+        controls.appendChild(runBtn);
+      }
+    }
+    if (runBtn) runBtn.addEventListener("click", runAll);
+
+    runAll();
+  }
+
+  function initAnimatedWalkthrough(el) {
+    var stages = el.querySelectorAll(".walkthrough-stage");
+    var progressBar = el.querySelector(".walkthrough-progress");
+    var prevBtn = el.querySelector('[data-action="prev"]');
+    var nextBtn = el.querySelector('[data-action="next"]');
+    var autoBtn = el.querySelector('[data-action="auto"]');
+    if (stages.length === 0) return;
+    var cur = 0, autoTimer = null, stageRan = {};
+
+    
+    if (progressBar) {
+      progressBar.textContent = "";
+      for (var i = 0; i < stages.length; i++) {
+        var pip = document.createElement("div");
+        pip.className = "walkthrough-pip" + (i === 0 ? " active" : "");
+        pip.setAttribute("data-index", i);
+        pip.textContent = i + 1;
+        progressBar.appendChild(pip);
+      }
+    }
+
+    function updateProgress() {
+      if (!progressBar) return;
+      var pips = progressBar.querySelectorAll(".walkthrough-pip");
+      pips.forEach(function(p, i) {
+        p.classList.remove("active", "done");
+        if (i < cur) p.classList.add("done");
+        if (i === cur) p.classList.add("active");
+      });
+    }
+
+    async function runStageQasm(stage) {
+      var idx = stage.dataset.stage || "0";
+      if (stageRan[idx]) return;
+      var qasmEl = stage.querySelector(".walkthrough-qasm");
+      var output = stage.querySelector(".walkthrough-output");
+      if (!qasmEl || !output) return;
+      stageRan[idx] = true;
+      await ensureWasm();
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(qasmEl.textContent, 1024, isDark()));
+        if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+        output.innerHTML = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+        renderMath(output);
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    function show(idx) {
+      if (idx < 0 || idx >= stages.length) return;
+      stages.forEach(function(s, i) {
+        s.classList.remove("active", "walkthrough-exit");
+        if (i === cur && i !== idx) s.classList.add("walkthrough-exit");
+      });
+      var prev = cur;
+      cur = idx;
+      setTimeout(function() {
+        stages.forEach(function(s, i) {
+          s.classList.remove("walkthrough-exit");
+          s.classList.toggle("active", i === cur);
+        });
+      }, prev !== idx ? 150 : 0);
+      updateProgress();
+      if (prevBtn) prevBtn.disabled = (cur === 0);
+      if (nextBtn) nextBtn.disabled = (cur >= stages.length - 1);
+      runStageQasm(stages[cur]);
+    }
+
+    function stopAuto() {
+      if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+      if (autoBtn) autoBtn.textContent = "Auto-play";
+    }
+
+    if (prevBtn) prevBtn.addEventListener("click", function() { stopAuto(); if (cur > 0) show(cur - 1); });
+    if (nextBtn) nextBtn.addEventListener("click", function() { stopAuto(); if (cur < stages.length - 1) show(cur + 1); });
+    if (autoBtn) autoBtn.addEventListener("click", function() {
+      if (autoTimer) { stopAuto(); return; }
+      autoBtn.textContent = "Pause";
+      autoTimer = setInterval(function() {
+        if (cur < stages.length - 1) { show(cur + 1); }
+        else { stopAuto(); }
+      }, 3000);
+    });
+
+    if (progressBar) progressBar.addEventListener("click", function(e) {
+      var pip = e.target.closest(".walkthrough-pip");
+      if (pip) { stopAuto(); show(parseInt(pip.dataset.index, 10)); }
+    });
+
+    show(0);
+  }
+
   document.addEventListener("DOMContentLoaded", function() {
-    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough};
+    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough, comparison: initComparison, "animated-walkthrough": initAnimatedWalkthrough};
     document.querySelectorAll("[data-component]").forEach(function(el) { var fn = reg[el.dataset.component]; if (fn) fn(el); });
   });
   </script>

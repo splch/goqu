@@ -221,6 +221,166 @@
   speculation to silicon.
 </p>
 
+<!-- Widget 1: Interactive QC Timeline -->
+<div class="widget" id="qc-timeline">
+  <div class="widget-header">Interactive Quantum Computing Timeline (1981-2026)</div>
+  <div style="display:flex; gap:0.5rem; margin-bottom:0.75rem; flex-wrap:wrap;">
+    <button id="tl-era-all" class="tl-era-btn">All Eras</button>
+    <button id="tl-era-theory" class="tl-era-btn">Theory (1981-94)</button>
+    <button id="tl-era-foundation" class="tl-era-btn">Foundation (1995-2010)</button>
+    <button id="tl-era-nisq" class="tl-era-btn">NISQ (2011-24)</button>
+    <button id="tl-era-ft" class="tl-era-btn">FT Era (2025+)</button>
+  </div>
+  <div id="tl-svg" style="width:100%; overflow-x:auto;"></div>
+  <div id="tl-detail" style="font-size:0.9rem; margin-top:0.5rem; padding:0.5rem; border:1px solid var(--color-border); border-radius:var(--radius); display:none;"></div>
+</div>
+
+<script>
+(function(){
+  var svgBox = document.getElementById('tl-svg');
+  var detailBox = document.getElementById('tl-detail');
+  var currentFilter = 'all';
+  var selectedMilestone = -1;
+
+  var eras = [
+    {id:"theory", name:"Theoretical", start:1981, end:1994, color:"#9b59b6"},
+    {id:"foundation", name:"Foundational", start:1995, end:2010, color:"#3498db"},
+    {id:"nisq", name:"NISQ", start:2011, end:2024, color:"#e67e22"},
+    {id:"ft", name:"Fault-Tolerant", start:2025, end:2026, color:"#27ae60"}
+  ];
+
+  var milestones = [
+    {year:1981, label:"Feynman's proposal", era:"theory", desc:"Feynman proposes quantum mechanical computers to simulate physics efficiently."},
+    {year:1985, label:"Deutsch's UQC", era:"theory", desc:"David Deutsch formalizes the universal quantum computer concept."},
+    {year:1992, label:"Deutsch-Jozsa", era:"theory", desc:"First quantum algorithm with exponential speedup over deterministic classical."},
+    {year:1994, label:"Shor's algorithm", era:"theory", desc:"Peter Shor shows quantum computers can factor integers in polynomial time."},
+    {year:1995, label:"QEC discovered", era:"foundation", desc:"Shor and Steane independently show quantum error correction is possible."},
+    {year:1996, label:"Grover's search", era:"foundation", desc:"Lov Grover discovers quadratic quantum speedup for unstructured search."},
+    {year:1997, label:"Kitaev toric code", era:"foundation", desc:"Alexei Kitaev introduces topological quantum error correction."},
+    {year:1998, label:"First experiments", era:"foundation", desc:"NMR quantum computers demonstrate Deutsch-Jozsa on 2-3 qubits."},
+    {year:2001, label:"Shor's on NMR", era:"foundation", desc:"IBM factors 15 on a 7-qubit NMR quantum computer."},
+    {year:2011, label:"D-Wave annealer", era:"nisq", desc:"First commercial quantum computing system (quantum annealer)."},
+    {year:2016, label:"IBM Quantum cloud", era:"nisq", desc:"IBM puts a 5-qubit quantum computer on the cloud for free public access."},
+    {year:2019, label:"Google supremacy", era:"nisq", desc:"Sycamore performs random circuit sampling in 200s vs 10,000 years classically."},
+    {year:2023, label:"Beyond break-even", era:"nisq", desc:"Yale demonstrates bosonic logical qubit exceeding physical component lifetimes."},
+    {year:2024, label:"Below threshold", era:"nisq", desc:"Google Willow shows error rates decrease with code distance. NIST PQC standards."},
+    {year:2025, label:"Year of FT", era:"ft", desc:"Majorana 1, QuEra 3000q, AlphaQubit, Helios 48 logical qubits, DARPA US2QC."},
+    {year:2026, label:"You are here", era:"ft", desc:"The fault-tolerant era has begun. The rest is up to you."}
+  ];
+
+  function isDk(){ return window.matchMedia("(prefers-color-scheme: dark)").matches; }
+
+  // Button handlers
+  document.querySelectorAll('.tl-era-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      currentFilter = btn.id.replace('tl-era-','');
+      selectedMilestone = -1;
+      draw();
+    });
+  });
+
+  function draw(){
+    var dark = isDk();
+    var textC = dark ? '#ccc' : '#333';
+    var gridC = dark ? '#444' : '#ddd';
+
+    var filtered = milestones.filter(function(m){
+      return currentFilter === 'all' || m.era === currentFilter;
+    });
+
+    var W = 520, H = 320;
+    var pl = 30, pr = 30, pt = 50, pb = 40;
+    var pw = W - pl - pr;
+    var startYear = 1980, endYear = 2027;
+
+    var ns = document.createElementNS("http://www.w3.org/2000/svg","svg");
+    ns.setAttribute("viewBox","0 0 "+W+" "+H);
+    ns.setAttribute("style","font-family:system-ui,sans-serif;max-width:100%;height:auto;cursor:pointer;");
+
+    function mkEl(tag,attrs){
+      var e = document.createElementNS("http://www.w3.org/2000/svg",tag);
+      for(var k in attrs) e.setAttribute(k,attrs[k]);
+      return e;
+    }
+    function addText(x,y,txt,sz,anch,col,fw){
+      var t = mkEl("text",{x:x,y:y,"text-anchor":anch||"middle",fill:col||textC,"font-size":sz||"11"});
+      if(fw) t.setAttribute("font-weight",fw);
+      t.textContent = txt;
+      ns.appendChild(t);
+    }
+
+    function xPos(year){ return pl + (year - startYear)/(endYear - startYear) * pw; }
+
+    // Era bands
+    for(var e=0;e<eras.length;e++){
+      var era = eras[e];
+      if(currentFilter !== 'all' && currentFilter !== era.id) continue;
+      var x1 = xPos(era.start), x2 = xPos(Math.min(era.end, endYear));
+      ns.appendChild(mkEl("rect",{x:x1,y:pt-15,width:x2-x1,height:30,rx:4,fill:era.color,opacity:"0.15"}));
+      addText((x1+x2)/2,pt-2,era.name,"9","middle",era.color,"600");
+    }
+
+    // Timeline axis
+    var axisY = pt + 30;
+    ns.appendChild(mkEl("line",{x1:pl,y1:axisY,x2:W-pr,y2:axisY,stroke:textC,"stroke-width":"2"}));
+
+    // Decade ticks
+    for(var y=1980;y<=2030;y+=5){
+      var x = xPos(y);
+      if(x >= pl && x <= W-pr){
+        ns.appendChild(mkEl("line",{x1:x,y1:axisY-4,x2:x,y2:axisY+4,stroke:textC,"stroke-width":"1"}));
+        if(y%10===0) addText(x,axisY+18,y.toString(),"10","middle",textC);
+      }
+    }
+
+    // Milestones
+    for(var i=0;i<filtered.length;i++){
+      var m = filtered[i];
+      var mx = xPos(m.year);
+      var eraObj = eras.filter(function(e){ return e.id === m.era; })[0];
+      var col = eraObj ? eraObj.color : textC;
+      var isSelected = selectedMilestone === milestones.indexOf(m);
+
+      // Alternate above/below
+      var above = i % 2 === 0;
+      var stemLen = 40 + (i%3)*15;
+      var stemY = above ? axisY - stemLen : axisY + stemLen;
+
+      ns.appendChild(mkEl("line",{x1:mx,y1:axisY,x2:mx,y2:stemY,stroke:col,"stroke-width":isSelected?"2":"1",opacity:"0.6"}));
+      ns.appendChild(mkEl("circle",{cx:mx,cy:axisY,r:isSelected?6:4,fill:col}));
+
+      // Label
+      var labelY = above ? stemY - 6 : stemY + 12;
+      addText(mx,labelY,m.year.toString(),"8","middle",col,"600");
+      addText(mx,labelY+(above?-12:12),m.label,"8","middle",textC);
+
+      // Click hitbox
+      (function(idx, mObj){
+        var hit = mkEl("circle",{cx:mx,cy:axisY,r:12,fill:"transparent"});
+        hit.addEventListener('click', function(){
+          selectedMilestone = selectedMilestone === idx ? -1 : idx;
+          draw();
+          if(selectedMilestone >= 0){
+            detailBox.style.display = 'block';
+            detailBox.textContent = mObj.year + ": " + mObj.desc;
+          } else {
+            detailBox.style.display = 'none';
+          }
+        });
+        ns.appendChild(hit);
+      })(milestones.indexOf(m), m);
+    }
+
+    addText(W/2,20,"Quantum Computing: A 45-Year Journey","13","middle",textC,"600");
+
+    while(svgBox.firstChild) svgBox.removeChild(svgBox.firstChild);
+    svgBox.appendChild(ns);
+  }
+
+  draw();
+})();
+</script>
+
 <h3>The Theoretical Era (1981-1994)</h3>
 
 <p>
@@ -403,6 +563,118 @@
   in a portfolio.
 </p>
 
+<!-- Widget 2: Project Difficulty Radar -->
+<div class="widget" id="project-radar">
+  <div class="widget-header">Capstone Project Difficulty Comparison</div>
+  <div id="radar-svg" style="width:100%; overflow-x:auto;"></div>
+</div>
+
+<script>
+(function(){
+  var svgBox = document.getElementById('radar-svg');
+
+  function isDk(){ return window.matchMedia("(prefers-color-scheme: dark)").matches; }
+
+  var projects = [
+    {name:"Beginner: QRNG + Bell Test", color:"#27ae60",
+     scores:{Theory:2, Programming:3, Hardware:3, Math:2, Time:2}},
+    {name:"Intermediate: VQE", color:"#e67e22",
+     scores:{Theory:4, Programming:4, Hardware:2, Math:3, Time:4}},
+    {name:"Advanced: ML Decoder", color:"#e74c3c",
+     scores:{Theory:5, Programming:5, Hardware:1, Math:4, Time:5}}
+  ];
+
+  var axes = ["Theory","Programming","Hardware","Math","Time"];
+
+  function draw(){
+    var dark = isDk();
+    var textC = dark ? '#ccc' : '#333';
+    var gridC = dark ? '#444' : '#ddd';
+
+    var W = 520, H = 300;
+    var ns = document.createElementNS("http://www.w3.org/2000/svg","svg");
+    ns.setAttribute("viewBox","0 0 "+W+" "+H);
+    ns.setAttribute("style","font-family:system-ui,sans-serif;max-width:100%;height:auto;");
+
+    function mkEl(tag,attrs){
+      var e = document.createElementNS("http://www.w3.org/2000/svg",tag);
+      for(var k in attrs) e.setAttribute(k,attrs[k]);
+      return e;
+    }
+    function addText(x,y,txt,sz,anch,col,fw){
+      var t = mkEl("text",{x:x,y:y,"text-anchor":anch||"middle",fill:col||textC,"font-size":sz||"11"});
+      if(fw) t.setAttribute("font-weight",fw);
+      t.textContent = txt;
+      ns.appendChild(t);
+    }
+
+    // Draw 3 small radar charts side by side
+    var radarR = 65;
+    var centerY = 145;
+    var spacing = W / 3;
+
+    for(var p=0;p<projects.length;p++){
+      var proj = projects[p];
+      var cx = spacing/2 + p * spacing;
+
+      // Grid circles
+      for(var ring=1;ring<=5;ring++){
+        var r = ring/5 * radarR;
+        var pts = [];
+        for(var a=0;a<axes.length;a++){
+          var angle = a/axes.length * 2 * Math.PI - Math.PI/2;
+          pts.push((cx + r*Math.cos(angle)).toFixed(1)+","+(centerY + r*Math.sin(angle)).toFixed(1));
+        }
+        ns.appendChild(mkEl("polygon",{points:pts.join(" "),fill:"none",stroke:gridC,"stroke-width":"0.5"}));
+      }
+
+      // Axis lines
+      for(var a=0;a<axes.length;a++){
+        var angle = a/axes.length * 2 * Math.PI - Math.PI/2;
+        var ex = cx + radarR * Math.cos(angle);
+        var ey = centerY + radarR * Math.sin(angle);
+        ns.appendChild(mkEl("line",{x1:cx,y1:centerY,x2:ex,y2:ey,stroke:gridC,"stroke-width":"0.5"}));
+        // Axis label
+        var lx = cx + (radarR+15) * Math.cos(angle);
+        var ly = centerY + (radarR+15) * Math.sin(angle);
+        addText(lx,ly+4,axes[a],"8","middle",textC);
+      }
+
+      // Data polygon
+      var dataPts = [];
+      for(var a=0;a<axes.length;a++){
+        var val = proj.scores[axes[a]];
+        var r = val/5 * radarR;
+        var angle = a/axes.length * 2 * Math.PI - Math.PI/2;
+        dataPts.push((cx + r*Math.cos(angle)).toFixed(1)+","+(centerY + r*Math.sin(angle)).toFixed(1));
+      }
+      ns.appendChild(mkEl("polygon",{points:dataPts.join(" "),fill:proj.color,opacity:"0.25",stroke:proj.color,"stroke-width":"2"}));
+
+      // Vertices
+      for(var a=0;a<axes.length;a++){
+        var val = proj.scores[axes[a]];
+        var r = val/5 * radarR;
+        var angle = a/axes.length * 2 * Math.PI - Math.PI/2;
+        ns.appendChild(mkEl("circle",{cx:cx+r*Math.cos(angle),cy:centerY+r*Math.sin(angle),r:3,fill:proj.color}));
+      }
+
+      // Project label
+      var labelLines = proj.name.split(': ');
+      addText(cx,H-35,labelLines[0],"9","middle",proj.color,"600");
+      if(labelLines[1]) addText(cx,H-22,labelLines[1],"9","middle",textC);
+    }
+
+    addText(W/2,18,"Project Difficulty Profiles (1-5 scale)","12","middle",textC,"600");
+
+    while(svgBox.firstChild) svgBox.removeChild(svgBox.firstChild);
+    svgBox.appendChild(ns);
+  }
+
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener('change', draw);
+  draw();
+})();
+</script>
+
 <h3>Beginner: Quantum Random Number Generator with Bell Test</h3>
 
 <p>
@@ -496,26 +768,6 @@
   every quantum computing journey begins: two qubits, entangled, measured.
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="12">OPENQASM 3.0;
-// Bell state preparation and measurement
-// This is the foundation of the CHSH experiment
-qubit[2] q;
-bit[2] c;
-
-// Create Bell state |Phi+> = (|00> + |11>) / sqrt(2)
-h q[0];
-cx q[0], q[1];
-
-// Measure both qubits
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
 <p>
   You should see approximately 50% $|00\rangle$ and 50% $|11\rangle$, with negligible
   $|01\rangle$ or $|10\rangle$. The qubits are perfectly correlated - measuring one
@@ -524,6 +776,27 @@ c = measure q;</textarea>
   before measurement to change the measurement basis: <code>ry(0.785) q[0];</code>
   rotates qubit 0's measurement basis by $\pi/4$.
 </p>
+
+<!-- Sandbox 3: Final Bell State Sandbox -->
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="14">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+// Bell state: the foundation of quantum computing
+h q[0];
+cx q[0], q[1];
+// Try these extensions:
+// 1. Add x q[0]; before cx to make |Psi+>
+// 2. Add z q[0]; after cx to make |Phi->
+// 3. Add ry(0.785) q[0]; before measure for CHSH
+// 4. Add a third qubit for GHZ: cx q[0], q[2];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
 
 </section>
 
@@ -581,85 +854,72 @@ c = measure q;</textarea>
   Welcome to quantum computing.
 </p>
 
+<!-- Capstone Exercises -->
+<h3>Capstone Exercises</h3>
+
+<p>Test your knowledge with these final challenges that span the entire textbook.</p>
+
+<div class="exercise" data-component="exercise">
+  <div class="exercise-header">Capstone 1: Create a GHZ State</div>
+  <div class="exercise-prompt">
+    <p>Write a circuit that creates a 3-qubit GHZ state: $\frac{1}{\sqrt{2}}(|000\rangle + |111\rangle)$. You should see approximately 50% $|000\rangle$ and 50% $|111\rangle$, with no other outcomes.</p>
+  </div>
+  <textarea class="code" rows="8">OPENQASM 3.0;
+qubit[3] q;
+bit[3] c;
+// Create a 3-qubit GHZ state here
+
+c = measure q;</textarea>
+  <div class="exercise-controls">
+    <button data-action="check">Check</button>
+    <button data-action="hint">Hint</button>
+  </div>
+  <div class="exercise-feedback"></div>
+  <div class="exercise-hint" style="display:none; padding:0.75rem 1rem; font-size:0.9rem; color:var(--color-text-muted);">
+    Start with a Hadamard on qubit 0, then use CNOT gates to entangle the other qubits.
+  </div>
+  <div class="exercise-expected" hidden>
+    <span data-state="000" data-prob="0.5" data-tolerance="0.1"></span>
+    <span data-state="111" data-prob="0.5" data-tolerance="0.1"></span>
+  </div>
+</div>
+
+<div class="exercise" data-component="exercise">
+  <div class="exercise-header">Capstone 2: Quantum Teleportation</div>
+  <div class="exercise-prompt">
+    <p>Implement quantum teleportation: prepare qubit 0 in state $|1\rangle$, create a Bell pair between qubits 1 and 2, then teleport qubit 0's state to qubit 2. After teleportation, qubit 2 should be in state $|1\rangle$.</p>
+  </div>
+  <textarea class="code" rows="14">OPENQASM 3.0;
+qubit[3] q;
+bit[3] c;
+// Prepare state to teleport (|1>)
+x q[0];
+// Create Bell pair between q[1] and q[2]
+
+// Alice's Bell measurement on q[0] and q[1]
+
+// Measure Alice's qubits
+c[0] = measure q[0];
+c[1] = measure q[1];
+// Bob's corrections (classical feed-forward)
+// Note: this simulator does not support if-statements,
+// so verify teleportation statistically.
+c[2] = measure q[2];</textarea>
+  <div class="exercise-controls">
+    <button data-action="check">Check</button>
+    <button data-action="hint">Hint</button>
+  </div>
+  <div class="exercise-feedback"></div>
+  <div class="exercise-hint" style="display:none; padding:0.75rem 1rem; font-size:0.9rem; color:var(--color-text-muted);">
+    Bell pair: H on q[1], then CNOT q[1]->q[2]. Alice's BSM: CNOT q[0]->q[1], then H on q[0]. Without classical corrections, you will see correlations but not deterministic teleportation.
+  </div>
+</div>
+
 </section>
 
 <hr />
 
-<!-- ================================================================== -->
-<section id="review">
-<h2>Chapter 42 Review</h2>
 
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 42 Review</div>
-
-  <div class="flashcard" data-card-id="ch42-feynman-1981">
-    <div class="card-front">What was Feynman's 1981 insight that launched the field of quantum computing?</div>
-    <div class="card-back">
-      Feynman observed that simulating quantum systems on classical computers appears to require exponential resources, and proposed building computers based on quantum mechanics to simulate physics efficiently. His key quote: "Nature isn't classical, dammit, and if you want to make a simulation of nature, you'd better make it quantum mechanical."
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch42-shor-impact">
-    <div class="card-front">Why was Shor's algorithm (1994) a turning point for quantum computing?</div>
-    <div class="card-back">
-      Shor showed that a quantum computer could factor integers in polynomial time, directly threatening RSA encryption. This transformed quantum computing from a theoretical curiosity into a matter of national security, triggering government and corporate investment. It remains the most compelling example of exponential quantum speedup for a practically important problem.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch42-2025-milestones">
-    <div class="card-front">What key milestones converged in 2025 that marked the beginning of the fault-tolerant era?</div>
-    <div class="card-back">
-      Microsoft unveiled the Majorana 1 topological processor. QuEra demonstrated a 3,000-qubit neutral atom array with below-threshold error correction. Google integrated AlphaQubit AI decoders into hardware. IBM advanced toward the 2029 Starling system. Quantinuum launched Helios with 98 physical qubits delivering 48 logical qubits. Collectively, these shifted fault tolerance from a physics question to an engineering challenge.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch42-unanswered-topics">
-    <div class="card-front">Name three major quantum computing topics not fully covered in this textbook.</div>
-    <div class="card-back">
-      (1) Measurement-based quantum computing (cluster states, adaptive measurements, equivalent to circuit model but a fundamentally different paradigm). (2) Continuous-variable quantum computing (bosonic modes, GKP codes, cat states). (3) Quantum thermodynamics (work extraction, quantum heat engines, resource theories). Others: quantum gravity and holography, quantum complexity theory beyond BQP, advanced quantum cryptographic primitives (e.g., oblivious transfer, secure multi-party computation).
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch42-beginner-project">
-    <div class="card-front">Describe the beginner capstone project and what it teaches.</div>
-    <div class="card-back">
-      Build a quantum random number generator with a CHSH Bell test: prepare Bell states, measure in random bases on real hardware, compute the CHSH correlation $S$ (violation if $S > 2$), extract random bits, and test randomness quality. This teaches entanglement, Bell inequalities, quantum measurement, running on real hardware, and statistical analysis.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch42-advanced-project">
-    <div class="card-front">What is the advanced capstone project and why does it bridge QC and AI?</div>
-    <div class="card-back">
-      Build an ML-based surface code decoder: generate syndrome data with Stim, implement MWPM baseline with PyMatching, design and train a neural network decoder (CNN or transformer), compare logical error rates. It bridges QC and AI because it applies machine learning (AI) to the core engineering problem of quantum error correction (QC) - exactly the intersection explored by Google's AlphaQubit.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-</div>
-</section>
 
     </article>
 
@@ -688,7 +948,6 @@ c = measure q;</textarea>
   
   <script>
   "use strict";
-  
   function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
   function isDark() { return window.matchMedia("(prefers-color-scheme: dark)").matches; }
   function renderMath(el) {
@@ -696,7 +955,6 @@ c = measure q;</textarea>
       renderMathInElement(el, { delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}], throwOnError: false });
   }
 
-  
   var wasmReady = null;
   function ensureWasm() {
     if (!wasmReady) {
@@ -709,7 +967,6 @@ c = measure q;</textarea>
     return wasmReady;
   }
 
-  
   var SRS_KEY = "goqu-srs";
   function srsLoad() { try { return JSON.parse(localStorage.getItem(SRS_KEY) || "{}"); } catch(e) { return {}; } }
   function srsSave(d) { localStorage.setItem(SRS_KEY, JSON.stringify(d)); }
@@ -727,7 +984,6 @@ c = measure q;</textarea>
     d[id] = s; srsSave(d);
   }
 
-  
   function initSandbox(el) {
     var code = el.querySelector(".code"), output = el.querySelector(".output");
     if (!code || !output) return;
@@ -749,7 +1005,6 @@ c = measure q;</textarea>
     if (el.hasAttribute("data-autorun")) run();
   }
 
-  
   function initSimulation(el) {
     var tmplEl = el.querySelector(".sim-qasm"), output = el.querySelector(".sim-output");
     var sliders = el.querySelectorAll('input[type="range"]');
@@ -821,7 +1076,6 @@ c = measure q;</textarea>
     update();
   }
 
-  
   function formatStabilizer(s) {
     if (!s) return "";
     var sign = s[0], ops = s.slice(1), html = '<span class="stab-sign">' + esc(sign) + '</span>';
@@ -832,7 +1086,6 @@ c = measure q;</textarea>
     return html;
   }
 
-  
   function initExercise(el) {
     var code = el.querySelector(".code"), feedback = el.querySelector(".exercise-feedback");
     var checkBtn = el.querySelector('[data-action="check"]');
@@ -870,7 +1123,6 @@ c = measure q;</textarea>
     if (hintBtn && hintEl) hintBtn.addEventListener("click", function() { hintEl.style.display = hintEl.style.display === "none" ? "block" : "none"; });
   }
 
-  
   function initFlashcardDeck(el) {
     el.querySelectorAll(".flashcard").forEach(function(card) {
       var id = card.dataset.cardId;
@@ -889,7 +1141,6 @@ c = measure q;</textarea>
     });
   }
 
-  
   function initPOE(el) {
     var steps = el.querySelectorAll(".poe-step"), prog = el.querySelectorAll(".poe-progress-step");
     if (steps.length === 0) return;
@@ -906,7 +1157,6 @@ c = measure q;</textarea>
     show(0);
   }
 
-  
   function initStepThrough(el) {
     var qasmEl = el.querySelector(".step-qasm");
     var output = el.querySelector(".step-output");
@@ -988,9 +1238,198 @@ c = measure q;</textarea>
     load();
   }
 
-  
+  function initComparison(el) {
+    var panels = el.querySelectorAll(".comparison-panel");
+    var sliders = el.querySelectorAll('.comparison-controls input[type="range"]');
+    var selects = el.querySelectorAll('.comparison-controls select[data-param]');
+    if (panels.length < 2) return;
+    var mode = el.dataset.mode || "default";
+    var pending = false, dirty = false;
+
+    function getParams() {
+      var params = {};
+      sliders.forEach(function(s) {
+        params[s.dataset.param] = parseFloat(s.value);
+        var o = s.parentElement.querySelector("output");
+        if (o) o.textContent = parseFloat(s.value).toFixed(2);
+      });
+      selects.forEach(function(s) { params[s.dataset.param] = s.value; });
+      return params;
+    }
+
+    function substituteQasm(tmpl, params) {
+      var qasm = tmpl;
+      for (var k in params) qasm = qasm.replaceAll("{" + k + "}", params[k].toString());
+      return qasm;
+    }
+
+    async function runPanel(panel, params) {
+      var tmplEl = panel.querySelector(".comparison-qasm");
+      var output = panel.querySelector(".comparison-output");
+      if (!tmplEl || !output) return;
+      var qasm = substituteQasm(tmplEl.textContent, params);
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var html = "", r;
+        if (mode === "ideal-noisy") {
+          var isLeft = panel === panels[0];
+          if (isLeft) {
+            r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+            if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+            html = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+          } else {
+            var noiseModel = el.dataset.noiseModel || params.noiseModel || "depolarizing";
+            var noiseParam = parseFloat(params.noiseParam || "0.1");
+            if (window.runNoisyQASM) {
+              r = JSON.parse(window.runNoisyQASM(qasm, 1024, noiseModel, noiseParam, isDark()));
+              if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+              html = (r.circuitSVG || r.circuit || "") + (r.histogramSVG || r.histogram || "") + (r.stateCitySVG || "");
+              if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span></div>';
+            }
+          }
+        } else if (mode === "transpile") {
+          var target = panel.dataset.target || "generic";
+          if (window.transpileQASM) {
+            r = JSON.parse(window.transpileQASM(qasm, target, isDark()));
+            if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+            html = (r.circuit || r.circuitSVG || "") + (r.info || "");
+          }
+        } else {
+          r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          html = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+        }
+        output.innerHTML = html;
+        renderMath(output);
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    async function runAll() {
+      if (pending) { dirty = true; return; }
+      pending = true;
+      await ensureWasm();
+      var params = getParams();
+      var promises = [];
+      panels.forEach(function(panel) { promises.push(runPanel(panel, params)); });
+      await Promise.all(promises);
+      pending = false;
+      if (dirty) { dirty = false; runAll(); }
+    }
+
+    sliders.forEach(function(s) { s.addEventListener("input", runAll); });
+    selects.forEach(function(s) { s.addEventListener("change", runAll); });
+
+    var runBtn = el.querySelector('[data-action="run"]');
+    if (!runBtn) {
+      var controls = el.querySelector(".comparison-controls");
+      if (controls) {
+        runBtn = document.createElement("button");
+        runBtn.setAttribute("data-action", "run");
+        runBtn.textContent = "Run";
+        controls.appendChild(runBtn);
+      }
+    }
+    if (runBtn) runBtn.addEventListener("click", runAll);
+
+    runAll();
+  }
+
+  function initAnimatedWalkthrough(el) {
+    var stages = el.querySelectorAll(".walkthrough-stage");
+    var progressBar = el.querySelector(".walkthrough-progress");
+    var prevBtn = el.querySelector('[data-action="prev"]');
+    var nextBtn = el.querySelector('[data-action="next"]');
+    var autoBtn = el.querySelector('[data-action="auto"]');
+    if (stages.length === 0) return;
+    var cur = 0, autoTimer = null, stageRan = {};
+
+    
+    if (progressBar) {
+      progressBar.textContent = "";
+      for (var i = 0; i < stages.length; i++) {
+        var pip = document.createElement("div");
+        pip.className = "walkthrough-pip" + (i === 0 ? " active" : "");
+        pip.setAttribute("data-index", i);
+        pip.textContent = i + 1;
+        progressBar.appendChild(pip);
+      }
+    }
+
+    function updateProgress() {
+      if (!progressBar) return;
+      var pips = progressBar.querySelectorAll(".walkthrough-pip");
+      pips.forEach(function(p, i) {
+        p.classList.remove("active", "done");
+        if (i < cur) p.classList.add("done");
+        if (i === cur) p.classList.add("active");
+      });
+    }
+
+    async function runStageQasm(stage) {
+      var idx = stage.dataset.stage || "0";
+      if (stageRan[idx]) return;
+      var qasmEl = stage.querySelector(".walkthrough-qasm");
+      var output = stage.querySelector(".walkthrough-output");
+      if (!qasmEl || !output) return;
+      stageRan[idx] = true;
+      await ensureWasm();
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(qasmEl.textContent, 1024, isDark()));
+        if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+        output.innerHTML = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+        renderMath(output);
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    function show(idx) {
+      if (idx < 0 || idx >= stages.length) return;
+      stages.forEach(function(s, i) {
+        s.classList.remove("active", "walkthrough-exit");
+        if (i === cur && i !== idx) s.classList.add("walkthrough-exit");
+      });
+      var prev = cur;
+      cur = idx;
+      setTimeout(function() {
+        stages.forEach(function(s, i) {
+          s.classList.remove("walkthrough-exit");
+          s.classList.toggle("active", i === cur);
+        });
+      }, prev !== idx ? 150 : 0);
+      updateProgress();
+      if (prevBtn) prevBtn.disabled = (cur === 0);
+      if (nextBtn) nextBtn.disabled = (cur >= stages.length - 1);
+      runStageQasm(stages[cur]);
+    }
+
+    function stopAuto() {
+      if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+      if (autoBtn) autoBtn.textContent = "Auto-play";
+    }
+
+    if (prevBtn) prevBtn.addEventListener("click", function() { stopAuto(); if (cur > 0) show(cur - 1); });
+    if (nextBtn) nextBtn.addEventListener("click", function() { stopAuto(); if (cur < stages.length - 1) show(cur + 1); });
+    if (autoBtn) autoBtn.addEventListener("click", function() {
+      if (autoTimer) { stopAuto(); return; }
+      autoBtn.textContent = "Pause";
+      autoTimer = setInterval(function() {
+        if (cur < stages.length - 1) { show(cur + 1); }
+        else { stopAuto(); }
+      }, 3000);
+    });
+
+    if (progressBar) progressBar.addEventListener("click", function(e) {
+      var pip = e.target.closest(".walkthrough-pip");
+      if (pip) { stopAuto(); show(parseInt(pip.dataset.index, 10)); }
+    });
+
+    show(0);
+  }
+
   document.addEventListener("DOMContentLoaded", function() {
-    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough};
+    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough, comparison: initComparison, "animated-walkthrough": initAnimatedWalkthrough};
     document.querySelectorAll("[data-component]").forEach(function(el) { var fn = reg[el.dataset.component]; if (fn) fn(el); });
   });
   </script>

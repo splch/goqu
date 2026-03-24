@@ -257,19 +257,26 @@ $$X|1\rangle = \begin{pmatrix} 0 & 1 \\ 1 & 0 \end{pmatrix}\begin{pmatrix} 0 \\ 
   ($|1\rangle$) and vice versa, which is why it is called the <em>bit flip</em> gate.
 </p>
 
-<p>Try it yourself - apply the X gate to $|0\rangle$ and observe that you always measure $|1\rangle$:</p>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="6">OPENQASM 3.0;
+<!-- Simulation 1: Gate Explorer -->
+<div class="simulation" data-component="simulation" data-bloch>
+  <div class="sim-qasm" hidden>OPENQASM 3.0;
 qubit[1] q;
 bit[1] c;
-x q[0];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
+{gate} q[0];
+c = measure q;</div>
+  <div class="sim-controls">
+    <label>Gate: <select data-param="gate">
+      <option value="x" selected>X (bit flip)</option>
+      <option value="y">Y (bit+phase flip)</option>
+      <option value="z">Z (phase flip)</option>
+      <option value="h">H (Hadamard)</option>
+      <option value="s">S (sqrt-Z)</option>
+      <option value="t">T (pi/8)</option>
+      <option value="sdg">S-dagger</option>
+      <option value="tdg">T-dagger</option>
+    </select></label>
   </div>
-  <div class="output"></div>
+  <div class="sim-output"></div>
 </div>
 
 <h3>The Z Gate (Phase Flip)</h3>
@@ -299,20 +306,6 @@ $$Z\left(\frac{|0\rangle + |1\rangle}{\sqrt{2}}\right) = \frac{|0\rangle - |1\ra
   a measurable bit flip:
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="7">OPENQASM 3.0;
-qubit[1] q;
-bit[1] c;
-h q[0];
-z q[0];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
 <h3>The Y Gate (Bit and Phase Flip)</h3>
 
 <p>
@@ -329,19 +322,6 @@ $$Y|0\rangle = i|1\rangle \qquad Y|1\rangle = -i|0\rangle$$
   Because the global phase $i$ is unobservable, measuring $Y|0\rangle = i|1\rangle$ still
   yields $|1\rangle$ with certainty. Verify it below:
 </p>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="6">OPENQASM 3.0;
-qubit[1] q;
-bit[1] c;
-y q[0];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
 
 <h3>Summary of the Pauli Gates</h3>
 
@@ -426,41 +406,9 @@ $$H|1\rangle = \frac{|0\rangle - |1\rangle}{\sqrt{2}} = |-\rangle$$
 </div>
 
 <p>
-  Run this sandbox to create a superposition and observe the roughly 50/50 measurement
-  outcomes:
-</p>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="6">OPENQASM 3.0;
-qubit[1] q;
-bit[1] c;
-h q[0];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
-<p>
   Now verify that two Hadamard gates cancel each other. You should measure $|0\rangle$
   every time:
 </p>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="7">OPENQASM 3.0;
-qubit[1] q;
-bit[1] c;
-h q[0];
-h q[0];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
 
 <h3>Why the Hadamard Is So Important</h3>
 
@@ -519,20 +467,6 @@ $$S|0\rangle = |0\rangle \qquad S|1\rangle = i|1\rangle$$
 
 $$S^\dagger = \begin{pmatrix} 1 & 0 \\ 0 & -i \end{pmatrix}$$
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="7">OPENQASM 3.0;
-qubit[1] q;
-bit[1] c;
-h q[0];
-s q[0];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
 <h3>The T Gate ($\sqrt{S}$, $\pi/8$ Gate)</h3>
 
 <p>
@@ -555,20 +489,6 @@ $$T|0\rangle = |0\rangle \qquad T|1\rangle = e^{i\pi/4}|1\rangle$$
 </p>
 
 $$T^\dagger = \begin{pmatrix} 1 & 0 \\ 0 & e^{-i\pi/4} \end{pmatrix}$$
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="7">OPENQASM 3.0;
-qubit[1] q;
-bit[1] c;
-h q[0];
-t q[0];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
 
 <h3>The Phase Gate Hierarchy</h3>
 
@@ -627,21 +547,64 @@ $$H \cdot Z \cdot H |0\rangle = H \cdot Z |+\rangle = H|-\rangle = |1\rangle$$
   decode back - is the template for nearly all quantum algorithms:
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="9">OPENQASM 3.0;
+<!-- Widget 3: Phase Visibility Demo -->
+<div class="widget" id="phase-visibility-widget">
+  <div class="widget-header">Phase Visibility: H-Gate-H vs H-H</div>
+  <div class="widget-body">
+    <p style="font-size:0.85rem;color:var(--color-text-muted);margin-bottom:0.5rem">Choose a phase gate to insert between two Hadamards. Compare against H-H (no gate). The phase becomes visible as a measurable difference.</p>
+    <div style="display:flex;gap:0.75rem;align-items:center;margin-bottom:0.75rem;flex-wrap:wrap">
+      <label style="font-size:0.85rem">Phase gate:
+        <select id="phv-gate" style="font-family:var(--font-mono);font-size:0.9rem;padding:0.3rem;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-surface);color:var(--color-text)">
+          <option value="z">Z (pi phase)</option>
+          <option value="s">S (pi/2 phase)</option>
+          <option value="t">T (pi/4 phase)</option>
+          <option value="rz(1.0)">Rz(1.0)</option>
+          <option value="id">I (no phase - control)</option>
+        </select>
+      </label>
+    </div>
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;justify-content:center">
+      <div>
+        <p style="font-size:0.85rem;font-weight:600;text-align:center">H - Gate - H - Measure</p>
+        <div class="sandbox" data-component="sandbox" data-shots="1024" data-autorun id="phv-sandbox1">
+          <textarea class="code" rows="7">OPENQASM 3.0;
 qubit[1] q;
 bit[1] c;
-// H-Z-H: phase flip becomes bit flip
 h q[0];
 z q[0];
 h q[0];
 c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
+          <div class="sandbox-controls"><button data-action="run">Run</button></div>
+          <div class="output"></div>
+        </div>
+      </div>
+      <div>
+        <p style="font-size:0.85rem;font-weight:600;text-align:center">H - H - Measure (no phase gate)</p>
+        <div class="sandbox" data-component="sandbox" data-shots="1024" data-autorun id="phv-sandbox2">
+          <textarea class="code" rows="6">OPENQASM 3.0;
+qubit[1] q;
+bit[1] c;
+h q[0];
+h q[0];
+c = measure q;</textarea>
+          <div class="sandbox-controls"><button data-action="run">Run</button></div>
+          <div class="output"></div>
+        </div>
+      </div>
+    </div>
   </div>
-  <div class="output"></div>
 </div>
+<script>
+(function(){
+  var sel=document.getElementById("phv-gate");
+  var ta=document.querySelector("#phv-sandbox1 .code");
+  sel.addEventListener("change",function(){
+    var g=sel.value;
+    var line=g==="id"?"// no phase gate":g+" q[0];";
+    ta.value="OPENQASM 3.0;\nqubit[1] q;\nbit[1] c;\nh q[0];\n"+line+"\nh q[0];\nc = measure q;";
+  });
+})();
+</script>
 
 </section>
 
@@ -672,15 +635,16 @@ $$R_x(\theta) = \begin{pmatrix} \cos\frac{\theta}{2} & -i\sin\frac{\theta}{2} \\
   by $\theta$ around the x-axis. Use the slider to explore:
 </p>
 
+<!-- Simulation 2: Rotation Gates with Bloch sphere -->
 <div class="simulation" data-component="simulation" data-bloch>
-  <div class="sim-controls">
-    <label>$\theta$: <input type="range" data-param="angle" min="0" max="6.283" step="0.01" value="1.57"><output>1.57</output></label>
-  </div>
-  <pre class="sim-qasm">OPENQASM 3.0;
+  <div class="sim-qasm" hidden>OPENQASM 3.0;
 qubit[1] q;
 bit[1] c;
-rx({angle}) q[0];
-c = measure q;</pre>
+rx({theta}) q[0];
+c = measure q;</div>
+  <div class="sim-controls">
+    <label>Rx theta: <input type="range" data-param="theta" min="0" max="6.28" step="0.01" value="1.57"> <output>1.57</output></label>
+  </div>
   <div class="sim-output"></div>
 </div>
 
@@ -702,18 +666,6 @@ $$R_y(\theta)|0\rangle = \cos\frac{\theta}{2}|0\rangle + \sin\frac{\theta}{2}|1\
   probability distribution between $|0\rangle$ and $|1\rangle$.
 </p>
 
-<div class="simulation" data-component="simulation" data-bloch>
-  <div class="sim-controls">
-    <label>$\theta$: <input type="range" data-param="angle" min="0" max="6.283" step="0.01" value="1.57"><output>1.57</output></label>
-  </div>
-  <pre class="sim-qasm">OPENQASM 3.0;
-qubit[1] q;
-bit[1] c;
-ry({angle}) q[0];
-c = measure q;</pre>
-  <div class="sim-output"></div>
-</div>
-
 <h3>$R_z(\theta)$: Rotation Around the Z-Axis</h3>
 
 $$R_z(\theta) = \begin{pmatrix} e^{-i\theta/2} & 0 \\ 0 & e^{i\theta/2} \end{pmatrix}$$
@@ -725,16 +677,17 @@ $$R_z(\theta) = \begin{pmatrix} e^{-i\theta/2} & 0 \\ 0 & e^{i\theta/2} \end{pma
   Below, we apply H before $R_z$ so the phase rotation is visible on the Bloch sphere:
 </p>
 
+<!-- Simulation: Rz with H prefix for visibility -->
 <div class="simulation" data-component="simulation" data-bloch>
-  <div class="sim-controls">
-    <label>$\theta$: <input type="range" data-param="angle" min="0" max="6.283" step="0.01" value="1.57"><output>1.57</output></label>
-  </div>
-  <pre class="sim-qasm">OPENQASM 3.0;
+  <div class="sim-qasm" hidden>OPENQASM 3.0;
 qubit[1] q;
 bit[1] c;
 h q[0];
-rz({angle}) q[0];
-c = measure q;</pre>
+rz({theta}) q[0];
+c = measure q;</div>
+  <div class="sim-controls">
+    <label>Rz theta: <input type="range" data-param="theta" min="0" max="6.28" step="0.01" value="1.57"> <output>1.57</output></label>
+  </div>
   <div class="sim-output"></div>
 </div>
 
@@ -999,21 +952,6 @@ $$HZH = \frac{1}{2}\begin{pmatrix} 1 & 1 \\ 1 & -1 \end{pmatrix}\begin{pmatrix} 
   that is neither $|0\rangle$ nor $|1\rangle$ nor an equal superposition:
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="8">OPENQASM 3.0;
-qubit[1] q;
-bit[1] c;
-h q[0];
-t q[0];
-h q[0];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
 <p>
   The combined matrix for this circuit is:
 </p>
@@ -1032,8 +970,9 @@ $$HTH = \frac{1}{2}\begin{pmatrix} 1 & 1 \\ 1 & -1 \end{pmatrix}\begin{pmatrix} 
   and observe how each gate affects the output:
 </p>
 
+<!-- Sandbox 4: Gate Composition -->
 <div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="11">OPENQASM 3.0;
+  <textarea class="code" rows="9">OPENQASM 3.0;
 qubit[1] q;
 bit[1] c;
 h q[0];
@@ -1041,7 +980,6 @@ t q[0];
 h q[0];
 s q[0];
 h q[0];
-t q[0];
 c = measure q;</textarea>
   <div class="sandbox-controls">
     <button data-action="run">Run</button>
@@ -1088,67 +1026,37 @@ $$U(\theta, \phi, \lambda) = \begin{pmatrix} \cos\frac{\theta}{2} & -e^{i\lambda
 
 <h3>Exercise 5.1: Prepare the $|-\rangle$ State</h3>
 
+<!-- Exercise 5: Prepare |-> -->
 <div class="exercise" data-component="exercise">
-  <div class="exercise-header">Exercise 5.1: Prepare $|-\rangle$</div>
+  <div class="exercise-header">Exercise: Prepare the $|-\rangle$ State</div>
   <div class="exercise-prompt">
-    <p>
-      Write a circuit that prepares the state $|-\rangle = \frac{1}{\sqrt{2}}(|0\rangle - |1\rangle)$.
-      When measured, this state gives 50% $|0\rangle$ and 50% $|1\rangle$.
-      Hint: you need two gates. Think about what $H$ does to $|1\rangle$.
-    </p>
+    <p>Write a circuit that prepares the state $|-\rangle = \frac{1}{\sqrt{2}}(|0\rangle - |1\rangle)$. When measured in the computational basis, you should see approximately 50% $|0\rangle$ and 50% $|1\rangle$. The key test: if you add an H gate before measuring, you should get $|1\rangle$ with 100% probability (since $H|-\rangle = |1\rangle$).</p>
+    <p>Hint: Start from $|0\rangle$ and think about which gates take you to the negative x-axis of the Bloch sphere.</p>
   </div>
-  <textarea class="code" rows="7">OPENQASM 3.0;
+  <textarea class="code" rows="8">OPENQASM 3.0;
 qubit[1] q;
 bit[1] c;
-// Your code here
+// Write your circuit here to prepare |->
+// Then add H before measurement to verify
 
+h q[0];
 c = measure q;</textarea>
   <div class="exercise-expected">
-    <span data-state="0" data-prob="0.5" data-tolerance="0.1"></span>
-    <span data-state="1" data-prob="0.5" data-tolerance="0.1"></span>
-  </div>
-  <div class="exercise-hint" style="display:none">
-    <p>
-      Recall that $H|1\rangle = |-\rangle$. So you first need to flip $|0\rangle$ to $|1\rangle$
-      using the X gate, then apply H. The circuit is: <code>x q[0]; h q[0];</code>
-    </p>
+    <span data-state="1" data-prob="1.0" data-tolerance="0.05"></span>
   </div>
   <div class="exercise-controls">
-    <button data-action="check">Check</button>
+    <button data-action="run">Run</button>
+    <button data-action="check">Check Answer</button>
     <button data-action="hint">Hint</button>
   </div>
   <div class="exercise-feedback"></div>
+  <div class="output"></div>
+  <div class="exercise-hint hidden">
+    <p>The $|-\rangle$ state is $H|1\rangle$. So you need X followed by H to create it. Then to verify, add another H before measurement: $HH|1\rangle = |1\rangle$. The full answer: <code>x q[0]; h q[0]; h q[0];</code> which simplifies to just <code>x q[0];</code> since HH=I. Or directly: <code>x q[0]; h q[0];</code> creates $|-\rangle$, then another <code>h q[0];</code> to verify.</p>
+  </div>
 </div>
 
 <h3>Exercise 5.2: The 75/25 Split</h3>
-
-<div class="exercise" data-component="exercise">
-  <div class="exercise-header">Exercise 5.2: 75/25 Split</div>
-  <div class="exercise-prompt">
-    <p>
-      Prepare a qubit state that measures $|0\rangle$ approximately 75% of the time and
-      $|1\rangle$ approximately 25% of the time. Use a single rotation gate.
-    </p>
-  </div>
-  <textarea class="code" rows="6">OPENQASM 3.0;
-qubit[1] q;
-bit[1] c;
-// Your code here
-c = measure q;</textarea>
-  <div class="exercise-expected">
-    <span data-state="0" data-prob="0.75" data-tolerance="0.15"></span>
-    <span data-state="1" data-prob="0.25" data-tolerance="0.15"></span>
-  </div>
-  <div class="exercise-hint" style="display:none">
-    <p>Use <code>ry(1.0472) q[0];</code> where $1.0472 \approx \pi/3$. Since $\sin^2(\pi/6) = 0.25$,
-    this gives exactly a 75/25 split.</p>
-  </div>
-  <div class="exercise-controls">
-    <button data-action="check">Check</button>
-    <button data-action="hint">Hint</button>
-  </div>
-  <div class="exercise-feedback"></div>
-</div>
 
 </section>
 
@@ -1179,125 +1087,7 @@ c = measure q;</textarea>
 
 </section>
 
-<!-- ================================================================== -->
-<section id="review">
-<h2>Chapter 5 Review</h2>
 
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 5 Review</div>
-
-  <div class="flashcard" data-card-id="ch05-x-gate-matrix">
-    <div class="card-front">What is the matrix representation of the X gate, and what does it do?</div>
-    <div class="card-back">
-      $X = \begin{pmatrix} 0 & 1 \\ 1 & 0 \end{pmatrix}$. It swaps $|0\rangle$ and $|1\rangle$ (bit flip). On the Bloch sphere, it is a $\pi$ rotation around the x-axis.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch05-z-gate-effect">
-    <div class="card-front">What does the Z gate do to $|0\rangle$ and $|1\rangle$?</div>
-    <div class="card-back">
-      $Z|0\rangle = |0\rangle$ and $Z|1\rangle = -|1\rangle$. It leaves $|0\rangle$ unchanged and flips the phase of $|1\rangle$. On the Bloch sphere, it is a $\pi$ rotation around the z-axis.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch05-hadamard-action">
-    <div class="card-front">What does the Hadamard gate do to $|0\rangle$ and $|1\rangle$?</div>
-    <div class="card-back">
-      $H|0\rangle = |+\rangle = \frac{1}{\sqrt{2}}(|0\rangle + |1\rangle)$ and $H|1\rangle = |-\rangle = \frac{1}{\sqrt{2}}(|0\rangle - |1\rangle)$. It converts between the computational basis and the Hadamard ($\pm$) basis. $H^2 = I$.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch05-s-t-hierarchy">
-    <div class="card-front">How are the Z, S, and T gates related?</div>
-    <div class="card-back">
-      $T^2 = S$ and $S^2 = Z$ (so $T^4 = Z$). T applies a phase of $e^{i\pi/4}$, S applies $e^{i\pi/2} = i$, and Z applies $e^{i\pi} = -1$ to $|1\rangle$. They are successively larger rotations around the z-axis: $\pi/4$, $\pi/2$, $\pi$.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch05-why-phase-matters">
-    <div class="card-front">Why does phase matter if we can only measure 0 or 1?</div>
-    <div class="card-back">
-      Relative phases affect <em>interference</em>. When amplitudes recombine (e.g., after a second Hadamard), phases determine whether amplitudes add constructively or destructively. Example: $HZH = X$, where a phase flip becomes a measurable bit flip.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch05-rotation-matrices">
-    <div class="card-front">Write the matrix for $R_y(\theta)$.</div>
-    <div class="card-back">
-      $R_y(\theta) = \begin{pmatrix} \cos\frac{\theta}{2} & -\sin\frac{\theta}{2} \\ \sin\frac{\theta}{2} & \cos\frac{\theta}{2} \end{pmatrix}$. All entries are real. On the Bloch sphere, it rotates by $\theta$ around the y-axis.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch05-unitary-requirement">
-    <div class="card-front">Why must every quantum gate be a unitary matrix?</div>
-    <div class="card-back">
-      Unitarity ($U^\dagger U = I$) guarantees: (1) probability conservation - total probability stays 1, (2) reversibility - every gate has inverse $U^{-1} = U^\dagger$, (3) norm preservation - the Bloch vector stays on the sphere.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch05-hzh-identity">
-    <div class="card-front">What is $HZH$ equal to, and what is $HXH$?</div>
-    <div class="card-back">
-      $HZH = X$ and $HXH = Z$. The Hadamard conjugates $X$ into $Z$ and vice versa. This means you can convert between bit-flip and phase-flip operations using Hadamard gates.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch05-circuit-matrix-order">
-    <div class="card-front">In a circuit applying gate A then B then C, what is the combined matrix?</div>
-    <div class="card-back">
-      The combined matrix is $CBA$ (reverse order). Circuit diagrams read left-to-right, but the matrix product reads right-to-left: $|\psi_\text{final}\rangle = C \cdot B \cdot A \cdot |\psi_\text{initial}\rangle$.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch05-euler-decomposition">
-    <div class="card-front">What is the Euler decomposition of a single-qubit gate?</div>
-    <div class="card-back">
-      Any single-qubit gate $U$ can be written as $U = e^{i\alpha} R_z(\beta) R_y(\gamma) R_z(\delta)$ for some angles $\alpha, \beta, \gamma, \delta$. This means $R_y$ and $R_z$ are sufficient to implement any single-qubit operation.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-</div>
-</section>
 
     </article>
 
@@ -1326,7 +1116,6 @@ c = measure q;</textarea>
   
   <script>
   "use strict";
-  
   function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
   function isDark() { return window.matchMedia("(prefers-color-scheme: dark)").matches; }
   function renderMath(el) {
@@ -1334,7 +1123,6 @@ c = measure q;</textarea>
       renderMathInElement(el, { delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}], throwOnError: false });
   }
 
-  
   var wasmReady = null;
   function ensureWasm() {
     if (!wasmReady) {
@@ -1347,7 +1135,6 @@ c = measure q;</textarea>
     return wasmReady;
   }
 
-  
   var SRS_KEY = "goqu-srs";
   function srsLoad() { try { return JSON.parse(localStorage.getItem(SRS_KEY) || "{}"); } catch(e) { return {}; } }
   function srsSave(d) { localStorage.setItem(SRS_KEY, JSON.stringify(d)); }
@@ -1365,7 +1152,6 @@ c = measure q;</textarea>
     d[id] = s; srsSave(d);
   }
 
-  
   function initSandbox(el) {
     var code = el.querySelector(".code"), output = el.querySelector(".output");
     if (!code || !output) return;
@@ -1387,7 +1173,6 @@ c = measure q;</textarea>
     if (el.hasAttribute("data-autorun")) run();
   }
 
-  
   function initSimulation(el) {
     var tmplEl = el.querySelector(".sim-qasm"), output = el.querySelector(".sim-output");
     var sliders = el.querySelectorAll('input[type="range"]');
@@ -1459,7 +1244,6 @@ c = measure q;</textarea>
     update();
   }
 
-  
   function formatStabilizer(s) {
     if (!s) return "";
     var sign = s[0], ops = s.slice(1), html = '<span class="stab-sign">' + esc(sign) + '</span>';
@@ -1470,7 +1254,6 @@ c = measure q;</textarea>
     return html;
   }
 
-  
   function initExercise(el) {
     var code = el.querySelector(".code"), feedback = el.querySelector(".exercise-feedback");
     var checkBtn = el.querySelector('[data-action="check"]');
@@ -1508,7 +1291,6 @@ c = measure q;</textarea>
     if (hintBtn && hintEl) hintBtn.addEventListener("click", function() { hintEl.style.display = hintEl.style.display === "none" ? "block" : "none"; });
   }
 
-  
   function initFlashcardDeck(el) {
     el.querySelectorAll(".flashcard").forEach(function(card) {
       var id = card.dataset.cardId;
@@ -1527,7 +1309,6 @@ c = measure q;</textarea>
     });
   }
 
-  
   function initPOE(el) {
     var steps = el.querySelectorAll(".poe-step"), prog = el.querySelectorAll(".poe-progress-step");
     if (steps.length === 0) return;
@@ -1544,7 +1325,6 @@ c = measure q;</textarea>
     show(0);
   }
 
-  
   function initStepThrough(el) {
     var qasmEl = el.querySelector(".step-qasm");
     var output = el.querySelector(".step-output");
@@ -1626,9 +1406,198 @@ c = measure q;</textarea>
     load();
   }
 
-  
+  function initComparison(el) {
+    var panels = el.querySelectorAll(".comparison-panel");
+    var sliders = el.querySelectorAll('.comparison-controls input[type="range"]');
+    var selects = el.querySelectorAll('.comparison-controls select[data-param]');
+    if (panels.length < 2) return;
+    var mode = el.dataset.mode || "default";
+    var pending = false, dirty = false;
+
+    function getParams() {
+      var params = {};
+      sliders.forEach(function(s) {
+        params[s.dataset.param] = parseFloat(s.value);
+        var o = s.parentElement.querySelector("output");
+        if (o) o.textContent = parseFloat(s.value).toFixed(2);
+      });
+      selects.forEach(function(s) { params[s.dataset.param] = s.value; });
+      return params;
+    }
+
+    function substituteQasm(tmpl, params) {
+      var qasm = tmpl;
+      for (var k in params) qasm = qasm.replaceAll("{" + k + "}", params[k].toString());
+      return qasm;
+    }
+
+    async function runPanel(panel, params) {
+      var tmplEl = panel.querySelector(".comparison-qasm");
+      var output = panel.querySelector(".comparison-output");
+      if (!tmplEl || !output) return;
+      var qasm = substituteQasm(tmplEl.textContent, params);
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var html = "", r;
+        if (mode === "ideal-noisy") {
+          var isLeft = panel === panels[0];
+          if (isLeft) {
+            r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+            if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+            html = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+          } else {
+            var noiseModel = el.dataset.noiseModel || params.noiseModel || "depolarizing";
+            var noiseParam = parseFloat(params.noiseParam || "0.1");
+            if (window.runNoisyQASM) {
+              r = JSON.parse(window.runNoisyQASM(qasm, 1024, noiseModel, noiseParam, isDark()));
+              if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+              html = (r.circuitSVG || r.circuit || "") + (r.histogramSVG || r.histogram || "") + (r.stateCitySVG || "");
+              if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span></div>';
+            }
+          }
+        } else if (mode === "transpile") {
+          var target = panel.dataset.target || "generic";
+          if (window.transpileQASM) {
+            r = JSON.parse(window.transpileQASM(qasm, target, isDark()));
+            if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+            html = (r.circuit || r.circuitSVG || "") + (r.info || "");
+          }
+        } else {
+          r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          html = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+        }
+        output.innerHTML = html;
+        renderMath(output);
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    async function runAll() {
+      if (pending) { dirty = true; return; }
+      pending = true;
+      await ensureWasm();
+      var params = getParams();
+      var promises = [];
+      panels.forEach(function(panel) { promises.push(runPanel(panel, params)); });
+      await Promise.all(promises);
+      pending = false;
+      if (dirty) { dirty = false; runAll(); }
+    }
+
+    sliders.forEach(function(s) { s.addEventListener("input", runAll); });
+    selects.forEach(function(s) { s.addEventListener("change", runAll); });
+
+    var runBtn = el.querySelector('[data-action="run"]');
+    if (!runBtn) {
+      var controls = el.querySelector(".comparison-controls");
+      if (controls) {
+        runBtn = document.createElement("button");
+        runBtn.setAttribute("data-action", "run");
+        runBtn.textContent = "Run";
+        controls.appendChild(runBtn);
+      }
+    }
+    if (runBtn) runBtn.addEventListener("click", runAll);
+
+    runAll();
+  }
+
+  function initAnimatedWalkthrough(el) {
+    var stages = el.querySelectorAll(".walkthrough-stage");
+    var progressBar = el.querySelector(".walkthrough-progress");
+    var prevBtn = el.querySelector('[data-action="prev"]');
+    var nextBtn = el.querySelector('[data-action="next"]');
+    var autoBtn = el.querySelector('[data-action="auto"]');
+    if (stages.length === 0) return;
+    var cur = 0, autoTimer = null, stageRan = {};
+
+    
+    if (progressBar) {
+      progressBar.textContent = "";
+      for (var i = 0; i < stages.length; i++) {
+        var pip = document.createElement("div");
+        pip.className = "walkthrough-pip" + (i === 0 ? " active" : "");
+        pip.setAttribute("data-index", i);
+        pip.textContent = i + 1;
+        progressBar.appendChild(pip);
+      }
+    }
+
+    function updateProgress() {
+      if (!progressBar) return;
+      var pips = progressBar.querySelectorAll(".walkthrough-pip");
+      pips.forEach(function(p, i) {
+        p.classList.remove("active", "done");
+        if (i < cur) p.classList.add("done");
+        if (i === cur) p.classList.add("active");
+      });
+    }
+
+    async function runStageQasm(stage) {
+      var idx = stage.dataset.stage || "0";
+      if (stageRan[idx]) return;
+      var qasmEl = stage.querySelector(".walkthrough-qasm");
+      var output = stage.querySelector(".walkthrough-output");
+      if (!qasmEl || !output) return;
+      stageRan[idx] = true;
+      await ensureWasm();
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(qasmEl.textContent, 1024, isDark()));
+        if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+        output.innerHTML = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+        renderMath(output);
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    function show(idx) {
+      if (idx < 0 || idx >= stages.length) return;
+      stages.forEach(function(s, i) {
+        s.classList.remove("active", "walkthrough-exit");
+        if (i === cur && i !== idx) s.classList.add("walkthrough-exit");
+      });
+      var prev = cur;
+      cur = idx;
+      setTimeout(function() {
+        stages.forEach(function(s, i) {
+          s.classList.remove("walkthrough-exit");
+          s.classList.toggle("active", i === cur);
+        });
+      }, prev !== idx ? 150 : 0);
+      updateProgress();
+      if (prevBtn) prevBtn.disabled = (cur === 0);
+      if (nextBtn) nextBtn.disabled = (cur >= stages.length - 1);
+      runStageQasm(stages[cur]);
+    }
+
+    function stopAuto() {
+      if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+      if (autoBtn) autoBtn.textContent = "Auto-play";
+    }
+
+    if (prevBtn) prevBtn.addEventListener("click", function() { stopAuto(); if (cur > 0) show(cur - 1); });
+    if (nextBtn) nextBtn.addEventListener("click", function() { stopAuto(); if (cur < stages.length - 1) show(cur + 1); });
+    if (autoBtn) autoBtn.addEventListener("click", function() {
+      if (autoTimer) { stopAuto(); return; }
+      autoBtn.textContent = "Pause";
+      autoTimer = setInterval(function() {
+        if (cur < stages.length - 1) { show(cur + 1); }
+        else { stopAuto(); }
+      }, 3000);
+    });
+
+    if (progressBar) progressBar.addEventListener("click", function(e) {
+      var pip = e.target.closest(".walkthrough-pip");
+      if (pip) { stopAuto(); show(parseInt(pip.dataset.index, 10)); }
+    });
+
+    show(0);
+  }
+
   document.addEventListener("DOMContentLoaded", function() {
-    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough};
+    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough, comparison: initComparison, "animated-walkthrough": initAnimatedWalkthrough};
     document.querySelectorAll("[data-component]").forEach(function(el) { var fn = reg[el.dataset.component]; if (fn) fn(el); });
   });
   </script>

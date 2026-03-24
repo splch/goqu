@@ -326,6 +326,83 @@
   a tension that drives the diversity of hardware approaches.
 </p>
 
+<h3>Interactive: DiVincenzo Criteria Radar Chart</h3>
+
+<div class="widget" id="divincenzo-widget">
+  <div class="widget-header">DiVincenzo Criteria: Platform Comparison</div>
+  <div class="widget-body" style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.5rem;">
+    <label style="font-size:0.8rem;"><input type="checkbox" id="dv-sc" checked> Superconducting</label>
+    <label style="font-size:0.8rem;"><input type="checkbox" id="dv-ion" checked> Trapped Ions</label>
+    <label style="font-size:0.8rem;"><input type="checkbox" id="dv-atom"> Neutral Atoms</label>
+    <label style="font-size:0.8rem;"><input type="checkbox" id="dv-phot"> Photonic</label>
+    <label style="font-size:0.8rem;"><input type="checkbox" id="dv-dot"> Quantum Dots</label>
+  </div>
+  <div class="widget-output" id="divincenzo-output"></div>
+</div>
+<script>
+(function(){
+  var out=document.getElementById("divincenzo-output");
+  var criteria=["Scalability","Initialization","Coherence","Universal gates","Measurement"];
+  var platforms={
+    sc:{label:"Supercond.",color:"var(--color-accent)",scores:[0.9,0.9,0.6,0.9,0.85],cb:"dv-sc"},
+    ion:{label:"Trapped Ions",color:"var(--color-state)",scores:[0.6,0.9,0.95,0.9,0.9],cb:"dv-ion"},
+    atom:{label:"Neutral Atoms",color:"var(--color-success)",scores:[0.9,0.85,0.85,0.7,0.7],cb:"dv-atom"},
+    phot:{label:"Photonic",color:"#e67e22",scores:[0.7,0.85,0.9,0.65,0.65],cb:"dv-phot"},
+    dot:{label:"Quantum Dots",color:"#9b59b6",scores:[0.65,0.85,0.6,0.65,0.85],cb:"dv-dot"}
+  };
+  function update(){
+    var W=320,H=300,cx=W/2,cy=145,R=100,n=5;
+    var svg='<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" style="font-family:var(--font-mono);font-size:9px;">';
+    // grid
+    for(var g=0.25;g<=1;g+=0.25){
+      var pts=[];
+      for(var i=0;i<n;i++){
+        var a=-Math.PI/2+2*Math.PI*i/n;
+        pts.push((cx+R*g*Math.cos(a)).toFixed(1)+","+(cy+R*g*Math.sin(a)).toFixed(1));
+      }
+      svg+='<polygon points="'+pts.join(" ")+'" fill="none" stroke="var(--color-border)" stroke-width="0.5"/>';
+    }
+    // axes + labels
+    for(var i=0;i<n;i++){
+      var a=-Math.PI/2+2*Math.PI*i/n;
+      var ex=cx+R*1.15*Math.cos(a),ey=cy+R*1.15*Math.sin(a);
+      svg+='<line x1="'+cx+'" y1="'+cy+'" x2="'+(cx+R*Math.cos(a))+'" y2="'+(cy+R*Math.sin(a))+'" stroke="var(--color-border)" stroke-width="0.5"/>';
+      svg+='<text x="'+ex+'" y="'+(ey+3)+'" text-anchor="middle" fill="var(--color-text)" font-size="8">'+criteria[i]+'</text>';
+    }
+    // platform polygons
+    for(var k in platforms){
+      var p=platforms[k];
+      if(!document.getElementById(p.cb).checked) continue;
+      var pts=[];
+      for(var i=0;i<n;i++){
+        var a=-Math.PI/2+2*Math.PI*i/n;
+        pts.push((cx+R*p.scores[i]*Math.cos(a)).toFixed(1)+","+(cy+R*p.scores[i]*Math.sin(a)).toFixed(1));
+      }
+      svg+='<polygon points="'+pts.join(" ")+'" fill="'+p.color+'" fill-opacity="0.15" stroke="'+p.color+'" stroke-width="1.5"/>';
+      for(var i=0;i<n;i++){
+        var a=-Math.PI/2+2*Math.PI*i/n;
+        svg+='<circle cx="'+(cx+R*p.scores[i]*Math.cos(a))+'" cy="'+(cy+R*p.scores[i]*Math.sin(a))+'" r="3" fill="'+p.color+'"/>';
+      }
+    }
+    // legend
+    var ly=H-25,lx=10;
+    for(var k in platforms){
+      var p=platforms[k];
+      if(!document.getElementById(p.cb).checked) continue;
+      svg+='<rect x="'+lx+'" y="'+ly+'" width="10" height="10" rx="2" fill="'+p.color+'"/>';
+      svg+='<text x="'+(lx+14)+'" y="'+(ly+9)+'" fill="var(--color-text)" font-size="8">'+p.label+'</text>';
+      lx+=80;
+    }
+    svg+='</svg>';
+    out.textContent="";
+    var d=document.createElement("div");d.style.textAlign="center";
+    d.insertAdjacentHTML("afterbegin",svg);out.appendChild(d);
+  }
+  for(var k in platforms) document.getElementById(platforms[k].cb).addEventListener("change",update);
+  update();
+})();
+</script>
+
 </section>
 
 <!-- ================================================================== -->
@@ -467,23 +544,6 @@
   qubit 1 connects to qubit 2, but qubit 0 does <em>not</em> directly connect to qubit 2),
   this circuit maps naturally onto the hardware because both CNOTs target adjacent qubits.
 </p>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="10">OPENQASM 3.0;
-qubit[3] q;
-bit[3] c;
-// GHZ state: fits naturally on a linear chain
-// q[0]--q[1]--q[2] connectivity
-h q[0];
-cx q[0], q[1];   // adjacent: direct gate
-cx q[1], q[2];   // adjacent: direct gate
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
 
 <p>
   You should see roughly equal probabilities for <code>000</code> and <code>111</code>, with
@@ -1130,26 +1190,6 @@ c = measure q;</textarea>
   and <code>10</code>, at rates determined by the hardware's two-qubit gate fidelity.
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="14">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-// Minimal Bell state: 1 H + 1 CNOT
-// On perfect hardware: only 00 and 11
-// On real hardware: small probability of 01 and 10 from gate errors
-h q[0];
-cx q[0], q[1];
-c = measure q;
-// Try this on a real quantum computer (e.g., IBM Quantum)
-// and compare the results to this ideal simulation.
-// The difference reveals the hardware's gate fidelity.</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
 <h3>The Road Ahead</h3>
 
 <p>
@@ -1177,77 +1217,74 @@ c = measure q;
   can interact directly. Explore the native gate sets and connectivity graphs of
   different hardware platforms.
 </p>
-<div class="widget" id="target-widget">
-  <div class="widget-header">Hardware Topology</div>
-  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
-    <label>Target: <select id="target-select">
-      <option value="ibm_brisbane">IBM Brisbane</option>
-      <option value="ionq_aria">IonQ Aria</option>
-      <option value="quantinuum_h1">Quantinuum H1</option>
-      <option value="google_sycamore">Google Sycamore</option>
-      <option value="simulator">Simulator</option>
+
+<div class="widget" id="topology-widget">
+  <div class="widget-header">Hardware Topology Viewer</div>
+  <div class="widget-body">
+    <label style="font-size:0.85rem;">Topology: <select id="topo-select">
+      <option value="heavy-hex">Heavy-Hex (IBM)</option>
+      <option value="grid">Square Grid (Google)</option>
+      <option value="all-to-all">All-to-All (IonQ)</option>
+      <option value="linear">Linear Chain</option>
     </select></label>
-    <button onclick="showTopology()">Show Topology</button>
   </div>
-  <div class="widget-output" id="target-output"></div>
+  <div class="widget-output" id="topology-output"></div>
 </div>
 <script>
-async function showTopology() {
-  await ensureWasm();
-  var target = document.getElementById('target-select').value;
-  var out = document.getElementById('target-output');
-  out.innerHTML = '<p style="color:var(--color-text-muted)">Loading topology...</p>';
-  await new Promise(function(r) { setTimeout(r, 0); });
-  try {
-    var r = JSON.parse(window.getTargetInfo(target));
-    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
-    var html = '<div class="sim-stats" style="flex-wrap:wrap;">';
-    html += '<span><strong>Target:</strong> ' + esc(r.name) + '</span>';
-    html += '<span><strong>Qubits:</strong> ' + r.numQubits + '</span>';
-    html += '<span><strong>Basis gates:</strong> ' + (r.basisGates || []).map(function(g) { return esc(g); }).join(', ') + '</span>';
-    html += '</div>';
-    var edges = r.edges || [];
-    var n = r.numQubits;
-    if (n > 0) {
-      var cols = n < 20 ? 5 : Math.ceil(Math.sqrt(n));
-      var spacing = 60;
-      var pad = 30;
-      var rows = Math.ceil(n / cols);
-      var svgW = cols * spacing + pad * 2;
-      var svgH = rows * spacing + pad * 2;
-      var positions = [];
-      for (var i = 0; i < n; i++) {
-        positions.push({
-          x: (i % cols) * spacing + pad + spacing / 2,
-          y: Math.floor(i / cols) * spacing + pad + spacing / 2
-        });
-      }
-      var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + svgW + '" height="' + svgH + '" ';
-      svg += 'style="max-width:100%;height:auto;display:block;margin:0.75rem auto;">';
-      for (var e = 0; e < edges.length; e++) {
-        var a = edges[e][0], b = edges[e][1];
-        if (a < n && b < n) {
-          svg += '<line x1="' + positions[a].x + '" y1="' + positions[a].y + '" ';
-          svg += 'x2="' + positions[b].x + '" y2="' + positions[b].y + '" ';
-          svg += 'stroke="var(--color-text-muted)" stroke-width="1.5" stroke-opacity="0.5"/>';
-        }
-      }
-      var radius = 14;
-      for (var i = 0; i < n; i++) {
-        svg += '<circle cx="' + positions[i].x + '" cy="' + positions[i].y + '" r="' + radius + '" ';
-        svg += 'fill="var(--color-accent)" fill-opacity="0.15" stroke="var(--color-accent)" stroke-width="1.5"/>';
-        svg += '<text x="' + positions[i].x + '" y="' + (positions[i].y + 4) + '" ';
-        svg += 'text-anchor="middle" fill="var(--color-accent)" font-size="' + (n > 50 ? 8 : 10) + '" font-family="inherit">' + i + '</text>';
-      }
-      svg += '</svg>';
-      if (edges.length === 0) {
-        html += '<p style="color:var(--color-text-muted);text-align:center;margin:0.75rem 0;">All-to-all connectivity (no constraints)</p>';
-      }
-      html += svg;
+(function(){
+  var sel=document.getElementById("topo-select"),out=document.getElementById("topology-output");
+  var topologies={
+    "heavy-hex":{n:12,edges:[[0,1],[1,2],[2,3],[3,4],[0,5],[2,6],[4,7],[5,8],[6,9],[7,10],[8,9],[9,10],[10,11]],desc:"Heavy-hex: degree-3 lattice used by IBM Heron/Eagle. Each qubit connects to 2-3 neighbors."},
+    "grid":{n:9,edges:[[0,1],[1,2],[3,4],[4,5],[6,7],[7,8],[0,3],[1,4],[2,5],[3,6],[4,7],[5,8]],desc:"Square grid: used by Google Sycamore/Willow. Each interior qubit has 4 neighbors."},
+    "all-to-all":{n:7,edges:[],desc:"All-to-all: used by trapped-ion systems (Quantinuum, IonQ). Any qubit can interact with any other."},
+    "linear":{n:8,edges:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7]],desc:"Linear chain: simplest topology. Each qubit connects to at most 2 neighbors."}
+  };
+  function update(){
+    var t=topologies[sel.value],W=340,H=220;
+    if(sel.value==="all-to-all"){for(var i=0;i<t.n;i++) for(var j=i+1;j<t.n;j++) t.edges.push([i,j]);}
+    var svg='<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" style="font-family:var(--font-mono);font-size:9px;">';
+    // compute positions
+    var pos=[];
+    if(sel.value==="linear"){
+      for(var i=0;i<t.n;i++) pos.push([40+i*(W-80)/(t.n-1),H/2]);
+    } else if(sel.value==="grid"){
+      var cols=3,rows=3;
+      for(var r=0;r<rows;r++) for(var c=0;c<cols;c++) pos.push([80+c*90,40+r*60]);
+    } else if(sel.value==="all-to-all"){
+      for(var i=0;i<t.n;i++){var a=2*Math.PI*i/t.n-Math.PI/2; pos.push([W/2+75*Math.cos(a),95+75*Math.sin(a)]);}
+    } else { // heavy-hex
+      pos=[[40,40],[110,40],[180,40],[250,40],[320,40],[40,110],[180,110],[320,110],[40,170],[180,170],[320,170],[320,170]];
+      pos=[[50,40],[120,40],[190,40],[260,40],[330,40],[50,100],[190,100],[330,100],[50,160],[190,160],[330,160],[330,100]];
+      // adjust for 12 nodes
+      pos=[];
+      var xs=[50,120,190,260,320], ys=[35,95,155];
+      pos.push([xs[0],ys[0]],[xs[1],ys[0]],[xs[2],ys[0]],[xs[3],ys[0]],[xs[4],ys[0]]);
+      pos.push([xs[0],ys[1]],[xs[2],ys[1]],[xs[4],ys[1]]);
+      pos.push([xs[0],ys[2]],[xs[2],ys[2]],[xs[4],ys[2]],[xs[4]+10,ys[2]+10]);
+      if(pos.length<t.n) for(var i=pos.length;i<t.n;i++) pos.push([50+i*25,180]);
     }
-    out.innerHTML = html;
-  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
-}
+    // edges
+    for(var i=0;i<t.edges.length;i++){
+      var e=t.edges[i];
+      if(e[0]<pos.length&&e[1]<pos.length)
+        svg+='<line x1="'+pos[e[0]][0]+'" y1="'+pos[e[0]][1]+'" x2="'+pos[e[1]][0]+'" y2="'+pos[e[1]][1]+'" stroke="var(--color-accent)" stroke-width="2" opacity="0.4"/>';
+    }
+    // nodes
+    for(var i=0;i<Math.min(t.n,pos.length);i++){
+      svg+='<circle cx="'+pos[i][0]+'" cy="'+pos[i][1]+'" r="12" fill="var(--color-accent)" opacity="0.8"/>';
+      svg+='<text x="'+pos[i][0]+'" y="'+(pos[i][1]+3.5)+'" text-anchor="middle" fill="#fff" font-size="9" font-weight="600">Q'+i+'</text>';
+    }
+    svg+='<text x="'+(W/2)+'" y="'+(H-5)+'" text-anchor="middle" fill="var(--color-text-muted)" font-size="9">'+t.desc.split(".")[0]+'</text>';
+    svg+='</svg>';
+    out.textContent="";
+    var d=document.createElement("div");d.style.textAlign="center";
+    d.insertAdjacentHTML("afterbegin",svg);out.appendChild(d);
+    var p=document.createElement("p");p.style.cssText="font-size:0.85rem;color:var(--color-text-muted);margin-top:0.5rem;";
+    p.textContent=t.desc;out.appendChild(p);
+  }
+  sel.addEventListener("change",update);
+  update();
+})();
 </script>
 
 <!-- ================================================================== -->
@@ -1259,188 +1296,97 @@ async function showTopology() {
   when compiled for different quantum processors. Notice how the gate count and depth
   increase for hardware with restricted connectivity.
 </p>
-<div class="widget" id="transpile-widget">
-  <div class="widget-header">Circuit Transpilation</div>
-  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
-    <label>Target: <select id="tr-target">
-      <option value="simulator">Simulator (any gate)</option>
-      <option value="ibm_brisbane" selected>IBM Brisbane (CX+RZ+SX+X)</option>
-      <option value="ionq_aria">IonQ Aria (GPI+GPI2+MS)</option>
-      <option value="quantinuum_h1">Quantinuum H1 (RZZ+RZ+RY)</option>
+
+<div class="comparison" data-component="comparison" data-mode="transpile">
+  <div class="comparison-controls">
+    <label>Target: <select data-param="target">
+      <option value="ibm_brisbane">IBM Brisbane</option>
+      <option value="ionq_aria">IonQ Aria</option>
     </select></label>
-    <label>Optimization: <select id="tr-level"><option>0 (minimal)</option><option selected>1 (basic)</option><option>2 (full)</option></select></label>
-    <button onclick="runTranspileWidget()">Transpile</button>
   </div>
-  <div class="widget-output" id="transpile-output"></div>
+  <div class="comparison-panels">
+    <div class="comparison-panel" data-label="IBM Brisbane" data-target="ibm_brisbane">
+      <div class="comparison-qasm" hidden>OPENQASM 3.0;
+qubit[4] q; bit[4] c;
+h q[0];
+cx q[0], q[1];
+cx q[1], q[2];
+cx q[2], q[3];
+c = measure q;</div>
+      <div class="comparison-output"></div>
+    </div>
+    <div class="comparison-panel" data-label="IonQ Aria" data-target="ionq_aria">
+      <div class="comparison-qasm" hidden>OPENQASM 3.0;
+qubit[4] q; bit[4] c;
+h q[0];
+cx q[0], q[1];
+cx q[0], q[2];
+cx q[0], q[3];
+c = measure q;</div>
+      <div class="comparison-output"></div>
+    </div>
+  </div>
+</div>
+
+<h3>Interactive: Platform Comparison Table</h3>
+
+<div class="widget" id="platform-table-widget">
+  <div class="widget-header">Quantum Hardware Platform Comparison</div>
+  <div class="widget-body">
+    <label style="font-size:0.8rem;">Sort by: <select id="platform-sort">
+      <option value="qubits">Qubit Count</option>
+      <option value="fidelity">2Q Gate Fidelity</option>
+      <option value="coherence">Coherence Time</option>
+      <option value="speed">Gate Speed</option>
+    </select></label>
+  </div>
+  <div class="widget-output" id="platform-table-output" style="overflow-x:auto;"></div>
 </div>
 <script>
-async function runTranspileWidget() {
-  await ensureWasm();
-  var target = document.getElementById('tr-target').value;
-  var level = parseInt(document.getElementById('tr-level').value);
-  var out = document.getElementById('transpile-output');
-  out.innerHTML = '<p style="color:var(--color-text-muted)">Transpiling...</p>';
-  await new Promise(function(r) { setTimeout(r, 0); });
-  try {
-    var qasm = "OPENQASM 3.0;\nqubit[3] q;\nbit[3] c;\nh q[0];\ncx q[0], q[1];\ncx q[1], q[2];\nc = measure q;";
-    var r = JSON.parse(window.transpileQASM(qasm, target, level, isDark()));
-    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
-    var html = '<div class="comparison-panels">';
-    html += '<div class="comparison-panel"><h4>Original</h4>' + (r.beforeCircuitSVG||'') + '</div>';
-    html += '<div class="comparison-panel"><h4>Transpiled</h4>' + (r.afterCircuitSVG||'') + '</div>';
-    html += '</div>';
-    if (r.beforeStats && r.afterStats) {
-      html += '<div class="sim-stats">';
-      html += '<span>Before: ' + r.beforeStats.gates + ' gates, depth ' + r.beforeStats.depth + '</span>';
-      html += '<span>After: ' + r.afterStats.gates + ' gates, depth ' + r.afterStats.depth + ', ' + r.afterStats.twoQubitGates + ' 2Q gates</span>';
-      html += '</div>';
-    }
-    if (r.transpiledQASM) html += '<details><summary>Transpiled QASM</summary><pre>' + esc(r.transpiledQASM) + '</pre></details>';
-    out.innerHTML = html;
-  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
-}
+(function(){
+  var sel=document.getElementById("platform-sort"),out=document.getElementById("platform-table-output");
+  var data=[
+    {name:"Superconducting",qubits:1200,fidelity:99.5,coherence:100,speed:60,players:"IBM, Google, Rigetti"},
+    {name:"Trapped Ions",qubits:56,fidelity:99.8,coherence:1000000,speed:200000,players:"Quantinuum, IonQ"},
+    {name:"Neutral Atoms",qubits:1000,fidelity:99.2,coherence:500000,speed:1000,players:"QuEra, Pasqal"},
+    {name:"Photonic",qubits:216,fidelity:97.0,coherence:0,speed:1,players:"PsiQuantum, Xanadu"},
+    {name:"Quantum Dots",qubits:12,fidelity:99.0,coherence:50,speed:200,players:"Intel, Delft"}
+  ];
+  function formatT(ns){
+    if(ns===0) return "N/A";
+    if(ns>=1e6) return (ns/1e6).toFixed(0)+" ms";
+    if(ns>=1e3) return (ns/1e3).toFixed(0)+" \u00B5s";
+    return ns+" ns";
+  }
+  function update(){
+    var key=sel.value;
+    var sorted=data.slice().sort(function(a,b){
+      if(key==="qubits") return b.qubits-a.qubits;
+      if(key==="fidelity") return b.fidelity-a.fidelity;
+      if(key==="coherence") return b.coherence-a.coherence;
+      if(key==="speed") return a.speed-b.speed;
+      return 0;
+    });
+    var tbl=document.createElement("table");
+    tbl.style.cssText="font-size:0.8rem;width:100%;border-collapse:collapse;";
+    var hdr=tbl.createTHead().insertRow();
+    ["Platform","Qubits","2Q Fidelity","T2","2Q Gate Time","Key Players"].forEach(function(t){
+      var th=document.createElement("th");th.style.padding="4px 6px";th.textContent=t;hdr.appendChild(th);
+    });
+    var tb=tbl.createTBody();
+    sorted.forEach(function(p){
+      var row=tb.insertRow();
+      [p.name,p.qubits,p.fidelity+"%",formatT(p.coherence),formatT(p.speed),p.players].forEach(function(v){
+        var td=row.insertCell();td.style.padding="4px 6px";td.textContent=v;
+      });
+    });
+    out.textContent="";
+    out.appendChild(tbl);
+  }
+  sel.addEventListener("change",update);
+  update();
+})();
 </script>
-
-<!-- ================================================================== -->
-
-<section id="review">
-<h2>Chapter 13 Review</h2>
-
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 13 Review</div>
-
-  <div class="flashcard" data-card-id="ch13-divincenzo-criteria">
-    <div class="card-front">List DiVincenzo's five criteria for building a quantum computer.</div>
-    <div class="card-back">
-      (1) A scalable physical system with well-characterized qubits. (2) The ability to initialize
-      qubits to a known state (e.g., $|0\rangle$). (3) Long coherence times relative to gate
-      operation times. (4) A universal set of quantum gates. (5) A qubit-specific measurement
-      capability. DiVincenzo also listed two additional criteria for quantum communication:
-      interconversion between stationary and flying qubits, and faithful transmission of flying
-      qubits.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch13-t1-t2-coherence">
-    <div class="card-front">What are $T_1$ and $T_2$, and why does their ratio to gate time matter?</div>
-    <div class="card-back">
-      $T_1$ is the energy relaxation time (how long until $|1\rangle$ decays to $|0\rangle$).
-      $T_2$ is the dephasing time (how long until a superposition loses its phase coherence).
-      Always $T_2 \leq 2T_1$. The ratio $T_2 / t_{\text{gate}}$ determines how many gates can
-      be executed before decoherence corrupts the quantum state. A platform with long coherence
-      but slow gates may have the same effective circuit depth as one with short coherence but
-      fast gates.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch13-transmon-anharmonicity">
-    <div class="card-front">What is a transmon qubit, and why is the Josephson junction essential?</div>
-    <div class="card-back">
-      A transmon is a superconducting qubit made from a nonlinear LC oscillator, where the
-      inductor is replaced by a Josephson junction (a thin insulating barrier between two
-      superconductors). The Josephson junction introduces anharmonicity - it makes the energy
-      levels unequally spaced. This allows microwave pulses to selectively address only the
-      $|0\rangle$-$|1\rangle$ transition without exciting higher levels, which would not be
-      possible with a harmonic oscillator's equally spaced levels.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch13-trapped-ion-connectivity">
-    <div class="card-front">Why do trapped ions have all-to-all connectivity, and what advantage does this provide?</div>
-    <div class="card-back">
-      Ions in a linear trap share collective vibrational (motional) modes that serve as a
-      quantum bus. Laser-driven entangling gates can couple any pair of ions through these shared
-      modes, regardless of physical separation. This all-to-all connectivity eliminates the need
-      for SWAP routing, which is a major source of overhead and errors on nearest-neighbor
-      architectures like superconducting chips. Algorithms requiring long-range interactions (e.g.,
-      the QFT in Shor's algorithm) map directly onto the hardware.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch13-rydberg-blockade">
-    <div class="card-front">What is the Rydberg blockade, and how does it enable two-qubit gates in neutral-atom systems?</div>
-    <div class="card-back">
-      When a neutral atom is excited to a Rydberg state (a highly excited electronic state with
-      a large electric dipole moment), the strong dipole-dipole interaction shifts the energy
-      levels of nearby atoms, preventing them from also being excited to the Rydberg state. This
-      conditional behavior - "if atom A is in the Rydberg state, atom B cannot be excited" -
-      implements a controlled interaction between qubits. The blockade radius (typically 5-10
-      micrometers) determines which atoms can participate in a given gate.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch13-photonic-challenge">
-    <div class="card-front">What is the fundamental challenge for photonic quantum computing, and how is it addressed?</div>
-    <div class="card-back">
-      Photons do not naturally interact with each other, making deterministic two-qubit gates
-      impossible with linear optics alone. The KLM protocol (2001) showed that universal quantum
-      computation is possible using only beam splitters, phase shifters, and single-photon
-      detectors, combined with measurement and feed-forward. These gates are probabilistic, but
-      techniques like cluster-state preparation and fusion-based architectures can manage the
-      probabilistic element. Photon loss remains the dominant error source.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch13-topological-protection">
-    <div class="card-front">What is the theoretical advantage of topological qubits, and why are they difficult to build?</div>
-    <div class="card-back">
-      Topological qubits encode information nonlocally in the collective properties of exotic
-      quasiparticles (e.g., Majorana zero modes), making them inherently protected against local
-      noise. Gates are performed by braiding quasiparticles, and the result depends only on the
-      topological class of the braid, not the precise path. The difficulty is that the required
-      quasiparticles (non-abelian anyons) are extremely challenging to create and control in real
-      materials. As of early 2025, Microsoft's Majorana 1 chip demonstrated the first topological
-      core, but functional multi-qubit processors remain a future goal.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch13-swap-overhead">
-    <div class="card-front">Why does limited qubit connectivity increase circuit depth, and which platforms avoid this issue?</div>
-    <div class="card-back">
-      On hardware with nearest-neighbor connectivity (superconducting, quantum dots), executing
-      a gate between non-adjacent qubits requires inserting SWAP operations to move quantum states
-      closer together. Each SWAP decomposes into three CNOT gates, adding depth and error.
-      Trapped ions (all-to-all connectivity) and neutral atoms (reconfigurable connectivity) can
-      execute long-range gates directly, avoiding this overhead. The SWAP routing problem is
-      handled by the transpiler in the quantum software stack.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-</div>
-
-</section>
 
     </article>
 
@@ -1469,7 +1415,6 @@ async function runTranspileWidget() {
   
   <script>
   "use strict";
-  
   function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
   function isDark() { return window.matchMedia("(prefers-color-scheme: dark)").matches; }
   function renderMath(el) {
@@ -1477,7 +1422,6 @@ async function runTranspileWidget() {
       renderMathInElement(el, { delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}], throwOnError: false });
   }
 
-  
   var wasmReady = null;
   function ensureWasm() {
     if (!wasmReady) {
@@ -1490,7 +1434,6 @@ async function runTranspileWidget() {
     return wasmReady;
   }
 
-  
   var SRS_KEY = "goqu-srs";
   function srsLoad() { try { return JSON.parse(localStorage.getItem(SRS_KEY) || "{}"); } catch(e) { return {}; } }
   function srsSave(d) { localStorage.setItem(SRS_KEY, JSON.stringify(d)); }
@@ -1508,7 +1451,6 @@ async function runTranspileWidget() {
     d[id] = s; srsSave(d);
   }
 
-  
   function initSandbox(el) {
     var code = el.querySelector(".code"), output = el.querySelector(".output");
     if (!code || !output) return;
@@ -1530,7 +1472,6 @@ async function runTranspileWidget() {
     if (el.hasAttribute("data-autorun")) run();
   }
 
-  
   function initSimulation(el) {
     var tmplEl = el.querySelector(".sim-qasm"), output = el.querySelector(".sim-output");
     var sliders = el.querySelectorAll('input[type="range"]');
@@ -1602,7 +1543,6 @@ async function runTranspileWidget() {
     update();
   }
 
-  
   function formatStabilizer(s) {
     if (!s) return "";
     var sign = s[0], ops = s.slice(1), html = '<span class="stab-sign">' + esc(sign) + '</span>';
@@ -1613,7 +1553,6 @@ async function runTranspileWidget() {
     return html;
   }
 
-  
   function initExercise(el) {
     var code = el.querySelector(".code"), feedback = el.querySelector(".exercise-feedback");
     var checkBtn = el.querySelector('[data-action="check"]');
@@ -1651,7 +1590,6 @@ async function runTranspileWidget() {
     if (hintBtn && hintEl) hintBtn.addEventListener("click", function() { hintEl.style.display = hintEl.style.display === "none" ? "block" : "none"; });
   }
 
-  
   function initFlashcardDeck(el) {
     el.querySelectorAll(".flashcard").forEach(function(card) {
       var id = card.dataset.cardId;
@@ -1670,7 +1608,6 @@ async function runTranspileWidget() {
     });
   }
 
-  
   function initPOE(el) {
     var steps = el.querySelectorAll(".poe-step"), prog = el.querySelectorAll(".poe-progress-step");
     if (steps.length === 0) return;
@@ -1687,7 +1624,6 @@ async function runTranspileWidget() {
     show(0);
   }
 
-  
   function initStepThrough(el) {
     var qasmEl = el.querySelector(".step-qasm");
     var output = el.querySelector(".step-output");
@@ -1769,9 +1705,198 @@ async function runTranspileWidget() {
     load();
   }
 
-  
+  function initComparison(el) {
+    var panels = el.querySelectorAll(".comparison-panel");
+    var sliders = el.querySelectorAll('.comparison-controls input[type="range"]');
+    var selects = el.querySelectorAll('.comparison-controls select[data-param]');
+    if (panels.length < 2) return;
+    var mode = el.dataset.mode || "default";
+    var pending = false, dirty = false;
+
+    function getParams() {
+      var params = {};
+      sliders.forEach(function(s) {
+        params[s.dataset.param] = parseFloat(s.value);
+        var o = s.parentElement.querySelector("output");
+        if (o) o.textContent = parseFloat(s.value).toFixed(2);
+      });
+      selects.forEach(function(s) { params[s.dataset.param] = s.value; });
+      return params;
+    }
+
+    function substituteQasm(tmpl, params) {
+      var qasm = tmpl;
+      for (var k in params) qasm = qasm.replaceAll("{" + k + "}", params[k].toString());
+      return qasm;
+    }
+
+    async function runPanel(panel, params) {
+      var tmplEl = panel.querySelector(".comparison-qasm");
+      var output = panel.querySelector(".comparison-output");
+      if (!tmplEl || !output) return;
+      var qasm = substituteQasm(tmplEl.textContent, params);
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var html = "", r;
+        if (mode === "ideal-noisy") {
+          var isLeft = panel === panels[0];
+          if (isLeft) {
+            r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+            if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+            html = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+          } else {
+            var noiseModel = el.dataset.noiseModel || params.noiseModel || "depolarizing";
+            var noiseParam = parseFloat(params.noiseParam || "0.1");
+            if (window.runNoisyQASM) {
+              r = JSON.parse(window.runNoisyQASM(qasm, 1024, noiseModel, noiseParam, isDark()));
+              if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+              html = (r.circuitSVG || r.circuit || "") + (r.histogramSVG || r.histogram || "") + (r.stateCitySVG || "");
+              if (r.purity !== undefined) html += '<div class="sim-stats"><span>Purity: ' + r.purity.toFixed(4) + '</span></div>';
+            }
+          }
+        } else if (mode === "transpile") {
+          var target = panel.dataset.target || "generic";
+          if (window.transpileQASM) {
+            r = JSON.parse(window.transpileQASM(qasm, target, isDark()));
+            if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+            html = (r.circuit || r.circuitSVG || "") + (r.info || "");
+          }
+        } else {
+          r = JSON.parse(window.runQASM(qasm, 1024, isDark()));
+          if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+          html = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+        }
+        output.innerHTML = html;
+        renderMath(output);
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    async function runAll() {
+      if (pending) { dirty = true; return; }
+      pending = true;
+      await ensureWasm();
+      var params = getParams();
+      var promises = [];
+      panels.forEach(function(panel) { promises.push(runPanel(panel, params)); });
+      await Promise.all(promises);
+      pending = false;
+      if (dirty) { dirty = false; runAll(); }
+    }
+
+    sliders.forEach(function(s) { s.addEventListener("input", runAll); });
+    selects.forEach(function(s) { s.addEventListener("change", runAll); });
+
+    var runBtn = el.querySelector('[data-action="run"]');
+    if (!runBtn) {
+      var controls = el.querySelector(".comparison-controls");
+      if (controls) {
+        runBtn = document.createElement("button");
+        runBtn.setAttribute("data-action", "run");
+        runBtn.textContent = "Run";
+        controls.appendChild(runBtn);
+      }
+    }
+    if (runBtn) runBtn.addEventListener("click", runAll);
+
+    runAll();
+  }
+
+  function initAnimatedWalkthrough(el) {
+    var stages = el.querySelectorAll(".walkthrough-stage");
+    var progressBar = el.querySelector(".walkthrough-progress");
+    var prevBtn = el.querySelector('[data-action="prev"]');
+    var nextBtn = el.querySelector('[data-action="next"]');
+    var autoBtn = el.querySelector('[data-action="auto"]');
+    if (stages.length === 0) return;
+    var cur = 0, autoTimer = null, stageRan = {};
+
+    
+    if (progressBar) {
+      progressBar.textContent = "";
+      for (var i = 0; i < stages.length; i++) {
+        var pip = document.createElement("div");
+        pip.className = "walkthrough-pip" + (i === 0 ? " active" : "");
+        pip.setAttribute("data-index", i);
+        pip.textContent = i + 1;
+        progressBar.appendChild(pip);
+      }
+    }
+
+    function updateProgress() {
+      if (!progressBar) return;
+      var pips = progressBar.querySelectorAll(".walkthrough-pip");
+      pips.forEach(function(p, i) {
+        p.classList.remove("active", "done");
+        if (i < cur) p.classList.add("done");
+        if (i === cur) p.classList.add("active");
+      });
+    }
+
+    async function runStageQasm(stage) {
+      var idx = stage.dataset.stage || "0";
+      if (stageRan[idx]) return;
+      var qasmEl = stage.querySelector(".walkthrough-qasm");
+      var output = stage.querySelector(".walkthrough-output");
+      if (!qasmEl || !output) return;
+      stageRan[idx] = true;
+      await ensureWasm();
+      output.innerHTML = '<p style="color:var(--color-text-muted)">Running...</p>';
+      await new Promise(function(r) { setTimeout(r, 0); });
+      try {
+        var r = JSON.parse(window.runQASM(qasmEl.textContent, 1024, isDark()));
+        if (r.error) { output.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
+        output.innerHTML = (r.circuit || "") + (r.histogram || "") + (r.bloch || "");
+        renderMath(output);
+      } catch(e) { output.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
+    }
+
+    function show(idx) {
+      if (idx < 0 || idx >= stages.length) return;
+      stages.forEach(function(s, i) {
+        s.classList.remove("active", "walkthrough-exit");
+        if (i === cur && i !== idx) s.classList.add("walkthrough-exit");
+      });
+      var prev = cur;
+      cur = idx;
+      setTimeout(function() {
+        stages.forEach(function(s, i) {
+          s.classList.remove("walkthrough-exit");
+          s.classList.toggle("active", i === cur);
+        });
+      }, prev !== idx ? 150 : 0);
+      updateProgress();
+      if (prevBtn) prevBtn.disabled = (cur === 0);
+      if (nextBtn) nextBtn.disabled = (cur >= stages.length - 1);
+      runStageQasm(stages[cur]);
+    }
+
+    function stopAuto() {
+      if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+      if (autoBtn) autoBtn.textContent = "Auto-play";
+    }
+
+    if (prevBtn) prevBtn.addEventListener("click", function() { stopAuto(); if (cur > 0) show(cur - 1); });
+    if (nextBtn) nextBtn.addEventListener("click", function() { stopAuto(); if (cur < stages.length - 1) show(cur + 1); });
+    if (autoBtn) autoBtn.addEventListener("click", function() {
+      if (autoTimer) { stopAuto(); return; }
+      autoBtn.textContent = "Pause";
+      autoTimer = setInterval(function() {
+        if (cur < stages.length - 1) { show(cur + 1); }
+        else { stopAuto(); }
+      }, 3000);
+    });
+
+    if (progressBar) progressBar.addEventListener("click", function(e) {
+      var pip = e.target.closest(".walkthrough-pip");
+      if (pip) { stopAuto(); show(parseInt(pip.dataset.index, 10)); }
+    });
+
+    show(0);
+  }
+
   document.addEventListener("DOMContentLoaded", function() {
-    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough};
+    var reg = {sandbox: initSandbox, simulation: initSimulation, exercise: initExercise, "flashcard-deck": initFlashcardDeck, poe: initPOE, "step-through": initStepThrough, comparison: initComparison, "animated-walkthrough": initAnimatedWalkthrough};
     document.querySelectorAll("[data-component]").forEach(function(el) { var fn = reg[el.dataset.component]; if (fn) fn(el); });
   });
   </script>
