@@ -134,9 +134,10 @@ $$e^{-i(A+B)t} = \lim_{n \to \infty} \left( e^{-iAt/n} \, e^{-iBt/n} \right)^n$$
 $$\left\| e^{-i(A+B)t} - \left( e^{-iAt/n} \, e^{-iBt/n} \right)^n \right\| \leq \frac{t^2 \|[A,B]\|}{2n}$$
 
 <p>
-  The error scales as $O(t^2/n)$, so to achieve accuracy $\epsilon$, we need $n = O(t^2 /
-  \epsilon)$ Trotter steps. For a Hamiltonian with $m$ terms, $H = \sum_{j=1}^m H_j$, one Trotter
-  step applies all $m$ individual evolutions, so the total gate count is $O(m \cdot t^2/\epsilon)$.
+  The error scales as $O(t^2/n)$ for two terms. For a Hamiltonian with $m$ terms,
+  $H = \sum_{j=1}^m H_j$, the error per step generalizes to $O(m^2 \|H\|^2 t^2/n)$. One
+  Trotter step applies all $m$ individual evolutions, so to achieve accuracy $\epsilon$ the
+  total gate count is $O(m^3 \|H\|^2 t^2/\epsilon)$.
 </p>
 
 <div class="callout callout-key">

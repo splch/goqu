@@ -316,12 +316,12 @@ $$H_{\text{H}_2} = c_0\, I \otimes I + c_1\, Z \otimes I + c_2\, I \otimes Z + c
 
 <p>
   Try setting $\theta_0 \approx \pi$ (3.14) and $\theta_1 \approx \pi$ (3.14) with
-  $\theta_2 = 0$. This prepares the state $|11\rangle$, which represents both qubits in
-  the excited state. Now slowly adjust $\theta_2$ - you should see probability flow between
-  the $|01\rangle$ and $|10\rangle$ states, which correspond to the bonding and antibonding
-  configurations of H$_2$. The ground state of H$_2$ is dominated by the $|01\rangle$ and
-  $|10\rangle$ components (representing the two electrons occupying the bonding orbital),
-  with the exact mixture determined by electron correlation.
+  $\theta_2 = 0$. Before the CNOT, both qubits are in $|1\rangle$; the CNOT flips the
+  target, producing $|10\rangle$. Now slowly adjust $\theta_2$ - you should see probability
+  flow between the $|01\rangle$ and $|10\rangle$ states, which correspond to the bonding
+  and antibonding configurations of H$_2$. The ground state of H$_2$ is dominated by the
+  $|01\rangle$ and $|10\rangle$ components (representing the two electrons occupying the
+  bonding orbital), with the exact mixture determined by electron correlation.
 </p>
 
 <p>

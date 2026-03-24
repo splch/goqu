@@ -126,11 +126,13 @@ For several important channels, the classical capacity is known in single-letter
 <li><strong>Quantum erasure channel</strong> (erasure probability $\epsilon$):
 $C = (1 - \epsilon) \log 2 = 1 - \epsilon$ bits per qubit.</li>
 <li><strong>Qubit depolarizing channel</strong> (error probability $p$):
-$C = 1 - H\!\bigl(\tfrac{3p}{4}\bigr)$ for the symmetric form, where
+$C = 1 - H\!\bigl(\tfrac{2p}{3}\bigr)$, where
 $H(x) = -x\log_2 x - (1-x)\log_2(1-x)$ is the binary entropy function and $p$ here
 denotes the total Pauli error probability (each of $X$, $Y$, $Z$ applied with probability
 $p/3$), related to the replacement probability $p_r$ used in Chapter 27 by
-$p = \frac{3}{4}p_r$. Equivalently, $C = 1 + (1-p)\log_2(1-p) + p\log_2(p/3)$.</li>
+$p = \frac{3}{4}p_r$. The capacity decreases because the output of any pure input state
+has bit-flip probability $2p/3$ (the $Z$ error leaves basis states unchanged, while $X$
+and $Y$ errors flip them).</li>
 </ul>
 
 <p>

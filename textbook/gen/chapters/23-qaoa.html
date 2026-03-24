@@ -460,11 +460,12 @@ $$|\psi\rangle = \prod_{k=1}^{p} e^{-i \beta_k H_B} \, e^{-i \gamma_k H_C} \, |s
 <h3>Scaling Up: Deeper Circuits</h3>
 
 <p>
-  Depth-1 QAOA provides a limited approximation. For the triangle graph, depth-1 QAOA achieves
-  an approximation ratio (ratio of expected cut to optimal cut) of about 0.6924 - provably
-  above the trivial 0.5 ratio of random guessing, but below the 0.878 ratio achievable by
-  the best known classical algorithm (the Goemans-Williamson semidefinite programming
-  relaxation).
+  Depth-1 QAOA provides a limited approximation. For 3-regular graphs (a class that includes
+  the triangle), Farhi et al. proved that depth-1 QAOA achieves a worst-case approximation
+  ratio (ratio of expected cut to optimal cut) of at least 0.6924 - provably above the trivial
+  0.5 ratio of random guessing, but below the 0.878 ratio guaranteed by the best known
+  classical algorithm (the Goemans-Williamson semidefinite programming relaxation) on general
+  graphs.
 </p>
 
 <p>
@@ -822,7 +823,7 @@ h q[0]; h q[1]; h q[2]; h q[3];
 rzz({gamma}) q[0], q[1];
 rzz({gamma}) q[1], q[2];
 rzz({gamma}) q[2], q[3];
-rx({beta}) q[0]; rx({beta}) q[1]; rx({beta}) q[2]; rx({beta}) q[3];
+rx(2*{beta}) q[0]; rx(2*{beta}) q[1]; rx(2*{beta}) q[2]; rx(2*{beta}) q[3];
 c[0] = measure q[0]; c[1] = measure q[1]; c[2] = measure q[2]; c[3] = measure q[3];</div>
   <div class="sim-output"></div>
 </div>

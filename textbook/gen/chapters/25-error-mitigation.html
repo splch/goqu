@@ -298,10 +298,11 @@ c[1] = measure q[1];</div>
 <div class="widget" id="zne-extrapolation-widget">
   <div class="widget-header">ZNE Extrapolation Visualizer</div>
   <p style="font-size:0.9rem;margin-bottom:0.75rem;">
-    The ideal Bell state has $\langle ZZ \rangle = 1$. Under depolarizing noise at rate $p$,
-    the expectation value decays as $(1-2p)^2$. ZNE measures at scale factors $\lambda = 1, 2, 3$
-    and extrapolates to $\lambda = 0$. Drag the slider to see how noise degrades the signal
-    and how extrapolation recovers it.
+    The ideal Bell state has $\langle ZZ \rangle = 1$. Under depolarizing noise at rate $p$
+    per gate, the expectation value decays as $(1-2p)^{2\lambda}$, where $\lambda$ is the
+    noise scale factor (the circuit has 2 gates, each folded $\lambda$ times). ZNE measures at
+    $\lambda = 1, 2, 3$ and extrapolates to $\lambda = 0$. Drag the slider to see how noise
+    degrades the signal and how extrapolation recovers it.
   </p>
   <div style="display:flex;gap:1rem;align-items:center;margin-bottom:0.5rem;">
     <label style="font-family:var(--font-mono);font-size:0.85rem;">Base noise $p$:
@@ -323,12 +324,12 @@ c[1] = measure q[1];</div>
     var p = parseFloat(slider.value);
     document.getElementById("zne-noise-val").textContent = p.toFixed(2);
 
+    var base = Math.pow(1-2*p, 2);
     var pts = [
-      {lam:1, val:Math.pow(1-2*p,2)},
-      {lam:2, val:Math.pow(1-2*2*p,2)},
-      {lam:3, val:Math.pow(1-2*3*p,2)}
+      {lam:1, val:Math.pow(base, 1)},
+      {lam:2, val:Math.pow(base, 2)},
+      {lam:3, val:Math.pow(base, 3)}
     ];
-    pts.forEach(function(pt){ if(pt.val<0) pt.val=Math.abs(pt.val)*0.1; });
 
     // Linear extrapolation from first two points
     var slope = (pts[1].val-pts[0].val)/(pts[1].lam-pts[0].lam);

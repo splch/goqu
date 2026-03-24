@@ -460,7 +460,10 @@ article.chapter th, .state-table th {
 .exercise-controls,
 .flashcard-controls,
 .step-controls,
+.walkthrough-controls,
+.comparison-controls,
 .poe-progress,
+.walkthrough-progress,
 .poe-step button,
 .poe-step textarea,
 .widget button,
@@ -470,10 +473,13 @@ article.chapter th, .state-table th {
 .exercise-expected,
 .exercise-hint,
 .sim-qasm,
-.step-qasm { display: none !important; }
+.step-qasm,
+.walkthrough-qasm,
+.comparison-qasm { display: none !important; }
 
 /* Sandbox / Simulation / Exercise containers */
-.sandbox, .simulation, .exercise, .step-through, .widget, .poe {
+.sandbox, .simulation, .exercise, .step-through, .widget, .poe,
+.animated-walkthrough, .comparison {
   margin: 8pt 0;
   border: 0.5pt solid var(--border);
   border-radius: 3pt;
@@ -596,6 +602,53 @@ article.chapter th, .state-table th {
 .stab-x { color: #e74c3c; font-weight: 600; }
 .stab-y { color: #27ae60; font-weight: 600; }
 .stab-z { color: #2980b9; font-weight: 600; }
+
+/* Animated walkthrough: show all stages */
+.walkthrough-stage {
+  display: block !important;
+  padding: 6pt 10pt;
+  border-bottom: 0.5pt solid var(--border);
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+.walkthrough-stage:last-of-type { border-bottom: none; }
+.walkthrough-narration h4 {
+  margin: 0 0 3pt;
+  font-size: 10pt;
+  color: var(--accent);
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.walkthrough-narration p { font-size: 9.5pt; }
+.walkthrough-output { padding: 4pt 0; }
+.walkthrough-output svg { max-width: 100%; height: auto; }
+
+/* Comparison: show all panels side by side */
+.comparison-panels {
+  display: flex;
+  gap: 8pt;
+  width: 100%;
+  justify-content: center;
+}
+.comparison-panel {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+.comparison-panel[data-label]::before {
+  content: attr(data-label);
+  display: block;
+  font-size: 8pt;
+  font-weight: 600;
+  color: var(--light);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 4pt;
+}
+.comparison-output { padding: 4pt 0; }
+.comparison-output svg { max-width: 100%; height: auto; }
 
 /* Comparison panels */
 .comparison-panels {
@@ -913,6 +966,46 @@ q1: \u2500\u2500\u2500\u2500\u2500X\u2500\u2500</pre></div>
     });
   }
 
+  // ── Animated Walkthrough - show all stages, run all QASM
+  function initAnimatedWalkthrough(el) {
+    el.querySelectorAll(".walkthrough-stage").forEach(function(stage) {
+      stage.classList.add("active");
+      stage.style.display = "block";
+      var qasmEl = stage.querySelector(".walkthrough-qasm");
+      var output = stage.querySelector(".walkthrough-output");
+      if (!qasmEl || !output) return;
+      var qasm = qasmEl.textContent;
+      (async function() {
+        await ensureWasm();
+        await new Promise(function(r) { setTimeout(r, 0); });
+        try {
+          // runQASM returns trusted SVG from our own WASM module
+          var r = JSON.parse(window.runQASM(qasm, 1024, false));
+          if (!r.error) output.innerHTML = (r.circuit||"") + (r.histogram||"");
+        } catch(e) { /* ignore */ }
+      })();
+    });
+  }
+
+  // ── Comparison - run QASM in all panels
+  function initComparison(el) {
+    el.querySelectorAll(".comparison-panel").forEach(function(panel) {
+      var qasmEl = panel.querySelector(".comparison-qasm");
+      var output = panel.querySelector(".comparison-output");
+      if (!qasmEl || !output) return;
+      var qasm = qasmEl.textContent;
+      (async function() {
+        await ensureWasm();
+        await new Promise(function(r) { setTimeout(r, 0); });
+        try {
+          // runQASM returns trusted SVG from our own WASM module
+          var r = JSON.parse(window.runQASM(qasm, 1024, false));
+          if (!r.error) output.innerHTML = (r.circuit||"") + (r.histogram||"");
+        } catch(e) { /* ignore */ }
+      })();
+    });
+  }
+
   // ── Step-Through - show final step ─────────────────────────────────────
   function initStepThrough(el) {
     var qasmEl = el.querySelector(".step-qasm");
@@ -1003,6 +1096,8 @@ q1: \u2500\u2500\u2500\u2500\u2500X\u2500\u2500</pre></div>
       "flashcard-deck": initFlashcardDeck,
       poe: initPOE,
       "step-through": initStepThrough,
+      "animated-walkthrough": initAnimatedWalkthrough,
+      comparison: initComparison,
     };
     var count = 0;
     document.querySelectorAll("[data-component]").forEach(function (el) {
