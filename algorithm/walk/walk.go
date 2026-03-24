@@ -78,7 +78,7 @@ func classicalWalk(steps, size int) []float64 {
 	for i := 1; i <= steps; i++ {
 		// Update in-place from right to left.
 		for j := i; j >= 1; j-- {
-			binom[j] = binom[j] + binom[j-1]
+			binom[j] += binom[j-1]
 		}
 	}
 
