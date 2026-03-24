@@ -82,6 +82,114 @@ $$\Delta\theta_{\text{HL}} = \frac{1}{N}$$
   </p>
 </div>
 
+<!-- Widget 1: SQL vs Heisenberg Scaling -->
+<div class="widget" id="sql-vs-heisenberg">
+  <div class="widget-header">SQL vs Heisenberg Scaling</div>
+  <div style="display:flex; flex-wrap:wrap; gap:1rem; align-items:center; margin-bottom:0.75rem;">
+    <label style="font-family:var(--font-mono); font-size:0.9rem;">
+      N (probes): <input type="range" id="sql-hl-n" min="1" max="200" value="50" style="width:10rem; vertical-align:middle; accent-color:var(--color-accent);">
+      <output id="sql-hl-n-out" style="font-family:var(--font-mono); font-size:0.85rem; min-width:2.5rem;">50</output>
+    </label>
+  </div>
+  <div id="sql-hl-chart" style="width:100%; overflow-x:auto;"></div>
+  <div id="sql-hl-readout" style="font-family:var(--font-mono); font-size:0.85rem; color:var(--color-text-muted); margin-top:0.5rem; text-align:center;"></div>
+</div>
+
+<script>
+(function(){
+  var slider = document.getElementById('sql-hl-n');
+  var nOut = document.getElementById('sql-hl-n-out');
+  var chart  = document.getElementById('sql-hl-chart');
+  var readout = document.getElementById('sql-hl-readout');
+
+  function isDk(){ return window.matchMedia("(prefers-color-scheme: dark)").matches; }
+
+  function draw(){
+    var N = parseInt(slider.value, 10);
+    nOut.textContent = N;
+    var dark = isDk();
+    var textC = dark ? '#ccc' : '#333';
+    var gridC = dark ? '#444' : '#ddd';
+    var sqlC  = '#e74c3c';
+    var hlC   = '#2980b9';
+
+    var W = 520, H = 320, pl = 65, pr = 20, pt = 20, pb = 50;
+    var pw = W - pl - pr, ph = H - pt - pb;
+    var maxN = Math.log10(200);
+
+    function xP(logn){ return pl + logn / maxN * pw; }
+    function yP(logy){ return pt + (0 - logy) / (0 - Math.log10(1/200)) * ph; }
+
+    var ns = document.createElementNS("http://www.w3.org/2000/svg","svg");
+    ns.setAttribute("viewBox","0 0 "+W+" "+H);
+    ns.setAttribute("style","font-family:system-ui,sans-serif;max-width:100%;height:auto;");
+
+    function mkEl(tag,attrs){
+      var e = document.createElementNS("http://www.w3.org/2000/svg",tag);
+      for(var k in attrs) e.setAttribute(k,attrs[k]);
+      return e;
+    }
+    function addLine(x1,y1,x2,y2,s,sw,da){
+      var a = {x1:x1,y1:y1,x2:x2,y2:y2,stroke:s,"stroke-width":sw};
+      if(da) a["stroke-dasharray"]=da;
+      ns.appendChild(mkEl("line",a));
+    }
+    function addText(x,y,txt,sz,anch,col){
+      var t = mkEl("text",{x:x,y:y,"text-anchor":anch||"middle",fill:col||textC,"font-size":sz||"11"});
+      t.textContent = txt;
+      ns.appendChild(t);
+    }
+
+    // Grid
+    for(var i=0;i<=2;i++){
+      addLine(xP(i),pt,xP(i),H-pb,gridC,0.5);
+      addText(xP(i),H-pb+18,"10^"+i,"11","middle");
+    }
+    for(var j=-2;j<=0;j++){
+      addLine(pl,yP(j),W-pr,yP(j),gridC,0.5);
+      addText(pl-8,yP(j)+4,"10^"+j,"11","end");
+    }
+
+    // Axes
+    addLine(pl,H-pb,W-pr,H-pb,textC,1);
+    addLine(pl,pt,pl,H-pb,textC,1);
+    addText((pl+W-pr)/2,H-pb+38,"Number of probes N","12","middle");
+
+    // SQL curve
+    var sqlPts = [], hlPts = [];
+    for(var n=1;n<=200;n++){
+      sqlPts.push(xP(Math.log10(n))+","+yP(Math.log10(1/Math.sqrt(n))));
+      hlPts.push(xP(Math.log10(n))+","+yP(Math.log10(1/n)));
+    }
+    ns.appendChild(mkEl("polyline",{points:sqlPts.join(" "),fill:"none",stroke:sqlC,"stroke-width":"2.5"}));
+    ns.appendChild(mkEl("polyline",{points:hlPts.join(" "),fill:"none",stroke:hlC,"stroke-width":"2.5"}));
+
+    // Marker
+    var logN=Math.log10(N), sqlV=1/Math.sqrt(N), hlV=1/N, mx=xP(logN);
+    addLine(mx,pt,mx,H-pb,textC,1,"4,3");
+    ns.appendChild(mkEl("circle",{cx:mx,cy:yP(Math.log10(sqlV)),r:5,fill:sqlC}));
+    ns.appendChild(mkEl("circle",{cx:mx,cy:yP(Math.log10(hlV)),r:5,fill:hlC}));
+
+    // Legend
+    var lx = W-pr-150, ly = pt+5;
+    ns.appendChild(mkEl("rect",{x:lx,y:ly,width:140,height:44,rx:4,fill:dark?"rgba(0,0,0,0.5)":"rgba(255,255,255,0.8)"}));
+    addLine(lx+10,ly+14,lx+30,ly+14,sqlC,2.5);
+    addText(lx+35,ly+18,"SQL: 1/\u221AN","11","start");
+    addLine(lx+10,ly+32,lx+30,ly+32,hlC,2.5);
+    addText(lx+35,ly+36,"HL: 1/N","11","start");
+
+    while(chart.firstChild) chart.removeChild(chart.firstChild);
+    chart.appendChild(ns);
+
+    readout.textContent = "N = "+N+"  |  SQL: \u0394\u03B8 = "+sqlV.toExponential(2)+"  |  HL: \u0394\u03B8 = "+hlV.toExponential(2)+"  |  Advantage: "+(sqlV/hlV).toFixed(1)+"x";
+  }
+
+  slider.addEventListener('input', draw);
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener('change', draw);
+  draw();
+})();
+</script>
+
 <h3>The GHZ State and Heisenberg Scaling</h3>
 
 <p>
@@ -177,26 +285,121 @@ $$\frac{1}{\sqrt{2}}(|00\cdots0\rangle + e^{iN\theta}|11\cdots1\rangle)$$
   of this fringe at $\phi = \pi/2$ determines the sensitivity of the sensor.
 </p>
 
-<div class="simulation" data-component="simulation">
-  <div class="sim-controls">
-    <label>Phase $\phi$: <input type="range" data-param="phase" min="0" max="6.283" step="0.01" value="0"><output>0.00</output></label>
-  </div>
-  <pre class="sim-qasm">OPENQASM 3.0;
-qubit[1] q;
-bit[1] c;
-h q[0];
-rz({phase}) q[0];
-h q[0];
-c = measure q;</pre>
-  <div class="sim-output"></div>
-</div>
-
 <p>
   Try sweeping the phase from 0 to $2\pi$. At $\phi = 0$, the qubit returns to $|0\rangle$
   with certainty. At $\phi = \pi$, it ends in $|1\rangle$ with certainty. At $\phi = \pi/2$,
   the outcome is 50/50 - this is the point of maximum sensitivity, where a small change in
   $\phi$ produces the largest change in measurement probability.
 </p>
+
+<!-- Simulation 2: Ramsey Interferometer with Bloch sphere + fringe plot -->
+<div class="simulation" data-component="simulation" data-bloch>
+  <div class="sim-controls">
+    <label>Phase &phi;:
+      <input type="range" data-param="phi" min="0" max="6.2832" step="0.01" value="1.5708">
+      <output>1.57</output>
+    </label>
+  </div>
+  <div class="sim-qasm" hidden>OPENQASM 3.0;
+qubit[1] q;
+bit[1] c;
+h q[0];
+rz({phi}) q[0];
+h q[0];
+c = measure q;</div>
+  <div class="sim-output"></div>
+</div>
+
+<!-- Widget 2b: Ramsey Fringe Plot -->
+<div class="widget" id="ramsey-fringe-plot">
+  <div class="widget-header">Ramsey Fringe Pattern</div>
+  <div id="ramsey-fringe-svg" style="width:100%; overflow-x:auto;"></div>
+</div>
+
+<script>
+(function(){
+  var container = document.getElementById('ramsey-fringe-svg');
+  var phiSlider = document.querySelector('[data-param="phi"]');
+
+  function isDk(){ return window.matchMedia("(prefers-color-scheme: dark)").matches; }
+
+  function draw(){
+    var dark = isDk();
+    var textC = dark ? '#ccc' : '#333';
+    var gridC = dark ? '#444' : '#ddd';
+    var lineC = '#2980b9';
+    var markC = '#e74c3c';
+    var curPhi = phiSlider ? parseFloat(phiSlider.value) : 1.5708;
+
+    var W = 520, H = 240, pl = 55, pr = 15, pt = 15, pb = 45;
+    var pw = W - pl - pr, ph = H - pt - pb;
+
+    var ns = document.createElementNS("http://www.w3.org/2000/svg","svg");
+    ns.setAttribute("viewBox","0 0 "+W+" "+H);
+    ns.setAttribute("style","font-family:system-ui,sans-serif;max-width:100%;height:auto;");
+
+    function mkEl(tag,attrs){
+      var e = document.createElementNS("http://www.w3.org/2000/svg",tag);
+      for(var k in attrs) e.setAttribute(k,attrs[k]);
+      return e;
+    }
+    function addText(x,y,txt,sz,anch){
+      var t = mkEl("text",{x:x,y:y,"text-anchor":anch||"middle",fill:textC,"font-size":sz||"11"});
+      t.textContent = txt;
+      ns.appendChild(t);
+    }
+
+    function xP(phi){ return pl + phi / (2*Math.PI) * pw; }
+    function yP(prob){ return pt + (1 - prob) * ph; }
+
+    // Grid
+    var phiTicks = [0, Math.PI/2, Math.PI, 3*Math.PI/2, 2*Math.PI];
+    var phiLabels = ["0", "\u03C0/2", "\u03C0", "3\u03C0/2", "2\u03C0"];
+    for(var i=0;i<phiTicks.length;i++){
+      var x = xP(phiTicks[i]);
+      ns.appendChild(mkEl("line",{x1:x,y1:pt,x2:x,y2:H-pb,stroke:gridC,"stroke-width":"0.5"}));
+      addText(x,H-pb+16,phiLabels[i],"11");
+    }
+    for(var p=0;p<=1;p+=0.25){
+      var y = yP(p);
+      ns.appendChild(mkEl("line",{x1:pl,y1:y,x2:W-pr,y2:y,stroke:gridC,"stroke-width":"0.5"}));
+      addText(pl-8,y+4,(p*100).toFixed(0)+"%","10","end");
+    }
+
+    // Axes
+    ns.appendChild(mkEl("line",{x1:pl,y1:H-pb,x2:W-pr,y2:H-pb,stroke:textC,"stroke-width":"1"}));
+    ns.appendChild(mkEl("line",{x1:pl,y1:pt,x2:pl,y2:H-pb,stroke:textC,"stroke-width":"1"}));
+    addText((pl+W-pr)/2,H-pb+36,"Phase \u03C6","12");
+    addText(14,(pt+H-pb)/2,"P(|0\u27E9)","11","middle");
+
+    // Fringe curve: P(0) = cos^2(phi/2)
+    var pts = [];
+    for(var s=0;s<=200;s++){
+      var phi = s/200 * 2*Math.PI;
+      var prob = Math.cos(phi/2)*Math.cos(phi/2);
+      pts.push(xP(phi)+","+yP(prob));
+    }
+    ns.appendChild(mkEl("polyline",{points:pts.join(" "),fill:"none",stroke:lineC,"stroke-width":"2.5"}));
+
+    // Current position marker
+    var curProb = Math.cos(curPhi/2)*Math.cos(curPhi/2);
+    var cx = xP(curPhi), cy = yP(curProb);
+    ns.appendChild(mkEl("line",{x1:cx,y1:pt,x2:cx,y2:H-pb,stroke:markC,"stroke-width":"1","stroke-dasharray":"4,3",opacity:"0.6"}));
+    ns.appendChild(mkEl("circle",{cx:cx,cy:cy,r:6,fill:markC}));
+
+    // Sensitivity indicator: |dP/dphi| = |sin(phi)| / 2
+    var sens = Math.abs(Math.sin(curPhi)) / 2;
+    addText(W-pr-10,pt+16,"Sensitivity: "+(sens*100).toFixed(1)+"%/rad","10","end");
+
+    while(container.firstChild) container.removeChild(container.firstChild);
+    container.appendChild(ns);
+  }
+
+  if(phiSlider) phiSlider.addEventListener('input', draw);
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener('change', draw);
+  draw();
+})();
+</script>
 
 </section>
 
@@ -297,6 +500,130 @@ c = measure q;</pre>
     with higher sensitivity and lower hysteresis than classical sensors.
   </li>
 </ul>
+
+<!-- Widget 3: NV Center Energy Level Diagram -->
+<div class="widget" id="nv-energy-levels">
+  <div class="widget-header">NV Center Energy Levels</div>
+  <div style="display:flex; flex-wrap:wrap; gap:1rem; align-items:center; margin-bottom:0.75rem;">
+    <label style="font-family:var(--font-mono); font-size:0.9rem;">
+      Magnetic field B (mT): <input type="range" id="nv-b-field" min="0" max="100" value="0" step="1" style="width:10rem; vertical-align:middle; accent-color:var(--color-accent);">
+      <output id="nv-b-out" style="font-family:var(--font-mono); font-size:0.85rem; min-width:3rem;">0</output>
+    </label>
+  </div>
+  <div id="nv-energy-svg" style="width:100%; overflow-x:auto;"></div>
+  <div id="nv-energy-readout" style="font-family:var(--font-mono); font-size:0.85rem; color:var(--color-text-muted); margin-top:0.5rem; text-align:center;"></div>
+</div>
+
+<script>
+(function(){
+  var slider = document.getElementById('nv-b-field');
+  var bOut   = document.getElementById('nv-b-out');
+  var svgBox = document.getElementById('nv-energy-svg');
+  var readout= document.getElementById('nv-energy-readout');
+
+  var gamma_e = 28.0; // GHz/T
+  var zfs = 2.87; // GHz zero-field splitting
+
+  function isDk(){ return window.matchMedia("(prefers-color-scheme: dark)").matches; }
+
+  function draw(){
+    var B = parseInt(slider.value, 10);
+    bOut.textContent = B;
+    var dark = isDk();
+    var textC = dark ? '#ccc' : '#333';
+    var lineC = dark ? '#888' : '#555';
+
+    var Btesla = B * 1e-3;
+    var splitting = gamma_e * Btesla; // GHz
+    var fPlus  = zfs + splitting;
+    var fMinus = zfs - splitting;
+
+    var W = 400, H = 280;
+    var ns = document.createElementNS("http://www.w3.org/2000/svg","svg");
+    ns.setAttribute("viewBox","0 0 "+W+" "+H);
+    ns.setAttribute("style","font-family:system-ui,sans-serif;max-width:100%;height:auto;");
+
+    function mkEl(tag,attrs){
+      var e = document.createElementNS("http://www.w3.org/2000/svg",tag);
+      for(var k in attrs) e.setAttribute(k,attrs[k]);
+      return e;
+    }
+    function addText(x,y,txt,sz,anch,col,fw){
+      var t = mkEl("text",{x:x,y:y,"text-anchor":anch||"middle",fill:col||textC,"font-size":sz||"12"});
+      if(fw) t.setAttribute("font-weight",fw);
+      t.textContent = txt;
+      ns.appendChild(t);
+    }
+    function addLine(x1,y1,x2,y2,c,sw){
+      ns.appendChild(mkEl("line",{x1:x1,y1:y1,x2:x2,y2:y2,stroke:c||lineC,"stroke-width":sw||2}));
+    }
+
+    // Energy levels: m_s=0 at bottom, m_s=+/-1 at top
+    var y0 = 220, yBase = 80; // m_s=0 level and degenerate m_s=+/-1 level
+    var maxSplit = gamma_e * 0.1; // max B = 100 mT
+    var splitPx = splitting / maxSplit * 40;
+
+    var yPlus = yBase - splitPx;
+    var yMinux = yBase + splitPx;
+
+    // m_s = 0 level
+    addLine(100,y0,300,y0,"#2980b9",3);
+    addText(70,y0+5,"m_s = 0","12","end","#2980b9","600");
+
+    // m_s = -1 level
+    addLine(100,yMinux,300,yMinux,"#27ae60",3);
+    addText(340,yMinux+5,"m_s = -1","12","start","#27ae60","600");
+
+    // m_s = +1 level
+    addLine(100,yPlus,300,yPlus,"#e74c3c",3);
+    addText(340,yPlus+5,"m_s = +1","12","start","#e74c3c","600");
+
+    // Frequency labels
+    if(B > 0){
+      // Arrow from m_s=0 to m_s=+1
+      addLine(130,(y0-8),130,(yPlus+8),"#e74c3c",1.5);
+      ns.appendChild(mkEl("polygon",{points:(130-4)+","+(yPlus+12)+" "+(130+4)+","+(yPlus+12)+" "+130+","+(yPlus+6),fill:"#e74c3c"}));
+      addText(115,(y0+yPlus)/2,fPlus.toFixed(2)+" GHz","10","end","#e74c3c");
+
+      // Arrow from m_s=0 to m_s=-1
+      addLine(270,(y0-8),270,(yMinux+8),"#27ae60",1.5);
+      ns.appendChild(mkEl("polygon",{points:(270-4)+","+(yMinux+12)+" "+(270+4)+","+(yMinux+12)+" "+270+","+(yMinux+6),fill:"#27ae60"}));
+      addText(285,(y0+yMinux)/2,fMinus.toFixed(2)+" GHz","10","start","#27ae60");
+    } else {
+      // Degenerate - single arrow
+      addLine(200,(y0-8),200,(yBase+8),textC,1.5);
+      ns.appendChild(mkEl("polygon",{points:"196,"+(yBase+12)+" 204,"+(yBase+12)+" 200,"+(yBase+6),fill:textC}));
+      addText(218,(y0+yBase)/2,"2.87 GHz","10","start");
+      addText(200,yBase-10,"m_s = \u00B11 (degenerate)","11","middle");
+    }
+
+    // Title
+    addText(W/2,25,"NV Center Ground State","13","middle",textC,"600");
+
+    // Splitting annotation
+    if(B > 0){
+      var bracketX = 320;
+      addLine(bracketX,yPlus,bracketX,yMinux,"#f39c12",1);
+      addLine(bracketX-4,yPlus,bracketX+4,yPlus,"#f39c12",1);
+      addLine(bracketX-4,yMinux,bracketX+4,yMinux,"#f39c12",1);
+      addText(bracketX+6,(yPlus+yMinux)/2+4,"\u0394f = "+(2*splitting).toFixed(2)+" GHz","9","start","#f39c12");
+    }
+
+    while(svgBox.firstChild) svgBox.removeChild(svgBox.firstChild);
+    svgBox.appendChild(ns);
+
+    if(B > 0){
+      readout.textContent = "B = "+B+" mT  |  f(+1) = "+fPlus.toFixed(3)+" GHz  |  f(-1) = "+fMinus.toFixed(3)+" GHz  |  Splitting = "+(2*splitting).toFixed(3)+" GHz";
+    } else {
+      readout.textContent = "B = 0 mT  |  Zero-field splitting = 2.870 GHz  |  m_s = \u00B11 degenerate";
+    }
+  }
+
+  slider.addEventListener('input', draw);
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener('change', draw);
+  draw();
+})();
+</script>
 
 </section>
 
@@ -610,30 +937,6 @@ $$\Delta\bar{\theta}_{\text{HL}} = \frac{1}{KN}$$
   $\phi$), demonstrating the phase amplification that underlies Heisenberg scaling.
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="15">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-
-// Create entangled |00> + |11> state (GHZ-2)
-h q[0];
-cx q[0], q[1];
-
-// Both sensors accumulate the same phase pi/2
-rz(1.5708) q[0];
-rz(1.5708) q[1];
-
-// Undo entanglement and measure
-cx q[0], q[1];
-h q[0];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
 <p>
   With the phase set to $\pi/2 \approx 1.5708$ per qubit, the total accumulated phase is
   $2 \times \pi/2 = \pi$. After the disentangling step, qubit 0 flips from $|0\rangle$ to
@@ -644,129 +947,162 @@ c = measure q;</textarea>
   $\pi/2$, giving a 50/50 outcome on qubit 0 (maximum sensitivity point).
 </p>
 
-</section>
-
-<!-- ================================================================== -->
-<section id="review">
-<h2>Chapter 36 Review</h2>
-
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 36 Review</div>
-
-  <div class="flashcard" data-card-id="ch36-sql-formula">
-    <div class="card-front">What is the standard quantum limit (SQL) for phase estimation with $N$ independent probes?</div>
-    <div class="card-back">
-      $\Delta\theta_{\text{SQL}} = 1/\sqrt{N}$. This is the best precision achievable with
-      classical strategies or separable (unentangled) quantum states. It arises from the
-      central limit theorem applied to $N$ independent measurements, and is also called the
-      shot-noise limit.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
+<!-- Widget 4: Distributed Sensor Network -->
+<div class="widget" id="distributed-sensor-network">
+  <div class="widget-header">Distributed Sensor Network</div>
+  <div style="display:flex; flex-wrap:wrap; gap:1rem; align-items:center; margin-bottom:0.75rem;">
+    <label style="font-family:var(--font-mono); font-size:0.9rem;">
+      Sensors (K): <input type="range" id="dsn-k" min="1" max="20" value="4" style="width:8rem; vertical-align:middle; accent-color:var(--color-accent);">
+      <output id="dsn-k-out" style="min-width:2rem;">4</output>
+    </label>
+    <label style="font-family:var(--font-mono); font-size:0.9rem;">
+      Atoms/sensor (N): <input type="range" id="dsn-n" min="1" max="100" value="10" style="width:8rem; vertical-align:middle; accent-color:var(--color-accent);">
+      <output id="dsn-n-out" style="min-width:2.5rem;">10</output>
+    </label>
+    <button id="dsn-toggle" style="font-family:var(--font-body); font-size:0.85rem; padding:0.35rem 0.75rem; border:1px solid var(--color-border); border-radius:var(--radius); background:var(--color-accent); color:#fff; cursor:pointer;">Mode: Independent</button>
   </div>
-
-  <div class="flashcard" data-card-id="ch36-heisenberg-limit">
-    <div class="card-front">What is the Heisenberg limit, and what resource is needed to achieve it?</div>
-    <div class="card-back">
-      $\Delta\theta_{\text{HL}} = 1/N$, a quadratic improvement over the SQL. Achieving it
-      requires preparing the $N$ probe particles in an entangled state (such as a GHZ state)
-      that maximizes the quantum Fisher information. The entangled state accumulates phase
-      $N$ times faster than independent particles.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch36-ramsey-sequence">
-    <div class="card-front">Describe the Ramsey interferometry sequence and its quantum circuit equivalent.</div>
-    <div class="card-back">
-      Ramsey sequence: (1) prepare $|0\rangle$, (2) $\pi/2$ pulse (H gate), (3) free
-      evolution accumulating phase $\phi$ ($R_z(\phi)$), (4) second $\pi/2$ pulse (H gate),
-      (5) measure. The probability of $|0\rangle$ is $\cos^2(\phi/2)$. The circuit is:
-      H, $R_z(\phi)$, H, measure.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch36-nv-center-principle">
-    <div class="card-front">How does an NV center in diamond sense magnetic fields?</div>
-    <div class="card-back">
-      The NV center's ground state spin levels ($m_s = 0, \pm 1$) are split by an external
-      magnetic field via the Zeeman effect ($\Delta f = \gamma_e B$ with
-      $\gamma_e \approx 28$ GHz/T). A Ramsey sequence on the spin, read out via
-      spin-dependent fluorescence (ODMR), measures this splitting. NV centers operate at
-      room temperature and achieve sub-picotesla sensitivity.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch36-optical-clock-precision">
-    <div class="card-front">What precision do the best optical atomic clocks achieve, and what does this enable?</div>
-    <div class="card-back">
-      Fractional frequency uncertainties below $10^{-18}$ - equivalent to neither gaining
-      nor losing one second over the age of the universe. At this precision, clocks detect
-      the gravitational redshift from height differences of about 1 cm, enabling
-      "relativistic geodesy" - mapping gravity by comparing clocks at different locations.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch36-quantum-illumination">
-    <div class="card-front">What is remarkable about quantum illumination as a sensing protocol?</div>
-    <div class="card-back">
-      Quantum illumination uses entangled photon pairs for target detection and provides an
-      advantage (up to 6 dB in signal-to-noise) even when the entanglement is completely
-      destroyed by loss and noise. The surviving quantum correlations (quantum discord)
-      still improve detection, making it relevant to real-world high-noise environments
-      like radar.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch36-distributed-sensing-advantage">
-    <div class="card-front">What advantage does distributed quantum sensing provide over independent sensors?</div>
-    <div class="card-back">
-      With $K$ sensors of $N$ atoms each, independent sensors achieve
-      $\Delta\bar{\theta} \sim 1/\sqrt{KN}$ for a global parameter. Entangling across
-      the network reaches the Heisenberg limit $\Delta\bar{\theta} \sim 1/(KN)$, a
-      $\sqrt{KN}$-fold improvement. This requires distributing entanglement via a quantum
-      network but does not involve faster-than-light communication.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch36-ligo-squeezing">
-    <div class="card-front">How does LIGO use quantum mechanics to improve its sensitivity?</div>
-    <div class="card-back">
-      Since 2019, LIGO injects squeezed vacuum states of light to reduce photon shot noise
-      in its most sensitive frequency bands, improving amplitude sensitivity by up to 3 dB
-      (factor of $\sqrt{2}$) beyond the standard quantum limit. This is one of the most
-      prominent real-world applications of quantum-enhanced sensing.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
+  <div id="dsn-svg" style="width:100%; overflow-x:auto;"></div>
+  <div id="dsn-readout" style="font-family:var(--font-mono); font-size:0.85rem; color:var(--color-text-muted); margin-top:0.5rem; text-align:center;"></div>
 </div>
+
+<script>
+(function(){
+  var kSlider = document.getElementById('dsn-k');
+  var nSlider = document.getElementById('dsn-n');
+  var kOut = document.getElementById('dsn-k-out');
+  var nOut = document.getElementById('dsn-n-out');
+  var toggleBtn = document.getElementById('dsn-toggle');
+  var svgBox = document.getElementById('dsn-svg');
+  var readout = document.getElementById('dsn-readout');
+  var entangled = false;
+
+  function isDk(){ return window.matchMedia("(prefers-color-scheme: dark)").matches; }
+
+  toggleBtn.addEventListener('click', function(){
+    entangled = !entangled;
+    toggleBtn.textContent = entangled ? "Mode: Entangled" : "Mode: Independent";
+    toggleBtn.style.background = entangled ? "#2980b9" : "";
+    draw();
+  });
+
+  function draw(){
+    var K = parseInt(kSlider.value, 10);
+    var N = parseInt(nSlider.value, 10);
+    kOut.textContent = K;
+    nOut.textContent = N;
+    var dark = isDk();
+    var textC = dark ? '#ccc' : '#333';
+
+    var W = 520, H = 300;
+    var ns = document.createElementNS("http://www.w3.org/2000/svg","svg");
+    ns.setAttribute("viewBox","0 0 "+W+" "+H);
+    ns.setAttribute("style","font-family:system-ui,sans-serif;max-width:100%;height:auto;");
+
+    function mkEl(tag,attrs){
+      var e = document.createElementNS("http://www.w3.org/2000/svg",tag);
+      for(var k in attrs) e.setAttribute(k,attrs[k]);
+      return e;
+    }
+    function addText(x,y,txt,sz,anch,col,fw){
+      var t = mkEl("text",{x:x,y:y,"text-anchor":anch||"middle",fill:col||textC,"font-size":sz||"11"});
+      if(fw) t.setAttribute("font-weight",fw);
+      t.textContent = txt;
+      ns.appendChild(t);
+    }
+
+    // Draw sensor nodes in a ring
+    var cx = 180, cy = 140, r = 90;
+    var sensorC = entangled ? '#2980b9' : '#e74c3c';
+    var linkC = entangled ? '#2980b9' : 'transparent';
+
+    // Entanglement links
+    if(entangled && K > 1){
+      for(var i=0;i<K;i++){
+        for(var j=i+1;j<K;j++){
+          var a1 = 2*Math.PI*i/K - Math.PI/2;
+          var a2 = 2*Math.PI*j/K - Math.PI/2;
+          ns.appendChild(mkEl("line",{
+            x1:cx+r*Math.cos(a1), y1:cy+r*Math.sin(a1),
+            x2:cx+r*Math.cos(a2), y2:cy+r*Math.sin(a2),
+            stroke:linkC, "stroke-width":"1", opacity:"0.3"
+          }));
+        }
+      }
+    }
+
+    // Sensor nodes
+    for(var i=0;i<K;i++){
+      var a = 2*Math.PI*i/K - Math.PI/2;
+      var sx = cx + r * Math.cos(a);
+      var sy = cy + r * Math.sin(a);
+      ns.appendChild(mkEl("circle",{cx:sx,cy:sy,r:14,fill:sensorC,opacity:"0.85"}));
+      addText(sx,sy+4,"S"+(i+1),"10","middle","#fff","600");
+    }
+
+    // Precision bars
+    var barX = 360, barW = 130, barTop = 40, barBot = 260;
+    var sqlPrec = 1/Math.sqrt(K*N);
+    var hlPrec  = 1/(K*N);
+    var curPrec = entangled ? hlPrec : sqlPrec;
+
+    // Scale bars relative to max precision of 1 (worst)
+    function barH(val){ return Math.min((barBot-barTop), -Math.log10(val)/(Math.log10(K*N>1?K*N:2)) * (barBot-barTop)); }
+
+    // Background bar
+    ns.appendChild(mkEl("rect",{x:barX,y:barTop,width:barW,height:barBot-barTop,rx:4,fill:dark?"#333":"#eee"}));
+
+    // SQL bar
+    var sqlH = barH(sqlPrec);
+    ns.appendChild(mkEl("rect",{x:barX+10,y:barBot-sqlH,width:45,height:sqlH,rx:3,fill:"#e74c3c",opacity:entangled?"0.3":"0.85"}));
+    addText(barX+32,barBot+16,"SQL","10","middle","#e74c3c");
+
+    // HL bar
+    var hlH = barH(hlPrec);
+    ns.appendChild(mkEl("rect",{x:barX+barW-55,y:barBot-hlH,width:45,height:hlH,rx:3,fill:"#2980b9",opacity:entangled?"0.85":"0.3"}));
+    addText(barX+barW-33,barBot+16,"HL","10","middle","#2980b9");
+
+    addText(barX+barW/2,30,"Precision (log scale)","11","middle",textC,"600");
+
+    // Active indicator
+    var activeX = entangled ? barX+barW-33 : barX+32;
+    ns.appendChild(mkEl("polygon",{points:(activeX-5)+","+(barTop-8)+" "+(activeX+5)+","+(barTop-8)+" "+activeX+","+(barTop-2),fill:entangled?"#2980b9":"#e74c3c"}));
+
+    while(svgBox.firstChild) svgBox.removeChild(svgBox.firstChild);
+    svgBox.appendChild(ns);
+
+    var advantage = (sqlPrec/hlPrec).toFixed(1);
+    readout.textContent = "K="+K+", N="+N+" (KN="+K*N+")  |  SQL: \u0394\u03B8 = "+sqlPrec.toExponential(2)+"  |  HL: \u0394\u03B8 = "+hlPrec.toExponential(2)+"  |  HL advantage: "+advantage+"x";
+  }
+
+  kSlider.addEventListener('input', draw);
+  nSlider.addEventListener('input', draw);
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener('change', draw);
+  draw();
+})();
+</script>
+
+<!-- Sandbox 5: Entangled Two-Sensor Ramsey -->
+<div class="sandbox" data-component="sandbox" data-shots="1024">
+  <textarea class="code" rows="12">OPENQASM 3.0;
+qubit[2] q;
+bit[2] c;
+// Create entangled sensor pair (Bell state)
+h q[0];
+cx q[0], q[1];
+// Each sensor accumulates phase phi
+rz(1.5708) q[0];
+rz(1.5708) q[1];
+// Disentangle
+cx q[0], q[1];
+h q[0];
+c = measure q;</textarea>
+  <div class="sandbox-controls">
+    <button data-action="run">Run</button>
+    <button data-action="reset">Reset</button>
+  </div>
+  <div class="output"></div>
+</div>
+
 </section>
+
+

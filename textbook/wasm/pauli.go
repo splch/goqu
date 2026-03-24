@@ -16,9 +16,7 @@ import (
 	"github.com/splch/goqu/sim/statevector"
 )
 
-// ---------------------------------------------------------------------------
 // Result types
-// ---------------------------------------------------------------------------
 
 type expectationResult struct {
 	CircuitSVG  string
@@ -47,9 +45,7 @@ type gradientResult struct {
 	Error     string
 }
 
-// ---------------------------------------------------------------------------
 // Helper: parse a Pauli expression string
-// ---------------------------------------------------------------------------
 
 // parsePauliExpr parses a Pauli expression that may be a single PauliString
 // (e.g. "ZZI") or a sum with real coefficients (e.g. "0.5*ZZI + -0.3*XIZ").
@@ -128,9 +124,7 @@ func parsePauliTerm(s string) (float64, string, error) {
 	return 1.0, s, nil
 }
 
-// ---------------------------------------------------------------------------
 // Helper: linspace
-// ---------------------------------------------------------------------------
 
 func linspace(start, stop float64, count int) []float64 {
 	if count <= 0 {
@@ -147,9 +141,7 @@ func linspace(start, stop float64, count int) []float64 {
 	return vals
 }
 
-// ---------------------------------------------------------------------------
 // Helper: parse and evolve a QASM circuit, returning the statevector
-// ---------------------------------------------------------------------------
 
 func evolveQASM(qasm string) ([]complex128, *ir.Circuit, int, error) {
 	circ, err := parser.ParseString(qasm)
@@ -168,10 +160,8 @@ func evolveQASM(qasm string) ([]complex128, *ir.Circuit, int, error) {
 	return sim.StateVector(), circ, nq, nil
 }
 
-// ---------------------------------------------------------------------------
 // computeExpectationJS
 // Args: (qasm string, pauliStr string, dark? bool)
-// ---------------------------------------------------------------------------
 
 func computeExpectationJS(_ js.Value, args []js.Value) any {
 	if len(args) < 2 {
@@ -202,13 +192,11 @@ func computeExpectationJS(_ js.Value, args []js.Value) any {
 	})
 }
 
-// ---------------------------------------------------------------------------
 // sweepExpectationJS
 // Args: (qasmTemplate string, pauliStr string, paramName string,
 //
 //	start float64, stop float64, count int, dark? bool)
 //
-// ---------------------------------------------------------------------------
 
 func sweepExpectationJS(_ js.Value, args []js.Value) any {
 	if len(args) < 6 {
@@ -252,7 +240,6 @@ func sweepExpectationJS(_ js.Value, args []js.Value) any {
 	})
 }
 
-// ---------------------------------------------------------------------------
 // sweep2DJS
 // Args: (qasmTemplate string, pauliStr string,
 //
@@ -260,7 +247,6 @@ func sweepExpectationJS(_ js.Value, args []js.Value) any {
 //	param2Name string, p2Start float64, p2Stop float64,
 //	gridSize int, dark? bool)
 //
-// ---------------------------------------------------------------------------
 
 func sweep2DJS(_ js.Value, args []js.Value) any {
 	if len(args) < 9 {
@@ -328,7 +314,6 @@ func sweep2DJS(_ js.Value, args []js.Value) any {
 	})
 }
 
-// ---------------------------------------------------------------------------
 // computeGradientJS
 // Args: (qasmTemplate string, pauliStr string, paramNames string,
 //
@@ -337,7 +322,6 @@ func sweep2DJS(_ js.Value, args []js.Value) any {
 // paramNames: comma-separated parameter names
 // paramValues: comma-separated float64 values
 // method: "parameter_shift" or "finite_difference"
-// ---------------------------------------------------------------------------
 
 func computeGradientJS(_ js.Value, args []js.Value) any {
 	if len(args) < 5 {

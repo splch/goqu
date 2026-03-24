@@ -77,6 +77,91 @@ $$\mathsf{P} \subseteq \mathsf{BPP} \subseteq \mathsf{BQP} \subseteq \mathsf{PP}
   one of the great open problems of theoretical computer science.
 </p>
 
+<!-- Widget 1: Complexity Class Map -->
+<div class="widget" id="complexity-map-widget">
+  <div class="widget-header">Interactive Complexity Class Map</div>
+  <p style="font-size:0.9rem;margin-bottom:0.5rem">Click a complexity class to see its definition and example problems.</p>
+  <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.75rem" id="cmap-btns"></div>
+  <canvas id="cmap-canvas" width="600" height="340" style="width:100%;border:1px solid var(--color-border);border-radius:var(--radius)"></canvas>
+  <div id="cmap-info" style="padding:0.75rem;font-size:0.9rem;min-height:3rem;border:1px solid var(--color-border);border-radius:var(--radius);margin-top:0.5rem;background:var(--color-code-bg)"></div>
+</div>
+<script>
+(function(){
+  var canvas=document.getElementById("cmap-canvas"),ctx=canvas.getContext("2d");
+  var btnsEl=document.getElementById("cmap-btns"),infoEl=document.getElementById("cmap-info");
+  var classes=[
+    {name:"P",x:0.5,y:0.82,rx:0.12,ry:0.08,def:"Deterministic polynomial time.",ex:"Sorting, shortest path, linear programming.",col:"#4C72B0"},
+    {name:"BPP",x:0.5,y:0.72,rx:0.18,ry:0.12,def:"Bounded-error probabilistic polynomial time. P with randomness.",ex:"Polynomial identity testing, primality (also in P).",col:"#55a868"},
+    {name:"BQP",x:0.42,y:0.55,rx:0.22,ry:0.18,def:"Bounded-error quantum polynomial time. What quantum computers can efficiently solve.",ex:"Factoring (Shor), discrete log, quantum simulation, Jones polynomial.",col:"#6A9BD2"},
+    {name:"NP",x:0.62,y:0.52,rx:0.20,ry:0.16,def:"Nondeterministic polynomial time. Solutions verifiable in polynomial time with a classical witness.",ex:"SAT, traveling salesman, graph coloring.",col:"#C44E52"},
+    {name:"QMA",x:0.62,y:0.38,rx:0.24,ry:0.14,def:"Quantum Merlin-Arthur. Verifiable with a quantum witness.",ex:"Local Hamiltonian (quantum Cook-Levin), ground state energy.",col:"#8172B2"},
+    {name:"PSPACE",x:0.5,y:0.22,rx:0.40,ry:0.16,def:"Polynomial space. Equals QIP (quantum interactive proofs).",ex:"Quantified Boolean formulas, generalized chess/Go.",col:"#CCB974"}
+  ];
+  var selected=null;
+  function isDk(){return window.matchMedia("(prefers-color-scheme:dark)").matches;}
+  function draw(){
+    var dpr=window.devicePixelRatio||1;
+    var rect=canvas.getBoundingClientRect();
+    canvas.width=rect.width*dpr;canvas.height=rect.height*dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    var W=rect.width,H=rect.height;
+    var dk=isDk();
+    ctx.fillStyle=dk?"#262626":"#ffffff";ctx.fillRect(0,0,W,H);
+    // Draw from outermost to innermost
+    for(var i=classes.length-1;i>=0;i--){
+      var c=classes[i];
+      var cx=c.x*W,cy=c.y*H,rx=c.rx*W,ry=c.ry*H;
+      ctx.globalAlpha=selected===c.name?0.35:0.15;
+      ctx.fillStyle=c.col;
+      ctx.beginPath();ctx.ellipse(cx,cy,rx,ry,0,0,2*Math.PI);ctx.fill();
+      ctx.globalAlpha=1;
+      ctx.strokeStyle=selected===c.name?c.col:(dk?"#666":"#aaa");
+      ctx.lineWidth=selected===c.name?3:1.5;
+      ctx.beginPath();ctx.ellipse(cx,cy,rx,ry,0,0,2*Math.PI);ctx.stroke();
+      ctx.fillStyle=dk?"#eee":"#222";
+      ctx.font=(selected===c.name?"bold ":"")+"13px "+getComputedStyle(document.body).getPropertyValue("--font-mono");
+      ctx.textAlign="center";ctx.textBaseline="middle";
+      var ly=cy-ry+15;if(c.name==="P")ly=cy;
+      if(c.name==="BPP")ly=cy-ry+12;
+      ctx.fillText(c.name,cx,ly);
+    }
+    // Note about BQP/NP incomparability
+    ctx.fillStyle=dk?"#888":"#999";ctx.font="10px "+getComputedStyle(document.body).getPropertyValue("--font-mono");
+    ctx.textAlign="center";
+    ctx.fillText("BQP and NP are believed incomparable (neither contains the other)",W/2,H-8);
+  }
+  // Buttons
+  classes.forEach(function(c){
+    var btn=document.createElement("button");
+    btn.textContent=c.name;
+    btn.style.cssText="font-family:var(--font-mono);font-size:0.85rem;padding:0.3rem 0.7rem;border:2px solid "+c.col+";border-radius:var(--radius);background:var(--color-surface);color:var(--color-text);cursor:pointer";
+    btn.addEventListener("click",function(){
+      selected=c.name;
+      infoEl.textContent=c.name+": "+c.def+" Examples: "+c.ex;
+      draw();
+    });
+    btnsEl.appendChild(btn);
+  });
+  canvas.addEventListener("click",function(e){
+    var rect=canvas.getBoundingClientRect();
+    var mx=(e.clientX-rect.left),my=(e.clientY-rect.top);
+    var W=rect.width,H=rect.height;
+    for(var i=0;i<classes.length;i++){
+      var c=classes[i];
+      var dx=(mx-c.x*W)/(c.rx*W),dy=(my-c.y*H)/(c.ry*H);
+      if(dx*dx+dy*dy<=1){
+        selected=c.name;
+        infoEl.textContent=c.name+": "+c.def+" Examples: "+c.ex;
+        draw();return;
+      }
+    }
+  });
+  infoEl.textContent="Click a class above or on the diagram to explore.";
+  window.addEventListener("resize",draw);
+  setTimeout(draw,50);
+})();
+</script>
+
 <h3>What Problems Are in BQP?</h3>
 
 <p>
@@ -134,28 +219,6 @@ $$\mathsf{P} \subseteq \mathsf{BPP} \subseteq \mathsf{BQP} \subseteq \mathsf{PP}
   the strongest structural evidence we have that quantum computational power is fundamentally
   different from classical computational power.
 </p>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="12">OPENQASM 3.0;
-// Deutsch-Jozsa: BQP can solve this in 1 query;
-// classically requires exponential queries in the worst case.
-// Oracle: balanced function f(x) = x_0 XOR x_1
-qubit[3] q;
-bit[2] c;
-x q[2];
-h q[0]; h q[1]; h q[2];
-// Oracle: CNOT from each input to output
-cx q[0], q[2];
-cx q[1], q[2];
-h q[0]; h q[1];
-c[0] = measure q[0];
-c[1] = measure q[1];</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
 
 <p>
   The sandbox above implements the Deutsch-Jozsa algorithm for a balanced function on 2 bits.
@@ -237,8 +300,9 @@ $$\mathsf{NP} \subseteq \mathsf{QMA} \subseteq \mathsf{QIP} = \mathsf{PSPACE}$$
 
 <p>
   Kitaev showed that the $k$-Local Hamiltonian problem is QMA-complete for $k = 5$. Subsequent
-  work reduced this: Kempe, Kitaev, and Regev (2004) proved QMA-completeness for $k = 2$. This
-  is the tightest possible result, since the 1-local case is trivially in P.
+  work tightened this: Kempe and Regev (2003) reduced it to $k = 3$, and Kempe, Kitaev, and
+  Regev (2004) proved QMA-completeness for $k = 2$. This is the tightest possible result,
+  since the 1-local case is trivially in P.
 </p>
 
 <div class="callout callout-key">
@@ -259,6 +323,57 @@ $$\mathsf{NP} \subseteq \mathsf{QMA} \subseteq \mathsf{QIP} = \mathsf{PSPACE}$$
   for the Local Hamiltonian problem is the ground state itself - a quantum state that a quantum
   verifier can use to estimate the energy.
 </p>
+
+<!-- Widget 2: Local Hamiltonian vs SAT Analogy -->
+<div class="widget" id="lh-sat-widget">
+  <div class="widget-header">Local Hamiltonian vs SAT: The Quantum Cook-Levin Analogy</div>
+  <p style="font-size:0.9rem;margin-bottom:0.75rem">Click a row to highlight the correspondence between the classical and quantum worlds.</p>
+  <div id="lh-sat-table" style="overflow-x:auto"></div>
+</div>
+<script>
+(function(){
+  var container=document.getElementById("lh-sat-table");
+  var rows=[
+    {classical:"Complexity class",quantum:"Complexity class",cval:"NP",qval:"QMA"},
+    {classical:"Complete problem",quantum:"Complete problem",cval:"k-SAT",qval:"k-Local Hamiltonian"},
+    {classical:"Instance",quantum:"Instance",cval:"Boolean formula with m clauses on n bits",qval:"Hamiltonian H = sum of m terms on n qubits"},
+    {classical:"Constraint",quantum:"Constraint",cval:"Clause on k bits (satisfied or not)",qval:"k-local term H_j on k qubits (energy penalty)"},
+    {classical:"Witness",quantum:"Witness",cval:"Classical bit string x in {0,1}^n",qval:"Quantum state |psi> in 2^n-dim Hilbert space"},
+    {classical:"Objective",quantum:"Objective",cval:"Maximize satisfied clauses",qval:"Minimize ground state energy"},
+    {classical:"Verification",quantum:"Verification",cval:"Check each clause in poly time",qval:"Measure energy of each term in poly time"},
+    {classical:"Hardness result",quantum:"Hardness result",cval:"NP-complete for k >= 3 (Cook-Levin)",qval:"QMA-complete for k >= 2 (Kitaev)"}
+  ];
+  var selected=-1;
+  function isDk(){return window.matchMedia("(prefers-color-scheme:dark)").matches;}
+  function render(){
+    var dk=isDk();
+    var hl=dk?"rgba(106,155,210,0.2)":"rgba(76,114,176,0.1)";
+    var bdr="1px solid "+(dk?"#3a3a3a":"#e0e0e0");
+    var html='<table style="width:100%;border-collapse:collapse;font-size:0.9rem">';
+    html+='<thead><tr><th style="padding:0.5rem 0.75rem;text-align:left;border-bottom:2px solid '+(dk?"#555":"#ccc")+';width:50%;background:'+(dk?"#333":"#f5f5f4")+'">Classical (NP / SAT)</th>';
+    html+='<th style="padding:0.5rem 0.75rem;text-align:left;border-bottom:2px solid '+(dk?"#555":"#ccc")+';width:50%;background:'+(dk?"#333":"#f5f5f4")+'">Quantum (QMA / Local Hamiltonian)</th></tr></thead><tbody>';
+    rows.forEach(function(r,i){
+      var bg=i===selected?hl:"transparent";
+      html+='<tr data-row="'+i+'" style="cursor:pointer;background:'+bg+';transition:background 0.15s">';
+      html+='<td style="padding:0.5rem 0.75rem;border-bottom:'+bdr+'"><strong>'+r.classical+':</strong> '+r.cval+'</td>';
+      html+='<td style="padding:0.5rem 0.75rem;border-bottom:'+bdr+'"><strong>'+r.quantum+':</strong> '+r.qval+'</td>';
+      html+='</tr>';
+    });
+    html+='</tbody></table>';
+    container.textContent="";
+    var tmp=document.createElement("div");
+    tmp.insertAdjacentHTML("beforeend",html);
+    container.appendChild(tmp.firstChild);
+    container.querySelectorAll("tr[data-row]").forEach(function(tr){
+      tr.addEventListener("click",function(){
+        selected=parseInt(tr.dataset.row,10);
+        render();
+      });
+    });
+  }
+  render();
+})();
+</script>
 
 <h3>Physical Significance</h3>
 
@@ -503,6 +618,117 @@ $$\mathsf{BQP} \subseteq \mathsf{QMA} \subseteq \mathsf{QIP} = \mathsf{QIP(3)} =
   </p>
 </div>
 
+<!-- Widget 3: Random Circuit Sampling -->
+<div class="widget" id="rcs-widget">
+  <div class="widget-header">Random Circuit Sampling: Porter-Thomas vs Uniform</div>
+  <p style="font-size:0.9rem;margin-bottom:0.75rem">
+    The output of a random quantum circuit follows a <strong>Porter-Thomas distribution</strong> -
+    an exponential distribution over output probabilities. A classical faker producing uniform
+    random outputs would follow a <strong>flat distribution</strong>. This gap is the basis for
+    verifying quantum supremacy.
+  </p>
+  <div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:center;margin-bottom:0.75rem">
+    <label style="font-size:0.9rem;font-family:var(--font-mono)">Qubits n:
+      <input type="range" id="rcs-n" min="3" max="12" step="1" value="6" style="width:8rem;accent-color:var(--color-accent)">
+      <output id="rcs-n-out">6</output>
+    </label>
+    <label style="font-size:0.9rem;font-family:var(--font-mono)">Samples:
+      <input type="range" id="rcs-samples" min="500" max="10000" step="500" value="5000" style="width:8rem;accent-color:var(--color-accent)">
+      <output id="rcs-samples-out">5000</output>
+    </label>
+  </div>
+  <canvas id="rcs-canvas" width="600" height="300" style="width:100%;border:1px solid var(--color-border);border-radius:var(--radius)"></canvas>
+  <div id="rcs-info" style="font-family:var(--font-mono);font-size:0.85rem;color:var(--color-text-muted);margin-top:0.5rem"></div>
+</div>
+<script>
+(function(){
+  var nSlider=document.getElementById("rcs-n"),nOut=document.getElementById("rcs-n-out");
+  var sampSlider=document.getElementById("rcs-samples"),sampOut=document.getElementById("rcs-samples-out");
+  var canvas=document.getElementById("rcs-canvas"),ctx=canvas.getContext("2d");
+  var infoEl=document.getElementById("rcs-info");
+  function isDk(){return window.matchMedia("(prefers-color-scheme:dark)").matches;}
+  function draw(){
+    var n=parseInt(nSlider.value,10);nOut.textContent=n;
+    var nSamp=parseInt(sampSlider.value,10);sampOut.textContent=nSamp;
+    var N=Math.pow(2,n);
+    // Generate Porter-Thomas samples: exponential distribution with mean 1/N
+    var ptSamples=[];
+    for(var i=0;i<nSamp;i++){
+      ptSamples.push(-Math.log(Math.random())/N);
+    }
+    // Bin them
+    var maxP=5/N;
+    var nBins=40;
+    var ptHist=new Array(nBins).fill(0);
+    var uniHist=new Array(nBins).fill(0);
+    ptSamples.forEach(function(p){
+      var bin=Math.floor(p/maxP*nBins);
+      if(bin>=0&&bin<nBins)ptHist[bin]++;
+    });
+    // Uniform samples: all probabilities = 1/N
+    var uniP=1/N;
+    var uniBin=Math.floor(uniP/maxP*nBins);
+    if(uniBin>=0&&uniBin<nBins)uniHist[uniBin]=nSamp;
+    var maxCount=0;
+    ptHist.forEach(function(c){if(c>maxCount)maxCount=c;});
+    if(uniHist[uniBin]>maxCount)maxCount=uniHist[uniBin];
+    var dpr=window.devicePixelRatio||1;
+    var rect=canvas.getBoundingClientRect();
+    canvas.width=rect.width*dpr;canvas.height=rect.height*dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    var W=rect.width,H=rect.height;
+    var dk=isDk();
+    ctx.fillStyle=dk?"#262626":"#ffffff";ctx.fillRect(0,0,W,H);
+    var pad={l:55,r:20,t:30,b:40};
+    var pw=W-pad.l-pad.r,ph=H-pad.t-pad.b;
+    var barW=pw/nBins;
+    // PT histogram
+    var colPT=dk?"rgba(106,155,210,0.6)":"rgba(76,114,176,0.6)";
+    ctx.fillStyle=colPT;
+    ptHist.forEach(function(c,i){
+      var bh=c/maxCount*ph;
+      ctx.fillRect(pad.l+i*barW,pad.t+ph-bh,barW-1,bh);
+    });
+    // Theoretical PT curve
+    ctx.strokeStyle=dk?"#6A9BD2":"#4C72B0";ctx.lineWidth=2;
+    ctx.beginPath();
+    for(var i=0;i<=200;i++){
+      var p=i/200*maxP;
+      var pdf=N*Math.exp(-N*p);
+      var binH=(pdf*maxP/nBins*nSamp)/maxCount*ph;
+      var x=pad.l+p/maxP*pw;
+      var y=pad.t+ph-binH;
+      if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    // Uniform marker
+    ctx.strokeStyle=dk?"#E07070":"#C44E52";ctx.lineWidth=2.5;ctx.setLineDash([6,4]);
+    var ux=pad.l+uniP/maxP*pw;
+    ctx.beginPath();ctx.moveTo(ux,pad.t);ctx.lineTo(ux,pad.t+ph);ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle=dk?"#E07070":"#C44E52";ctx.font="11px "+getComputedStyle(document.body).getPropertyValue("--font-mono");
+    ctx.textAlign="left";ctx.fillText("Uniform: 1/N",ux+5,pad.t+15);
+    // Axes
+    ctx.fillStyle=dk?"#999":"#666";ctx.font="11px "+getComputedStyle(document.body).getPropertyValue("--font-mono");
+    ctx.textAlign="center";
+    ctx.fillText("Output probability p",pad.l+pw/2,H-5);
+    ctx.save();ctx.translate(12,pad.t+ph/2);ctx.rotate(-Math.PI/2);ctx.fillText("Frequency",0,0);ctx.restore();
+    ctx.fillStyle=dk?"#ccc":"#333";ctx.font="12px "+getComputedStyle(document.body).getPropertyValue("--font-mono");
+    ctx.textAlign="center";
+    ctx.fillText("Porter-Thomas distribution (N = 2^"+n+" = "+N+" bitstrings)",pad.l+pw/2,pad.t-10);
+    // Legend
+    ctx.fillStyle=colPT;ctx.fillRect(pad.l+pw-180,pad.t+5,12,12);
+    ctx.fillStyle=dk?"#ccc":"#333";ctx.font="10px "+getComputedStyle(document.body).getPropertyValue("--font-mono");
+    ctx.textAlign="left";ctx.fillText("Quantum (sampled)",pad.l+pw-165,pad.t+15);
+    infoEl.textContent="N="+N+" output bitstrings. Quantum circuits produce an exponential (Porter-Thomas) distribution over probabilities. A classical faker producing uniform outputs is easily distinguished.";
+  }
+  nSlider.addEventListener("input",draw);
+  sampSlider.addEventListener("input",draw);
+  window.addEventListener("resize",draw);
+  setTimeout(draw,50);
+})();
+</script>
+
 </section>
 
 <!-- ================================================================== -->
@@ -673,128 +899,4 @@ $$\mathsf{NP} \subseteq \mathsf{QMA} \subseteq \mathsf{QIP} = \mathsf{PSPACE}$$
 
 </section>
 
-<!-- ================================================================== -->
 
-<section id="review">
-<h2>Chapter 30 Review</h2>
-
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 30 Review</div>
-
-  <div class="flashcard" data-card-id="ch30-bqp-definition">
-    <div class="card-front">What is BQP, and how does it relate to P, BPP, and PSPACE?</div>
-    <div class="card-back">
-      BQP (Bounded-error Quantum Polynomial time) is the class of decision problems solvable by a
-      polynomial-time quantum computer with error probability at most 1/3. The known containments are
-      $\mathsf{P} \subseteq \mathsf{BPP} \subseteq \mathsf{BQP} \subseteq \mathsf{PP} \subseteq
-      \mathsf{PSPACE}$. All inclusions are believed to be strict but none are proven.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch30-raz-tal">
-    <div class="card-front">What did Raz and Tal prove in 2018 about BQP and the polynomial hierarchy?</div>
-    <div class="card-back">
-      Raz and Tal proved that there exists an oracle relative to which $\mathsf{BQP} \not\subseteq
-      \mathsf{PH}$. This means that in a relativized world, quantum computers can solve problems
-      outside the entire polynomial hierarchy - the strongest structural evidence that quantum
-      computational power is fundamentally different from classical computational power.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch30-qma-local-hamiltonian">
-    <div class="card-front">What is the Local Hamiltonian problem, and why is it significant for QMA?</div>
-    <div class="card-back">
-      The $k$-Local Hamiltonian problem asks whether the ground state energy of a Hamiltonian
-      $H = \sum H_j$ (each $H_j$ acting on at most $k$ qubits) is below a threshold $a$ or above
-      a threshold $b$. Kitaev proved it is QMA-complete for $k = 5$ (later improved to $k = 2$).
-      It is the quantum analog of SAT for NP - the "quantum Cook-Levin theorem."
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch30-qip-pspace">
-    <div class="card-front">State the QIP = PSPACE theorem. Who proved it, and what does it mean?</div>
-    <div class="card-back">
-      Jain, Ji, Upadhyay, and Watrous proved in 2009 (published 2011) that QIP = PSPACE: the class
-      of problems with quantum interactive proof systems equals the class solvable in polynomial
-      space. Since IP = PSPACE classically, quantum messages do not add power to interactive proofs.
-      However, quantum proofs are more round-efficient: QIP = QIP(3), needing only 3 rounds.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch30-sycamore-willow">
-    <div class="card-front">Summarize the key quantum supremacy experiments by Google (Sycamore and Willow).</div>
-    <div class="card-back">
-      Google Sycamore (2019): 53 qubits, performed random circuit sampling in 200 seconds, estimated
-      10,000 years classically (later disputed). Google Willow (2024): 105 qubits, performed RCS in
-      under 5 minutes, estimated $10^{25}$ years classically. Willow also demonstrated below-threshold
-      quantum error correction, with logical error rates halving as code distance increased.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch30-bqp-np-relationship">
-    <div class="card-front">What is the believed relationship between BQP and NP? Can quantum computers solve NP-complete problems?</div>
-    <div class="card-back">
-      BQP and NP are believed to be incomparable: each contains problems not in the other. Quantum
-      computers almost certainly cannot solve NP-complete problems in polynomial time. The BBBV
-      theorem proves that unstructured search requires $\Omega(\sqrt{N})$ quantum queries, giving
-      only a quadratic speedup. For NP-complete problems like 3-SAT, Grover's algorithm reduces
-      $2^n$ to $2^{n/2}$ - still exponential.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch30-grover-lower-bound">
-    <div class="card-front">State the BBBV lower bound theorem for quantum search.</div>
-    <div class="card-back">
-      The Bennett-Bernstein-Brassard-Vazirani (BBBV) theorem proves that any quantum algorithm for
-      unstructured search on $N$ elements requires $\Omega(\sqrt{N})$ queries. This matches
-      Grover's upper bound of $O(\sqrt{N})$, making Grover's algorithm optimal. The result means
-      quantum computers provide at most quadratic speedup for problems without exploitable algebraic
-      or quantum structure.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch30-quantum-speedup-structure">
-    <div class="card-front">What kinds of problem structure allow quantum computers to achieve exponential speedups?</div>
-    <div class="card-back">
-      Quantum computers achieve exponential speedups when problems have exploitable structure:
-      (1) Algebraic structure - periodicity (Shor), group structure (HSP);
-      (2) Quantum structure - simulating quantum systems;
-      (3) Interference structure - where amplitudes can constructively boost correct answers and
-      destructively cancel wrong ones. Unstructured problems yield at most quadratic (Grover-type)
-      speedups.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-</div>
-</section>

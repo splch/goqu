@@ -7,7 +7,7 @@ import (
 	"github.com/splch/goqu/algorithm/textbook"
 )
 
-// --- Bernstein-Vazirani tests ---
+// Bernstein-Vazirani tests
 
 func TestBV_Secret5_3Qubits(t *testing.T) {
 	cfg := textbook.BVConfig{
@@ -57,7 +57,7 @@ func TestBV_Errors(t *testing.T) {
 	}
 }
 
-// --- Deutsch-Jozsa tests ---
+// Deutsch-Jozsa tests
 
 func TestDJ_Constant0(t *testing.T) {
 	cfg := textbook.DJConfig{
@@ -122,7 +122,7 @@ func TestDJ_Errors(t *testing.T) {
 	}
 }
 
-// --- Simon's algorithm tests ---
+// Simon's algorithm tests
 
 func TestSimon_Period3_2Qubits(t *testing.T) {
 	cfg := textbook.SimonConfig{

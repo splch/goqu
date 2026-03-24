@@ -248,6 +248,63 @@ $$(a^{r/2} - 1)(a^{r/2} + 1) \equiv 0 \pmod{N}$$
   The next section shows how a quantum computer finds $r$.
 </p>
 
+<h3>Interactive: Modular Exponentiation Explorer</h3>
+
+<div class="widget" id="modexp-widget">
+  <div class="widget-header">Modular Exponentiation: a^x mod N</div>
+  <div class="widget-body" style="display:flex;flex-wrap:wrap;gap:0.75rem;align-items:center;margin-bottom:0.5rem;">
+    <label style="font-size:0.85rem;">a: <input type="number" id="modexp-a" value="7" min="2" max="50" style="width:3.5rem;"></label>
+    <label style="font-size:0.85rem;">N: <input type="number" id="modexp-N" value="15" min="3" max="100" style="width:3.5rem;"></label>
+    <button id="modexp-run">Plot</button>
+  </div>
+  <div class="widget-output" id="modexp-output"></div>
+</div>
+<script>
+(function(){
+  var aEl=document.getElementById("modexp-a"),NEl=document.getElementById("modexp-N"),
+      btn=document.getElementById("modexp-run"),out=document.getElementById("modexp-output");
+  function gcd(a,b){while(b){var t=b;b=a%b;a=t;}return a;}
+  function run(){
+    var a=parseInt(aEl.value)||7,N=parseInt(NEl.value)||15;
+    if(gcd(a,N)>1){out.textContent="gcd("+a+","+N+")="+gcd(a,N)+" > 1. Choose a coprime to N.";return;}
+    var vals=[],maxX=Math.min(3*N,60);
+    for(var x=0;x<=maxX;x++){
+      var v=1;for(var i=0;i<x;i++) v=(v*a)%N;
+      vals.push(v);
+    }
+    // detect period
+    var period=0;
+    for(var r=1;r<=maxX;r++){if(vals[r]===1){period=r;break;}}
+    var W=Math.min(out.clientWidth||460,500),H=180,pad=45,topP=20;
+    var barArea=W-2*pad, barW=Math.max(4,Math.min(14,barArea/vals.length-1));
+    var maxV=N-1;
+    var svg='<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" style="font-family:var(--font-mono);font-size:9px;">';
+    svg+='<line x1="'+pad+'" y1="'+(H-25)+'" x2="'+(W-5)+'" y2="'+(H-25)+'" stroke="var(--color-border)" stroke-width="1"/>';
+    svg+='<text x="'+(W/2)+'" y="'+(H-2)+'" text-anchor="middle" fill="var(--color-text-muted)" font-size="9">x</text>';
+    svg+='<text x="8" y="'+(topP+5)+'" fill="var(--color-text-muted)" font-size="9">a^x mod N</text>';
+    var bH=H-25-topP-10;
+    for(var i=0;i<vals.length&&pad+i*(barW+1)<W-5;i++){
+      var h=vals[i]/maxV*bH;
+      var bx=pad+i*(barW+1), by=H-25-h;
+      var isStart=period>0&&(i%period===0);
+      svg+='<rect x="'+bx+'" y="'+by+'" width="'+barW+'" height="'+h+'" rx="1" fill="'+(isStart?"var(--color-state)":"var(--color-accent)")+'" opacity="0.8"/>';
+      if(i%(Math.ceil(vals.length/15))===0){
+        svg+='<text x="'+(bx+barW/2)+'" y="'+(H-15)+'" text-anchor="middle" fill="var(--color-text-muted)" font-size="7">'+i+'</text>';
+      }
+      svg+='<text x="'+(bx+barW/2)+'" y="'+(by-2)+'" text-anchor="middle" fill="var(--color-text)" font-size="7">'+vals[i]+'</text>';
+    }
+    if(period>0){
+      svg+='<text x="'+pad+'" y="'+(H-2)+'" fill="var(--color-state)" font-size="10" font-weight="600">Period r = '+period+'</text>';
+    }
+    svg+='</svg>';
+    out.textContent="";
+    var d=document.createElement("div");d.insertAdjacentHTML("afterbegin",svg);out.appendChild(d);
+  }
+  btn.addEventListener("click",run);
+  run();
+})();
+</script>
+
 </section>
 
 <!-- ================================================================== -->
@@ -394,6 +451,43 @@ $$\frac{192}{256} = \frac{3}{4} = 0 + \cfrac{1}{1 + \cfrac{1}{3}} = [0; 1, 3]$$
   of $2$. We could try $r = 4$ next, or simply re-run the quantum circuit.
 </p>
 
+<h3>Simulation: QFT Peak Pattern</h3>
+
+<p>
+  Adjust the phase parameter to see how the inverse QFT creates measurement peaks. When the
+  phase corresponds to a rational fraction $k/r$, sharp peaks appear at multiples of $2^t/r$.
+</p>
+
+<div class="simulation" data-component="simulation" data-bloch>
+  <div class="sim-qasm" hidden>OPENQASM 3.0;
+qubit[5] q; bit[4] c;
+// QPE-like circuit: encode phase into counting register
+x q[4];
+h q[0]; h q[1]; h q[2]; h q[3];
+// Apply phase = 2*pi*phi via controlled rotations
+cp({phi_0}) q[0], q[4];
+cp({phi_1}) q[1], q[4];
+cp({phi_2}) q[2], q[4];
+cp({phi_3}) q[3], q[4];
+// Inverse QFT on q[0..3]
+swap q[0], q[3]; swap q[1], q[2];
+h q[0];
+cp(-pi/2) q[1], q[0];
+cp(-pi/4) q[2], q[0];
+cp(-pi/8) q[3], q[0];
+h q[1];
+cp(-pi/2) q[2], q[1];
+cp(-pi/4) q[3], q[1];
+h q[2];
+cp(-pi/2) q[3], q[2];
+h q[3];
+c[0] = measure q[0]; c[1] = measure q[1]; c[2] = measure q[2]; c[3] = measure q[3];</div>
+  <div class="sim-controls">
+    <label>Phase (phi): <input type="range" data-param="phi" min="0" max="1" step="0.0625" value="0.25"> <output>0.25</output></label>
+  </div>
+  <div class="sim-output"></div>
+</div>
+
 <h3>Sandbox: Period Finding for $a = 7, N = 15$</h3>
 
 <p>
@@ -403,64 +497,6 @@ $$\frac{192}{256} = \frac{3}{4} = 0 + \cfrac{1}{1 + \cfrac{1}{3}} = [0; 1, 3]$$
   Run the circuit and observe that the measurement outcomes cluster near multiples of $16/4 = 4$
   (that is, near $0$, $4$, $8$, and $12$ in the 4-bit counting register).
 </p>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="24">OPENQASM 3.0;
-// Period finding for a=7, N=15
-// Top register: q[0..3] (counting, 4 qubits)
-// Bottom register: q[4..7] (work, 4 qubits, init to |1>)
-qubit[8] q;
-bit[4] c;
-
-// Initialize work register to |0001> = 1
-x q[7];
-
-// Hadamard on counting register
-h q[0]; h q[1]; h q[2]; h q[3];
-
-// Controlled modular exponentiation: a^(2^j) mod 15
-// For a=7, N=15: 7^1=7, 7^2=4, 7^4=1, 7^8=1 mod 15
-// ctrl-multiply by 7^8 mod 15 = 1 (identity, skip q[0])
-// ctrl-multiply by 7^4 mod 15 = 1 (identity, skip q[1])
-// ctrl-multiply by 7^2 mod 15 = 4
-// Multiply by 4 mod 15: maps |x> -> |4x mod 15>
-ctrl @ swap q[2], q[5], q[7];
-ctrl @ swap q[2], q[4], q[6];
-// ctrl-multiply by 7^1 mod 15 = 7
-// Multiply by 7 mod 15: maps |x> -> |7x mod 15>
-ctrl @ swap q[3], q[6], q[7];
-ctrl @ swap q[3], q[5], q[6];
-ctrl @ swap q[3], q[4], q[5];
-ctrl @ x q[3], q[4];
-ctrl @ x q[3], q[5];
-ctrl @ x q[3], q[6];
-ctrl @ x q[3], q[7];
-
-// Inverse QFT on counting register
-swap q[0], q[3];
-swap q[1], q[2];
-h q[0];
-cp(-pi/2) q[1], q[0];
-h q[1];
-cp(-pi/4) q[2], q[0];
-cp(-pi/2) q[2], q[1];
-h q[2];
-cp(-pi/8) q[3], q[0];
-cp(-pi/4) q[3], q[1];
-cp(-pi/2) q[3], q[2];
-h q[3];
-
-// Measure counting register
-c[0] = measure q[0];
-c[1] = measure q[1];
-c[2] = measure q[2];
-c[3] = measure q[3];</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
 
 <p>
   You should see four peaks in the histogram, corresponding to the values $0000$, $0100$,
@@ -480,43 +516,6 @@ c[3] = measure q[3];</textarea>
   ($r = 2$), and $\varphi = 0.75$ ($r = 4$, $k = 3$) to see how different periods produce
   different peak patterns.
 </p>
-
-<div class="simulation" data-component="simulation">
-  <div class="sim-controls">
-    <label>Phase $\varphi$:
-      <input type="range" min="0.0" max="1.0" step="0.05" value="0.25" data-param="phi">
-      <output>0.25</output>
-    </label>
-  </div>
-  <pre class="sim-qasm" hidden>OPENQASM 3.0;
-qubit[4] q;
-bit[4] c;
-// Prepare eigenstate with phase phi = {phi}
-// Apply phase encoding followed by inverse QFT
-h q[0]; h q[1]; h q[2]; h q[3];
-// Phase kickback encoding
-cp({phi}*2*pi) q[3], q[0];
-cp({phi}*4*pi) q[2], q[0];
-cp({phi}*8*pi) q[1], q[0];
-cp({phi}*2*pi) q[3], q[1];
-cp({phi}*4*pi) q[2], q[1];
-cp({phi}*2*pi) q[3], q[2];
-// Inverse QFT
-swap q[0], q[3];
-swap q[1], q[2];
-h q[0];
-cp(-pi/2) q[1], q[0];
-h q[1];
-cp(-pi/4) q[2], q[0];
-cp(-pi/2) q[2], q[1];
-h q[2];
-cp(-pi/8) q[3], q[0];
-cp(-pi/4) q[3], q[1];
-cp(-pi/2) q[3], q[2];
-h q[3];
-c = measure q;</pre>
-  <div class="sim-output"></div>
-</div>
 
 </section>
 
@@ -657,114 +656,44 @@ c = measure q;</pre>
 <section id="poe-measurement">
 <h2>11.5 Predict, Observe, Explain: Measurement After the QFT</h2>
 
+<p>
+  Before running the QFT in the period-finding circuit, predict what the measurement histogram
+  will look like. How many peaks will there be, and where?
+</p>
+
 <div class="poe" data-component="poe">
   <div class="poe-progress">
-    <span class="poe-progress-step active">Predict</span>
-    <span class="poe-progress-step">Observe</span>
-    <span class="poe-progress-step">Explain</span>
+    <div class="poe-progress-step active">Predict</div>
+    <div class="poe-progress-step">Observe</div>
+    <div class="poe-progress-step">Explain</div>
   </div>
-
-  <div class="poe-step active">
-    <h3>Predict</h3>
-    <p>
-      The circuit below implements quantum order finding for $a = 7$, $N = 15$, using a 4-qubit
-      counting register. The true period is $r = 4$, and the counting register has $2^4 = 16$
-      possible measurement outcomes. <strong>Before running the circuit, predict:</strong>
-    </p>
-    <ul>
-      <li>How many distinct measurement outcomes should appear with high probability?</li>
-      <li>What are those specific outcomes (in decimal)?</li>
-      <li>Why should each outcome appear with roughly equal probability?</li>
-    </ul>
-    <p>
-      Write down your predictions, then click <strong>Next</strong> to run the circuit and
-      observe what happens.
-    </p>
-    <button data-action="next">Next</button>
+  <div class="poe-step poe-predict active">
+    <h4>Predict</h4>
+    <p>For $a = 7$ and $N = 15$, the period is $r = 4$. With a 4-qubit counting register ($2^t = 16$), where should the QFT measurement peaks appear? How many distinct peaks do you expect?</p>
+    <textarea rows="3" placeholder="Write your prediction about the peak locations and count..."></textarea>
+    <button data-action="next">Submit Prediction</button>
   </div>
-
-  <div class="poe-step">
-    <h3>Observe</h3>
-    <p>
-      Run the circuit below and examine the histogram. Note which outcomes appear and their
-      approximate probabilities.
-    </p>
-    <div class="sandbox" data-component="sandbox" data-shots="1024">
-      <textarea class="code" rows="24">OPENQASM 3.0;
-qubit[8] q;
-bit[4] c;
-
-// Initialize work register to |1>
-x q[7];
-
-// Hadamard on counting register
+  <div class="poe-step poe-observe">
+    <h4>Observe</h4>
+    <p>Run the QPE circuit and observe the histogram peaks:</p>
+    <div class="sandbox" data-component="sandbox" data-shots="1024" data-autorun>
+      <textarea class="code" rows="10">OPENQASM 3.0;
+qubit[5] q; bit[4] c;
+x q[4];
 h q[0]; h q[1]; h q[2]; h q[3];
-
-// Controlled modular exponentiation for a=7, N=15
-// ctrl-7^4 mod 15 = 1 (skip q[1])
-// ctrl-7^2 mod 15 = 4
-ctrl @ swap q[2], q[5], q[7];
-ctrl @ swap q[2], q[4], q[6];
-// ctrl-7^1 mod 15 = 7
-ctrl @ swap q[3], q[6], q[7];
-ctrl @ swap q[3], q[5], q[6];
-ctrl @ swap q[3], q[4], q[5];
-ctrl @ x q[3], q[4];
-ctrl @ x q[3], q[5];
-ctrl @ x q[3], q[6];
-ctrl @ x q[3], q[7];
-
-// Inverse QFT
-swap q[0], q[3];
-swap q[1], q[2];
-h q[0];
-cp(-pi/2) q[1], q[0];
-h q[1];
-cp(-pi/4) q[2], q[0];
-cp(-pi/2) q[2], q[1];
-h q[2];
-cp(-pi/8) q[3], q[0];
-cp(-pi/4) q[3], q[1];
-cp(-pi/2) q[3], q[2];
-h q[3];
-
-c[0] = measure q[0];
-c[1] = measure q[1];
-c[2] = measure q[2];
-c[3] = measure q[3];</textarea>
-      <div class="sandbox-controls">
-        <button data-action="run">Run</button>
-        <button data-action="reset">Reset</button>
-      </div>
+swap q[0], q[3]; swap q[1], q[2];
+h q[0]; cp(-pi/2) q[1], q[0]; cp(-pi/4) q[2], q[0]; cp(-pi/8) q[3], q[0];
+h q[1]; cp(-pi/2) q[2], q[1]; cp(-pi/4) q[3], q[1];
+h q[2]; cp(-pi/2) q[3], q[2]; h q[3];
+c[0] = measure q[0]; c[1] = measure q[1]; c[2] = measure q[2]; c[3] = measure q[3];</textarea>
+      <div class="sandbox-controls"><button data-action="run">Run Again</button></div>
       <div class="output"></div>
     </div>
-    <button data-action="next">Next</button>
+    <button data-action="next">Continue</button>
   </div>
-
-  <div class="poe-step">
-    <h3>Explain</h3>
-    <p>
-      You should have observed four outcomes, each with roughly 25% probability: $0000$, $0100$,
-      $1000$, and $1100$ (decimal $0$, $4$, $8$, $12$).
-    </p>
-    <p>
-      <strong>Why these four values?</strong> The period is $r = 4$, and the counting register
-      has $2^4 = 16$ states. The inverse QFT concentrates probability on values that are
-      multiples of $16/r = 16/4 = 4$. The multiples of 4 in the range $[0, 15]$ are exactly
-      $\{0, 4, 8, 12\}$.
-    </p>
-    <p>
-      <strong>Why equal probability?</strong> Each of these four values corresponds to a
-      different value of $k$ in the equation $y = k \cdot 2^t / r$, with $k = 0, 1, 2, 3$.
-      The QFT distributes amplitude equally among all $r$ peaks.
-    </p>
-    <p>
-      <strong>Extracting the period:</strong> From any non-zero outcome, the continued fractions
-      algorithm recovers $r = 4$. For example, $y = 4$ gives $4/16 = 1/4$, so $r = 4$. And
-      $y = 12$ gives $12/16 = 3/4$, so $r = 4$. The outcome $y = 0$ is uninformative (it gives
-      $0/16 = 0$, which does not constrain $r$), but it occurs only $1/r = 25\%$ of the time.
-    </p>
-    <button data-action="complete">Complete</button>
+  <div class="poe-step poe-explain">
+    <h4>Explain</h4>
+    <p>The peaks appear at multiples of $2^t / r = 16/4 = 4$, giving outcomes $\{0, 4, 8, 12\}$ - exactly $r = 4$ evenly spaced peaks. Each peak has probability $\approx 1/4$. The spacing between peaks (4 in this case) reveals the period: $r = 2^t / \text{spacing} = 16/4 = 4$. The continued fractions algorithm formalizes this extraction for non-integer cases.</p>
   </div>
 </div>
 
@@ -818,55 +747,30 @@ c[3] = measure q[3];</textarea>
 </p>
 
 <div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="26">OPENQASM 3.0;
-// Full Shor's algorithm quantum subroutine
-// Factor N=15 with a=7
-qubit[8] q;
-bit[4] c;
-
-// q[0..3]: counting register (4 qubits)
-// q[4..7]: work register (4 qubits)
-
-// Init work register to |1> = |0001>
+  <textarea class="code" rows="20">OPENQASM 3.0;
+qubit[8] q; bit[4] c;
+// Shor's algorithm: a=7, N=15
+// Counting register: q[0..3], Work register: q[4..7]
+// Initialize work register to |1>
 x q[7];
-
-// Step 1: Hadamard on counting register
+// Hadamards on counting register
 h q[0]; h q[1]; h q[2]; h q[3];
-
-// Step 2: Controlled modular exponentiation
-// q[0] controls 7^8 mod 15 = 1 (identity)
-// q[1] controls 7^4 mod 15 = 1 (identity)
-// q[2] controls multiply by 7^2 mod 15 = 4
+// Controlled modular multiplications (optimized for N=15)
+// Controlled multiply by 7^8 mod 15 = 1: identity
+// Controlled multiply by 7^4 mod 15 = 1: identity
+// Controlled multiply by 7^2 mod 15 = 4
 ctrl @ swap q[2], q[5], q[7];
-ctrl @ swap q[2], q[4], q[6];
-// q[3] controls multiply by 7^1 mod 15 = 7
-ctrl @ swap q[3], q[6], q[7];
-ctrl @ swap q[3], q[5], q[6];
-ctrl @ swap q[3], q[4], q[5];
-ctrl @ x q[3], q[4];
-ctrl @ x q[3], q[5];
-ctrl @ x q[3], q[6];
-ctrl @ x q[3], q[7];
-
-// Step 3: Inverse QFT on counting register
-swap q[0], q[3];
-swap q[1], q[2];
-h q[0];
-cp(-pi/2) q[1], q[0];
-h q[1];
-cp(-pi/4) q[2], q[0];
-cp(-pi/2) q[2], q[1];
-h q[2];
-cp(-pi/8) q[3], q[0];
-cp(-pi/4) q[3], q[1];
-cp(-pi/2) q[3], q[2];
-h q[3];
-
-// Step 4: Measure counting register
-c[0] = measure q[0];
-c[1] = measure q[1];
-c[2] = measure q[2];
-c[3] = measure q[3];</textarea>
+ctrl @ swap q[2], q[6], q[5];
+// Controlled multiply by 7^1 mod 15 = 7
+ctrl @ swap q[3], q[5], q[7];
+ctrl @ swap q[3], q[6], q[5];
+ctrl @ x q[3], q[4]; ctrl @ x q[3], q[5]; ctrl @ x q[3], q[6]; ctrl @ x q[3], q[7];
+// Inverse QFT on counting register
+swap q[0], q[3]; swap q[1], q[2];
+h q[0]; cp(-pi/2) q[1], q[0]; cp(-pi/4) q[2], q[0]; cp(-pi/8) q[3], q[0];
+h q[1]; cp(-pi/2) q[2], q[1]; cp(-pi/4) q[3], q[1];
+h q[2]; cp(-pi/2) q[3], q[2]; h q[3];
+c[0] = measure q[0]; c[1] = measure q[1]; c[2] = measure q[2]; c[3] = measure q[3];</textarea>
   <div class="sandbox-controls">
     <button data-action="run">Run</button>
     <button data-action="reset">Reset</button>
@@ -907,97 +811,64 @@ c[3] = measure q[3];</textarea>
   multiples of $16/2 = 8$, giving outcomes near $0$ and $8$.
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="22">OPENQASM 3.0;
-// Factor N=15 with a=11
-qubit[8] q;
-bit[4] c;
-
-x q[7]; // work register = |1>
-h q[0]; h q[1]; h q[2]; h q[3];
-
-// Controlled modular exponentiation for a=11
-// 11^1 mod 15 = 11, 11^2 mod 15 = 1
-// 11^4 mod 15 = 1, 11^8 mod 15 = 1
-// q[3] controls multiply by 11 mod 15
-// Permutation (1 11)(2 7)(4 14)(8 13): swap bits 1<->3, 0<->2, then X all
-ctrl @ swap q[3], q[4], q[6];
-ctrl @ swap q[3], q[5], q[7];
-ctrl @ x q[3], q[4];
-ctrl @ x q[3], q[5];
-ctrl @ x q[3], q[6];
-ctrl @ x q[3], q[7];
-// q[2] controls multiply by 11^2 mod 15 = 1 (identity)
-// q[1] controls 11^4 mod 15 = 1 (identity)
-// q[0] controls 11^8 mod 15 = 1 (identity)
-
-// Inverse QFT on counting register
-swap q[0], q[3];
-swap q[1], q[2];
-h q[0];
-cp(-pi/2) q[1], q[0];
-h q[1];
-cp(-pi/4) q[2], q[0];
-cp(-pi/2) q[2], q[1];
-h q[2];
-cp(-pi/8) q[3], q[0];
-cp(-pi/4) q[3], q[1];
-cp(-pi/2) q[3], q[2];
-h q[3];
-
-c[0] = measure q[0];
-c[1] = measure q[1];
-c[2] = measure q[2];
-c[3] = measure q[3];</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
 <p>
   With $r = 2$ and $a = 11$: $a^{r/2} = 11^1 = 11 \equiv 11 \pmod{15}$. Since $11 \not\equiv
   -1 \pmod{15}$ (because $-1 \equiv 14$), we compute: $\gcd(11 - 1, 15) = \gcd(10, 15) = 5$
   and $\gcd(11 + 1, 15) = \gcd(12, 15) = 3$. We recover the factors $3$ and $5$.
 </p>
 
-<h3>Interactive: Shor's Factoring Algorithm</h3>
+<h3>Interactive: Shor's Algorithm Walkthrough</h3>
 <p>
-  Run Shor's algorithm end-to-end on a small composite number. The algorithm uses
-  quantum phase estimation to find the period of modular exponentiation, then
-  extracts factors classically via the GCD.
+  Walk through Shor's algorithm end-to-end for factoring $N = 15$.
 </p>
-<div class="widget" id="shor-widget">
-  <div class="widget-header">Shor's Factoring Algorithm</div>
-  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
-    <label>N: <select id="shor-n">
-      <option selected>15</option><option>21</option><option>33</option><option>35</option><option>55</option><option>77</option>
-    </select></label>
-    <label>Shots: <input type="number" id="shor-shots" value="1024" min="1" max="8192" style="width:5rem"></label>
-    <button onclick="runShorWidget()">Factor</button>
-  </div>
-  <div class="widget-output" id="shor-output"></div>
-</div>
-<script>
-async function runShorWidget() {
-  await ensureWasm();
-  var N = parseInt(document.getElementById('shor-n').value);
-  var shots = parseInt(document.getElementById('shor-shots').value) || 1024;
-  var out = document.getElementById('shor-output');
-  out.innerHTML = '<p style="color:var(--color-text-muted)">Factoring ' + N + '...</p>';
-  await new Promise(function(r) { setTimeout(r, 0); });
-  try {
-    var r = JSON.parse(window.runShor(N, shots, isDark()));
-    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
-    var html = (r.circuitSVG || '') + (r.histogramSVG || '');
-    if (r.result) html += '<p><strong>Result:</strong> ' + esc(r.result) + '</p>';
-    if (r.qasmCode) html += '<details><summary>Generated QASM</summary><pre>' + esc(r.qasmCode) + '</pre></details>';
-    out.innerHTML = html;
-  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
-}
-</script>
 
+<div class="animated-walkthrough" data-component="animated-walkthrough">
+  <div class="walkthrough-progress"></div>
+
+  <div class="walkthrough-stage active" data-stage="0">
+    <div class="walkthrough-narration">
+      <h4>Step 1: Choose Random Base</h4>
+      <p>Pick $a = 7$. Check: $\gcd(7, 15) = 1$, so $a$ is coprime to $N$. No free factor found.</p>
+    </div>
+  </div>
+
+  <div class="walkthrough-stage" data-stage="1">
+    <div class="walkthrough-narration">
+      <h4>Step 2: Quantum Order Finding</h4>
+      <p>Prepare the superposition $\frac{1}{\sqrt{2^t}}\sum_x |x\rangle|1\rangle$, apply controlled modular exponentiation to get $\frac{1}{\sqrt{2^t}}\sum_x |x\rangle|7^x \bmod 15\rangle$, then apply the inverse QFT to the counting register.</p>
+    </div>
+    <div class="walkthrough-qasm" hidden>OPENQASM 3.0;
+qubit[5] q; bit[4] c;
+x q[4];
+h q[0]; h q[1]; h q[2]; h q[3];
+swap q[0], q[3]; swap q[1], q[2];
+h q[0]; cp(-pi/2) q[1], q[0]; cp(-pi/4) q[2], q[0]; cp(-pi/8) q[3], q[0];
+h q[1]; cp(-pi/2) q[2], q[1]; cp(-pi/4) q[3], q[1];
+h q[2]; cp(-pi/2) q[3], q[2]; h q[3];
+c[0] = measure q[0]; c[1] = measure q[1]; c[2] = measure q[2]; c[3] = measure q[3];</div>
+    <div class="walkthrough-output"></div>
+  </div>
+
+  <div class="walkthrough-stage" data-stage="2">
+    <div class="walkthrough-narration">
+      <h4>Step 3: Continued Fractions</h4>
+      <p>Measurement yields peaks at $y \in \{0, 4, 8, 12\}$. For $y=12$: $12/16 = 3/4$, giving candidate period $r = 4$. Check: $7^4 \bmod 15 = 1$. Confirmed.</p>
+    </div>
+  </div>
+
+  <div class="walkthrough-stage" data-stage="3">
+    <div class="walkthrough-narration">
+      <h4>Step 4: Extract Factors</h4>
+      <p>$r = 4$ is even. Compute $a^{r/2} = 7^2 = 49 \equiv 4 \pmod{15}$. Since $4 \not\equiv -1$, compute: $\gcd(48, 15) = \mathbf{3}$ and $\gcd(50, 15) = \mathbf{5}$. Factors found: $15 = 3 \times 5$.</p>
+    </div>
+  </div>
+
+  <div class="walkthrough-controls">
+    <button data-action="prev" disabled>Previous</button>
+    <button data-action="next">Next</button>
+    <button data-action="auto">Auto-play</button>
+  </div>
+</div>
 <h3>The Gap Between Textbook and Reality</h3>
 
 <p>
@@ -1226,101 +1097,4 @@ async function runShorWidget() {
 
 </section>
 
-<!-- ================================================================== -->
-<section id="review">
-<h2>Chapter 11 Review</h2>
 
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 11 Review</div>
-
-  <div class="flashcard" data-card-id="ch11-factoring-hardness">
-    <div class="card-front">Why is integer factoring believed to be hard for classical computers, and what is the best known classical algorithm?</div>
-    <div class="card-back">
-      No polynomial-time classical algorithm is known for factoring. The best known algorithm is the general number field sieve (GNFS), which runs in sub-exponential time $O(\exp(c \cdot n^{1/3}(\log n)^{2/3}))$ where $n$ is the number of bits. For cryptographic key sizes (2048+ bits), this requires more computation than is physically feasible.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch11-reduction-to-period">
-    <div class="card-front">How does Shor's algorithm reduce factoring to period finding?</div>
-    <div class="card-back">
-      Choose a random $a$ coprime to $N$ and find the order $r$ (smallest positive integer with $a^r \equiv 1 \pmod{N}$). If $r$ is even and $a^{r/2} \not\equiv -1 \pmod{N}$, then $\gcd(a^{r/2} \pm 1, N)$ yields a non-trivial factor. This works because $a^r - 1 = (a^{r/2} - 1)(a^{r/2} + 1) \equiv 0 \pmod{N}$, so $N$ shares a factor with at least one of these terms.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch11-qft-role">
-    <div class="card-front">What role does the Quantum Fourier Transform play in Shor's algorithm?</div>
-    <div class="card-back">
-      The inverse QFT is applied to the counting register after the controlled modular exponentiation. It converts the periodic superposition (with period $r$) into a state where measurement outcomes concentrate near multiples of $2^t/r$. This is essentially quantum phase estimation applied to the unitary operator $U|x\rangle = |ax \bmod N\rangle$, whose eigenvalues encode the period $r$.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch11-continued-fractions">
-    <div class="card-front">How are continued fractions used to extract the period from a quantum measurement?</div>
-    <div class="card-back">
-      After measuring a value $y$ from the counting register, we compute the continued fraction expansion of $y/2^t$. The convergent with the largest denominator less than $N$ approximates $k/r$ for some integer $k$. The denominator of this convergent is a candidate for the period $r$ (or a factor of $r$). We verify by checking whether $a^r \equiv 1 \pmod{N}$.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch11-complexity">
-    <div class="card-front">What is the gate complexity of Shor's algorithm, and how does it compare to the best classical algorithm?</div>
-    <div class="card-back">
-      Shor's algorithm uses $O(n^3)$ quantum gates to factor an $n$-bit number, where the dominant cost is the controlled modular exponentiation ($O(n)$ multiplications, each costing $O(n^2)$ gates). The best classical algorithm (GNFS) runs in sub-exponential time. The quantum speedup is exponential: for RSA-2048 ($n = 2048$), the classical cost is $\sim 2^{112}$ operations versus $\sim 10^{10}$ quantum gates.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch11-threatened-crypto">
-    <div class="card-front">Which cryptographic systems are broken by Shor's algorithm, and which survive?</div>
-    <div class="card-back">
-      <strong>Broken:</strong> RSA (factoring), Diffie-Hellman and DSA (discrete logarithm), elliptic curve cryptography (elliptic curve discrete logarithm). <strong>Survive:</strong> Symmetric ciphers (AES-256 provides 128-bit quantum security), hash functions (SHA-256 provides ~128 bits against quantum collision attacks). Only public-key cryptography needs to be replaced; symmetric schemes just need longer keys.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch11-nist-pqc">
-    <div class="card-front">What are the NIST post-quantum cryptography standards, and what mathematical problems do they rely on?</div>
-    <div class="card-back">
-      NIST published three standards in August 2024: <strong>FIPS 203 (ML-KEM)</strong>, based on CRYSTALS-Kyber, for key encapsulation using module lattices (Learning With Errors); <strong>FIPS 204 (ML-DSA)</strong>, based on CRYSTALS-Dilithium, for digital signatures using module lattices; and <strong>FIPS 205 (SLH-DSA)</strong>, based on SPHINCS+, for digital signatures using hash-based constructions. These problems are believed to resist both classical and quantum attacks.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch11-harvest-now">
-    <div class="card-front">What is the "harvest now, decrypt later" threat, and why does it make the quantum threat urgent?</div>
-    <div class="card-back">
-      Adversaries can intercept and store encrypted communications today, then decrypt them once a sufficiently powerful quantum computer becomes available. This means data with long-term sensitivity (government secrets, medical records, financial data) is already at risk, even though quantum computers cannot yet break current encryption. Combined with the fact that cryptographic transitions take a decade or more, this makes the shift to post-quantum cryptography urgent right now.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-</div>
-
-</section>

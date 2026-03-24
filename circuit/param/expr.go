@@ -42,7 +42,7 @@ func Div(a, b Expr) Expr { return &binOp{op: '/', left: a, right: b} }
 // Neg returns -a.
 func Neg(a Expr) Expr { return &negExpr{inner: a} }
 
-// --- literal ---
+// literal
 
 type literal struct{ v float64 }
 
@@ -54,7 +54,7 @@ func (l *literal) String() string {
 	return piformat.FormatUnicode(l.v)
 }
 
-// --- paramRef ---
+// paramRef
 
 type paramRef struct{ param *Parameter }
 
@@ -71,7 +71,7 @@ func (p *paramRef) Parameters() []*Parameter { return []*Parameter{p.param} }
 func (p *paramRef) IsNumeric() bool          { return false }
 func (p *paramRef) String() string           { return p.param.Name() }
 
-// --- binOp ---
+// binOp
 
 type binOp struct {
 	op    byte // '+', '-', '*', '/'
@@ -116,7 +116,7 @@ func (b *binOp) String() string {
 	return fmt.Sprintf("(%s %c %s)", b.left.String(), b.op, b.right.String())
 }
 
-// --- negExpr ---
+// negExpr
 
 type negExpr struct{ inner Expr }
 
@@ -132,7 +132,7 @@ func (n *negExpr) Parameters() []*Parameter { return n.inner.Parameters() }
 func (n *negExpr) IsNumeric() bool          { return n.inner.IsNumeric() }
 func (n *negExpr) String() string           { return fmt.Sprintf("(-%s)", n.inner.String()) }
 
-// --- helpers ---
+// helpers
 
 // mergeParams deduplicates parameters by pointer identity.
 func mergeParams(a, b []*Parameter) []*Parameter {

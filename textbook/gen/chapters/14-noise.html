@@ -225,6 +225,27 @@ $$T_2 \leq 2\,T_1$$
   </tbody>
 </table>
 
+<h3>Simulation: T1/T2 Decay on the Bloch Sphere</h3>
+
+<p>
+  Watch how $T_1$ relaxation and $T_2$ dephasing affect a qubit on the Bloch sphere. $T_1$ pulls
+  the state toward $|0\rangle$ (north pole), while $T_2$ shrinks the equatorial components.
+  Adjust the decay time ratio to see how the Bloch vector evolves.
+</p>
+
+<div class="simulation" data-component="simulation" data-bloch>
+  <div class="sim-qasm" hidden>OPENQASM 3.0;
+qubit[1] q; bit[1] c;
+// Prepare |+> state then apply amplitude damping
+h q[0];
+ry({theta}) q[0];
+c = measure q;</div>
+  <div class="sim-controls">
+    <label>Decay (theta): <input type="range" data-param="theta" min="0" max="1.57" step="0.05" value="0"> <output>0.00</output></label>
+  </div>
+  <div class="sim-output"></div>
+</div>
+
 </section>
 
 <!-- ================================================================== -->
@@ -598,6 +619,55 @@ $$|\vec{r}_n| = (1-p)^n |\vec{r}_0|$$
   cannot run arbitrarily deep circuits.
 </p>
 
+<h3>Simulation: Noise Channel Explorer</h3>
+
+<p>
+  Compare ideal and noisy circuit execution side-by-side. Select a noise channel, adjust
+  its strength, and observe how the histogram and quantum state degrade.
+</p>
+
+<div class="simulation" data-component="simulation" data-comparison>
+  <div class="sim-qasm" hidden>OPENQASM 3.0;
+qubit[2] q; bit[2] c;
+h q[0];
+cx q[0], q[1];
+c = measure q;</div>
+  <div class="sim-controls">
+    <label>Noise: <input type="range" data-param="noiseParam" min="0" max="0.5" step="0.01" value="0.1"> <output>0.10</output></label>
+    <select data-param="noiseModel">
+      <option value="depolarizing">Depolarizing</option>
+      <option value="amplitude_damping">Amplitude Damping</option>
+      <option value="phase_damping">Phase Damping</option>
+    </select>
+  </div>
+  <div class="sim-output"></div>
+</div>
+
+<h3>Simulation: Error Accumulation</h3>
+
+<p>
+  See how noise compounds with circuit depth. Adjust the depth slider to add more identity
+  layers (pairs of CNOTs that cancel) and watch the fidelity degrade exponentially.
+</p>
+
+<div class="simulation" data-component="simulation" data-comparison>
+  <div class="sim-qasm" hidden>OPENQASM 3.0;
+qubit[2] q; bit[2] c;
+h q[0]; cx q[0], q[1];
+// Extra identity layers add noise without changing the ideal state
+cx q[0], q[1]; cx q[0], q[1];
+cx q[0], q[1]; cx q[0], q[1];
+c = measure q;</div>
+  <div class="sim-controls">
+    <label>Noise: <input type="range" data-param="noiseParam" min="0" max="0.3" step="0.01" value="0.05"> <output>0.05</output></label>
+    <select data-param="noiseModel">
+      <option value="depolarizing">Depolarizing</option>
+      <option value="amplitude_damping">Amplitude Damping</option>
+    </select>
+  </div>
+  <div class="sim-output"></div>
+</div>
+
 <h3>Sandbox: Ideal vs. Noisy Behavior</h3>
 
 <p>
@@ -608,20 +678,6 @@ $$|\vec{r}_n| = (1-p)^n |\vec{r}_0|$$
   $|01\rangle$ and $|10\rangle$ due to gate errors, measurement errors, and decoherence.
   Run the ideal circuit below, then consider: what would change on real hardware?
 </p>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="6">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-h q[0];
-cx q[0], q[1];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
 
 <p>
   On real hardware (such as IBM Quantum devices), running this same circuit typically
@@ -640,32 +696,6 @@ c = measure q;</textarea>
   the result is identical to the simple Bell circuit above. On real hardware, each CNOT
   pair would introduce additional error, significantly degrading the final state.
 </p>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="15">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-// Create Bell state
-h q[0];
-cx q[0], q[1];
-// 10 identity-equivalent CNOT pairs (no-ops ideally, noise on real hardware)
-cx q[0], q[1]; cx q[0], q[1];
-cx q[0], q[1]; cx q[0], q[1];
-cx q[0], q[1]; cx q[0], q[1];
-cx q[0], q[1]; cx q[0], q[1];
-cx q[0], q[1]; cx q[0], q[1];
-cx q[0], q[1]; cx q[0], q[1];
-cx q[0], q[1]; cx q[0], q[1];
-cx q[0], q[1]; cx q[0], q[1];
-cx q[0], q[1]; cx q[0], q[1];
-cx q[0], q[1]; cx q[0], q[1];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
 
 <p>
   On a perfect simulator, both circuits produce identical results - the 20 extra CNOT
@@ -691,28 +721,6 @@ c = measure q;</textarea>
   <strong>fidelity</strong> (overlap with the ideal state) quantify the degradation.
 </p>
 
-<div class="simulation" data-component="simulation" data-comparison="true">
-  <div class="sim-controls">
-    <label>Channel:
-      <select data-param="noiseModel">
-        <option value="depolarizing">Depolarizing</option>
-        <option value="amplitude_damping">Amplitude Damping</option>
-        <option value="phase_damping">Phase Damping</option>
-        <option value="bit_flip">Bit Flip</option>
-        <option value="phase_flip">Phase Flip</option>
-      </select>
-    </label>
-    <label>Noise: <input type="range" data-param="noiseParam" min="0" max="0.5" step="0.01" value="0.1"><output>0.10</output></label>
-  </div>
-  <script type="text/template" class="sim-qasm">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-h q[0];
-cx q[0], q[1];
-c = measure q;</script>
-  <div class="sim-output"></div>
-</div>
-
 <p>
   Try increasing the noise parameter toward 0.5 and watch the purity drop and the noisy
   histogram spread. Compare <strong>depolarizing</strong> noise (which affects all Pauli
@@ -735,7 +743,7 @@ c = measure q;</script>
 
 <!-- ================================================================== -->
 <section id="characterizing-noise">
-<h2>14.4 Characterizing Noise: Tomography and Benchmarking</h2>
+<h2>14.5 Characterizing Noise: Tomography and Benchmarking</h2>
 
 <p>
   To fight noise, we first need to measure it. How do experimentalists determine the
@@ -902,7 +910,7 @@ $$\text{QV} = 2^m$$
 
 <!-- ================================================================== -->
 <section id="nisq">
-<h2>14.5 NISQ: Noisy Intermediate-Scale Quantum Computing</h2>
+<h2>14.6 NISQ: Noisy Intermediate-Scale Quantum Computing</h2>
 
 <p>
   In 2018, physicist John Preskill coined the term <strong>NISQ</strong> - Noisy
@@ -1052,8 +1060,13 @@ $$\text{QV} = 2^m$$
 </section>
 
 <!-- ================================================================== -->
-<section id="poe-noise-depth">
-<h2>Predict-Observe-Explain: Why Does Running More Gates Make Results Worse?</h2>
+<section id="poe-pure-mixed">
+<h2>Predict-Observe-Explain: Pure vs. Mixed States</h2>
+
+<p>
+  The state $|+\rangle$ and the maximally mixed state both give 50/50 results in the $Z$-basis.
+  Can you tell them apart?
+</p>
 
 <div class="poe" data-component="poe">
   <div class="poe-progress">
@@ -1062,168 +1075,110 @@ $$\text{QV} = 2^m$$
     <div class="poe-progress-step">Explain</div>
   </div>
   <div class="poe-step poe-predict active">
-    <h3>Predict</h3>
-    <p>
-      The circuit below prepares the state $|1\rangle$ by applying an X gate, then applies
-      20 pairs of X gates (each pair is $X \cdot X = I$, which should do nothing). On a
-      perfect simulator, what will the measurement result be? Now imagine running this on a
-      real device with 0.1% error per gate. With 41 total X gates, roughly what fraction of
-      the shots would give the wrong answer?
-    </p>
-    <textarea rows="3" placeholder="Write your prediction here..."></textarea>
+    <h4>Predict</h4>
+    <p>Both $|+\rangle$ and the maximally mixed state $I/2$ give 50% $|0\rangle$ and 50% $|1\rangle$ when measured in the $Z$-basis. If we apply a Hadamard gate before measuring, what will the difference be?</p>
+    <textarea rows="3" placeholder="Predict: what happens when you apply H then measure on |+> vs the mixed state?"></textarea>
     <button data-action="next">Submit Prediction</button>
   </div>
   <div class="poe-step poe-observe">
-    <h3>Observe</h3>
-    <p>
-      Run the circuit below. On our ideal simulator, the result is always $|1\rangle$
-      regardless of how many identity-equivalent gate pairs we add. On real hardware, each
-      additional gate would degrade the result.
-    </p>
+    <h4>Observe</h4>
+    <p>Run this circuit that prepares $|+\rangle$, then applies $H$ and measures. You should see $|0\rangle$ with 100% probability since $H|+\rangle = |0\rangle$:</p>
     <div class="sandbox" data-component="sandbox" data-shots="1024" data-autorun>
-      <textarea class="code" rows="12">OPENQASM 3.0;
-qubit[1] q;
-bit[1] c;
-x q[0];
-// 20 identity-equivalent X pairs
-x q[0]; x q[0]; x q[0]; x q[0];
-x q[0]; x q[0]; x q[0]; x q[0];
-x q[0]; x q[0]; x q[0]; x q[0];
-x q[0]; x q[0]; x q[0]; x q[0];
-x q[0]; x q[0]; x q[0]; x q[0];
-x q[0]; x q[0]; x q[0]; x q[0];
-x q[0]; x q[0]; x q[0]; x q[0];
-x q[0]; x q[0]; x q[0]; x q[0];
-x q[0]; x q[0]; x q[0]; x q[0];
-x q[0]; x q[0]; x q[0]; x q[0];
+      <textarea class="code" rows="5">OPENQASM 3.0;
+qubit[1] q; bit[1] c;
+h q[0];
+h q[0];
 c = measure q;</textarea>
-      <div class="sandbox-controls">
-        <button data-action="run">Run Again</button>
-      </div>
+      <div class="sandbox-controls"><button data-action="run">Run Again</button></div>
       <div class="output"></div>
     </div>
-    <button data-action="next">Continue to Explanation</button>
+    <p>Now consider: if the qubit were in the maximally mixed state $I/2$ instead, applying $H$ would still give 50/50 (since $H(I/2)H = I/2$). The Hadamard reveals the coherence that the pure state has but the mixed state lacks.</p>
+    <button data-action="next">Continue</button>
   </div>
   <div class="poe-step poe-explain">
-    <h3>Explain</h3>
-    <p>
-      On the ideal simulator, all 1024 shots return $|1\rangle$ because every X-X pair
-      cancels perfectly - mathematics does not have noise. On a real device with error rate
-      $\epsilon = 0.001$ per gate, the probability of getting the correct answer after 41
-      gates would be approximately $(1 - \epsilon)^{41} = (0.999)^{41} \approx 0.96$ -
-      about 4% of shots would give the wrong answer. With a more typical error rate of
-      $\epsilon = 0.01$, this drops to $(0.99)^{41} \approx 0.66$ - one-third of shots are
-      wrong.
-    </p>
-    <p>
-      This exponential decay of fidelity with gate count is the central challenge of NISQ
-      computing. The signal (correct answer) decays as $(1-\epsilon)^n$ while the noise
-      floor rises. For circuits much deeper than $1/\epsilon$ gates, the output becomes
-      indistinguishable from random noise. This is why quantum error correction, which we
-      will study in later chapters, is essential for running deep quantum algorithms like
-      Shor's factoring.
-    </p>
-    <button data-action="complete">Complete</button>
+    <h4>Explain</h4>
+    <p>The pure state $|+\rangle$ has off-diagonal elements (coherences) in its density matrix: $\rho_+ = \frac{1}{2}\begin{pmatrix}1&1\\1&1\end{pmatrix}$. The mixed state has none: $\rho_{\text{mix}} = \frac{1}{2}\begin{pmatrix}1&0\\0&1\end{pmatrix}$. The Hadamard gate converts these coherences into measurable population differences. This is why dephasing noise (which destroys coherences) is so damaging - it makes pure states look mixed, erasing the quantum information encoded in phases.</p>
   </div>
 </div>
 
 </section>
 
-<!-- ================================================================== -->
-<section id="review">
-<h2>Chapter 14 Review</h2>
+<section id="channel-representations">
+<h3>Interactive: Channel Representations</h3>
 
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 14 Review</div>
+<p>
+  Explore the three mathematical representations of a noise channel. Adjust the noise
+  strength parameter and see how the Kraus operators, effect on the Bloch sphere,
+  and key metrics change together.
+</p>
 
-  <div class="flashcard" data-card-id="ch14-t1-relaxation">
-    <div class="card-front">What is $T_1$ and what physical process does it describe?</div>
-    <div class="card-back">
-      $T_1$ is the energy relaxation time. It characterizes the exponential decay of the excited state $|1\rangle$ to the ground state $|0\rangle$, with $P(|1\rangle, t) = e^{-t/T_1}$. Physically, it represents energy leaking from the qubit into the environment.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
+<div class="widget" id="channel-rep-widget">
+  <div class="widget-header">Noise Channel Representations</div>
+  <div class="widget-body" style="display:flex;flex-wrap:wrap;gap:0.75rem;align-items:center;margin-bottom:0.5rem;">
+    <label style="font-size:0.85rem;">Channel: <select id="chrep-type">
+      <option value="depol">Depolarizing</option>
+      <option value="dephase">Dephasing</option>
+      <option value="ampdamp">Amplitude Damping</option>
+    </select></label>
+    <label style="font-size:0.85rem;">Strength (p): <input type="range" id="chrep-p" min="0" max="1" step="0.02" value="0.2" style="width:10rem;vertical-align:middle;"> <span id="chrep-p-val">0.20</span></label>
   </div>
-
-  <div class="flashcard" data-card-id="ch14-t2-dephasing">
-    <div class="card-front">What is $T_2$ and how does it relate to $T_1$?</div>
-    <div class="card-back">
-      $T_2$ is the dephasing time, measuring how quickly phase coherence (the off-diagonal elements of the density matrix) is lost. The fundamental constraint is $T_2 \leq 2T_1$ because energy relaxation also destroys phase information. When $T_2 = 2T_1$, the qubit is $T_1$-limited with no additional dephasing.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch14-pure-vs-mixed">
-    <div class="card-front">How do you distinguish a pure state from a mixed state using the density matrix?</div>
-    <div class="card-back">
-      Compute the purity $\text{Tr}(\rho^2)$. For a pure state, $\text{Tr}(\rho^2) = 1$ and $\rho$ can be written as $|\psi\rangle\langle\psi|$. For a mixed state, $\text{Tr}(\rho^2) < 1$, indicating classical uncertainty about which quantum state the system is in. The minimum purity for an $n$-qubit system is $1/2^n$ (the maximally mixed state).
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch14-density-matrix-coherences">
-    <div class="card-front">What do the off-diagonal elements of a density matrix represent, and what happens to them under dephasing?</div>
-    <div class="card-back">
-      The off-diagonal elements are called <em>coherences</em> and encode the phase relationships between basis states. They distinguish quantum superpositions from classical mixtures. Under dephasing, coherences decay exponentially while diagonal elements (populations) remain unchanged. When coherences reach zero, the state becomes a classical mixture.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch14-kraus-operators">
-    <div class="card-front">What is the Kraus representation of a quantum channel, and what constraint must the Kraus operators satisfy?</div>
-    <div class="card-back">
-      A quantum channel $\mathcal{E}$ is written as $\mathcal{E}(\rho) = \sum_i K_i \rho K_i^\dagger$ where the $K_i$ are Kraus operators. They must satisfy $\sum_i K_i^\dagger K_i = I$ (the completeness relation), which ensures the channel is trace-preserving (probabilities sum to one).
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch14-amplitude-damping">
-    <div class="card-front">Write the Kraus operators for the amplitude damping channel with parameter $\gamma$.</div>
-    <div class="card-back">
-      $K_0 = \begin{pmatrix} 1 & 0 \\ 0 & \sqrt{1-\gamma} \end{pmatrix}$ and $K_1 = \begin{pmatrix} 0 & \sqrt{\gamma} \\ 0 & 0 \end{pmatrix}$. The parameter $\gamma = 1 - e^{-t/T_1}$ represents the probability of decay from $|1\rangle$ to $|0\rangle$. This channel is not unital: it drives every state toward $|0\rangle$.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch14-randomized-benchmarking">
-    <div class="card-front">How does randomized benchmarking measure gate error rates, and why is it preferred over process tomography?</div>
-    <div class="card-back">
-      RB applies random sequences of Clifford gates followed by their computed inverse, and measures the survival probability as a function of sequence length. The exponential decay rate gives the average error per gate. It is preferred because: (1) it is insensitive to state preparation and measurement errors (SPAM), (2) it scales efficiently to many qubits, and (3) it does not require the exponential resources of full process tomography.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch14-nisq-definition">
-    <div class="card-front">What does NISQ stand for, and what defines the NISQ era?</div>
-    <div class="card-back">
-      Noisy Intermediate-Scale Quantum. Coined by John Preskill in 2018, it describes quantum devices with 50 to 1000+ qubits that are large enough to be classically hard to simulate, but too noisy to run deep circuits requiring full error correction. NISQ devices can execute shallow circuits and use error mitigation, but cannot yet implement fault-tolerant quantum algorithms at useful scale.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
+  <div class="widget-output" id="chrep-output"></div>
 </div>
+<script>
+(function(){
+  var typeEl=document.getElementById("chrep-type"),pEl=document.getElementById("chrep-p"),pV=document.getElementById("chrep-p-val");
+  var out=document.getElementById("chrep-output");
+  function fmt(x){return x.toFixed(4);}
+  function update(){
+    var ch=typeEl.value, p=parseFloat(pEl.value); pV.textContent=p.toFixed(2);
+    var el=document.createElement("div");el.style.cssText="font-family:var(--font-mono);font-size:0.8rem;";
+    var krausHtml="",blochDesc="",metrics="";
+    if(ch==="depol"){
+      var q=1-3*p/4;
+      krausHtml="<strong>Kraus operators:</strong><br>"
+        +"K0 = sqrt("+(q).toFixed(3)+") I<br>"
+        +"K1 = sqrt("+(p/4).toFixed(3)+") X<br>"
+        +"K2 = sqrt("+(p/4).toFixed(3)+") Y<br>"
+        +"K3 = sqrt("+(p/4).toFixed(3)+") Z";
+      blochDesc="<strong>Bloch sphere:</strong> Uniform shrinkage by factor "+(1-p).toFixed(3)+"<br>"
+        +"r -> "+(1-p).toFixed(3)+" r (sphere contracts uniformly)";
+      metrics="<strong>Purity of output (|0> input):</strong> "+fmt(0.5+0.5*(1-p)*(1-p))
+        +"<br><strong>Fully mixed at p =</strong> 1.0";
+    } else if(ch==="dephase"){
+      krausHtml="<strong>Kraus operators:</strong><br>"
+        +"K0 = sqrt("+(1-p).toFixed(3)+") I<br>"
+        +"K1 = sqrt("+(p).toFixed(3)+") Z";
+      blochDesc="<strong>Bloch sphere:</strong> X,Y components shrink by "+(1-2*p).toFixed(3)+"<br>"
+        +"Z component unchanged. Sphere flattens into a disk.";
+      var gamma=1-2*p;
+      metrics="<strong>Coherence decay factor:</strong> "+fmt(Math.abs(gamma))
+        +"<br><strong>Fully dephased at p =</strong> 0.50";
+    } else {
+      var sq=Math.sqrt(1-p);
+      krausHtml="<strong>Kraus operators:</strong><br>"
+        +"K0 = [[1, 0], [0, "+sq.toFixed(3)+"]]<br>"
+        +"K1 = [[0, "+Math.sqrt(p).toFixed(3)+"], [0, 0]]";
+      blochDesc="<strong>Bloch sphere:</strong> Contracts and shifts toward |0> (north pole)<br>"
+        +"rz -> "+(1-p).toFixed(3)+"rz + "+p.toFixed(3)+"<br>"
+        +"rx,ry -> "+sq.toFixed(3)+" rx,ry";
+      metrics="<strong>Steady state:</strong> |0> at p = 1.0<br>"
+        +"<strong>Non-unital:</strong> mixed states are not preserved";
+    }
+    var content=document.createElement("div");
+    content.style.cssText="display:grid;grid-template-columns:1fr 1fr;gap:1rem;";
+    var left=document.createElement("div");
+    left.insertAdjacentHTML("afterbegin",krausHtml+"<br><br>"+metrics);
+    var right=document.createElement("div");
+    right.insertAdjacentHTML("afterbegin",blochDesc);
+    content.appendChild(left);content.appendChild(right);
+    el.appendChild(content);
+    out.textContent="";out.appendChild(el);
+  }
+  typeEl.addEventListener("change",update);pEl.addEventListener("input",update);
+  update();
+})();
+</script>
 
 </section>
+
+

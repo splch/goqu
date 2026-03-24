@@ -126,11 +126,13 @@ For several important channels, the classical capacity is known in single-letter
 <li><strong>Quantum erasure channel</strong> (erasure probability $\epsilon$):
 $C = (1 - \epsilon) \log 2 = 1 - \epsilon$ bits per qubit.</li>
 <li><strong>Qubit depolarizing channel</strong> (error probability $p$):
-$C = 1 - H\!\bigl(\tfrac{3p}{4}\bigr)$ for the symmetric form, where
+$C = 1 - H\!\bigl(\tfrac{2p}{3}\bigr)$, where
 $H(x) = -x\log_2 x - (1-x)\log_2(1-x)$ is the binary entropy function and $p$ here
 denotes the total Pauli error probability (each of $X$, $Y$, $Z$ applied with probability
 $p/3$), related to the replacement probability $p_r$ used in Chapter 27 by
-$p = \frac{3}{4}p_r$. Equivalently, $C = 1 + (1-p)\log_2(1-p) + p\log_2(p/3)$.</li>
+$p = \frac{3}{4}p_r$. The capacity decreases because the output of any pure input state
+has bit-flip probability $2p/3$ (the $Z$ error leaves basis states unchanged, while $X$
+and $Y$ errors flip them).</li>
 </ul>
 
 <p>
@@ -138,6 +140,119 @@ For the depolarizing channel, the optimal input ensemble uses orthogonal states 
 probabilities, and the capacity decreases from 1 bit (no noise) to 0 as $p$ increases
 toward the fully depolarizing limit $p = 3/4$ (where every input is mapped to $I/2$).
 </p>
+
+<!-- Widget 1: Capacity Dashboard -->
+<div class="widget" id="capacity-dashboard-widget">
+  <div class="widget-header">Channel Capacity Dashboard</div>
+  <div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:center;margin-bottom:0.75rem">
+    <label style="font-size:0.9rem">Channel:
+      <select id="cap-channel" style="font-family:var(--font-mono);font-size:0.85rem;padding:0.3rem 0.5rem;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-surface);color:var(--color-text)">
+        <option value="depolarizing">Depolarizing</option>
+        <option value="erasure">Erasure</option>
+        <option value="amplitude-damping">Amplitude Damping</option>
+      </select>
+    </label>
+  </div>
+  <canvas id="cap-canvas" width="600" height="320" style="width:100%;border:1px solid var(--color-border);border-radius:var(--radius)"></canvas>
+  <div id="cap-info" style="font-family:var(--font-mono);font-size:0.85rem;color:var(--color-text-muted);margin-top:0.5rem"></div>
+</div>
+<script>
+(function(){
+  var sel=document.getElementById("cap-channel");
+  var canvas=document.getElementById("cap-canvas");
+  var infoEl=document.getElementById("cap-info");
+  var ctx=canvas.getContext("2d");
+  function h2(x){if(x<=0||x>=1)return 0;return -x*Math.log2(x)-(1-x)*Math.log2(1-x);}
+  function clamp(v){return Math.max(0,Math.min(v,2));}
+  function capacities(ch,p){
+    var C=0,Q=0,CE=0;
+    if(ch==="depolarizing"){
+      if(p<0.001){C=1;Q=1;CE=2;}
+      else if(p>=0.75){C=0;Q=0;CE=0;}
+      else{
+        C=clamp(1+(1-p)*Math.log2(1-p)+p*Math.log2(p/3));
+        var q4=p*4/3;
+        Q=clamp(Math.max(1-h2(q4)-q4*Math.log2(3),0));
+        CE=clamp(1+C);
+      }
+    }else if(ch==="erasure"){
+      C=clamp(1-p);
+      Q=clamp(Math.max(1-2*p,0));
+      CE=clamp(2*(1-p));
+    }else{
+      var g=1-p;
+      C=clamp(h2((1+Math.sqrt(g))/2)-h2((1+g)/2));
+      if(C<0)C=0;
+      Q=clamp(Math.max(C-h2(g),0));
+      CE=clamp(C+1-h2(p));
+    }
+    return{C:C,Q:Q,CE:CE};
+  }
+  function isDk(){return window.matchMedia("(prefers-color-scheme:dark)").matches;}
+  function draw(){
+    var ch=sel.value;
+    var dpr=window.devicePixelRatio||1;
+    var rect=canvas.getBoundingClientRect();
+    canvas.width=rect.width*dpr;canvas.height=rect.height*dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    var W=rect.width,H=rect.height;
+    var pad={l:55,r:20,t:20,b:40};
+    var pw=W-pad.l-pad.r,ph=H-pad.t-pad.b;
+    var dk=isDk();
+    ctx.fillStyle=dk?"#262626":"#ffffff";
+    ctx.fillRect(0,0,W,H);
+    ctx.font="11px "+getComputedStyle(document.body).getPropertyValue("--font-mono");
+    var axisC=dk?"#999":"#666",gridC=dk?"#333":"#e0e0e0";
+    var colC=dk?"#6A9BD2":"#4C72B0",colQ=dk?"#E07070":"#C44E52",colCE=dk?"#78C87C":"#55a868";
+    var maxP=ch==="depolarizing"?0.75:1.0;
+    // grid
+    ctx.strokeStyle=gridC;ctx.lineWidth=0.5;ctx.setLineDash([3,3]);
+    for(var g=0;g<=4;g++){
+      var y=pad.t+g/4*ph;
+      ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+pw,y);ctx.stroke();
+      ctx.fillStyle=axisC;ctx.textAlign="right";
+      ctx.fillText((2-g*0.5).toFixed(1),pad.l-8,y+4);
+    }
+    for(var g=0;g<=5;g++){
+      var x=pad.l+g/5*pw;
+      ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,pad.t+ph);ctx.stroke();
+      ctx.fillStyle=axisC;ctx.textAlign="center";
+      ctx.fillText((g/5*maxP).toFixed(2),x,H-8);
+    }
+    ctx.setLineDash([]);
+    ctx.fillStyle=axisC;ctx.font="12px "+getComputedStyle(document.body).getPropertyValue("--font-mono");
+    ctx.fillText("Noise parameter",pad.l+pw/2,H-1);
+    // curves
+    var lines=[{key:"CE",col:colCE},{key:"C",col:colC},{key:"Q",col:colQ}];
+    var pts=200;
+    lines.forEach(function(line){
+      ctx.strokeStyle=line.col;ctx.lineWidth=2.5;ctx.beginPath();
+      for(var i=0;i<=pts;i++){
+        var p=i/pts*maxP;
+        var cap=capacities(ch,p);
+        var x=pad.l+p/maxP*pw;
+        var y=pad.t+(1-cap[line.key]/2)*ph;
+        if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+    });
+    // legend
+    var lx=pad.l+pw-110,ly=pad.t+12;
+    ctx.font="11px "+getComputedStyle(document.body).getPropertyValue("--font-mono");
+    [{lbl:"C_E (entanglement-assisted)",col:colCE},{lbl:"C (classical)",col:colC},{lbl:"Q (quantum)",col:colQ}].forEach(function(it,i){
+      var yy=ly+i*16;
+      ctx.strokeStyle=it.col;ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(lx,yy);ctx.lineTo(lx+18,yy);ctx.stroke();
+      ctx.fillStyle=axisC;ctx.textAlign="left";ctx.fillText(it.lbl,lx+23,yy+4);
+    });
+    var desc={depolarizing:"Depolarizing: all capacities decrease with noise. Q reaches zero before C.",erasure:"Erasure: Q drops to zero at e=0.5, C survives until e=1. C_E = 2(1-e).",
+      "amplitude-damping":"Amplitude damping: models T1 decay. Q drops faster than C."};
+    infoEl.textContent=desc[ch]||"";
+  }
+  sel.addEventListener("change",draw);
+  window.addEventListener("resize",draw);
+  setTimeout(draw,50);
+})();
+</script>
 
 </section>
 
@@ -252,6 +367,59 @@ environment captures exactly as much as the receiver, and no quantum information
 Compare with the classical capacity $C = 1 - \epsilon$, which is positive for all
 $\epsilon < 1$. Quantum information is harder to protect than classical information.
 </p>
+
+<!-- POE 3: Erasure Channel Capacity -->
+<div class="poe" data-component="poe">
+  <div class="poe-progress">
+    <div class="poe-progress-step">Predict</div>
+    <div class="poe-progress-step">Observe</div>
+    <div class="poe-progress-step">Explain</div>
+  </div>
+  <div class="poe-step active">
+    <h3>Predict: Erasure Channel at $\epsilon = 0.5$</h3>
+    <p>
+      The quantum erasure channel with $\epsilon = 0.5$ erases half the qubits on average.
+      Meanwhile, $C = 1 - \epsilon = 0.5$ bits per use (positive!).
+      And $Q = \max(1 - 2\epsilon, 0) = 0$ qubits per use.
+    </p>
+    <p><strong>Question:</strong> Why does the classical capacity remain positive at $\epsilon = 0.5$
+    while the quantum capacity drops to zero? Write your prediction below.</p>
+    <textarea rows="3" placeholder="Why can classical bits survive 50% erasure but qubits cannot?"></textarea>
+    <button data-action="next">Check my thinking</button>
+  </div>
+  <div class="poe-step">
+    <h3>Observe</h3>
+    <p>
+      At $\epsilon = 0.5$: the channel erases each qubit independently with probability 1/2. The receiver
+      gets roughly half the transmitted states. The erasure is <em>heralded</em> - both parties know
+      which qubits were erased. For classical bits, the surviving half still carries full information.
+      For quantum states, the environment now holds as much quantum information as the receiver.
+    </p>
+    <p>
+      $C(\epsilon = 0.5) = 0.5$ bits &gt; 0 (classical information survives).
+    </p>
+    <p>
+      $Q(\epsilon = 0.5) = 0$ qubits (quantum coherence is lost).
+    </p>
+    <button data-action="next">See explanation</button>
+  </div>
+  <div class="poe-step">
+    <h3>Explain</h3>
+    <p>
+      The asymmetry comes from the <strong>no-cloning theorem</strong>. Classical bits can be copied, so even if
+      half are lost, the remaining half suffices. Quantum information cannot be cloned: at $\epsilon = 0.5$,
+      the environment receives as much quantum information as the receiver (the channel becomes
+      <em>anti-degradable</em>). If quantum information could still be sent, both receiver and environment
+      would effectively share it - violating no-cloning.
+    </p>
+    <p>
+      This illustrates a deep principle: quantum information is a <strong>zero-sum resource</strong>
+      between receiver and environment. The coherent information $I_c = S(B) - S(AB)$ equals zero
+      precisely when the environment knows as much as the receiver.
+    </p>
+    <button data-action="complete">Done</button>
+  </div>
+</div>
 
 <h3>Anti-Degradable Channels and Zero Capacity</h3>
 
@@ -375,6 +543,80 @@ the quantum capacity equals the private capacity. Sending quantum information is
 sending private classical information.
 </p>
 </div>
+
+<!-- Widget 4: Additivity Diagram -->
+<div class="widget" id="additivity-widget">
+  <div class="widget-header">Additivity: Product vs Entangled Inputs</div>
+  <p style="font-size:0.9rem;margin-bottom:0.75rem">
+    If the Holevo information were additive, product inputs would always be optimal. Hastings (2009)
+    showed some channels are superadditive: entangled inputs across two channel uses yield higher
+    information than the best product inputs. This widget illustrates the concept.
+  </p>
+  <div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:center;margin-bottom:0.75rem">
+    <label style="font-size:0.9rem;font-family:var(--font-mono)">Superadditivity gap:
+      <input type="range" id="add-gap" min="0" max="0.3" step="0.01" value="0.05" style="width:10rem;accent-color:var(--color-accent)">
+      <output id="add-gap-out">0.05</output>
+    </label>
+  </div>
+  <canvas id="add-canvas" width="500" height="220" style="width:100%;border:1px solid var(--color-border);border-radius:var(--radius)"></canvas>
+  <div id="add-info" style="font-family:var(--font-mono);font-size:0.85rem;color:var(--color-text-muted);margin-top:0.5rem"></div>
+</div>
+<script>
+(function(){
+  var gapSlider=document.getElementById("add-gap"),gapOut=document.getElementById("add-gap-out");
+  var canvas=document.getElementById("add-canvas"),ctx=canvas.getContext("2d");
+  var infoEl=document.getElementById("add-info");
+  function isDk(){return window.matchMedia("(prefers-color-scheme:dark)").matches;}
+  function draw(){
+    var gap=parseFloat(gapSlider.value);gapOut.textContent=gap.toFixed(2);
+    var dpr=window.devicePixelRatio||1;
+    var rect=canvas.getBoundingClientRect();
+    canvas.width=rect.width*dpr;canvas.height=rect.height*dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    var W=rect.width,H=rect.height;
+    var dk=isDk();
+    ctx.fillStyle=dk?"#262626":"#ffffff";ctx.fillRect(0,0,W,H);
+    var chi1=0.72;
+    var prodRate=chi1;
+    var entRate=chi1+gap;
+    var maxRate=Math.max(entRate,1.2)*1.1;
+    var barW=80,barGap=50;
+    var x1=W/2-barW-barGap/2,x2=W/2+barGap/2;
+    var barMaxH=H-80,barY0=H-35;
+    var h1=prodRate/maxRate*barMaxH,h2b=entRate/maxRate*barMaxH;
+    var colProd=dk?"#6A9BD2":"#4C72B0",colEnt=dk?"#78C87C":"#55a868";
+    ctx.fillStyle=colProd;
+    ctx.fillRect(x1,barY0-h1,barW,h1);
+    ctx.fillStyle=colEnt;
+    ctx.fillRect(x2,barY0-h2b,barW,h2b);
+    // labels
+    ctx.fillStyle=dk?"#ccc":"#333";
+    ctx.font="12px "+getComputedStyle(document.body).getPropertyValue("--font-mono");
+    ctx.textAlign="center";
+    ctx.fillText("Product inputs",x1+barW/2,barY0+16);
+    ctx.fillText("Entangled inputs",x2+barW/2,barY0+16);
+    ctx.fillText(prodRate.toFixed(3)+" bits",x1+barW/2,barY0-h1-8);
+    ctx.fillText(entRate.toFixed(3)+" bits",x2+barW/2,barY0-h2b-8);
+    // gap arrow
+    if(gap>0.001){
+      var ay=barY0-h1,by=barY0-h2b;
+      ctx.strokeStyle=dk?"#E07070":"#C44E52";ctx.lineWidth=2;
+      ctx.setLineDash([4,3]);
+      ctx.beginPath();ctx.moveTo(x1+barW+5,ay);ctx.lineTo(x2-5,by);ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle=dk?"#E07070":"#C44E52";ctx.font="11px "+getComputedStyle(document.body).getPropertyValue("--font-mono");
+      ctx.fillText("gap = "+gap.toFixed(3),(x1+barW+x2)/2,(ay+by)/2-8);
+    }
+    ctx.fillStyle=dk?"#ccc":"#333";ctx.font="13px "+getComputedStyle(document.body).getPropertyValue("--font-body");
+    ctx.textAlign="center";
+    ctx.fillText("Two uses of channel N",W/2,18);
+    infoEl.textContent=gap>0?"Entangled inputs achieve rate "+(entRate/2).toFixed(4)+" bits/use vs product rate "+(prodRate/2).toFixed(4)+" bits/use. The Holevo information is superadditive by "+gap.toFixed(3)+" bits.":"When gap=0, the Holevo information is additive: product inputs are optimal. This holds for many common channels.";
+  }
+  gapSlider.addEventListener("input",draw);
+  window.addEventListener("resize",draw);
+  setTimeout(draw,50);
+})();
+</script>
 
 </section>
 
@@ -514,6 +756,101 @@ is the same. Schumacher compression reduces to Shannon compression when the stat
 orthogonal - the quantum theory properly generalizes the classical one.
 </p>
 
+<!-- Widget 2: Schumacher Compression -->
+<div class="widget" id="schumacher-widget">
+  <div class="widget-header">Schumacher Compression Rate</div>
+  <p style="font-size:0.9rem;margin-bottom:0.75rem">
+    A qubit source produces $|0\rangle$ with probability $p$ and $|1\rangle$ with probability $1-p$.
+    The von Neumann entropy $S(\rho) = h(p)$ gives the optimal compression rate in qubits per source state.
+  </p>
+  <div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:center;margin-bottom:0.75rem">
+    <label style="font-size:0.9rem;font-family:var(--font-mono)">p(|0&rangle;):
+      <input type="range" id="sch-p" min="0" max="1" step="0.01" value="0.9" style="width:12rem;accent-color:var(--color-accent)">
+      <output id="sch-p-out">0.90</output>
+    </label>
+    <label style="font-size:0.9rem;font-family:var(--font-mono)">n copies:
+      <input type="range" id="sch-n" min="1" max="100" step="1" value="10" style="width:8rem;accent-color:var(--color-accent)">
+      <output id="sch-n-out">10</output>
+    </label>
+  </div>
+  <canvas id="sch-canvas" width="600" height="260" style="width:100%;border:1px solid var(--color-border);border-radius:var(--radius)"></canvas>
+  <div id="sch-info" style="font-family:var(--font-mono);font-size:0.85rem;color:var(--color-text-muted);margin-top:0.5rem"></div>
+</div>
+<script>
+(function(){
+  var pSlider=document.getElementById("sch-p"),pOut=document.getElementById("sch-p-out");
+  var nSlider=document.getElementById("sch-n"),nOut=document.getElementById("sch-n-out");
+  var canvas=document.getElementById("sch-canvas"),ctx=canvas.getContext("2d");
+  var infoEl=document.getElementById("sch-info");
+  function h2(x){if(x<=0||x>=1)return 0;return -x*Math.log2(x)-(1-x)*Math.log2(1-x);}
+  function isDk(){return window.matchMedia("(prefers-color-scheme:dark)").matches;}
+  function draw(){
+    var p=parseFloat(pSlider.value),n=parseInt(nSlider.value,10);
+    pOut.textContent=p.toFixed(2);nOut.textContent=n;
+    var entropy=h2(p);
+    var dpr=window.devicePixelRatio||1;
+    var rect=canvas.getBoundingClientRect();
+    canvas.width=rect.width*dpr;canvas.height=rect.height*dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    var W=rect.width,H=rect.height;
+    var dk=isDk();
+    ctx.fillStyle=dk?"#262626":"#ffffff";ctx.fillRect(0,0,W,H);
+    var barW=W-40,barH=40;
+    var y1=30,y2=y1+barH+30;
+    // Full Hilbert space bar
+    ctx.fillStyle=dk?"#444":"#ddd";
+    ctx.fillRect(20,y1,barW,barH);
+    ctx.fillStyle=dk?"#6A9BD2":"#4C72B0";
+    var typFrac=Math.pow(2,n*entropy)/Math.pow(2,n);
+    if(typFrac>1)typFrac=1;
+    ctx.fillRect(20,y1,barW*typFrac,barH);
+    ctx.fillStyle=dk?"#ccc":"#333";
+    ctx.font="12px "+getComputedStyle(document.body).getPropertyValue("--font-mono");
+    ctx.textAlign="left";
+    ctx.fillText("Full Hilbert space: 2^"+n+" = "+(Math.pow(2,n)>1e15?"2^"+n:Math.pow(2,n).toLocaleString())+" dimensions",20,y1-8);
+    ctx.fillStyle=dk?"#fff":"#fff";
+    if(typFrac>0.05){
+      ctx.fillText("Typical subspace: 2^"+Math.round(n*entropy),25,y1+barH/2+5);
+    }
+    // Compression bar
+    ctx.fillStyle=dk?"#444":"#ddd";
+    ctx.fillRect(20,y2,barW,barH);
+    ctx.fillStyle=dk?"#78C87C":"#55a868";
+    var compFrac=entropy;
+    ctx.fillRect(20,y2,barW*compFrac,barH);
+    ctx.fillStyle=dk?"#ccc":"#333";
+    ctx.fillText("Compression: "+n+" qubits -> "+(n*entropy).toFixed(1)+" qubits (rate = "+entropy.toFixed(3)+" qubits/state)",20,y2-8);
+    // h(p) curve
+    var cY=y2+barH+40,cH=H-cY-25,cW=barW,cX=20;
+    ctx.strokeStyle=dk?"#555":"#ccc";ctx.lineWidth=0.5;
+    ctx.beginPath();ctx.moveTo(cX,cY+cH);ctx.lineTo(cX+cW,cY+cH);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cX,cY);ctx.lineTo(cX,cY+cH);ctx.stroke();
+    ctx.strokeStyle=dk?"#6A9BD2":"#4C72B0";ctx.lineWidth=2;
+    ctx.beginPath();
+    for(var i=0;i<=200;i++){
+      var pp=i/200;
+      var hv=h2(pp);
+      var x=cX+pp*cW,y=cY+(1-hv)*cH;
+      if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    // marker
+    var mx=cX+p*cW,my=cY+(1-entropy)*cH;
+    ctx.fillStyle=dk?"#E07070":"#C44E52";
+    ctx.beginPath();ctx.arc(mx,my,5,0,2*Math.PI);ctx.fill();
+    ctx.fillStyle=dk?"#ccc":"#333";ctx.textAlign="center";ctx.font="10px "+getComputedStyle(document.body).getPropertyValue("--font-mono");
+    ctx.fillText("h(p)="+entropy.toFixed(3),mx,my-10);
+    ctx.fillText("p",cX+cW/2,cY+cH+15);
+    ctx.save();ctx.translate(cX-8,cY+cH/2);ctx.rotate(-Math.PI/2);ctx.fillText("h(p)",0,0);ctx.restore();
+    infoEl.textContent="S(rho) = h("+p.toFixed(2)+") = "+entropy.toFixed(4)+" qubits/state. "+n+" copies compress from "+n+" to "+(n*entropy).toFixed(1)+" qubits.";
+  }
+  pSlider.addEventListener("input",draw);
+  nSlider.addEventListener("input",draw);
+  window.addEventListener("resize",draw);
+  setTimeout(draw,50);
+})();
+</script>
+
 <h3>Beyond i.i.d. Sources</h3>
 
 <p>
@@ -561,25 +898,6 @@ state through different noise levels and measure how well the state is preserved
 noise, the measurement outcome is deterministic. As noise increases, the outcomes become
 more random, reflecting the loss of channel capacity.
 </p>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="11">OPENQASM 3.0;
-qubit[2] q;
-bit[1] c;
-// Prepare known state |0>
-// Simulate noise: entangle with environment qubit
-// More entanglement = more noise = less capacity
-// Try changing angle: 0 = no noise, pi/4 = heavy noise
-ry(0.3) q[1];
-cx q[1], q[0];
-// Measure the data qubit
-c[0] = measure q[0];</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
 
 <p>
 Experiments to try:
@@ -672,101 +990,4 @@ single-letter expression.
 
 </section>
 
-<!-- ================================================================== -->
 
-<section id="review">
-<h2>Chapter 29 Review</h2>
-
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 29 Review</div>
-
-  <div class="flashcard" data-card-id="ch29-hsw-theorem">
-    <div class="card-front">State the HSW theorem for the classical capacity of a quantum channel.</div>
-    <div class="card-back">
-      The Holevo-Schumacher-Westmoreland theorem states that the classical capacity of a quantum channel $\mathcal{N}$ is $C(\mathcal{N}) = \lim_{n\to\infty}\frac{1}{n}\chi(\mathcal{N}^{\otimes n})$, where $\chi$ is the Holevo information maximized over input ensembles. The regularization is needed because the Holevo information can be superadditive (Hastings, 2009). For many common channels the single-letter formula $C = \chi(\mathcal{N})$ suffices.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch29-holevo-superadditivity">
-    <div class="card-front">What did Hastings prove in 2009 about the Holevo information, and why does it matter?</div>
-    <div class="card-back">
-      Hastings proved that the Holevo information (Holevo $\chi$-quantity) is not always additive: there exist channels where entangled inputs across multiple channel uses yield strictly more Holevo information than product inputs. This means the classical capacity requires the regularized formula $\lim_n \frac{1}{n}\chi(\mathcal{N}^{\otimes n})$ and cannot in general be computed from a single channel use. Computing the exact classical capacity is therefore intractable in general.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch29-coherent-information">
-    <div class="card-front">Define the coherent information and explain how it relates to quantum capacity.</div>
-    <div class="card-back">
-      The coherent information is $I_c(\rho, \mathcal{N}) = S(\mathcal{N}(\rho)) - S(\mathcal{N}^c(\rho))$, where $\mathcal{N}^c$ is the complementary channel. Equivalently, $I_c = -S(A|B)$. The LSD theorem states $Q(\mathcal{N}) = \lim_n \frac{1}{n}\max_\rho I_c(\rho, \mathcal{N}^{\otimes n})$. Unlike classical mutual information, coherent information can be negative, indicating the environment captures more information than the receiver.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch29-degradable-channel">
-    <div class="card-front">What is a degradable channel, and why is its quantum capacity easier to compute?</div>
-    <div class="card-back">
-      A channel is degradable if the complementary channel (what the environment receives) can be obtained by applying a degrading map to the channel output. For degradable channels, the coherent information is additive, so the quantum capacity has the single-letter formula $Q = \max_\rho I_c(\rho, \mathcal{N})$ without regularization. Examples: the quantum erasure channel and the amplitude damping channel.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch29-bsst-theorem">
-    <div class="card-front">State the BSST theorem for entanglement-assisted capacity and explain why it is special.</div>
-    <div class="card-back">
-      The Bennett-Shor-Smolin-Thapliyal theorem: $C_E(\mathcal{N}) = \max_\rho I(A:B)_\sigma$, where $\sigma_{AB}$ arises from sending half of a purification through $\mathcal{N}$ and $I(A:B)$ is the quantum mutual information. It is special because it is a single-letter formula - no regularization needed. Entanglement assistance both increases the capacity ($C_E \geq C$) and simplifies the formula. For a noiseless qubit channel: $C_E = 2$ bits (superdense coding).
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch29-schumacher-compression">
-    <div class="card-front">State Schumacher's quantum source coding theorem.</div>
-    <div class="card-back">
-      A quantum source with density operator $\rho$ can be reliably compressed at rate $R$ qubits per source state iff $R \geq S(\rho)$. The protocol projects onto the typical subspace (dimension $\approx 2^{nS(\rho)}$) and encodes it into $nS(\rho)$ qubits. Fidelity approaches 1 as $n \to \infty$ for $R > S(\rho)$, and approaches 0 for $R < S(\rho)$. This establishes the von Neumann entropy as the fundamental measure of quantum information content.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch29-capacity-hierarchy">
-    <div class="card-front">Order the capacities $Q$, $C$, $C_E$ and explain the inequalities between them.</div>
-    <div class="card-back">
-      $Q(\mathcal{N}) \leq C(\mathcal{N}) \leq C_E(\mathcal{N})$. The first inequality holds because preserving quantum coherence is harder than transmitting classical bits. The second holds because pre-shared entanglement can only help. For a noiseless qubit channel: $Q = 1$, $C = 1$, $C_E = 2$. The gaps can be dramatic: some channels have $Q = 0$ but $C > 0$, and entanglement can double the classical rate.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch29-superactivation">
-    <div class="card-front">What is superactivation of quantum capacity?</div>
-    <div class="card-back">
-      Superactivation (Smith and Yard, 2008) is the phenomenon where two quantum channels each with zero quantum capacity ($Q(\mathcal{N}_1) = Q(\mathcal{N}_2) = 0$) can have positive quantum capacity when used together ($Q(\mathcal{N}_1 \otimes \mathcal{N}_2) > 0$). This is a uniquely quantum effect with no classical analog, and it demonstrates the extreme non-additivity of quantum capacity. It also means that determining whether a channel has zero capacity cannot be done from the channel alone.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-</div>
-</section>

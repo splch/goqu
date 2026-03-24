@@ -566,7 +566,7 @@ func eyeReal4() []float64 {
 	return m
 }
 
-// --- Real matrix helpers ---
+// Real matrix helpers
 
 func transposeReal4(m []float64) []float64 {
 	t := make([]float64, 16)

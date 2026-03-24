@@ -134,9 +134,10 @@ $$e^{-i(A+B)t} = \lim_{n \to \infty} \left( e^{-iAt/n} \, e^{-iBt/n} \right)^n$$
 $$\left\| e^{-i(A+B)t} - \left( e^{-iAt/n} \, e^{-iBt/n} \right)^n \right\| \leq \frac{t^2 \|[A,B]\|}{2n}$$
 
 <p>
-  The error scales as $O(t^2/n)$, so to achieve accuracy $\epsilon$, we need $n = O(t^2 /
-  \epsilon)$ Trotter steps. For a Hamiltonian with $m$ terms, $H = \sum_{j=1}^m H_j$, one Trotter
-  step applies all $m$ individual evolutions, so the total gate count is $O(m \cdot t^2/\epsilon)$.
+  The error scales as $O(t^2/n)$ for two terms. For a Hamiltonian with $m$ terms,
+  $H = \sum_{j=1}^m H_j$, the error per step generalizes to $O(m^2 \|H\|^2 t^2/n)$. One
+  Trotter step applies all $m$ individual evolutions, so to achieve accuracy $\epsilon$ the
+  total gate count is $O(m^3 \|H\|^2 t^2/\epsilon)$.
 </p>
 
 <div class="callout callout-key">
@@ -218,39 +219,6 @@ $$H = J \, Z_0 Z_1 + h(X_0 + X_1)$$
   $\Delta t = \pi/8$).
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="22">OPENQASM 3.0;
-// Trotter simulation of H = Z*Z + 0.5*(X+X)
-// Total time t = pi/2, using 4 Trotter steps
-// dt = pi/8 per step; J=1, h=0.5
-qubit[2] q;
-bit[2] c;
-// Initial state: |10> (first qubit excited)
-x q[0];
-// Trotter step 1
-rzz(pi/4) q[0], q[1]; // 2*J*dt = 2*1*pi/8
-rx(pi/8) q[0];         // 2*h*dt = 2*0.5*pi/8
-rx(pi/8) q[1];
-// Trotter step 2
-rzz(pi/4) q[0], q[1];
-rx(pi/8) q[0];
-rx(pi/8) q[1];
-// Trotter step 3
-rzz(pi/4) q[0], q[1];
-rx(pi/8) q[0];
-rx(pi/8) q[1];
-// Trotter step 4
-rzz(pi/4) q[0], q[1];
-rx(pi/8) q[0];
-rx(pi/8) q[1];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
 <p>
   The circuit above starts with qubit 0 in state $|1\rangle$ and qubit 1 in state $|0\rangle$,
   then simulates the Ising Hamiltonian for time $t = \pi/2$. The $ZZ$ interaction causes
@@ -277,35 +245,6 @@ c = measure q;</textarea>
   <li>$e^{-iJ Y_i Y_j \Delta t}$: the $\text{Ryy}(2J\Delta t)$ gate</li>
   <li>$e^{-iJ Z_i Z_j \Delta t}$: the $\text{Rzz}(2J\Delta t)$ gate</li>
 </ul>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="20">OPENQASM 3.0;
-// Trotter simulation of Heisenberg model
-// H = J*(XX + YY + ZZ) on 2 qubits, J=1
-// Total time t = pi/4, 3 Trotter steps
-qubit[2] q;
-bit[2] c;
-// Initial state: |10> (spin flip on qubit 0)
-x q[0];
-// Trotter step 1 (dt = pi/12)
-rxx(pi/6) q[0], q[1]; // 2*J*dt
-ryy(pi/6) q[0], q[1];
-rzz(pi/6) q[0], q[1];
-// Trotter step 2
-rxx(pi/6) q[0], q[1];
-ryy(pi/6) q[0], q[1];
-rzz(pi/6) q[0], q[1];
-// Trotter step 3
-rxx(pi/6) q[0], q[1];
-ryy(pi/6) q[0], q[1];
-rzz(pi/6) q[0], q[1];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
 
 <p>
   This sandbox simulates the Heisenberg spin chain: starting with qubit 0 in $|1\rangle$ and
@@ -343,70 +282,140 @@ c = measure q;</textarea>
   </p>
 </div>
 
-<h3>Interactive: Trotter-Suzuki Simulation</h3>
-<p>
-  Build a Trotter circuit for time evolution under a Hamiltonian. Increase the number of
-  steps to improve accuracy, and compare first-order (Lie-Trotter) with second-order
-  (Suzuki-Trotter) decompositions.
-</p>
-<div class="widget" id="trotter-widget">
-  <div class="widget-header">Trotter-Suzuki Circuit Builder</div>
-  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
-    <label>Hamiltonian: <select id="trotter-ham" onchange="trotterHamChanged()">
-      <option value="1.0*ZZ+0.5*XI+0.5*IX" selected>Ising 2Q</option>
-      <option value="1.0*XX+1.0*YY+1.0*ZZ">Heisenberg 2Q</option>
-      <option value="custom">Custom</option>
-    </select></label>
-    <label id="trotter-custom-label" style="display:none;">H = <input type="text" id="trotter-custom" value="1.0*ZZ+0.5*XI" style="width:14rem;font-family:monospace;font-size:0.85rem;"></label>
-    <label>Steps: <select id="trotter-steps">
-      <option>1</option>
-      <option>2</option>
-      <option selected>3</option>
-      <option>5</option>
-      <option>10</option>
-    </select></label>
-    <label>Order: <select id="trotter-order">
-      <option value="1" selected>1st order (Lie-Trotter)</option>
-      <option value="2">2nd order (Suzuki-Trotter)</option>
-    </select></label>
+<!-- Simulation 1: Trotter Convergence -->
+<div class="simulation" data-component="simulation">
+  <div class="sim-controls">
+    <label>Trotter steps:
+      <input type="range" data-param="steps" min="1" max="20" step="1" value="4">
+      <output>4</output>
+    </label>
+    <label>Coupling J:
+      <input type="range" data-param="J" min="0.1" max="2.0" step="0.1" value="1.0">
+      <output>1.00</output>
+    </label>
+    <label>Field h:
+      <input type="range" data-param="h" min="0.1" max="2.0" step="0.1" value="0.5">
+      <output>0.50</output>
+    </label>
   </div>
-  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
-    <label>Time $t$: <input type="range" id="trotter-time" min="0.1" max="3.0" step="0.1" value="1.0"><output id="trotter-time-val">1.0</output></label>
-    <button onclick="runTrotterWidget()">Simulate</button>
+  <div class="sim-qasm">OPENQASM 3.0;
+qubit[2] q; bit[2] c;
+x q[0];
+rzz(1.5708) q[0], q[1]; rx(0.7854) q[0]; rx(0.7854) q[1];
+c = measure q;</div>
+  <div class="sim-output"></div>
+</div>
+
+<!-- Step-through 2: Suzuki-Trotter Step -->
+<div class="step-through" data-component="step-through" data-mode="clifford">
+  <div class="step-controls">
+    <button data-action="prev" disabled>Prev</button>
+    <button data-action="next">Next</button>
+    <span class="step-info">Step 0 / 0</span>
   </div>
-  <div class="widget-output" id="trotter-output"></div>
+  <div class="step-qasm">OPENQASM 3.0;
+qubit[2] q;
+x q[0];
+h q[0];
+cx q[0], q[1];
+h q[1];
+cx q[1], q[0];</div>
+  <div class="step-output"></div>
+</div>
+
+<!-- Widget 3: Simulation Method Comparison -->
+<div class="widget" id="simmethod-widget">
+  <div class="widget-header">Simulation Method Comparison: Gate Count Scaling</div>
+  <p style="font-size:0.9rem;margin-bottom:0.5rem">
+    Compare how gate counts scale with simulation time for different methods.
+    The y-axis is gate count (log scale), the x-axis is simulation time $t$.
+  </p>
+  <div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:center;margin-bottom:0.75rem">
+    <label style="font-size:0.9rem;font-family:var(--font-mono)">Target precision:
+      <select id="sm-eps" style="font-family:var(--font-mono);font-size:0.85rem;padding:0.3rem;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-surface);color:var(--color-text)">
+        <option value="0.1">epsilon = 0.1</option>
+        <option value="0.01" selected>epsilon = 0.01</option>
+        <option value="0.001">epsilon = 0.001</option>
+      </select>
+    </label>
+  </div>
+  <canvas id="sm-canvas" width="600" height="320" style="width:100%;border:1px solid var(--color-border);border-radius:var(--radius)"></canvas>
 </div>
 <script>
-document.getElementById('trotter-time').addEventListener('input', function() {
-  document.getElementById('trotter-time-val').textContent = parseFloat(this.value).toFixed(1);
-});
-function trotterHamChanged() {
-  var sel = document.getElementById('trotter-ham');
-  document.getElementById('trotter-custom-label').style.display = sel.value === 'custom' ? '' : 'none';
-}
-async function runTrotterWidget() {
-  await ensureWasm();
-  var sel = document.getElementById('trotter-ham');
-  var ham = sel.value === 'custom' ? document.getElementById('trotter-custom').value : sel.value;
-  var time = parseFloat(document.getElementById('trotter-time').value);
-  var steps = parseInt(document.getElementById('trotter-steps').value);
-  var order = parseInt(document.getElementById('trotter-order').value);
-  var out = document.getElementById('trotter-output');
-  out.innerHTML = '<p style="color:var(--color-text-muted)">Building Trotter circuit...</p>';
-  await new Promise(function(r) { setTimeout(r, 0); });
-  try {
-    var r = JSON.parse(window.runTrotter(ham, time, steps, order, isDark()));
-    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
-    var html = (r.circuitSVG || '');
-    html += '<div class="sim-stats">';
-    html += '<span>Trotter steps: ' + r.steps + '</span>';
-    html += '<span>Order: ' + (r.order === 2 ? '2nd (Suzuki-Trotter)' : '1st (Lie-Trotter)') + '</span>';
-    html += '<span>&langle;H&rangle;: ' + r.expectation.toFixed(4) + '</span>';
-    html += '</div>';
-    if (r.qasmCode) html += '<details><summary>Generated QASM</summary><pre>' + esc(r.qasmCode) + '</pre></details>';
-    out.innerHTML = html;
-  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
-}
+(function(){
+  var epsSel=document.getElementById("sm-eps");
+  var canvas=document.getElementById("sm-canvas"),ctx=canvas.getContext("2d");
+  function isDk(){return window.matchMedia("(prefers-color-scheme:dark)").matches;}
+  function draw(){
+    var eps=parseFloat(epsSel.value);
+    var dpr=window.devicePixelRatio||1;
+    var rect=canvas.getBoundingClientRect();
+    canvas.width=rect.width*dpr;canvas.height=rect.height*dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    var W=rect.width,H=rect.height;
+    var dk=isDk();
+    ctx.fillStyle=dk?"#262626":"#ffffff";ctx.fillRect(0,0,W,H);
+    var pad={l:60,r:20,t:25,b:40};
+    var pw=W-pad.l-pad.r,ph=H-pad.t-pad.b;
+    var mono=getComputedStyle(document.body).getPropertyValue("--font-mono");
+    // Methods: gate count as function of t
+    var m=100; // number of terms
+    var lambda=10; // norm
+    var methods=[
+      {name:"1st-order Trotter",fn:function(t){return m*m*lambda*lambda*t*t/eps;},col:dk?"#E07070":"#C44E52"},
+      {name:"2nd-order Trotter",fn:function(t){return m*m*Math.pow(lambda*t,1.5)/Math.sqrt(eps);},col:dk?"#CCB974":"#B8A960"},
+      {name:"4th-order Trotter",fn:function(t){return m*m*Math.pow(lambda*t,1.25)/Math.pow(eps,0.25);},col:dk?"#78C87C":"#55a868"},
+      {name:"QSP/Qubitization",fn:function(t){return lambda*t+Math.log(1/eps)/Math.log(Math.log(1/eps)+2);},col:dk?"#6A9BD2":"#4C72B0"}
+    ];
+    var tMax=20;
+    // Find y range (log10)
+    var yMin=0,yMax=0;
+    methods.forEach(function(meth){
+      var v=Math.log10(meth.fn(tMax));
+      if(v>yMax)yMax=v;
+    });
+    yMax=Math.ceil(yMax+0.5);
+    yMin=0;
+    // Grid
+    ctx.strokeStyle=dk?"#333":"#e0e0e0";ctx.lineWidth=0.5;ctx.setLineDash([3,3]);
+    for(var g=yMin;g<=yMax;g++){
+      var y=pad.t+(1-(g-yMin)/(yMax-yMin))*ph;
+      ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+pw,y);ctx.stroke();
+      ctx.fillStyle=dk?"#999":"#666";ctx.font="10px "+mono;ctx.textAlign="right";
+      ctx.fillText("10^"+g,pad.l-5,y+4);
+    }
+    ctx.setLineDash([]);
+    // Curves
+    methods.forEach(function(meth){
+      ctx.strokeStyle=meth.col;ctx.lineWidth=2.5;
+      ctx.beginPath();
+      for(var i=1;i<=200;i++){
+        var t=i/200*tMax;
+        var gates=meth.fn(t);
+        var logG=Math.log10(Math.max(gates,1));
+        var x=pad.l+t/tMax*pw;
+        var y=pad.t+(1-(logG-yMin)/(yMax-yMin))*ph;
+        if(i===1)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+    });
+    // Legend
+    var ly=pad.t+10;
+    methods.forEach(function(meth,i){
+      ctx.strokeStyle=meth.col;ctx.lineWidth=2.5;
+      ctx.beginPath();ctx.moveTo(pad.l+10,ly+i*16);ctx.lineTo(pad.l+28,ly+i*16);ctx.stroke();
+      ctx.fillStyle=dk?"#ccc":"#333";ctx.font="10px "+mono;ctx.textAlign="left";
+      ctx.fillText(meth.name,pad.l+33,ly+i*16+4);
+    });
+    // Axis labels
+    ctx.fillStyle=dk?"#999":"#666";ctx.font="11px "+mono;ctx.textAlign="center";
+    ctx.fillText("Simulation time t",pad.l+pw/2,H-8);
+    ctx.save();ctx.translate(12,pad.t+ph/2);ctx.rotate(-Math.PI/2);ctx.fillText("Gate count (log scale)",0,0);ctx.restore();
+  }
+  epsSel.addEventListener("change",draw);
+  window.addEventListener("resize",draw);
+  setTimeout(draw,50);
+})();
 </script>
 
 </section>
@@ -654,6 +663,58 @@ $$H = \sum_{pq} h_{pq} \, a_p^\dagger a_q + \frac{1}{2}\sum_{pqrs} h_{pqrs} \, a
   </p>
 </div>
 
+<!-- Widget 4: Fermion-to-Qubit Mapping -->
+<div class="widget" id="fermion-qubit-widget">
+  <div class="widget-header">Fermion-to-Qubit Mapping: Jordan-Wigner Transform</div>
+  <p style="font-size:0.9rem;margin-bottom:0.5rem">
+    Click an orbital to toggle its occupation. The Jordan-Wigner transform maps each orbital to one qubit,
+    with occupation $n_p = (I - Z_p)/2$. Creation operators pick up strings of $Z$ gates to enforce antisymmetry.
+  </p>
+  <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.75rem" id="fq-orbitals"></div>
+  <div id="fq-output" style="font-family:var(--font-mono);font-size:0.85rem;padding:0.5rem;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-code-bg);min-height:4rem"></div>
+</div>
+<script>
+(function(){
+  var orbEl=document.getElementById("fq-orbitals"),outEl=document.getElementById("fq-output");
+  var nOrb=6;
+  var occ=new Array(nOrb).fill(false);
+  occ[0]=true;occ[1]=true; // Two electrons
+  function isDk(){return window.matchMedia("(prefers-color-scheme:dark)").matches;}
+  function render(){
+    orbEl.textContent="";
+    var dk=isDk();
+    for(var i=0;i<nOrb;i++){
+      var btn=document.createElement("button");
+      btn.textContent=(occ[i]?"\u2B24":"\u25CB")+" q"+i;
+      btn.dataset.idx=i;
+      var col=occ[i]?(dk?"#6A9BD2":"#4C72B0"):(dk?"#555":"#ccc");
+      btn.style.cssText="font-family:var(--font-mono);font-size:0.85rem;padding:0.4rem 0.7rem;border:2px solid "+col+";border-radius:var(--radius);background:"+(occ[i]?(dk?"rgba(106,155,210,0.2)":"rgba(76,114,176,0.1)"):"transparent")+";color:var(--color-text);cursor:pointer";
+      btn.addEventListener("click",function(){
+        var idx=parseInt(this.dataset.idx,10);
+        occ[idx]=!occ[idx];
+        render();
+      });
+      orbEl.appendChild(btn);
+    }
+    // Show mapping
+    var nElec=occ.filter(function(v){return v;}).length;
+    var lines=[];
+    lines.push("Orbital occupation: |"+occ.map(function(v){return v?"1":"0"}).join("")+">");
+    lines.push("Electrons: "+nElec+" (mapped to "+nOrb+" qubits)");
+    lines.push("");
+    lines.push("Qubit operators (Jordan-Wigner):");
+    for(var i=0;i<nOrb;i++){
+      var zStr="";
+      for(var j=0;j<i;j++)zStr+="Z"+j+" ";
+      lines.push("  a"+i+"^dag = "+zStr+"(X"+i+" - iY"+i+")/2");
+      lines.push("  n"+i+" = (I - Z"+i+")/2"+(occ[i]?" = 1":" = 0"));
+    }
+    outEl.textContent=lines.join("\n");
+  }
+  render();
+})();
+</script>
+
 <h3>A Simple Example: Hydrogen Molecule</h3>
 
 <p>
@@ -670,35 +731,6 @@ $$H_{\text{H}_2} = g_0 I + g_1 Z_0 + g_2 Z_1 + g_3 Z_0 Z_1 + g_4 X_0 X_1 + g_5 Y
   simulate this with Trotter steps using the gates we already know:
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="22">OPENQASM 3.0;
-// Simplified H2 simulation (2 active qubits)
-// H ~ -0.4 ZZ + 0.2 XX + 0.2 YY + field terms
-// 2 Trotter steps with dt = pi/8
-qubit[2] q;
-bit[2] c;
-// Hartree-Fock initial state: |01> (1 electron in each orbital)
-x q[1];
-// Trotter step 1
-rzz(-pi/10) q[0], q[1]; // ZZ coupling
-rxx(pi/20) q[0], q[1];  // XX hopping
-ryy(pi/20) q[0], q[1];  // YY hopping
-rz(pi/16) q[0];         // single-qubit Z field
-rz(pi/16) q[1];
-// Trotter step 2
-rzz(-pi/10) q[0], q[1];
-rxx(pi/20) q[0], q[1];
-ryy(pi/20) q[0], q[1];
-rz(pi/16) q[0];
-rz(pi/16) q[1];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
 <p>
   This sandbox simulates a simplified H$_2$ Hamiltonian starting from the Hartree-Fock state
   $|01\rangle$. The $ZZ$ term represents electron-electron interaction, while $XX$ and $YY$
@@ -707,6 +739,40 @@ c = measure q;</textarea>
   (Hartree-Fock) approximation. This is precisely the quantum advantage - capturing correlation
   effects that classical mean-field methods miss.
 </p>
+
+<!-- Simulation 5: H2 Energy Simulation -->
+<div class="simulation" data-component="simulation">
+  <div class="sim-controls">
+    <label>Trotter steps:
+      <input type="range" data-param="nsteps" min="1" max="8" step="1" value="4">
+      <output>4</output>
+    </label>
+    <label>Evolution time:
+      <input type="range" data-param="time" min="0.1" max="3.14" step="0.1" value="1.0">
+      <output>1.00</output>
+    </label>
+  </div>
+  <div class="sim-qasm">OPENQASM 3.0;
+qubit[2] q; bit[2] c;
+// Hartree-Fock initial state |01>
+x q[1];
+// Simplified H2 Hamiltonian Trotter step
+// ZZ interaction + XX + YY hopping
+rzz(0.25) q[0], q[1];
+rxx(0.25) q[0], q[1];
+ryy(0.25) q[0], q[1];
+rzz(0.25) q[0], q[1];
+rxx(0.25) q[0], q[1];
+ryy(0.25) q[0], q[1];
+rzz(0.25) q[0], q[1];
+rxx(0.25) q[0], q[1];
+ryy(0.25) q[0], q[1];
+rzz(0.25) q[0], q[1];
+rxx(0.25) q[0], q[1];
+ryy(0.25) q[0], q[1];
+c = measure q;</div>
+  <div class="sim-output"></div>
+</div>
 
 <h3>Resource Estimates for Real Molecules</h3>
 
@@ -924,147 +990,6 @@ $$H = -t \sum_{\langle i,j \rangle, \sigma} c_{i\sigma}^\dagger c_{j\sigma} + U 
   $\langle ZZ \rangle$ expectation value changes as the simulated Ising interaction
   evolves the system.
 </p>
-<div class="simulation" data-component="simulation" data-expectation="true" data-pauli="ZZ">
-  <div class="sim-controls">
-    <label>Coupling $t$: <input type="range" data-param="t" min="0" max="3.14" step="0.01" value="0.50"><output>0.50</output></label>
-  </div>
-  <pre class="sim-qasm">OPENQASM 3.0;
-qubit[2] q;
-rx(0.5) q[0];
-rx(0.5) q[1];
-rzz({t}) q[0], q[1];</pre>
-  <div class="sim-output"></div>
-</div>
 
-<!-- ================================================================== -->
-
-<section id="review">
-<h2>Chapter 33 Review</h2>
-
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 33 Review</div>
-
-  <div class="flashcard" data-card-id="ch33-hamiltonian-simulation-problem">
-    <div class="card-front">State the Hamiltonian simulation problem. What makes it challenging?</div>
-    <div class="card-back">
-      Given $H = \sum_j H_j$ (a sum of local terms), implement $e^{-iHt}$ as a quantum circuit
-      to accuracy $\epsilon$. The challenge is non-commutativity: $[H_j, H_k] \neq 0$ in general,
-      so $e^{-i(H_j + H_k)t} \neq e^{-iH_j t} e^{-iH_k t}$. We cannot simply apply each term's
-      evolution independently. Trotterization and advanced methods (LCU, qubitization) handle this
-      by carefully controlling the approximation error.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch33-first-order-trotter">
-    <div class="card-front">State the first-order Trotter formula and its error scaling.</div>
-    <div class="card-back">
-      The first-order Trotter formula approximates $e^{-iHt}$ by dividing time into $n$ steps:
-      $e^{-iHt} \approx (\prod_j e^{-iH_j t/n})^n$. The error is $O(t^2 \|[A,B]\|/n)$ for two
-      terms, or more generally $O(m^2 \|H\|^2 t^2/n)$ for $m$ terms. To achieve accuracy
-      $\epsilon$, we need $n = O(t^2/\epsilon)$ steps, giving total gate count $O(m t^2/\epsilon)$.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch33-suzuki-trotter-improvement">
-    <div class="card-front">How does the second-order Suzuki-Trotter formula improve on the first-order formula?</div>
-    <div class="card-back">
-      The second-order formula symmetrizes the product: $S_2(t) = \prod_j e^{-iH_j t/2}
-      \prod_{j=m}^1 e^{-iH_j t/2}$ (forward then backward). This "palindrome" structure cancels
-      the leading error term, giving $O(t^3/n^2)$ error instead of $O(t^2/n)$. For accuracy
-      $\epsilon$, this requires $n = O(t^{3/2}/\sqrt{\epsilon})$ steps - fewer than first-order.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch33-qubitization-optimal">
-    <div class="card-front">What query complexity does qubitization + QSP achieve for Hamiltonian simulation?</div>
-    <div class="card-back">
-      Qubitization combined with quantum signal processing achieves $O(\lambda t +
-      \log(1/\epsilon)/\log\log(1/\epsilon))$ query complexity, where $\lambda = \sum_j |\alpha_j|$
-      is the 1-norm of the Hamiltonian coefficients. This is optimal in both $t$ and $\epsilon$
-      (up to doubly logarithmic factors), a dramatic improvement over Trotter's
-      $O(t^2/\epsilon)$.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch33-jordan-wigner">
-    <div class="card-front">Describe the Jordan-Wigner transformation and its role in quantum chemistry simulation.</div>
-    <div class="card-back">
-      The Jordan-Wigner transformation maps fermionic creation/annihilation operators to qubit
-      (Pauli) operators. Each orbital maps to one qubit; occupation $n_p = a_p^\dagger a_p$ becomes
-      $(I - Z_p)/2$. Creation operators acquire strings of $Z$ operators to enforce fermionic
-      antisymmetry. The molecular Hamiltonian becomes a sum of Pauli strings $H = \sum_k \alpha_k
-      P_k$, which can then be simulated by Trotterization or other methods.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch33-chemistry-advantage">
-    <div class="card-front">For which types of chemical systems is quantum advantage expected? Where are classical methods sufficient?</div>
-    <div class="card-back">
-      Quantum advantage is expected for <strong>strongly correlated</strong> systems: transition
-      metal complexes, near-degenerate orbitals, bond-breaking reactions, and open-shell species
-      (e.g., FeMoCo, cytochrome P450). Classical methods (DFT, CCSD(T), DMRG) work well for
-      weakly correlated, closed-shell molecules. The goal is to extend computational chemistry's
-      reach into the strongly correlated regime, not to replace classical methods entirely.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch33-lcu-technique">
-    <div class="card-front">What are the PREPARE and SELECT oracles in the LCU technique?</div>
-    <div class="card-back">
-      For $H = \sum_j \alpha_j U_j$: <strong>PREPARE</strong> maps $|0\rangle$ to
-      $\sum_j \sqrt{\alpha_j/\lambda}|j\rangle$ (encoding coefficients as amplitudes).
-      <strong>SELECT</strong> maps $|j\rangle|\psi\rangle \to |j\rangle U_j|\psi\rangle$
-      (controlled application of unitaries). Together, $\text{PREPARE}^\dagger \cdot
-      \text{SELECT} \cdot \text{PREPARE}$ gives a block encoding of $H/\lambda$, the starting
-      point for qubitization and QSVT.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch33-condensed-matter-applications">
-    <div class="card-front">Name three key condensed matter problems targeted by quantum simulation.</div>
-    <div class="card-back">
-      (1) <strong>2D Hubbard model:</strong> believed to explain high-temperature superconductivity
-      in cuprates; phase diagram unknown due to the fermion sign problem. (2) <strong>Topological
-      phases:</strong> quantum spin liquids, fractional quantum Hall states, characterized by
-      nonlocal entanglement. (3) <strong>Lattice gauge theories:</strong> real-time dynamics of
-      quantum field theories (QCD, Schwinger model), where classical Monte Carlo fails for
-      dynamical and finite-density problems.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-</section>
 
 </section>

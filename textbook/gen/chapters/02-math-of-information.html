@@ -117,96 +117,6 @@ $1 \times 16 + 1 \times 8 + 0 \times 4 + 0 \times 2 + 1 \times 1 = 25$. Correct.
 (or vice versa). No division required.
 </p>
 
-<p>
-Try the interactive converter below to build intuition for how the same number looks in
-different bases.
-</p>
-
-<div class="widget" id="base-converter-widget">
-  <div class="widget-header">Number Base Converter</div>
-  <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: flex-end;">
-    <label style="font-size: 0.9rem;">
-      Decimal:
-      <input type="text" id="bc-dec" value="42" style="width: 7rem;" aria-label="Decimal value">
-    </label>
-    <label style="font-size: 0.9rem;">
-      Binary:
-      <input type="text" id="bc-bin" value="" style="width: 10rem;" aria-label="Binary value">
-    </label>
-    <label style="font-size: 0.9rem;">
-      Hex:
-      <input type="text" id="bc-hex" value="" style="width: 7rem;" aria-label="Hexadecimal value">
-    </label>
-  </div>
-  <div class="widget-output" id="bc-output" aria-live="polite" style="margin-top: 0.5rem;"></div>
-</div>
-<script>
-(function() {
-  "use strict";
-  var decIn = document.getElementById("bc-dec");
-  var binIn = document.getElementById("bc-bin");
-  var hexIn = document.getElementById("bc-hex");
-  var output = document.getElementById("bc-output");
-  var updating = false;
-
-  function fromDec() {
-    if (updating) return;
-    updating = true;
-    var n = parseInt(decIn.value.trim(), 10);
-    if (isNaN(n) || n < 0) {
-      binIn.value = ""; hexIn.value = "";
-      output.textContent = "Enter a non-negative integer.";
-    } else {
-      binIn.value = n.toString(2);
-      hexIn.value = n.toString(16).toUpperCase();
-      output.innerHTML = "Decimal <strong>" + n + "</strong> = Binary <strong>" +
-        n.toString(2) + "</strong> = Hex <strong>" + n.toString(16).toUpperCase() +
-        "</strong> = Octal <strong>" + n.toString(8) + "</strong>";
-    }
-    updating = false;
-  }
-
-  function fromBin() {
-    if (updating) return;
-    updating = true;
-    var s = binIn.value.trim();
-    if (!/^[01]+$/.test(s)) {
-      decIn.value = ""; hexIn.value = "";
-      output.textContent = "Enter a valid binary number (0s and 1s only).";
-    } else {
-      var n = parseInt(s, 2);
-      decIn.value = n.toString(10);
-      hexIn.value = n.toString(16).toUpperCase();
-      output.innerHTML = "Binary <strong>" + s + "</strong> = Decimal <strong>" +
-        n + "</strong> = Hex <strong>" + n.toString(16).toUpperCase() + "</strong>";
-    }
-    updating = false;
-  }
-
-  function fromHex() {
-    if (updating) return;
-    updating = true;
-    var s = hexIn.value.trim();
-    if (!/^[0-9a-fA-F]+$/.test(s)) {
-      decIn.value = ""; binIn.value = "";
-      output.textContent = "Enter a valid hex number (0-9, A-F).";
-    } else {
-      var n = parseInt(s, 16);
-      decIn.value = n.toString(10);
-      binIn.value = n.toString(2);
-      output.innerHTML = "Hex <strong>" + s.toUpperCase() + "</strong> = Decimal <strong>" +
-        n + "</strong> = Binary <strong>" + n.toString(2) + "</strong>";
-    }
-    updating = false;
-  }
-
-  decIn.addEventListener("input", fromDec);
-  binIn.addEventListener("input", fromBin);
-  hexIn.addEventListener("input", fromHex);
-  fromDec();
-})();
-</script>
-
 </section>
 
 <!-- ================================================================== -->
@@ -387,98 +297,89 @@ Use the widget below to explore the sample space of rolling two dice. Click on c
 grid to highlight events and see their probabilities.
 </p>
 
-<div class="widget" id="prob-visualizer-widget">
-  <div class="widget-header">Two-Dice Probability Visualizer</div>
-  <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-start;">
-    <div>
-      <div style="font-size: 0.85rem; margin-bottom: 0.4rem; font-weight: 500;">Highlight event:</div>
-      <select id="pv-event" style="font-size: 0.85rem; padding: 0.3rem;" aria-label="Event to highlight">
-        <option value="none">None (show all)</option>
-        <option value="sum7">Sum = 7</option>
-        <option value="sum11">Sum = 11</option>
-        <option value="doubles">Doubles (both same)</option>
-        <option value="sumgte10">Sum &ge; 10</option>
-        <option value="sumeven">Sum is even</option>
-        <option value="sumodd">Sum is odd</option>
-      </select>
+<!-- Widget 1: Dice Probability Explorer -->
+<div class="widget" id="dice-prob-widget">
+  <div class="widget-header">Two-Dice Probability Explorer</div>
+  <div class="widget-body">
+    <p style="font-size:0.85rem;color:var(--color-text-muted);margin-bottom:0.5rem">Click cells in the 6x6 grid to highlight outcomes. The bar chart shows the sum distribution.</p>
+    <div style="display:flex;gap:1.5rem;flex-wrap:wrap;justify-content:center;align-items:flex-start">
+      <div>
+        <table id="dice-grid" style="border-collapse:collapse;font-family:var(--font-mono);font-size:0.85rem;cursor:pointer"></table>
+      </div>
+      <div id="dice-bars" style="min-width:200px"></div>
     </div>
+    <div id="dice-info" style="font-family:var(--font-mono);font-size:0.85rem;color:var(--color-text-muted);margin-top:0.5rem;text-align:center"></div>
   </div>
-  <div style="margin-top: 0.75rem; overflow-x: auto;">
-    <table id="pv-table" style="border-collapse: collapse; font-size: 0.85rem; font-family: var(--font-mono);">
-    </table>
-  </div>
-  <div class="widget-output" id="pv-output" aria-live="polite" style="margin-top: 0.5rem;"></div>
 </div>
 <script>
-(function() {
-  "use strict";
-  var table = document.getElementById("pv-table");
-  var eventSel = document.getElementById("pv-event");
-  var output = document.getElementById("pv-output");
-
-  function buildTable() {
-    var html = "<tr><th style='padding:0.3rem 0.5rem;border:1px solid var(--color-border);background:var(--color-code-bg);'></th>";
-    for (var c = 1; c <= 6; c++) {
-      html += "<th style='padding:0.3rem 0.5rem;border:1px solid var(--color-border);background:var(--color-code-bg);'>Die 2=" + c + "</th>";
+(function(){
+  var grid=document.getElementById("dice-grid"),bars=document.getElementById("dice-bars"),info=document.getElementById("dice-info");
+  var sel={}; // key "r,c" -> true
+  function key(r,c){return r+","+c;}
+  // build grid
+  var thead=document.createElement("thead");
+  var hr=document.createElement("tr");
+  var th0=document.createElement("th");th0.textContent="+";th0.style.cssText="padding:0.3rem;background:var(--color-code-bg);border:1px solid var(--color-border);font-weight:600";
+  hr.appendChild(th0);
+  for(var c=1;c<=6;c++){var th=document.createElement("th");th.textContent="D2="+c;th.style.cssText="padding:0.3rem 0.4rem;background:var(--color-code-bg);border:1px solid var(--color-border);font-size:0.75rem";hr.appendChild(th);}
+  thead.appendChild(hr);grid.appendChild(thead);
+  var tbody=document.createElement("tbody");
+  for(var r=1;r<=6;r++){
+    var tr=document.createElement("tr");
+    var rh=document.createElement("td");rh.textContent="D1="+r;rh.style.cssText="padding:0.3rem 0.4rem;background:var(--color-code-bg);border:1px solid var(--color-border);font-weight:600;font-size:0.75rem";
+    tr.appendChild(rh);
+    for(var c=1;c<=6;c++){
+      var td=document.createElement("td");
+      td.textContent=r+c;
+      td.dataset.r=r;td.dataset.c=c;
+      td.style.cssText="padding:0.3rem 0.5rem;border:1px solid var(--color-border);text-align:center;transition:background 0.15s";
+      td.addEventListener("click",(function(r2,c2,el){return function(){
+        var k=key(r2,c2);
+        if(sel[k]){delete sel[k];el.style.background="transparent";}
+        else{sel[k]=true;el.style.background="color-mix(in srgb, var(--color-accent) 25%, transparent)";}
+        updateInfo();
+      };})(r,c,td));
+      tr.appendChild(td);
     }
-    html += "</tr>";
-    for (var r = 1; r <= 6; r++) {
-      html += "<tr><th style='padding:0.3rem 0.5rem;border:1px solid var(--color-border);background:var(--color-code-bg);'>Die 1=" + r + "</th>";
-      for (var c2 = 1; c2 <= 6; c2++) {
-        var sum = r + c2;
-        html += "<td data-r='" + r + "' data-c='" + c2 + "' data-sum='" + sum +
-          "' style='padding:0.3rem 0.5rem;border:1px solid var(--color-border);text-align:center;transition:background 0.15s;cursor:default;'>" +
-          sum + "</td>";
-      }
-      html += "</tr>";
+    tbody.appendChild(tr);
+  }
+  grid.appendChild(tbody);
+  // sum distribution
+  function drawBars(){
+    while(bars.firstChild)bars.removeChild(bars.firstChild);
+    var sumCounts={};
+    for(var s=2;s<=12;s++)sumCounts[s]=0;
+    for(var r=1;r<=6;r++)for(var c=1;c<=6;c++)sumCounts[r+c]++;
+    var maxC=6;
+    var svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
+    svg.setAttribute("viewBox","0 0 220 130");svg.setAttribute("width","220");svg.setAttribute("height","130");
+    svg.style.maxWidth="100%";svg.style.height="auto";
+    for(var s=2;s<=12;s++){
+      var i=s-2;var bw=16;var x=10+i*(bw+2);
+      var h=(sumCounts[s]/maxC)*90;
+      var rect=document.createElementNS("http://www.w3.org/2000/svg","rect");
+      rect.setAttribute("x",x);rect.setAttribute("y",100-h);rect.setAttribute("width",bw);rect.setAttribute("height",h);
+      rect.setAttribute("fill","var(--color-accent)");rect.setAttribute("rx","2");
+      svg.appendChild(rect);
+      var txt=document.createElementNS("http://www.w3.org/2000/svg","text");
+      txt.setAttribute("x",x+bw/2);txt.setAttribute("y",115);txt.setAttribute("text-anchor","middle");
+      txt.setAttribute("font-size","9");txt.setAttribute("fill","var(--color-text-muted)");
+      txt.setAttribute("font-family","var(--font-mono)");txt.textContent=s;
+      svg.appendChild(txt);
+      var ptxt=document.createElementNS("http://www.w3.org/2000/svg","text");
+      ptxt.setAttribute("x",x+bw/2);ptxt.setAttribute("y",98-h);ptxt.setAttribute("text-anchor","middle");
+      ptxt.setAttribute("font-size","8");ptxt.setAttribute("fill","var(--color-text-muted)");
+      ptxt.setAttribute("font-family","var(--font-mono)");ptxt.textContent=Math.round(sumCounts[s]/36*100)+"%";
+      svg.appendChild(ptxt);
     }
-    table.innerHTML = html;
+    bars.appendChild(svg);
   }
-
-  function matches(cell, evt) {
-    var r = parseInt(cell.getAttribute("data-r"), 10);
-    var c = parseInt(cell.getAttribute("data-c"), 10);
-    var s = parseInt(cell.getAttribute("data-sum"), 10);
-    if (evt === "sum7") return s === 7;
-    if (evt === "sum11") return s === 11;
-    if (evt === "doubles") return r === c;
-    if (evt === "sumgte10") return s >= 10;
-    if (evt === "sumeven") return s % 2 === 0;
-    if (evt === "sumodd") return s % 2 === 1;
-    return false;
+  function updateInfo(){
+    var count=Object.keys(sel).length;
+    if(count===0){info.textContent="Click cells to select outcomes. Total outcomes: 36";return;}
+    info.textContent="Selected: "+count+" out of 36 outcomes. P(event) = "+count+"/36 = "+(count/36*100).toFixed(1)+"%";
   }
-
-  function highlight() {
-    var evt = eventSel.value;
-    var cells = table.querySelectorAll("td");
-    var count = 0;
-    var total = cells.length;
-    cells.forEach(function(cell) {
-      if (evt === "none") {
-        cell.style.background = "";
-        cell.style.fontWeight = "";
-        count = total;
-      } else if (matches(cell, evt)) {
-        cell.style.background = "color-mix(in srgb, var(--color-accent) 25%, transparent)";
-        cell.style.fontWeight = "700";
-        count++;
-      } else {
-        cell.style.background = "";
-        cell.style.fontWeight = "";
-      }
-    });
-    if (evt === "none") {
-      output.innerHTML = "Total outcomes: 36. Each outcome has probability 1/36.";
-    } else {
-      var pct = (count / 36 * 100).toFixed(1);
-      output.innerHTML = "Matching outcomes: <strong>" + count + "</strong> out of 36. " +
-        "P(event) = " + count + "/36 = <strong>" + pct + "%</strong>";
-    }
-  }
-
-  buildTable();
-  eventSel.addEventListener("change", highlight);
-  highlight();
+  drawBars();updateInfo();
 })();
 </script>
 
@@ -639,140 +540,66 @@ Use the visualizer below to explore vectors in 2D. Draw vectors, see their sum, 
 dot products.
 </p>
 
-<div class="widget" id="vector-visualizer-widget">
-  <div class="widget-header">2D Vector Visualizer</div>
-  <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-start;">
-    <div>
-      <div style="font-size: 0.85rem; margin-bottom: 0.4rem; font-weight: 500;">Vector A (blue)</div>
-      <label style="font-size: 0.85rem;">x: <input type="number" id="vv-ax" value="3" step="0.5" style="width: 4rem;" aria-label="Vector A x-component"></label>
-      <label style="font-size: 0.85rem;">y: <input type="number" id="vv-ay" value="1" step="0.5" style="width: 4rem;" aria-label="Vector A y-component"></label>
+<!-- Widget 2: 2D Vector Explorer -->
+<div class="widget" id="vector-explorer-widget">
+  <div class="widget-header">2D Vector Explorer</div>
+  <div class="widget-body">
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:0.5rem">
+      <label style="font-size:0.85rem">a = (<input type="number" id="ve-ax" value="3" step="0.5" style="width:3rem">, <input type="number" id="ve-ay" value="1" step="0.5" style="width:3rem">)</label>
+      <label style="font-size:0.85rem">b = (<input type="number" id="ve-bx" value="1" step="0.5" style="width:3rem">, <input type="number" id="ve-by" value="3" step="0.5" style="width:3rem">)</label>
     </div>
-    <div>
-      <div style="font-size: 0.85rem; margin-bottom: 0.4rem; font-weight: 500;">Vector B (red)</div>
-      <label style="font-size: 0.85rem;">x: <input type="number" id="vv-bx" value="1" step="0.5" style="width: 4rem;" aria-label="Vector B x-component"></label>
-      <label style="font-size: 0.85rem;">y: <input type="number" id="vv-by" value="3" step="0.5" style="width: 4rem;" aria-label="Vector B y-component"></label>
-    </div>
-    <div>
-      <div style="font-size: 0.85rem; margin-bottom: 0.4rem; font-weight: 500;">Operation</div>
-      <select id="vv-op" style="font-size: 0.85rem; padding: 0.3rem;" aria-label="Vector operation">
-        <option value="add">A + B</option>
-        <option value="sub">A - B</option>
-        <option value="dot">Dot product A . B</option>
-        <option value="scale">Scale A by factor</option>
-      </select>
-      <input type="number" id="vv-scalar" value="2" step="0.5" style="width: 3.5rem; font-size: 0.85rem; display: none;" aria-label="Scalar factor">
-    </div>
-    <button id="vv-draw" style="align-self: flex-end;">Draw</button>
+    <div id="ve-svg" style="display:flex;justify-content:center"></div>
+    <div id="ve-info" style="font-family:var(--font-mono);font-size:0.8rem;color:var(--color-text-muted);margin-top:0.5rem"></div>
   </div>
-  <div style="margin-top: 0.75rem; display: flex; justify-content: center;">
-    <svg id="vv-svg" width="320" height="320" viewBox="-5 -5 10 10" style="border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-code-bg);"></svg>
-  </div>
-  <div class="widget-output" id="vv-output" aria-live="polite" style="margin-top: 0.5rem;"></div>
 </div>
 <script>
-(function() {
-  "use strict";
-  var ax = document.getElementById("vv-ax"), ay = document.getElementById("vv-ay");
-  var bx = document.getElementById("vv-bx"), by = document.getElementById("vv-by");
-  var op = document.getElementById("vv-op"), scalar = document.getElementById("vv-scalar");
-  var btn = document.getElementById("vv-draw");
-  var svg = document.getElementById("vv-svg");
-  var output = document.getElementById("vv-output");
-  var NS = "http://www.w3.org/2000/svg";
-
-  op.addEventListener("change", function() {
-    scalar.style.display = op.value === "scale" ? "inline" : "none";
-  });
-
-  function makeMarker(svg, color) {
-    var id = "ah-" + color.replace("#", "");
-    if (document.getElementById(id)) return;
-    var defs = svg.querySelector("defs");
-    if (!defs) { defs = document.createElementNS(NS, "defs"); svg.insertBefore(defs, svg.firstChild); }
-    var m = document.createElementNS(NS, "marker");
-    m.setAttribute("id", id); m.setAttribute("markerWidth", "6"); m.setAttribute("markerHeight", "4");
-    m.setAttribute("refX", "5"); m.setAttribute("refY", "2"); m.setAttribute("orient", "auto");
-    var p = document.createElementNS(NS, "polygon");
-    p.setAttribute("points", "0 0, 6 2, 0 4"); p.setAttribute("fill", color);
-    m.appendChild(p); defs.appendChild(m);
-  }
-
-  function drawArrow(svg, x1, y1, x2, y2, color, label) {
-    var line = document.createElementNS(NS, "line");
-    line.setAttribute("x1", x1); line.setAttribute("y1", -y1);
-    line.setAttribute("x2", x2); line.setAttribute("y2", -y2);
-    line.setAttribute("stroke", color); line.setAttribute("stroke-width", "0.08");
-    line.setAttribute("marker-end", "url(#ah-" + color.replace("#","") + ")");
-    svg.appendChild(line);
-    if (label) {
-      var t = document.createElementNS(NS, "text");
-      t.setAttribute("x", x2 + 0.15); t.setAttribute("y", -y2 - 0.15);
-      t.setAttribute("fill", color); t.setAttribute("font-size", "0.5");
-      t.setAttribute("font-family", "system-ui, sans-serif");
-      t.textContent = label;
-      svg.appendChild(t);
+(function(){
+  var axI=document.getElementById("ve-ax"),ayI=document.getElementById("ve-ay");
+  var bxI=document.getElementById("ve-bx"),byI=document.getElementById("ve-by");
+  var svgC=document.getElementById("ve-svg"),infoD=document.getElementById("ve-info");
+  var S=280,cx=S/2,cy=S/2,scale=30;
+  function render(){
+    var ax=parseFloat(axI.value)||0,ay=parseFloat(ayI.value)||0;
+    var bx=parseFloat(bxI.value)||0,by=parseFloat(byI.value)||0;
+    var sx=ax+bx,sy=ay+by;
+    var dot=ax*bx+ay*by;
+    var magA=Math.sqrt(ax*ax+ay*ay),magB=Math.sqrt(bx*bx+by*by);
+    function tx(v){return cx+v*scale;}
+    function ty(v){return cy-v*scale;}
+    function arrow(x1,y1,x2,y2,col,label){
+      var dx=x2-x1,dy=y2-y1,len=Math.sqrt(dx*dx+dy*dy);
+      if(len<1)return"";
+      var ux=dx/len,uy=dy/len;
+      var hx=-uy*5,hy=ux*5;
+      var s='<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+col+'" stroke-width="2"/>';
+      s+='<polygon points="'+x2+','+y2+' '+(x2-ux*8+hx)+','+(y2-uy*8+hy)+' '+(x2-ux*8-hx)+','+(y2-uy*8-hy)+'" fill="'+col+'"/>';
+      if(label){
+        s+='<text x="'+((x1+x2)/2+hy*1.5)+'" y="'+((y1+y2)/2-hx*1.5)+'" fill="'+col+'" font-size="11" font-weight="600" font-family="var(--font-mono)">'+label+'</text>';
+      }
+      return s;
     }
-  }
-
-  function drawGrid(svg) {
-    for (var i = -4; i <= 4; i++) {
-      var lh = document.createElementNS(NS, "line");
-      lh.setAttribute("x1", -5); lh.setAttribute("y1", i); lh.setAttribute("x2", 5); lh.setAttribute("y2", i);
-      lh.setAttribute("stroke", i === 0 ? "var(--color-text-muted)" : "var(--color-border)");
-      lh.setAttribute("stroke-width", i === 0 ? "0.04" : "0.02");
-      svg.appendChild(lh);
-      var lv = document.createElementNS(NS, "line");
-      lv.setAttribute("x1", i); lv.setAttribute("y1", -5); lv.setAttribute("x2", i); lv.setAttribute("y2", 5);
-      lv.setAttribute("stroke", i === 0 ? "var(--color-text-muted)" : "var(--color-border)");
-      lv.setAttribute("stroke-width", i === 0 ? "0.04" : "0.02");
-      svg.appendChild(lv);
+    var svg='<svg viewBox="0 0 '+S+' '+S+'" width="'+S+'" height="'+S+'" style="max-width:100%;height:auto">';
+    // grid
+    for(var i=-4;i<=4;i++){
+      svg+='<line x1="'+tx(i)+'" y1="0" x2="'+tx(i)+'" y2="'+S+'" stroke="var(--color-border)" stroke-width="0.5" opacity="0.4"/>';
+      svg+='<line x1="0" y1="'+ty(i)+'" x2="'+S+'" y2="'+ty(i)+'" stroke="var(--color-border)" stroke-width="0.5" opacity="0.4"/>';
     }
+    svg+='<line x1="'+cx+'" y1="0" x2="'+cx+'" y2="'+S+'" stroke="var(--color-border)" stroke-width="1"/>';
+    svg+='<line x1="0" y1="'+cy+'" x2="'+S+'" y2="'+cy+'" stroke="var(--color-border)" stroke-width="1"/>';
+    // sum (dashed)
+    svg+='<line x1="'+tx(ax)+'" y1="'+ty(ay)+'" x2="'+tx(sx)+'" y2="'+ty(sy)+'" stroke="var(--color-text-muted)" stroke-width="1" stroke-dasharray="4 3"/>';
+    svg+='<line x1="'+tx(bx)+'" y1="'+ty(by)+'" x2="'+tx(sx)+'" y2="'+ty(sy)+'" stroke="var(--color-text-muted)" stroke-width="1" stroke-dasharray="4 3"/>';
+    // vectors
+    svg+=arrow(cx,cy,tx(ax),ty(ay),"#4C72B0","a");
+    svg+=arrow(cx,cy,tx(bx),ty(by),"#C44E52","b");
+    svg+=arrow(cx,cy,tx(sx),ty(sy),"#55A868","a+b");
+    svg+='</svg>';
+    svgC.textContent="";
+    var d=document.createElement("div");d.insertAdjacentHTML("afterbegin",svg);svgC.appendChild(d.firstChild);
+    infoD.textContent="|a|="+magA.toFixed(2)+"  |b|="+magB.toFixed(2)+"  a.b="+dot.toFixed(2)+"  a+b=("+sx.toFixed(1)+","+sy.toFixed(1)+")";
   }
-
-  function draw() {
-    var a = { x: parseFloat(ax.value) || 0, y: parseFloat(ay.value) || 0 };
-    var b = { x: parseFloat(bx.value) || 0, y: parseFloat(by.value) || 0 };
-    svg.innerHTML = "";
-    drawGrid(svg);
-    var cA = "#4C72B0", cB = "#C44E52", cR = "#22c55e";
-    makeMarker(svg, cA); makeMarker(svg, cB); makeMarker(svg, cR);
-
-    var magA = Math.sqrt(a.x * a.x + a.y * a.y);
-    var magB = Math.sqrt(b.x * b.x + b.y * b.y);
-    var info;
-
-    if (op.value === "add") {
-      var r = { x: a.x + b.x, y: a.y + b.y };
-      drawArrow(svg, 0, 0, a.x, a.y, cA, "A");
-      drawArrow(svg, 0, 0, b.x, b.y, cB, "B");
-      drawArrow(svg, 0, 0, r.x, r.y, cR, "A+B");
-      info = "A + B = (" + r.x.toFixed(1) + ", " + r.y.toFixed(1) + ")";
-    } else if (op.value === "sub") {
-      var r2 = { x: a.x - b.x, y: a.y - b.y };
-      drawArrow(svg, 0, 0, a.x, a.y, cA, "A");
-      drawArrow(svg, 0, 0, b.x, b.y, cB, "B");
-      drawArrow(svg, 0, 0, r2.x, r2.y, cR, "A-B");
-      info = "A - B = (" + r2.x.toFixed(1) + ", " + r2.y.toFixed(1) + ")";
-    } else if (op.value === "dot") {
-      var dp = a.x * b.x + a.y * b.y;
-      drawArrow(svg, 0, 0, a.x, a.y, cA, "A");
-      drawArrow(svg, 0, 0, b.x, b.y, cB, "B");
-      var cosTheta = (magA > 0 && magB > 0) ? dp / (magA * magB) : 0;
-      var angle = Math.acos(Math.max(-1, Math.min(1, cosTheta))) * 180 / Math.PI;
-      info = "A . B = " + dp.toFixed(2) + "&emsp;|&emsp;angle = " + angle.toFixed(1) +
-        "&deg;&emsp;|&emsp;" + (Math.abs(dp) < 0.001 ? "Orthogonal!" : "");
-    } else {
-      var s = parseFloat(scalar.value) || 1;
-      var r3 = { x: s * a.x, y: s * a.y };
-      drawArrow(svg, 0, 0, a.x, a.y, cA, "A");
-      drawArrow(svg, 0, 0, r3.x, r3.y, cR, s + "A");
-      info = s + " * A = (" + r3.x.toFixed(1) + ", " + r3.y.toFixed(1) + ")";
-    }
-    output.innerHTML = info + "&emsp;|&emsp;|A| = " + magA.toFixed(3) + "&emsp;|B| = " + magB.toFixed(3);
-  }
-
-  btn.addEventListener("click", draw);
-  draw();
+  [axI,ayI,bxI,byI].forEach(function(el){el.addEventListener("input",render);});
+  render();
 })();
 </script>
 
@@ -944,144 +771,68 @@ Use the calculator below to experiment with $2 \times 2$ matrix-vector multiplic
 the geometric transformation.
 </p>
 
-<div class="widget" id="matrix-calculator-widget">
-  <div class="widget-header">Matrix-Vector Visualizer</div>
-  <div style="display: flex; flex-wrap: wrap; gap: 1.5rem; align-items: flex-start;">
-    <div>
-      <div style="font-size: 0.85rem; margin-bottom: 0.4rem; font-weight: 500;">Matrix M</div>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.3rem;">
-        <input type="number" id="mc-a" value="0" step="0.5" style="width: 4rem;" aria-label="Matrix entry (1,1)">
-        <input type="number" id="mc-b" value="-1" step="0.5" style="width: 4rem;" aria-label="Matrix entry (1,2)">
-        <input type="number" id="mc-c" value="1" step="0.5" style="width: 4rem;" aria-label="Matrix entry (2,1)">
-        <input type="number" id="mc-d" value="0" step="0.5" style="width: 4rem;" aria-label="Matrix entry (2,2)">
+<!-- Widget 3: Matrix Transformation Visualizer -->
+<div class="widget" id="matrix-transform-widget">
+  <div class="widget-header">Matrix Transformation Visualizer</div>
+  <div class="widget-body">
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:0.5rem">
+      <div style="font-size:0.85rem">
+        M = [<input type="number" id="mt-a" value="1" step="0.5" style="width:3rem">, <input type="number" id="mt-b" value="0.5" step="0.5" style="width:3rem">;<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="number" id="mt-c" value="0" step="0.5" style="width:3rem">, <input type="number" id="mt-d" value="1.5" step="0.5" style="width:3rem">]
+      </div>
+      <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+        <button id="mt-rot" style="font-size:0.8rem">90-deg Rotation</button>
+        <button id="mt-id" style="font-size:0.8rem">Identity</button>
+        <button id="mt-ref" style="font-size:0.8rem">Reflection</button>
       </div>
     </div>
-    <div>
-      <div style="font-size: 0.85rem; margin-bottom: 0.4rem; font-weight: 500;">Vector v</div>
-      <label style="font-size: 0.85rem;">x: <input type="number" id="mc-vx" value="3" step="0.5" style="width: 4rem;" aria-label="Vector x-component"></label>
-      <label style="font-size: 0.85rem;">y: <input type="number" id="mc-vy" value="1" step="0.5" style="width: 4rem;" aria-label="Vector y-component"></label>
-    </div>
-    <div>
-      <div style="font-size: 0.85rem; margin-bottom: 0.4rem; font-weight: 500;">Presets</div>
-      <select id="mc-preset" style="font-size: 0.85rem; padding: 0.3rem;" aria-label="Matrix preset">
-        <option value="custom">Custom</option>
-        <option value="rot90" selected>Rotate 90 deg</option>
-        <option value="rot45">Rotate 45 deg</option>
-        <option value="reflect">Reflect over x-axis</option>
-        <option value="scale2">Scale by 2</option>
-        <option value="shear">Shear</option>
-        <option value="identity">Identity</option>
-      </select>
-      <div style="margin-top: 0.5rem;">
-        <button id="mc-calc">Apply M to v</button>
-      </div>
-    </div>
+    <div id="mt-svg" style="display:flex;justify-content:center"></div>
+    <div id="mt-info" style="font-family:var(--font-mono);font-size:0.8rem;color:var(--color-text-muted);margin-top:0.5rem;text-align:center"></div>
   </div>
-  <div style="margin-top: 0.75rem; display: flex; justify-content: center;">
-    <svg id="mc-svg" width="320" height="320" viewBox="-5 -5 10 10" style="border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-code-bg);"></svg>
-  </div>
-  <div class="widget-output" id="mc-output" aria-live="polite" style="margin-top: 0.5rem;"></div>
 </div>
 <script>
-(function() {
-  "use strict";
-  var ga = document.getElementById("mc-a"), gb = document.getElementById("mc-b");
-  var gc = document.getElementById("mc-c"), gd = document.getElementById("mc-d");
-  var gvx = document.getElementById("mc-vx"), gvy = document.getElementById("mc-vy");
-  var preset = document.getElementById("mc-preset");
-  var btn = document.getElementById("mc-calc");
-  var svg = document.getElementById("mc-svg");
-  var output = document.getElementById("mc-output");
-  var NS = "http://www.w3.org/2000/svg";
-
-  var presets = {
-    rot90:    [0, -1, 1, 0],
-    rot45:    [0.7071, -0.7071, 0.7071, 0.7071],
-    reflect:  [1, 0, 0, -1],
-    scale2:   [2, 0, 0, 2],
-    shear:    [1, 1, 0, 1],
-    identity: [1, 0, 0, 1]
-  };
-
-  preset.addEventListener("change", function() {
-    var p = presets[preset.value];
-    if (p) {
-      ga.value = p[0]; gb.value = p[1]; gc.value = p[2]; gd.value = p[3];
-      calc();
+(function(){
+  var aI=document.getElementById("mt-a"),bI=document.getElementById("mt-b"),cI=document.getElementById("mt-c"),dI=document.getElementById("mt-d");
+  var svgC=document.getElementById("mt-svg"),infoD=document.getElementById("mt-info");
+  var S=260,cx=S/2,cy=S/2,sc=40;
+  function setM(a,b,c,d){aI.value=a;bI.value=b;cI.value=c;dI.value=d;render();}
+  document.getElementById("mt-rot").addEventListener("click",function(){setM(0,-1,1,0);});
+  document.getElementById("mt-id").addEventListener("click",function(){setM(1,0,0,1);});
+  document.getElementById("mt-ref").addEventListener("click",function(){setM(1,0,0,-1);});
+  function render(){
+    var a=parseFloat(aI.value)||0,b=parseFloat(bI.value)||0,c=parseFloat(cI.value)||0,d=parseFloat(dI.value)||0;
+    var det=a*d-b*c;
+    // unit square corners: (0,0),(1,0),(1,1),(0,1)
+    var sq=[[0,0],[1,0],[1,1],[0,1]];
+    var tsq=sq.map(function(p){return[a*p[0]+b*p[1],c*p[0]+d*p[1]];});
+    function tx(v){return cx+v*sc;}
+    function ty(v){return cy-v*sc;}
+    var svg='<svg viewBox="0 0 '+S+' '+S+'" width="'+S+'" height="'+S+'" style="max-width:100%;height:auto">';
+    // grid
+    for(var i=-3;i<=3;i++){
+      svg+='<line x1="'+tx(i)+'" y1="0" x2="'+tx(i)+'" y2="'+S+'" stroke="var(--color-border)" stroke-width="0.5" opacity="0.3"/>';
+      svg+='<line x1="0" y1="'+ty(i)+'" x2="'+S+'" y2="'+ty(i)+'" stroke="var(--color-border)" stroke-width="0.5" opacity="0.3"/>';
     }
-  });
-
-  function makeMarker(svg, color) {
-    var id = "mah-" + color.replace("#", "");
-    if (document.getElementById(id)) return;
-    var defs = svg.querySelector("defs");
-    if (!defs) { defs = document.createElementNS(NS, "defs"); svg.insertBefore(defs, svg.firstChild); }
-    var m = document.createElementNS(NS, "marker");
-    m.setAttribute("id", id); m.setAttribute("markerWidth", "6"); m.setAttribute("markerHeight", "4");
-    m.setAttribute("refX", "5"); m.setAttribute("refY", "2"); m.setAttribute("orient", "auto");
-    var poly = document.createElementNS(NS, "polygon");
-    poly.setAttribute("points", "0 0, 6 2, 0 4"); poly.setAttribute("fill", color);
-    m.appendChild(poly); defs.appendChild(m);
+    svg+='<line x1="'+cx+'" y1="0" x2="'+cx+'" y2="'+S+'" stroke="var(--color-border)" stroke-width="1"/>';
+    svg+='<line x1="0" y1="'+cy+'" x2="'+S+'" y2="'+cy+'" stroke="var(--color-border)" stroke-width="1"/>';
+    // original unit square (light)
+    var orig="";for(var i=0;i<4;i++)orig+=tx(sq[i][0])+","+ty(sq[i][1])+" ";
+    svg+='<polygon points="'+orig+'" fill="color-mix(in srgb, var(--color-accent) 15%, transparent)" stroke="var(--color-accent)" stroke-width="1" stroke-dasharray="4 3"/>';
+    // transformed square
+    var tpts="";for(var i=0;i<4;i++)tpts+=tx(tsq[i][0])+","+ty(tsq[i][1])+" ";
+    svg+='<polygon points="'+tpts+'" fill="color-mix(in srgb, var(--color-state) 20%, transparent)" stroke="var(--color-state)" stroke-width="2"/>';
+    // label the transformed basis vectors
+    svg+='<line x1="'+cx+'" y1="'+cy+'" x2="'+tx(a)+'" y2="'+ty(c)+'" stroke="#4C72B0" stroke-width="2"/>';
+    svg+='<circle cx="'+tx(a)+'" cy="'+ty(c)+'" r="3" fill="#4C72B0"/>';
+    svg+='<line x1="'+cx+'" y1="'+cy+'" x2="'+tx(b)+'" y2="'+ty(d)+'" stroke="#C44E52" stroke-width="2"/>';
+    svg+='<circle cx="'+tx(b)+'" cy="'+ty(d)+'" r="3" fill="#C44E52"/>';
+    svg+='</svg>';
+    svgC.textContent="";
+    var el=document.createElement("div");el.insertAdjacentHTML("afterbegin",svg);svgC.appendChild(el.firstChild);
+    infoD.textContent="det(M) = "+(a*d-b*c).toFixed(2)+" (area scale: "+Math.abs(det).toFixed(2)+(det<0?" , flipped orientation":"")+")" ;
   }
-
-  function drawArrow(svg, x1, y1, x2, y2, color, label) {
-    var line = document.createElementNS(NS, "line");
-    line.setAttribute("x1", x1); line.setAttribute("y1", -y1);
-    line.setAttribute("x2", x2); line.setAttribute("y2", -y2);
-    line.setAttribute("stroke", color); line.setAttribute("stroke-width", "0.08");
-    line.setAttribute("marker-end", "url(#mah-" + color.replace("#","") + ")");
-    svg.appendChild(line);
-    if (label) {
-      var t = document.createElementNS(NS, "text");
-      t.setAttribute("x", x2 + 0.15); t.setAttribute("y", -y2 - 0.15);
-      t.setAttribute("fill", color); t.setAttribute("font-size", "0.45");
-      t.setAttribute("font-family", "system-ui, sans-serif");
-      t.textContent = label;
-      svg.appendChild(t);
-    }
-  }
-
-  function drawGrid(svg) {
-    for (var i = -4; i <= 4; i++) {
-      var lh = document.createElementNS(NS, "line");
-      lh.setAttribute("x1", -5); lh.setAttribute("y1", i); lh.setAttribute("x2", 5); lh.setAttribute("y2", i);
-      lh.setAttribute("stroke", i === 0 ? "var(--color-text-muted)" : "var(--color-border)");
-      lh.setAttribute("stroke-width", i === 0 ? "0.04" : "0.02");
-      svg.appendChild(lh);
-      var lv = document.createElementNS(NS, "line");
-      lv.setAttribute("x1", i); lv.setAttribute("y1", -5); lv.setAttribute("x2", i); lv.setAttribute("y2", 5);
-      lv.setAttribute("stroke", i === 0 ? "var(--color-text-muted)" : "var(--color-border)");
-      lv.setAttribute("stroke-width", i === 0 ? "0.04" : "0.02");
-      svg.appendChild(lv);
-    }
-  }
-
-  function fmt(n) { return Math.round(n * 1000) / 1000; }
-
-  function calc() {
-    var a = parseFloat(ga.value) || 0, b = parseFloat(gb.value) || 0;
-    var c = parseFloat(gc.value) || 0, d = parseFloat(gd.value) || 0;
-    var vx = parseFloat(gvx.value) || 0, vy = parseFloat(gvy.value) || 0;
-
-    var rx = a * vx + b * vy;
-    var ry = c * vx + d * vy;
-    var det = a * d - b * c;
-
-    svg.innerHTML = "";
-    drawGrid(svg);
-    var cOrig = "#4C72B0", cResult = "#22c55e";
-    makeMarker(svg, cOrig); makeMarker(svg, cResult);
-
-    drawArrow(svg, 0, 0, vx, vy, cOrig, "v");
-    drawArrow(svg, 0, 0, rx, ry, cResult, "Mv");
-
-    output.innerHTML = "v = (" + fmt(vx) + ", " + fmt(vy) + ")" +
-      "&emsp;Mv = (" + fmt(rx) + ", " + fmt(ry) + ")" +
-      "&emsp;det(M) = " + fmt(det);
-  }
-
-  btn.addEventListener("click", calc);
-  calc();
+  [aI,bI,cI,dI].forEach(function(el){el.addEventListener("input",render);});
+  render();
 })();
 </script>
 
@@ -1282,137 +1033,83 @@ Explore complex numbers on the complex plane below. Enter a number and see it pl
 with its conjugate, a rotation, or its square.
 </p>
 
+<!-- Widget 4: Complex Plane Explorer -->
 <div class="widget" id="complex-plane-widget">
   <div class="widget-header">Complex Plane Explorer</div>
-  <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-start;">
-    <div>
-      <div style="font-size: 0.85rem; margin-bottom: 0.4rem; font-weight: 500;">Complex number $z$</div>
-      <label style="font-size: 0.85rem;">Real: <input type="number" id="cp-re" value="3" step="0.5" style="width: 4rem;" aria-label="Real part"></label>
-      <label style="font-size: 0.85rem;">Imag: <input type="number" id="cp-im" value="2" step="0.5" style="width: 4rem;" aria-label="Imaginary part"></label>
+  <div class="widget-body">
+    <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;margin-bottom:0.5rem">
+      <label style="font-size:0.85rem">z = <input type="number" id="cp-re" value="3" step="0.5" style="width:3.5rem"> + <input type="number" id="cp-im" value="2" step="0.5" style="width:3.5rem">i</label>
+      <label style="font-size:0.85rem">Rotate by: <input type="range" id="cp-theta" min="0" max="6.28" step="0.05" value="0" style="width:8rem;accent-color:var(--color-accent)"> <output id="cp-theta-val" style="font-family:var(--font-mono);font-size:0.8rem">0.00</output></label>
     </div>
-    <div>
-      <div style="font-size: 0.85rem; margin-bottom: 0.4rem; font-weight: 500;">Operation</div>
-      <select id="cp-op" style="font-size: 0.85rem; padding: 0.3rem;" aria-label="Complex number operation">
-        <option value="plot">Plot z</option>
-        <option value="conj">Plot z and conjugate z*</option>
-        <option value="mul">Multiply by e^(i*pi/4) (rotate 45 deg)</option>
-        <option value="square">Plot z and z^2</option>
-      </select>
+    <div style="display:flex;gap:0.5rem;margin-bottom:0.5rem;flex-wrap:wrap">
+      <button id="cp-conj" style="font-size:0.8rem">Show Conjugate</button>
+      <button id="cp-sq" style="font-size:0.8rem">Show z^2</button>
     </div>
-    <button id="cp-draw" style="align-self: flex-end;">Draw</button>
+    <div id="cp-svg" style="display:flex;justify-content:center"></div>
+    <div id="cp-info" style="font-family:var(--font-mono);font-size:0.8rem;color:var(--color-text-muted);margin-top:0.5rem;text-align:center"></div>
   </div>
-  <div style="margin-top: 0.75rem; display: flex; justify-content: center;">
-    <svg id="cp-svg" width="320" height="320" viewBox="-5 -5 10 10" style="border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-code-bg);"></svg>
-  </div>
-  <div class="widget-output" id="cp-output" aria-live="polite" style="margin-top: 0.5rem;"></div>
 </div>
 <script>
-(function() {
-  "use strict";
-  var reIn = document.getElementById("cp-re");
-  var imIn = document.getElementById("cp-im");
-  var opSel = document.getElementById("cp-op");
-  var btn = document.getElementById("cp-draw");
-  var svg = document.getElementById("cp-svg");
-  var output = document.getElementById("cp-output");
-  var NS = "http://www.w3.org/2000/svg";
-
-  function drawGrid(svg) {
-    for (var i = -4; i <= 4; i++) {
-      var lh = document.createElementNS(NS, "line");
-      lh.setAttribute("x1", -5); lh.setAttribute("y1", i); lh.setAttribute("x2", 5); lh.setAttribute("y2", i);
-      lh.setAttribute("stroke", i === 0 ? "var(--color-text-muted)" : "var(--color-border)");
-      lh.setAttribute("stroke-width", i === 0 ? "0.04" : "0.02");
-      svg.appendChild(lh);
-      var lv = document.createElementNS(NS, "line");
-      lv.setAttribute("x1", i); lv.setAttribute("y1", -5); lv.setAttribute("x2", i); lv.setAttribute("y2", 5);
-      lv.setAttribute("stroke", i === 0 ? "var(--color-text-muted)" : "var(--color-border)");
-      lv.setAttribute("stroke-width", i === 0 ? "0.04" : "0.02");
-      svg.appendChild(lv);
+(function(){
+  var reI=document.getElementById("cp-re"),imI=document.getElementById("cp-im");
+  var thetaI=document.getElementById("cp-theta"),thetaV=document.getElementById("cp-theta-val");
+  var svgC=document.getElementById("cp-svg"),infoD=document.getElementById("cp-info");
+  var showConj=false,showSq=false;
+  document.getElementById("cp-conj").addEventListener("click",function(){showConj=!showConj;this.style.background=showConj?"var(--color-accent-hover)":"";render();});
+  document.getElementById("cp-sq").addEventListener("click",function(){showSq=!showSq;this.style.background=showSq?"var(--color-accent-hover)":"";render();});
+  var S=280,cx=S/2,cy=S/2,sc=28;
+  function render(){
+    var re=parseFloat(reI.value)||0,im=parseFloat(imI.value)||0;
+    var theta=parseFloat(thetaI.value)||0;
+    thetaV.textContent=theta.toFixed(2);
+    var mag=Math.sqrt(re*re+im*im),phase=Math.atan2(im,re);
+    // rotated z
+    var rre=re*Math.cos(theta)-im*Math.sin(theta);
+    var rim=re*Math.sin(theta)+im*Math.cos(theta);
+    function tx(v){return cx+v*sc;}
+    function ty(v){return cy-v*sc;}
+    function dot(px,py,col,label){
+      var s='<circle cx="'+tx(px)+'" cy="'+ty(py)+'" r="4" fill="'+col+'"/>';
+      s+='<text x="'+(tx(px)+6)+'" y="'+(ty(py)-6)+'" fill="'+col+'" font-size="10" font-family="var(--font-mono)">'+label+'</text>';
+      return s;
     }
-    var reLabel = document.createElementNS(NS, "text");
-    reLabel.setAttribute("x", 4.2); reLabel.setAttribute("y", 0.4);
-    reLabel.setAttribute("fill", "var(--color-text-muted)"); reLabel.setAttribute("font-size", "0.4");
-    reLabel.textContent = "Re"; svg.appendChild(reLabel);
-    var imLabel = document.createElementNS(NS, "text");
-    imLabel.setAttribute("x", 0.2); imLabel.setAttribute("y", -4.2);
-    imLabel.setAttribute("fill", "var(--color-text-muted)"); imLabel.setAttribute("font-size", "0.4");
-    imLabel.textContent = "Im"; svg.appendChild(imLabel);
-  }
-
-  function plotPoint(svg, re, im, color, label) {
-    var sy = -im;
-    var line = document.createElementNS(NS, "line");
-    line.setAttribute("x1", 0); line.setAttribute("y1", 0);
-    line.setAttribute("x2", re); line.setAttribute("y2", sy);
-    line.setAttribute("stroke", color); line.setAttribute("stroke-width", "0.05");
-    line.setAttribute("stroke-dasharray", "0.15 0.08");
-    svg.appendChild(line);
-    var circ = document.createElementNS(NS, "circle");
-    circ.setAttribute("cx", re); circ.setAttribute("cy", sy); circ.setAttribute("r", "0.12");
-    circ.setAttribute("fill", color); svg.appendChild(circ);
-    if (label) {
-      var t = document.createElementNS(NS, "text");
-      t.setAttribute("x", re + 0.2); t.setAttribute("y", sy - 0.2);
-      t.setAttribute("fill", color); t.setAttribute("font-size", "0.4");
-      t.setAttribute("font-family", "system-ui, sans-serif");
-      t.textContent = label; svg.appendChild(t);
+    var svg='<svg viewBox="0 0 '+S+' '+S+'" width="'+S+'" height="'+S+'" style="max-width:100%;height:auto">';
+    // grid
+    for(var i=-4;i<=4;i++){
+      svg+='<line x1="'+tx(i)+'" y1="0" x2="'+tx(i)+'" y2="'+S+'" stroke="var(--color-border)" stroke-width="0.5" opacity="0.3"/>';
+      svg+='<line x1="0" y1="'+ty(i)+'" x2="'+S+'" y2="'+ty(i)+'" stroke="var(--color-border)" stroke-width="0.5" opacity="0.3"/>';
     }
-  }
-
-  function fmt(n) { return Math.round(n * 1000) / 1000; }
-  function fmtC(re, im) {
-    var s = fmt(re).toString();
-    if (im >= 0) s += " + " + fmt(im) + "i";
-    else s += " - " + fmt(-im) + "i";
-    return s;
-  }
-
-  function draw() {
-    var re = parseFloat(reIn.value) || 0;
-    var im = parseFloat(imIn.value) || 0;
-    var mode = opSel.value;
-    svg.innerHTML = "";
-    drawGrid(svg);
-
-    var uc = document.createElementNS(NS, "circle");
-    uc.setAttribute("cx", 0); uc.setAttribute("cy", 0); uc.setAttribute("r", 1);
-    uc.setAttribute("fill", "none"); uc.setAttribute("stroke", "var(--color-border)");
-    uc.setAttribute("stroke-width", "0.03"); svg.appendChild(uc);
-
-    var mag = Math.sqrt(re * re + im * im);
-    var phase = Math.atan2(im, re);
-    var info = "z = " + fmtC(re, im) + "&emsp;|z| = " + fmt(mag) +
-      "&emsp;phase = " + fmt(phase * 180 / Math.PI) + " deg";
-
-    var cZ = "#4C72B0", cConj = "#C44E52", cRes = "#22c55e";
-
-    if (mode === "plot") {
-      plotPoint(svg, re, im, cZ, "z");
-    } else if (mode === "conj") {
-      plotPoint(svg, re, im, cZ, "z");
-      plotPoint(svg, re, -im, cConj, "z*");
-      info += "<br>z* = " + fmtC(re, -im) + "&emsp;|z*| = " + fmt(mag);
-    } else if (mode === "mul") {
-      var angle = Math.PI / 4;
-      var cosA = Math.cos(angle), sinA = Math.sin(angle);
-      var nr = re * cosA - im * sinA;
-      var ni = re * sinA + im * cosA;
-      plotPoint(svg, re, im, cZ, "z");
-      plotPoint(svg, nr, ni, cRes, "rotated");
-      info += "<br>z * e^(i*pi/4) = " + fmtC(nr, ni);
-    } else if (mode === "square") {
-      var sqRe = re * re - im * im;
-      var sqIm = 2 * re * im;
-      plotPoint(svg, re, im, cZ, "z");
-      plotPoint(svg, sqRe, sqIm, cRes, "z^2");
-      info += "<br>z^2 = " + fmtC(sqRe, sqIm) + "&emsp;|z^2| = " + fmt(mag * mag);
+    svg+='<line x1="'+cx+'" y1="0" x2="'+cx+'" y2="'+S+'" stroke="var(--color-border)" stroke-width="1"/>';
+    svg+='<line x1="0" y1="'+cy+'" x2="'+S+'" y2="'+cy+'" stroke="var(--color-border)" stroke-width="1"/>';
+    svg+='<text x="'+(S-12)+'" y="'+(cy-4)+'" fill="var(--color-text-muted)" font-size="10">Re</text>';
+    svg+='<text x="'+(cx+4)+'" y="12" fill="var(--color-text-muted)" font-size="10">Im</text>';
+    // unit circle (faint)
+    svg+='<circle cx="'+cx+'" cy="'+cy+'" r="'+sc+'" fill="none" stroke="var(--color-border)" stroke-width="0.5" stroke-dasharray="3 3"/>';
+    // z line + dot
+    svg+='<line x1="'+cx+'" y1="'+cy+'" x2="'+tx(re)+'" y2="'+ty(im)+'" stroke="#4C72B0" stroke-width="2"/>';
+    svg+=dot(re,im,"#4C72B0","z");
+    // rotated
+    if(theta>0.01){
+      svg+='<line x1="'+cx+'" y1="'+cy+'" x2="'+tx(rre)+'" y2="'+ty(rim)+'" stroke="#55A868" stroke-width="2" stroke-dasharray="4 3"/>';
+      svg+=dot(rre,rim,"#55A868","e^i"+theta.toFixed(1)+"z");
     }
-    output.innerHTML = info;
+    if(showConj){
+      svg+='<line x1="'+cx+'" y1="'+cy+'" x2="'+tx(re)+'" y2="'+ty(-im)+'" stroke="#C44E52" stroke-width="1.5" stroke-dasharray="4 3"/>';
+      svg+=dot(re,-im,"#C44E52","z*");
+    }
+    if(showSq){
+      var sqre=re*re-im*im,sqim=2*re*im;
+      svg+='<line x1="'+cx+'" y1="'+cy+'" x2="'+tx(sqre)+'" y2="'+ty(sqim)+'" stroke="#8172B2" stroke-width="1.5" stroke-dasharray="4 3"/>';
+      svg+=dot(sqre,sqim,"#8172B2","z^2");
+    }
+    svg+='</svg>';
+    svgC.textContent="";
+    var el=document.createElement("div");el.insertAdjacentHTML("afterbegin",svg);svgC.appendChild(el.firstChild);
+    var phDeg=(phase*180/Math.PI).toFixed(1);
+    infoD.textContent="z = "+re.toFixed(1)+" + "+im.toFixed(1)+"i  |z| = "+mag.toFixed(2)+"  phase = "+phDeg+" deg  z* = "+re.toFixed(1)+" - "+im.toFixed(1)+"i";
   }
-
-  btn.addEventListener("click", draw);
-  draw();
+  [reI,imI,thetaI].forEach(function(el){el.addEventListener("input",render);});
+  render();
 })();
 </script>
 
@@ -1420,7 +1117,7 @@ with its conjugate, a rotation, or its square.
 
 <!-- ================================================================== -->
 <section id="putting-it-together">
-<h2>Putting It All Together</h2>
+<h2>2.6 Putting It All Together</h2>
 
 <p>
 Let us take a moment to see how the five topics of this chapter form a unified toolkit for
@@ -1465,113 +1162,4 @@ immediate use when we write down the state of our first qubit.
 
 </section>
 
-<!-- ================================================================== -->
-<section id="review">
-<h2>Chapter 2 Review</h2>
 
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 2 Review</div>
-
-  <div class="flashcard" data-card-id="ch02-binary-states">
-    <div class="card-front">How many distinct values can $n$ bits represent?</div>
-    <div class="card-back">$2^n$ distinct values. For example, 3 bits can represent $2^3 = 8$ values (000 through 111). This exponential growth is central to quantum computing, where $n$ qubits can exist in a superposition of all $2^n$ states simultaneously.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch02-prob-sum-to-one">
-    <div class="card-front">What is the normalization condition for probabilities, and what is its quantum analogue?</div>
-    <div class="card-back">The probabilities of all outcomes in a sample space must sum to 1: $\sum_{x \in S} P(x) = 1$. In quantum computing, this becomes $|\alpha|^2 + |\beta|^2 = 1$ for a qubit with amplitudes $\alpha$ and $\beta$. Both conditions ensure that exactly one outcome occurs when we observe the system.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch02-bayes-rule">
-    <div class="card-front">State Bayes' rule and explain when you would use it.</div>
-    <div class="card-back">$P(A \mid B) = \frac{P(B \mid A) \, P(A)}{P(B)}$. Use it to reverse conditional probabilities - computing the probability of a cause given an observed effect. It requires knowing the prior probability $P(A)$ and the likelihood $P(B \mid A)$.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch02-unit-vector">
-    <div class="card-front">Why must quantum states be unit vectors?</div>
-    <div class="card-back">A unit vector has magnitude 1, which ensures that the measurement probabilities (the squared magnitudes of the vector's components) sum to 1. This is the normalization condition: $\|\vec{v}\| = 1$ guarantees a valid probability distribution over measurement outcomes.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch02-dot-product-orthogonal">
-    <div class="card-front">What does it mean when the dot product of two vectors equals zero?</div>
-    <div class="card-back">The vectors are orthogonal (perpendicular). Since $\vec{a} \cdot \vec{b} = \|\vec{a}\|\|\vec{b}\|\cos\theta$, a zero dot product means $\cos\theta = 0$, so $\theta = 90$ degrees. In quantum computing, orthogonal state vectors represent perfectly distinguishable states.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch02-matrix-gate-order">
-    <div class="card-front">If you apply gate $A$ and then gate $B$, what matrix represents the combined operation?</div>
-    <div class="card-back">The matrix product $BA$ (not $AB$). The gate applied first goes on the right, closest to the state vector. This is because we evaluate $B(A|\psi\rangle) = (BA)|\psi\rangle$. Matrix multiplication is not commutative, so the order of gates matters.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch02-determinant-zero">
-    <div class="card-front">What happens when a $2 \times 2$ matrix has a determinant of zero?</div>
-    <div class="card-back">The matrix has no inverse - it is singular. Geometrically, it collapses 2D space into a line or a point, losing information irreversibly. Quantum gates always have nonzero determinants (they are unitary), ensuring that quantum operations are always reversible.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch02-complex-conjugate-born">
-    <div class="card-front">What is the complex conjugate of $z = a + bi$, and how does it relate to $|z|^2$?</div>
-    <div class="card-back">The conjugate is $\bar{z} = a - bi$ (negate the imaginary part). The magnitude squared is $|z|^2 = z\bar{z} = a^2 + b^2$. In quantum mechanics, $|z|^2$ converts complex amplitudes into real probabilities via the Born rule.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch02-euler-formula">
-    <div class="card-front">State Euler's formula and explain what $e^{i\theta}$ represents geometrically.</div>
-    <div class="card-back">$e^{i\theta} = \cos\theta + i\sin\theta$. Geometrically, $e^{i\theta}$ is the point on the unit circle in the complex plane at angle $\theta$ from the positive real axis. Multiplying a complex number by $e^{i\theta}$ rotates it by angle $\theta$ without changing its magnitude.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch02-why-complex-numbers">
-    <div class="card-front">Why does quantum mechanics require complex numbers rather than just real numbers?</div>
-    <div class="card-back">Quantum mechanics relies on interference, where amplitudes combine constructively or destructively. Real numbers only allow in-phase or out-of-phase combination. Complex numbers provide a full 360 degrees of phase, enabling the rich interference patterns that quantum algorithms exploit to amplify correct answers and suppress wrong ones.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-</div>
-
-</section>

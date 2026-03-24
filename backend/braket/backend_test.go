@@ -18,7 +18,7 @@ import (
 	"github.com/splch/goqu/circuit/builder"
 )
 
-// --- Mock implementations ---
+// Mock implementations
 
 type mockBraket struct {
 	createFunc func(ctx context.Context, input *braketservice.CreateQuantumTaskInput, optFns ...func(*braketservice.Options)) (*braketservice.CreateQuantumTaskOutput, error)
@@ -64,7 +64,7 @@ func noopLogger() *slog.Logger {
 	return slog.New(slog.NewTextHandler(io.Discard, nil))
 }
 
-// --- Tests ---
+// Tests
 
 func TestSerializeCircuit(t *testing.T) {
 	c, err := builder.New("bell", 2).H(0).CNOT(0, 1).Build()

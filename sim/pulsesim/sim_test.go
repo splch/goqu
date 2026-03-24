@@ -279,7 +279,7 @@ func TestMissingFrameMapping(t *testing.T) {
 	}
 }
 
-// --- Two-qubit coupling tests ---
+// Two-qubit coupling tests
 
 func TestStaticZZ(t *testing.T) {
 	// ZZ coupling is diagonal: it adds phases but doesn't change probabilities.

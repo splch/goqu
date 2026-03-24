@@ -274,7 +274,7 @@ func assertStateClose(t *testing.T, got, want []complex128) {
 	}
 }
 
-// --- 2Q kernel correctness tests ---
+// 2Q kernel correctness tests
 
 func TestGate2_CNOT_NonAdjacent(t *testing.T) {
 	// CNOT on non-adjacent qubits (q0=0, q1=2) in 4-qubit system.
@@ -459,7 +459,7 @@ func TestGate2_Generic_MS(t *testing.T) {
 	assertStateClose(t, sv, want)
 }
 
-// --- 3Q kernel correctness tests ---
+// 3Q kernel correctness tests
 
 func TestGate3_CCX_NonAdjacent(t *testing.T) {
 	// CCX on non-adjacent qubits in 5-qubit system: q0=0, q1=2, q2=4
@@ -509,7 +509,7 @@ func TestGate3_CSWAP(t *testing.T) {
 	assertStateClose(t, sv, want)
 }
 
-// --- Benchmarks ---
+// Benchmarks
 
 func BenchmarkSimulate16(b *testing.B) {
 	// Build a 16-qubit GHZ circuit.
@@ -770,7 +770,7 @@ func TestParallelThreshold_17Q(t *testing.T) {
 	}
 }
 
-// --- StatePrep tests ---
+// StatePrep tests
 
 func TestStatePrep_FastPath_Plus(t *testing.T) {
 	// Full-state prep on 1 qubit: |+> via fast path.

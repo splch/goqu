@@ -59,7 +59,7 @@ func stateVectorF32(s *Sim) []float32 {
 	return unsafe.Slice((*float32)(unsafe.Pointer(ptr)), nAmps*2)
 }
 
-// --- Go wrappers for C bridge functions ---
+// Go wrappers for C bridge functions
 
 func metalResetState(s *Sim) {
 	C.MetalResetState(s.device.sim)

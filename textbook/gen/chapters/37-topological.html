@@ -25,6 +25,135 @@
   is more conceptual than computational - we emphasize intuition over formalism.</p>
 </div>
 
+<!-- Widget 1: 2D vs 3D Particle Exchange -->
+<div class="widget" id="particle-exchange-2d3d">
+  <div class="widget-header">2D vs 3D Particle Exchange</div>
+  <div style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.75rem;">
+    <button id="pe-2d-btn">2D (Anyons Possible)</button>
+    <button id="pe-3d-btn">3D (Only Bosons/Fermions)</button>
+  </div>
+  <div id="pe-svg" style="width:100%; overflow-x:auto;"></div>
+  <div id="pe-info" style="font-size:0.9rem; color:var(--color-text-muted); margin-top:0.5rem;"></div>
+</div>
+
+<script>
+(function(){
+  var svgBox = document.getElementById('pe-svg');
+  var infoEl = document.getElementById('pe-info');
+  var btn2d = document.getElementById('pe-2d-btn');
+  var btn3d = document.getElementById('pe-3d-btn');
+  var mode = '2d';
+
+  function isDk(){ return window.matchMedia("(prefers-color-scheme: dark)").matches; }
+
+  btn2d.addEventListener('click', function(){ mode='2d'; draw(); updateBtns(); });
+  btn3d.addEventListener('click', function(){ mode='3d'; draw(); updateBtns(); });
+
+  function updateBtns(){
+    btn2d.style.background = mode==='2d' ? 'var(--color-accent)' : 'var(--color-surface)';
+    btn2d.style.color = mode==='2d' ? '#fff' : 'var(--color-text)';
+    btn3d.style.background = mode==='3d' ? 'var(--color-accent)' : 'var(--color-surface)';
+    btn3d.style.color = mode==='3d' ? '#fff' : 'var(--color-text)';
+  }
+
+  function draw(){
+    var dark = isDk();
+    var textC = dark ? '#ccc' : '#333';
+    var bgC = dark ? '#2a2a2a' : '#f8f8f8';
+    var W = 460, H = 260;
+    var ns = document.createElementNS("http://www.w3.org/2000/svg","svg");
+    ns.setAttribute("viewBox","0 0 "+W+" "+H);
+    ns.setAttribute("style","font-family:system-ui,sans-serif;max-width:100%;height:auto;");
+
+    function mkEl(tag,attrs){
+      var e = document.createElementNS("http://www.w3.org/2000/svg",tag);
+      for(var k in attrs) e.setAttribute(k,attrs[k]);
+      return e;
+    }
+    function addText(x,y,txt,sz,anch,col,fw){
+      var t = mkEl("text",{x:x,y:y,"text-anchor":anch||"middle",fill:col||textC,"font-size":sz||"11"});
+      if(fw) t.setAttribute("font-weight",fw);
+      t.textContent = txt;
+      ns.appendChild(t);
+    }
+
+    // Background plane
+    ns.appendChild(mkEl("rect",{x:30,y:40,width:W-60,height:H-80,rx:8,fill:bgC,stroke:dark?"#444":"#ddd","stroke-width":"1"}));
+
+    if(mode === '2d'){
+      // Two particles with a looping exchange path
+      var cx = W/2, cy = H/2, r = 60;
+      // Draw the winding path
+      var path = '';
+      for(var i=0;i<=100;i++){
+        var a = i/100 * 2 * Math.PI;
+        var x = cx + r * Math.cos(a);
+        var y = cy + r * 0.5 * Math.sin(a);
+        path += (i===0?'M':'L') + x.toFixed(1)+','+y.toFixed(1);
+      }
+      ns.appendChild(mkEl("path",{d:path,fill:"none",stroke:"#f39c12","stroke-width":"2","stroke-dasharray":"6,3"}));
+
+      // Arrow on path
+      var ax = cx + r * Math.cos(Math.PI*0.75);
+      var ay = cy + r * 0.5 * Math.sin(Math.PI*0.75);
+      ns.appendChild(mkEl("polygon",{points:(ax-5)+","+(ay-5)+" "+(ax+5)+","+(ay-2)+" "+(ax-2)+","+(ay+5),fill:"#f39c12"}));
+
+      // Particles
+      ns.appendChild(mkEl("circle",{cx:cx-r,cy:cy,r:14,fill:"#e74c3c"}));
+      ns.appendChild(mkEl("circle",{cx:cx+r,cy:cy,r:14,fill:"#2980b9"}));
+      addText(cx-r,cy+4,"A","10","middle","#fff","600");
+      addText(cx+r,cy+4,"B","10","middle","#fff","600");
+
+      // X mark showing path cannot unwind
+      addText(cx,cy-r*0.5-15,"\u2716 Cannot unwind","10","middle","#e74c3c","600");
+      addText(cx,cy+r*0.5+25,"Phase: e^{i\u03B8} (any \u03B8)","11","middle","#f39c12","600");
+
+      addText(W/2,25,"2D: Exchange paths are topologically distinct","12","middle",textC,"600");
+      infoEl.textContent = "In two dimensions, when particle A goes around particle B, the path traces a loop that cannot be shrunk to a point without crossing B. Different winding numbers give different exchange phases - this is why anyons exist only in 2D.";
+    } else {
+      // 3D: two paths shown, one winding, one direct, with deformation arrow
+      var cx = W/2, cy = H/2;
+
+      // Winding path (dashed, faded)
+      var path = '';
+      for(var i=0;i<=100;i++){
+        var a = i/100 * 2 * Math.PI;
+        var x = cx + 60 * Math.cos(a);
+        var y = cy + 30 * Math.sin(a);
+        path += (i===0?'M':'L') + x.toFixed(1)+','+y.toFixed(1);
+      }
+      ns.appendChild(mkEl("path",{d:path,fill:"none",stroke:"#888","stroke-width":"1.5","stroke-dasharray":"4,3",opacity:"0.4"}));
+
+      // Direct path (straight line, bold)
+      ns.appendChild(mkEl("line",{x1:cx-60,y1:cy,x2:cx+60,y2:cy,stroke:"#27ae60","stroke-width":"2.5"}));
+
+      // Deformation arrow
+      ns.appendChild(mkEl("path",{d:"M"+(cx)+","+(cy-30)+" L"+(cx)+","+(cy-8),fill:"none",stroke:"#f39c12","stroke-width":"1.5"}));
+      ns.appendChild(mkEl("polygon",{points:(cx-4)+","+(cy-10)+" "+(cx+4)+","+(cy-10)+" "+cx+","+(cy-4),fill:"#f39c12"}));
+      addText(cx+5,cy-35,"lift over","9","start","#f39c12");
+
+      // Particles
+      ns.appendChild(mkEl("circle",{cx:cx-60,cy:cy,r:14,fill:"#e74c3c"}));
+      ns.appendChild(mkEl("circle",{cx:cx+60,cy:cy,r:14,fill:"#2980b9"}));
+      addText(cx-60,cy+4,"A","10","middle","#fff","600");
+      addText(cx+60,cy+4,"B","10","middle","#fff","600");
+
+      addText(cx,cy+50,"\u2714 Path can always unwind via 3rd dimension","10","middle","#27ae60","600");
+      addText(cx,cy+70,"Phase: 0 (boson) or \u03C0 (fermion) only","11","middle","#888");
+
+      addText(W/2,25,"3D: All exchange paths are equivalent","12","middle",textC,"600");
+      infoEl.textContent = "In three dimensions, any winding path can be continuously deformed (lifted over the other particle through the third dimension) to the trivial path. Only two exchange statistics are possible: bosons (phase 0) and fermions (phase \u03C0).";
+    }
+
+    while(svgBox.firstChild) svgBox.removeChild(svgBox.firstChild);
+    svgBox.appendChild(ns);
+  }
+
+  updateBtns();
+  draw();
+})();
+</script>
+
 <!-- ================================================================== -->
 <section id="anyons">
 <h2>37.1 Anyons: Particles That Remember Their Past</h2>
@@ -93,6 +222,157 @@ $$\text{Non-abelian: } |\psi\rangle \xrightarrow{\text{braid}} U_{\text{braid}}|
   $\nu = 5/2$ state) may host non-abelian anyons. Engineered systems, such as topological
   superconductors, provide another route.
 </p>
+
+<!-- Widget 2: Anyon Braiding -->
+<div class="widget" id="anyon-braiding">
+  <div class="widget-header">Anyon Braiding Simulator</div>
+  <div style="display:flex; flex-wrap:wrap; gap:0.5rem; align-items:center; margin-bottom:0.75rem;">
+    <label style="font-family:var(--font-mono); font-size:0.9rem;">Type:
+      <select id="braid-type" style="font-family:var(--font-mono); font-size:0.85rem; padding:0.3rem 0.5rem; border:1px solid var(--color-border); border-radius:var(--radius); background:var(--color-surface); color:var(--color-text);">
+        <option value="abelian">Abelian (phase only)</option>
+        <option value="nonabelian">Non-Abelian (unitary)</option>
+      </select>
+    </label>
+    <button id="braid-add">Add Braid \u03C3_1</button>
+    <button id="braid-add2">Add Braid \u03C3_2</button>
+    <button id="braid-clear">Clear</button>
+  </div>
+  <div id="braid-svg" style="width:100%; overflow-x:auto;"></div>
+  <div id="braid-result" style="font-family:var(--font-mono); font-size:0.85rem; color:var(--color-text-muted); margin-top:0.5rem;"></div>
+</div>
+
+<script>
+(function(){
+  var svgBox = document.getElementById('braid-svg');
+  var result = document.getElementById('braid-result');
+  var typeSelect = document.getElementById('braid-type');
+  var addBtn = document.getElementById('braid-add');
+  var addBtn2 = document.getElementById('braid-add2');
+  var clearBtn = document.getElementById('braid-clear');
+  var braids = [];
+
+  function isDk(){ return window.matchMedia("(prefers-color-scheme: dark)").matches; }
+
+  addBtn.addEventListener('click', function(){ braids.push(1); draw(); });
+  addBtn2.addEventListener('click', function(){ braids.push(2); draw(); });
+  clearBtn.addEventListener('click', function(){ braids = []; draw(); });
+  typeSelect.addEventListener('change', draw);
+
+  function draw(){
+    var dark = isDk();
+    var textC = dark ? '#ccc' : '#333';
+    var nBraids = braids.length;
+    var W = Math.max(400, 100 + nBraids * 60), H = 200;
+    var ns = document.createElementNS("http://www.w3.org/2000/svg","svg");
+    ns.setAttribute("viewBox","0 0 "+W+" "+H);
+    ns.setAttribute("style","font-family:system-ui,sans-serif;max-width:100%;height:auto;");
+
+    function mkEl(tag,attrs){
+      var e = document.createElementNS("http://www.w3.org/2000/svg",tag);
+      for(var k in attrs) e.setAttribute(k,attrs[k]);
+      return e;
+    }
+    function addText(x,y,txt,sz,anch,col,fw){
+      var t = mkEl("text",{x:x,y:y,"text-anchor":anch||"middle",fill:col||textC,"font-size":sz||"11"});
+      if(fw) t.setAttribute("font-weight",fw);
+      t.textContent = txt;
+      ns.appendChild(t);
+    }
+
+    // 3 anyon strands going down
+    var colors = ["#e74c3c","#2980b9","#27ae60"];
+    var strandX = [0,0,0]; // current x positions
+    var y0 = 30, yEnd = H - 30;
+    var xStart = 60;
+    var spacing = 50;
+
+    // Initialize strand positions
+    for(var s=0;s<3;s++) strandX[s] = xStart + s * spacing;
+
+    // Draw strands segment by segment
+    var segH = nBraids > 0 ? (yEnd - y0) / (nBraids + 1) : (yEnd - y0);
+    var strandPaths = [[],[],[]];
+    var curX = [xStart, xStart+spacing, xStart+2*spacing];
+
+    // Start points
+    for(var s=0;s<3;s++) strandPaths[s].push({x:curX[s], y:y0});
+
+    for(var b=0;b<nBraids;b++){
+      var yMid = y0 + (b+1) * segH;
+      var which = braids[b]; // 1 = swap strands 0,1; 2 = swap strands 1,2
+      var i = which - 1; // first strand index
+      var j = i + 1;
+
+      // Non-swapped strands go straight
+      for(var s=0;s<3;s++){
+        if(s !== i && s !== j){
+          strandPaths[s].push({x:curX[s], y:yMid});
+        }
+      }
+
+      // Swapped strands cross
+      var xi = curX[i], xj = curX[j];
+      // Strand i goes over (draws on top later)
+      strandPaths[i].push({x:xj, y:yMid});
+      strandPaths[j].push({x:xi, y:yMid});
+
+      // Update positions
+      var tmp = curX[i];
+      curX[i] = curX[j];
+      curX[j] = tmp;
+    }
+
+    // End points
+    var yFinal = yEnd;
+    for(var s=0;s<3;s++) strandPaths[s].push({x:curX[s], y:yFinal});
+
+    // Draw strands
+    for(var s=0;s<3;s++){
+      var pts = strandPaths[s];
+      var d = '';
+      for(var p=0;p<pts.length;p++){
+        if(p === 0) d += 'M'+pts[p].x+','+pts[p].y;
+        else {
+          var prev = pts[p-1];
+          var midY = (prev.y + pts[p].y) / 2;
+          d += ' C'+prev.x+','+midY+' '+pts[p].x+','+midY+' '+pts[p].x+','+pts[p].y;
+        }
+      }
+      ns.appendChild(mkEl("path",{d:d,fill:"none",stroke:colors[s],"stroke-width":"3","stroke-linecap":"round"}));
+    }
+
+    // Labels at top
+    addText(xStart,y0-10,"1","11","middle",colors[0],"600");
+    addText(xStart+spacing,y0-10,"2","11","middle",colors[1],"600");
+    addText(xStart+2*spacing,y0-10,"3","11","middle",colors[2],"600");
+
+    // Braid labels
+    for(var b=0;b<nBraids;b++){
+      var yMid = y0 + (b+0.5) * segH;
+      addText(xStart + 2*spacing + 40, yMid + 4, "\u03C3_"+braids[b], "10", "start", "#f39c12");
+    }
+
+    // Title
+    addText(W/2, 18, "Braid diagram ("+nBraids+" braids)", "12", "middle", textC, "600");
+
+    while(svgBox.firstChild) svgBox.removeChild(svgBox.firstChild);
+    svgBox.appendChild(ns);
+
+    // Compute result
+    var isAbelian = typeSelect.value === 'abelian';
+    if(nBraids === 0){
+      result.textContent = "No braids applied. Click 'Add Braid' to start.";
+    } else if(isAbelian){
+      var phase = nBraids * 60; // arbitrary phase per braid for demo
+      result.textContent = "Abelian result: Total phase = e^{i\u03B8} where \u03B8 = "+nBraids+" x 60\u00B0 = "+(phase%360)+"\u00B0. Order does not matter.";
+    } else {
+      result.textContent = "Non-Abelian result: Braid sequence [\u03C3_"+braids.join(", \u03C3_")+"] produces a unitary matrix U. Changing the order gives a DIFFERENT U - non-commutative!";
+    }
+  }
+
+  draw();
+})();
+</script>
 
 </section>
 
@@ -172,32 +452,6 @@ $$\text{Non-abelian: } |\psi\rangle \xrightarrow{\text{braid}} U_{\text{braid}}|
   stabilizer measurements change.
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="14">OPENQASM 3.0;
-// Minimal toric code patch: 4 data qubits, 2 ancilla
-qubit[6] q;  // q[0..3] = data, q[4] = star ancilla, q[5] = plaquette ancilla
-bit[2] c;
-
-// Data qubits start in |0000> (eigenstate of Z-stabilizer only)
-// The star measurement projects into a +1 or -1 eigenspace of X0X1X2X3
-
-// Measure star stabilizer: X0 X1 X2 X3
-// Use ancilla in |+>, CNOT to data, H, measure
-h q[4];
-cx q[4], q[0]; cx q[4], q[1]; cx q[4], q[2]; cx q[4], q[3];
-h q[4];
-c[0] = measure q[4];
-
-// Measure plaquette stabilizer: Z0 Z1 Z2 Z3
-cx q[0], q[5]; cx q[1], q[5]; cx q[2], q[5]; cx q[3], q[5];
-c[1] = measure q[5];</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
 <p>
   The $|0000\rangle$ state is a $+1$ eigenstate of the plaquette stabilizer $Z_0 Z_1 Z_2 Z_3$,
   so c[1] always returns 0. However, it is <em>not</em> an eigenstate of the star stabilizer
@@ -207,6 +461,138 @@ c[1] = measure q[5];</textarea>
   Try adding <code>x q[0];</code> before the stabilizer measurements to introduce a
   bit-flip error, and observe how the plaquette syndrome (c[1]) changes.
 </p>
+
+<!-- Widget 3: Toric Code Lattice -->
+<div class="widget" id="toric-code-lattice">
+  <div class="widget-header">Toric Code Lattice Explorer</div>
+  <p style="font-size:0.9rem; color:var(--color-text-muted); margin-bottom:0.75rem;">Click edges to inject errors. Errors create pairs of anyonic excitations (colored vertices/plaquettes). A logical error requires an error chain that wraps around the torus.</p>
+  <div id="toric-svg" style="width:100%; overflow-x:auto;"></div>
+  <div style="display:flex; gap:0.5rem; margin-top:0.5rem;">
+    <button id="toric-clear">Clear Errors</button>
+  </div>
+  <div id="toric-info" style="font-family:var(--font-mono); font-size:0.85rem; color:var(--color-text-muted); margin-top:0.5rem;"></div>
+</div>
+
+<script>
+(function(){
+  var svgBox = document.getElementById('toric-svg');
+  var infoEl = document.getElementById('toric-info');
+  var clearBtn = document.getElementById('toric-clear');
+  var L = 4; // 4x4 lattice
+  var errors = {}; // edge -> true/false
+
+  function isDk(){ return window.matchMedia("(prefers-color-scheme: dark)").matches; }
+
+  clearBtn.addEventListener('click', function(){ errors = {}; draw(); });
+
+  function edgeKey(r,c,dir){ return r+','+c+','+dir; }
+
+  function draw(){
+    var dark = isDk();
+    var textC = dark ? '#ccc' : '#333';
+    var gridC = dark ? '#555' : '#bbb';
+    var edgeC = dark ? '#888' : '#999';
+    var errorC = '#e74c3c';
+    var anyonC = '#f39c12';
+
+    var cellSize = 70, pad = 40;
+    var W = L * cellSize + 2*pad, H = L * cellSize + 2*pad;
+    var ns = document.createElementNS("http://www.w3.org/2000/svg","svg");
+    ns.setAttribute("viewBox","0 0 "+W+" "+H);
+    ns.setAttribute("style","font-family:system-ui,sans-serif;max-width:100%;height:auto;cursor:pointer;");
+
+    function mkEl(tag,attrs){
+      var e = document.createElementNS("http://www.w3.org/2000/svg",tag);
+      for(var k in attrs) e.setAttribute(k,attrs[k]);
+      return e;
+    }
+
+    function vtxPos(r,c){ return {x: pad + c*cellSize, y: pad + r*cellSize}; }
+
+    // Draw plaquettes (faces)
+    // Compute plaquette syndromes (Z errors on boundary edges)
+    for(var r=0;r<L;r++){
+      for(var c=0;c<L;c++){
+        // Plaquette (r,c) has edges: top=(r,c,h), bottom=(r+1,c,h), left=(r,c,v), right=(r,c+1,v)
+        var topE = edgeKey(r,c,'h');
+        var botE = edgeKey((r+1)%L,c,'h');
+        var leftE = edgeKey(r,c,'v');
+        var rightE = edgeKey(r,(c+1)%L,'v');
+        var syndrome = (errors[topE]?1:0) ^ (errors[botE]?1:0) ^ (errors[leftE]?1:0) ^ (errors[rightE]?1:0);
+
+        var cx = pad + c*cellSize + cellSize/2;
+        var cy = pad + r*cellSize + cellSize/2;
+        if(syndrome){
+          ns.appendChild(mkEl("rect",{x:cx-cellSize/2+4,y:cy-cellSize/2+4,width:cellSize-8,height:cellSize-8,rx:4,fill:anyonC,opacity:"0.3"}));
+          ns.appendChild(mkEl("circle",{cx:cx,cy:cy,r:8,fill:anyonC}));
+        }
+      }
+    }
+
+    // Draw edges (clickable)
+    for(var r=0;r<=L;r++){
+      for(var c=0;c<=L;c++){
+        // Horizontal edge at (r,c)
+        if(c < L){
+          var key = edgeKey(r%L,c,'h');
+          var p1 = vtxPos(r%L,c), p2 = vtxPos(r%L,(c+1)%L);
+          if(r === L){ p1 = vtxPos(0,c); p2 = vtxPos(0,(c+1)%L); p1.y += L*cellSize; p2.y += L*cellSize; }
+          // For wrapping display, only draw within bounds
+          if(r < L){
+            var hasErr = errors[key];
+            var line = mkEl("line",{x1:p1.x,y1:p1.y,x2:p2.x,y2:p2.y,stroke:hasErr?errorC:edgeC,"stroke-width":hasErr?"4":"2","stroke-linecap":"round"});
+            (function(k){
+              line.addEventListener('click', function(){ errors[k] = !errors[k]; draw(); });
+            })(key);
+            ns.appendChild(line);
+            // Invisible wider hitbox
+            var hit = mkEl("line",{x1:p1.x,y1:p1.y,x2:p2.x,y2:p2.y,stroke:"transparent","stroke-width":"12"});
+            (function(k){
+              hit.addEventListener('click', function(){ errors[k] = !errors[k]; draw(); });
+            })(key);
+            ns.appendChild(hit);
+          }
+        }
+        // Vertical edge at (r,c)
+        if(r < L){
+          var key = edgeKey(r,c%L,'v');
+          var p1 = vtxPos(r,c%L), p2 = vtxPos((r+1)%L,c%L);
+          if(c === L){ p1 = vtxPos(r,0); p2 = vtxPos((r+1)%L,0); p1.x += L*cellSize; p2.x += L*cellSize; }
+          if(c < L){
+            var hasErr = errors[key];
+            var line = mkEl("line",{x1:p1.x,y1:p1.y,x2:p2.x,y2:p2.y,stroke:hasErr?errorC:edgeC,"stroke-width":hasErr?"4":"2","stroke-linecap":"round"});
+            (function(k){
+              line.addEventListener('click', function(){ errors[k] = !errors[k]; draw(); });
+            })(key);
+            ns.appendChild(line);
+            var hit = mkEl("line",{x1:p1.x,y1:p1.y,x2:p2.x,y2:p2.y,stroke:"transparent","stroke-width":"12"});
+            (function(k){
+              hit.addEventListener('click', function(){ errors[k] = !errors[k]; draw(); });
+            })(key);
+            ns.appendChild(hit);
+          }
+        }
+      }
+    }
+
+    // Draw vertices
+    for(var r=0;r<L;r++){
+      for(var c=0;c<L;c++){
+        var p = vtxPos(r,c);
+        ns.appendChild(mkEl("circle",{cx:p.x,cy:p.y,r:4,fill:textC}));
+      }
+    }
+
+    while(svgBox.firstChild) svgBox.removeChild(svgBox.firstChild);
+    svgBox.appendChild(ns);
+
+    var errCount = Object.keys(errors).filter(function(k){ return errors[k]; }).length;
+    infoEl.textContent = errCount + " error(s) on edges. Yellow squares = anyon excitations (violated plaquette stabilizers). Anyons always appear in pairs.";
+  }
+
+  draw();
+})();
+</script>
 
 </section>
 
@@ -284,6 +670,122 @@ $$\tau \times \tau = \mathbf{1} + \tau$$
   generates only Clifford gates, which must be supplemented by non-topological operations
   to achieve universality.
 </p>
+
+<!-- Widget 4: Fibonacci Fusion Tree -->
+<div class="widget" id="fibonacci-fusion-tree">
+  <div class="widget-header">Fibonacci Anyon Fusion Tree</div>
+  <div style="display:flex; flex-wrap:wrap; gap:1rem; align-items:center; margin-bottom:0.75rem;">
+    <label style="font-family:var(--font-mono); font-size:0.9rem;">
+      Number of anyons: <input type="range" id="fib-n" min="2" max="8" value="4" style="width:8rem; vertical-align:middle; accent-color:var(--color-accent);">
+      <output id="fib-n-out" style="min-width:2rem;">4</output>
+    </label>
+  </div>
+  <div id="fib-svg" style="width:100%; overflow-x:auto;"></div>
+  <div id="fib-info" style="font-family:var(--font-mono); font-size:0.85rem; color:var(--color-text-muted); margin-top:0.5rem;"></div>
+</div>
+
+<script>
+(function(){
+  var slider = document.getElementById('fib-n');
+  var nOut = document.getElementById('fib-n-out');
+  var svgBox = document.getElementById('fib-svg');
+  var infoEl = document.getElementById('fib-info');
+
+  function isDk(){ return window.matchMedia("(prefers-color-scheme: dark)").matches; }
+
+  // Fibonacci numbers
+  function fib(n){ var a=1,b=1; for(var i=2;i<n;i++){var t=a+b;a=b;b=t;} return n<=1?1:b; }
+
+  function draw(){
+    var n = parseInt(slider.value,10);
+    nOut.textContent = n;
+    var dark = isDk();
+    var textC = dark ? '#ccc' : '#333';
+    var tauC = '#e74c3c';
+    var vacC = '#2980b9';
+    var lineC = dark ? '#888' : '#555';
+
+    // Fusion dimension = Fib(n-1) for n anyons
+    var dim = fib(n-1);
+
+    var W = Math.max(400, n * 80), H = 200;
+    var ns = document.createElementNS("http://www.w3.org/2000/svg","svg");
+    ns.setAttribute("viewBox","0 0 "+W+" "+H);
+    ns.setAttribute("style","font-family:system-ui,sans-serif;max-width:100%;height:auto;");
+
+    function mkEl(tag,attrs){
+      var e = document.createElementNS("http://www.w3.org/2000/svg",tag);
+      for(var k in attrs) e.setAttribute(k,attrs[k]);
+      return e;
+    }
+    function addText(x,y,txt,sz,anch,col,fw){
+      var t = mkEl("text",{x:x,y:y,"text-anchor":anch||"middle",fill:col||textC,"font-size":sz||"11"});
+      if(fw) t.setAttribute("font-weight",fw);
+      t.textContent = txt;
+      ns.appendChild(t);
+    }
+
+    // Draw tree: n anyon inputs at top, fusing pairwise downward
+    var topY = 40, bottomY = H - 40;
+    var spacing = (W - 80) / Math.max(n - 1, 1);
+    var startX = 40;
+
+    // Draw anyon inputs
+    for(var i=0;i<n;i++){
+      var x = startX + i * spacing;
+      ns.appendChild(mkEl("circle",{cx:x,cy:topY,r:12,fill:tauC}));
+      addText(x,topY+4,"\u03C4","10","middle","#fff","700");
+    }
+
+    // Draw fusion vertices
+    var levels = n - 1;
+    for(var lv=0;lv<levels;lv++){
+      var y = topY + (lv + 1) * (bottomY - topY) / levels;
+      var prevY = topY + lv * (bottomY - topY) / levels;
+      if(lv === 0){
+        // First fusion: combine first two
+        var x1 = startX, x2 = startX + spacing;
+        var mx = (x1 + x2) / 2;
+        ns.appendChild(mkEl("line",{x1:x1,y1:topY+12,x2:mx,y2:y-8,stroke:lineC,"stroke-width":"1.5"}));
+        ns.appendChild(mkEl("line",{x1:x2,y1:topY+12,x2:mx,y2:y-8,stroke:lineC,"stroke-width":"1.5"}));
+        // Fusion result
+        ns.appendChild(mkEl("circle",{cx:mx,cy:y,r:8,fill:dark?"#444":"#ddd",stroke:lineC,"stroke-width":"1"}));
+        addText(mx+15,y+4,"1 or \u03C4","9","start","#f39c12");
+      } else {
+        // Subsequent fusions: previous result + next anyon
+        var prevX = startX + (lv - 1) * spacing / 2 + spacing / 2;
+        // Approximate: center between previous fusion point and next anyon
+        var nextAnyonX = startX + (lv + 1) * spacing;
+        if(lv+1 < n){
+          var mx = (prevX + nextAnyonX) / 2;
+          ns.appendChild(mkEl("line",{x1:prevX,y1:prevY+8,x2:mx,y2:y-8,stroke:lineC,"stroke-width":"1.5"}));
+          ns.appendChild(mkEl("line",{x1:nextAnyonX,y1:topY+12,x2:mx,y2:y-8,stroke:lineC,"stroke-width":"1.5"}));
+          ns.appendChild(mkEl("circle",{cx:mx,cy:y,r:8,fill:dark?"#444":"#ddd",stroke:lineC,"stroke-width":"1"}));
+          if(lv < levels - 1){
+            addText(mx+15,y+4,"1 or \u03C4","9","start","#f39c12");
+          }
+        }
+      }
+    }
+
+    // Dimension label
+    addText(W/2, H-10, "Fusion space dimension = "+dim+" (Fibonacci number F_"+(n-1)+")", "12", "middle", textC, "600");
+
+    // Fibonacci sequence display
+    var fibSeq = [];
+    for(var i=1;i<=n;i++) fibSeq.push(fib(i));
+
+    while(svgBox.firstChild) svgBox.removeChild(svgBox.firstChild);
+    svgBox.appendChild(ns);
+
+    infoEl.textContent = n+" Fibonacci anyons (\u03C4) have a fusion space of dimension "+dim+". The \u03C4 x \u03C4 = 1 + \u03C4 fusion rule gives a Hilbert space that grows as the Fibonacci sequence: "+fibSeq.join(", ")+".";
+  }
+
+  slider.addEventListener('input', draw);
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener('change', draw);
+  draw();
+})();
+</script>
 
 </section>
 
@@ -375,78 +877,4 @@ $$\tau \times \tau = \mathbf{1} + \tau$$
 
 <hr />
 
-<!-- ================================================================== -->
-<section id="review">
-<h2>Chapter 37 Review</h2>
 
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 37 Review</div>
-
-  <div class="flashcard" data-card-id="ch37-anyon-definition">
-    <div class="card-front">What is an anyon, and why can anyons only exist in two dimensions?</div>
-    <div class="card-back">
-      An anyon is a quasiparticle whose exchange statistics are neither bosonic nor fermionic. In 3D, all particle exchanges are topologically equivalent, forcing statistics to be $\pm 1$. In 2D, exchange paths that wind around each other cannot be continuously deformed into each other, allowing arbitrary phase factors (abelian anyons) or unitary transformations (non-abelian anyons).
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch37-topological-protection">
-    <div class="card-front">What is topological protection, and why does it make qubits robust?</div>
-    <div class="card-back">
-      Topological protection means quantum information is encoded in global, topological properties of the system rather than local degrees of freedom. Small local perturbations cannot change the topology, so the information is inherently resistant to noise. To cause a logical error, one must create a topologically nontrivial disturbance (e.g., a non-contractible loop of errors in the toric code).
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch37-toric-code-stabilizers">
-    <div class="card-front">What are the two types of stabilizers in the toric code, and how do errors manifest?</div>
-    <div class="card-back">
-      Star operators $A_s = \prod X_e$ act on edges meeting at each vertex; plaquette operators $B_p = \prod Z_e$ act on edges bounding each face. A single-qubit error creates a pair of anyonic excitations (stabilizer violations). Logical errors require chains of errors forming non-contractible loops on the torus, requiring $O(L)$ errors for lattice size $L$.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch37-fibonacci-fusion">
-    <div class="card-front">What is the fusion rule for Fibonacci anyons, and why is it significant?</div>
-    <div class="card-back">
-      The fusion rule is $\tau \times \tau = \mathbf{1} + \tau$: two Fibonacci anyons can fuse to either the vacuum or another $\tau$ particle. This creates a Hilbert space whose dimension grows as $\phi^n$ (Fibonacci sequence). Crucially, braiding Fibonacci anyons generates a dense subgroup of the unitary group, making them sufficient for universal quantum computation through braiding alone.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch37-majorana-zero-mode">
-    <div class="card-front">What is a Majorana zero mode and how does it encode a qubit?</div>
-    <div class="card-back">
-      A Majorana zero mode (MZM) is a quasiparticle excitation at the end of a topological superconducting nanowire that is its own antiparticle. Two MZMs together encode one fermion (occupied or unoccupied), forming a two-state system. The information is stored nonlocally between the two wire ends, providing topological protection against local perturbations.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch37-majorana-1-chip">
-    <div class="card-front">What is Microsoft's Majorana 1 chip and what qubit design does it use?</div>
-    <div class="card-back">
-      Majorana 1, unveiled in February 2025, is the first quantum processor powered by a topological core. It uses indium arsenide nanowires coated with aluminum to create topological superconducting states hosting Majorana zero modes. The qubit design is the <em>tetron</em>: four MZMs encoding one logical qubit. Prototype tetrons showed measurement lifetimes differing by three orders of magnitude between X-type and Z-type operations.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-</div>
-</section>

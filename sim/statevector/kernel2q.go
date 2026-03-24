@@ -142,7 +142,7 @@ func blockStride2(q0, q1 int) (mask0, mask1, lo, hi int) {
 	return
 }
 
-// --- Serial kernels ---
+// Serial kernels
 //
 // Each serial kernel implements the 3-level block-stride loop (see
 // blockStride2) with a gate-specific inner body. The inner body is the
@@ -345,7 +345,7 @@ func (s *Sim) kernel2qSycamore(q0, q1 int) {
 	}
 }
 
-// --- Parallel kernels ---
+// Parallel kernels
 //
 // The parallel kernels share a common structure: split the outer-loop blocks
 // across goroutines, with each goroutine running the same 3-level loop on

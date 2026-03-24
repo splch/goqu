@@ -8,15 +8,12 @@
 #error "This file must be compiled without ARC (-fno-objc-arc)"
 #endif
 
-// ---------------------------------------------------------------------------
 // Shader source (embedded) - 1Q and 2Q gate kernels using float2 (complex64).
-// ---------------------------------------------------------------------------
 
 static const char *kShaderSource =
 "#include <metal_stdlib>\n"
 "using namespace metal;\n"
 "\n"
-"// ---- 1-qubit gate ----\n"
 "struct Gate1QParams {\n"
 "    uint qubit;\n"
 "    uint nAmps;\n"
@@ -53,7 +50,6 @@ static const char *kShaderSource =
 "    sv[i1] = cadd(cmul(m10, a0), cmul(m11, a1));\n"
 "}\n"
 "\n"
-"// ---- 2-qubit gate ----\n"
 "struct Gate2QParams {\n"
 "    uint qubit0;\n"
 "    uint qubit1;\n"
@@ -95,9 +91,7 @@ static const char *kShaderSource =
 "    sv[i11] = r[3];\n"
 "}\n";
 
-// ---------------------------------------------------------------------------
 // C-side parameter structs (must match shader layout exactly).
-// ---------------------------------------------------------------------------
 
 typedef struct {
     uint32_t qubit;
@@ -112,9 +106,7 @@ typedef struct {
     float m[32];
 } Gate2QParams;
 
-// ---------------------------------------------------------------------------
 // MetalSim - opaque handle holding all Metal state.
-// ---------------------------------------------------------------------------
 
 struct MetalSim {
     int numQubits;
@@ -131,9 +123,7 @@ struct MetalSim {
     NSUInteger tgSize2q;
 };
 
-// ---------------------------------------------------------------------------
 // Helpers
-// ---------------------------------------------------------------------------
 
 static char* errdup(NSError *err) {
     if (err) {
@@ -142,9 +132,7 @@ static char* errdup(NSError *err) {
     return strdup("unknown Metal error");
 }
 
-// ---------------------------------------------------------------------------
 // Public API
-// ---------------------------------------------------------------------------
 
 MetalSim* MetalCreate(int numQubits, char** errOut) {
     @autoreleasepool {

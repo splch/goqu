@@ -238,213 +238,80 @@ $$k_{\text{opt}} = \left\lfloor \frac{\pi}{4\theta} - \frac{1}{2} \right\rfloor 
   probability on the marked state, but more iterations cause the probability to oscillate away.
 </p>
 
-<div class="widget" id="grover-rotation-widget">
-  <div class="widget-header">Grover Iteration Simulator (3 qubits, target = |101>)</div>
-  <div style="margin-bottom: 0.75rem;">
-    <label for="grover-iter-slider" style="font-weight: 500; font-size: 0.9rem;">
-      Iterations: <output id="grover-iter-display">1</output>
-    </label>
-    <input type="range" id="grover-iter-slider" min="0" max="8" step="1" value="1"
-           style="width: 100%; margin-top: 0.25rem;">
+<h3>Interactive: Geometric Rotation</h3>
+
+<div class="widget" id="grover-geo-widget">
+  <div class="widget-header">Grover's Algorithm: Geometric Rotation in 2D</div>
+  <div class="widget-body">
+    <label style="font-size:0.85rem;">Iterations: <input type="range" id="grover-geo-k" min="0" max="8" step="1" value="0" style="width:10rem;vertical-align:middle;"> <span id="grover-geo-k-val">0</span></label>
+    <label style="font-size:0.85rem;margin-left:1rem;">N: <input type="range" id="grover-geo-n" min="4" max="64" step="4" value="8" style="width:8rem;vertical-align:middle;"> <span id="grover-geo-n-val">8</span> (M=1)</label>
   </div>
-  <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-start;">
-    <div style="flex: 1; min-width: 280px;">
-      <div style="font-size: 0.85rem; font-weight: 500; margin-bottom: 0.25rem;">Probability of each basis state:</div>
-      <svg id="grover-bar-chart" viewBox="0 0 400 200" style="width: 100%; max-width: 420px; background: var(--color-code-bg); border-radius: var(--radius); border: 1px solid var(--color-border);"></svg>
-    </div>
-    <div style="flex: 0 0 auto; min-width: 160px;">
-      <div style="font-size: 0.85rem; font-weight: 500; margin-bottom: 0.25rem;">Geometric view:</div>
-      <svg id="grover-geo-view" viewBox="0 0 180 180" style="width: 180px; height: 180px; background: var(--color-code-bg); border-radius: var(--radius); border: 1px solid var(--color-border);"></svg>
-    </div>
-  </div>
-  <div id="grover-info" style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--color-text-muted);"></div>
+  <div class="widget-output" id="grover-geo-output"></div>
 </div>
-
 <script>
-(function() {
-  "use strict";
-  var N = 8, M = 1, target = 5;
-  var theta = Math.asin(Math.sqrt(M / N));
-  var slider = document.getElementById("grover-iter-slider");
-  var display = document.getElementById("grover-iter-display");
-  var barSvg = document.getElementById("grover-bar-chart");
-  var geoSvg = document.getElementById("grover-geo-view");
-  var info = document.getElementById("grover-info");
-  if (!slider || !barSvg) return;
-
-  function computeProbs(k) {
-    var totalAngle = (2 * k + 1) * theta;
-    var pGood = Math.pow(Math.sin(totalAngle), 2);
-    var pBad = Math.pow(Math.cos(totalAngle), 2);
-    var probs = [];
-    for (var i = 0; i < N; i++) {
-      if (i === target) {
-        probs.push(pGood / M);
-      } else {
-        probs.push(pBad / (N - M));
-      }
-    }
-    return probs;
-  }
-
-  function drawBars(probs) {
-    var svgNS = "http://www.w3.org/2000/svg";
-    barSvg.innerHTML = "";
-    var W = 400, H = 200, pad = 30, barW = (W - 2 * pad) / N - 4;
-    // y-axis
-    var axis = document.createElementNS(svgNS, "line");
-    axis.setAttribute("x1", pad); axis.setAttribute("y1", 10);
-    axis.setAttribute("x2", pad); axis.setAttribute("y2", H - pad);
-    axis.setAttribute("stroke", "var(--color-text-muted)"); axis.setAttribute("stroke-width", "1");
-    barSvg.appendChild(axis);
-    // x-axis
-    var xaxis = document.createElementNS(svgNS, "line");
-    xaxis.setAttribute("x1", pad); xaxis.setAttribute("y1", H - pad);
-    xaxis.setAttribute("x2", W - 10); xaxis.setAttribute("y2", H - pad);
-    xaxis.setAttribute("stroke", "var(--color-text-muted)"); xaxis.setAttribute("stroke-width", "1");
-    barSvg.appendChild(xaxis);
-    // y-axis label
-    var yLabel = document.createElementNS(svgNS, "text");
-    yLabel.setAttribute("x", 2); yLabel.setAttribute("y", 10);
-    yLabel.setAttribute("font-size", "10"); yLabel.setAttribute("fill", "var(--color-text-muted)");
-    yLabel.textContent = "1.0";
-    barSvg.appendChild(yLabel);
-    var maxH = H - pad - 14;
-    for (var i = 0; i < N; i++) {
-      var x = pad + 4 + i * ((W - 2 * pad) / N);
-      var bh = probs[i] * maxH;
-      var rect = document.createElementNS(svgNS, "rect");
-      rect.setAttribute("x", x); rect.setAttribute("y", H - pad - bh);
-      rect.setAttribute("width", barW); rect.setAttribute("height", bh);
-      rect.setAttribute("rx", "2");
-      rect.setAttribute("fill", i === target ? "var(--color-accent)" : "var(--color-text-muted)");
-      rect.setAttribute("opacity", i === target ? "1" : "0.4");
-      barSvg.appendChild(rect);
-      // label
-      var label = document.createElementNS(svgNS, "text");
-      label.setAttribute("x", x + barW / 2); label.setAttribute("y", H - pad + 14);
-      label.setAttribute("text-anchor", "middle"); label.setAttribute("font-size", "10");
-      label.setAttribute("font-family", "var(--font-mono)");
-      label.setAttribute("fill", "var(--color-text)");
-      var bits = ("000" + i.toString(2)).slice(-3);
-      label.textContent = bits;
-      barSvg.appendChild(label);
-      // probability value on top
-      if (probs[i] > 0.02) {
-        var pLabel = document.createElementNS(svgNS, "text");
-        pLabel.setAttribute("x", x + barW / 2); pLabel.setAttribute("y", H - pad - bh - 3);
-        pLabel.setAttribute("text-anchor", "middle"); pLabel.setAttribute("font-size", "9");
-        pLabel.setAttribute("fill", "var(--color-text-muted)");
-        pLabel.textContent = probs[i].toFixed(3);
-        barSvg.appendChild(pLabel);
-      }
-    }
-  }
-
-  function drawGeo(k) {
-    var svgNS = "http://www.w3.org/2000/svg";
-    geoSvg.innerHTML = "";
-    var cx = 90, cy = 100, r = 70;
-    // axes: |bad> horizontal, |good> vertical (upward)
-    // |bad> axis
-    var badAxis = document.createElementNS(svgNS, "line");
-    badAxis.setAttribute("x1", cx); badAxis.setAttribute("y1", cy);
-    badAxis.setAttribute("x2", cx + r + 10); badAxis.setAttribute("y2", cy);
-    badAxis.setAttribute("stroke", "var(--color-text-muted)"); badAxis.setAttribute("stroke-width", "1");
-    badAxis.setAttribute("stroke-dasharray", "3,3");
-    geoSvg.appendChild(badAxis);
-    var badLabel = document.createElementNS(svgNS, "text");
-    badLabel.setAttribute("x", cx + r + 14); badLabel.setAttribute("y", cy + 4);
-    badLabel.setAttribute("font-size", "10"); badLabel.setAttribute("fill", "var(--color-text-muted)");
-    badLabel.textContent = "|bad>";
-    geoSvg.appendChild(badLabel);
-    // |good> axis (up)
-    var goodAxis = document.createElementNS(svgNS, "line");
-    goodAxis.setAttribute("x1", cx); goodAxis.setAttribute("y1", cy);
-    goodAxis.setAttribute("x2", cx); goodAxis.setAttribute("y2", cy - r - 10);
-    goodAxis.setAttribute("stroke", "var(--color-text-muted)"); goodAxis.setAttribute("stroke-width", "1");
-    goodAxis.setAttribute("stroke-dasharray", "3,3");
-    geoSvg.appendChild(goodAxis);
-    var goodLabel = document.createElementNS(svgNS, "text");
-    goodLabel.setAttribute("x", cx + 4); goodLabel.setAttribute("y", cy - r - 14);
-    goodLabel.setAttribute("font-size", "10"); goodLabel.setAttribute("fill", "var(--color-text-muted)");
-    goodLabel.textContent = "|good>";
-    geoSvg.appendChild(goodLabel);
-    // arc for reference
-    var arc = document.createElementNS(svgNS, "path");
-    var arcR = r;
-    arc.setAttribute("d", "M " + (cx + arcR) + " " + cy + " A " + arcR + " " + arcR + " 0 0 0 " + cx + " " + (cy - arcR));
-    arc.setAttribute("fill", "none"); arc.setAttribute("stroke", "var(--color-border)"); arc.setAttribute("stroke-width", "0.5");
-    geoSvg.appendChild(arc);
+(function(){
+  var kS=document.getElementById("grover-geo-k"),kV=document.getElementById("grover-geo-k-val");
+  var nS=document.getElementById("grover-geo-n"),nV=document.getElementById("grover-geo-n-val");
+  var out=document.getElementById("grover-geo-output");
+  function update(){
+    var k=parseInt(kS.value),N=parseInt(nS.value);
+    kV.textContent=k;nV.textContent=N;
+    var theta=Math.asin(1/Math.sqrt(N));
+    var totalAngle=(2*k+1)*theta;
+    var pSuccess=Math.sin(totalAngle)*Math.sin(totalAngle);
+    var W=320,H=260,cx=160,cy=180,R=130;
+    var svg='<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" style="font-family:var(--font-mono);font-size:10px;">';
+    // axes
+    svg+='<line x1="'+(cx-R-10)+'" y1="'+cy+'" x2="'+(cx+R+10)+'" y2="'+cy+'" stroke="var(--color-border)" stroke-width="1"/>';
+    svg+='<line x1="'+cx+'" y1="'+(cy+10)+'" x2="'+cx+'" y2="'+(cy-R-10)+'" stroke="var(--color-border)" stroke-width="1"/>';
+    svg+='<text x="'+(cx+R+14)+'" y="'+(cy+4)+'" fill="var(--color-text-muted)" font-size="9">|bad\u27E9</text>';
+    svg+='<text x="'+(cx+3)+'" y="'+(cy-R-12)+'" fill="var(--color-text-muted)" font-size="9">|good\u27E9</text>';
+    // arc for theta
+    var arcR=40;
+    svg+='<path d="M '+(cx+arcR)+' '+cy+' A '+arcR+' '+arcR+' 0 0 0 '+(cx+arcR*Math.cos(theta))+' '+(cy-arcR*Math.sin(theta))+'" fill="none" stroke="var(--color-text-muted)" stroke-width="0.8"/>';
+    svg+='<text x="'+(cx+arcR+8)+'" y="'+(cy-6)+'" fill="var(--color-text-muted)" font-size="8">\u03B8</text>';
     // |s> vector (initial state)
-    var sAngle = theta; // angle from |bad> axis
-    var sx = cx + r * Math.cos(sAngle);
-    var sy = cy - r * Math.sin(sAngle);
-    var sLine = document.createElementNS(svgNS, "line");
-    sLine.setAttribute("x1", cx); sLine.setAttribute("y1", cy);
-    sLine.setAttribute("x2", sx); sLine.setAttribute("y2", sy);
-    sLine.setAttribute("stroke", "var(--color-text-muted)"); sLine.setAttribute("stroke-width", "1.5");
-    sLine.setAttribute("stroke-dasharray", "4,2");
-    geoSvg.appendChild(sLine);
-    var sLabel = document.createElementNS(svgNS, "text");
-    sLabel.setAttribute("x", sx + 4); sLabel.setAttribute("y", sy - 2);
-    sLabel.setAttribute("font-size", "9"); sLabel.setAttribute("fill", "var(--color-text-muted)");
-    sLabel.textContent = "|s>";
-    geoSvg.appendChild(sLabel);
-    // Current state vector after k iterations
-    var curAngle = (2 * k + 1) * theta;
-    var vx = cx + r * Math.cos(curAngle);
-    var vy = cy - r * Math.sin(curAngle);
-    var vLine = document.createElementNS(svgNS, "line");
-    vLine.setAttribute("x1", cx); vLine.setAttribute("y1", cy);
-    vLine.setAttribute("x2", vx); vLine.setAttribute("y2", vy);
-    vLine.setAttribute("stroke", "var(--color-accent)"); vLine.setAttribute("stroke-width", "2.5");
-    geoSvg.appendChild(vLine);
-    // arrowhead
-    var arrowLen = 8, arrowAng = 0.4;
-    var lineAng = Math.atan2(cy - vy, vx - cx);
-    var a1x = vx - arrowLen * Math.cos(lineAng - arrowAng);
-    var a1y = vy + arrowLen * Math.sin(lineAng - arrowAng);
-    var a2x = vx - arrowLen * Math.cos(lineAng + arrowAng);
-    var a2y = vy + arrowLen * Math.sin(lineAng + arrowAng);
-    var arrow = document.createElementNS(svgNS, "polygon");
-    arrow.setAttribute("points", vx + "," + vy + " " + a1x + "," + a1y + " " + a2x + "," + a2y);
-    arrow.setAttribute("fill", "var(--color-accent)");
-    geoSvg.appendChild(arrow);
-    // angle arc
-    if (k > 0) {
-      var arcSmallR = 25;
-      var startX = cx + arcSmallR;
-      var startY = cy;
-      var endX = cx + arcSmallR * Math.cos(curAngle);
-      var endY = cy - arcSmallR * Math.sin(curAngle);
-      var largeArc = curAngle > Math.PI ? 1 : 0;
-      var arcPath = document.createElementNS(svgNS, "path");
-      arcPath.setAttribute("d", "M " + startX + " " + startY + " A " + arcSmallR + " " + arcSmallR + " 0 " + largeArc + " 0 " + endX + " " + endY);
-      arcPath.setAttribute("fill", "none"); arcPath.setAttribute("stroke", "var(--color-accent)");
-      arcPath.setAttribute("stroke-width", "1.5"); arcPath.setAttribute("opacity", "0.6");
-      geoSvg.appendChild(arcPath);
-    }
+    var sx=cx+R*Math.cos(theta),sy=cy-R*Math.sin(theta);
+    svg+='<line x1="'+cx+'" y1="'+cy+'" x2="'+sx+'" y2="'+sy+'" stroke="var(--color-accent)" stroke-width="1.5" stroke-dasharray="5,3"/>';
+    svg+='<text x="'+(sx+5)+'" y="'+(sy-3)+'" fill="var(--color-accent)" font-size="9">|s\u27E9</text>';
+    // rotated vector
+    var rx=cx+R*Math.cos(totalAngle),ry=cy-R*Math.sin(totalAngle);
+    svg+='<line x1="'+cx+'" y1="'+cy+'" x2="'+rx+'" y2="'+ry+'" stroke="var(--color-state)" stroke-width="2.5"/>';
+    svg+='<circle cx="'+rx+'" cy="'+ry+'" r="4" fill="var(--color-state)"/>';
+    svg+='<text x="'+(rx+6)+'" y="'+(ry-5)+'" fill="var(--color-state)" font-size="9">G^'+k+'|s\u27E9</text>';
+    // probability readout
+    svg+='<text x="10" y="18" fill="var(--color-text)" font-size="11" font-weight="600">P(success) = '+(pSuccess*100).toFixed(1)+'%</text>';
+    svg+='<text x="10" y="32" fill="var(--color-text-muted)" font-size="9">Angle: (2\u00B7'+k+'+1)\u00B7\u03B8 = '+((totalAngle*180/Math.PI).toFixed(1))+'\u00B0</text>';
+    var kOpt=Math.round(Math.PI/(4*theta)-0.5);
+    svg+='<text x="10" y="46" fill="var(--color-text-muted)" font-size="9">Optimal k = '+kOpt+'</text>';
+    svg+='</svg>';
+    out.textContent="";
+    var d=document.createElement("div");d.style.textAlign="center";
+    d.insertAdjacentHTML("afterbegin",svg);out.appendChild(d);
   }
-
-  function update() {
-    var k = parseInt(slider.value, 10);
-    display.textContent = k;
-    var probs = computeProbs(k);
-    drawBars(probs);
-    drawGeo(k);
-    var totalAngle = (2 * k + 1) * theta;
-    var pTarget = probs[target];
-    info.innerHTML = "Total rotation angle: " + ((2 * k + 1) * theta).toFixed(3) +
-      " rad (target: &pi;/2 &asymp; 1.571 rad). P(101) = " + pTarget.toFixed(4) +
-      ". " + (pTarget > 0.9 ? "Excellent - high success probability." :
-              pTarget > 0.5 ? "Good - majority probability on target." :
-              "Low success probability" + (k > 3 ? " - you have rotated past the optimum." : "."));
-  }
-  slider.addEventListener("input", update);
+  kS.addEventListener("input",update);nS.addEventListener("input",update);
   update();
 })();
 </script>
+
+<h3>Interactive: Iteration Count vs. Success Probability</h3>
+
+<div class="simulation" data-component="simulation">
+  <div class="sim-qasm" hidden>OPENQASM 3.0;
+qubit[3] q; bit[3] c;
+// Grover search for |101> with variable iterations
+h q[0]; h q[1]; h q[2];
+// Iteration template - controlled by slider
+x q[1]; ccz q[0], q[1], q[2]; x q[1];
+h q[0]; h q[1]; h q[2];
+x q[0]; x q[1]; x q[2]; ccz q[0], q[1], q[2]; x q[0]; x q[1]; x q[2];
+h q[0]; h q[1]; h q[2];
+c = measure q;</div>
+  <div class="sim-controls">
+    <label>Iterations: <input type="range" data-param="iterations" min="0" max="8" step="1" value="1"> <output>1</output></label>
+  </div>
+  <div class="sim-output"></div>
+</div>
 
 </section>
 
@@ -574,21 +441,12 @@ $$U_s = H^{\otimes n}\big(2|0\rangle\langle 0| - I\big)H^{\otimes n}.$$
 </p>
 
 <div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="18">OPENQASM 3.0;
-qubit[3] q;
-bit[3] c;
-
-// Initialize uniform superposition
-h q[0]; h q[1]; h q[2];
-
-// Oracle for |101> (marks state 5)
+  <textarea class="code" rows="16">OPENQASM 3.0;
+qubit[3] q; bit[3] c;
+// Grover search for |101> (decimal 5)
 gate oracle q0, q1, q2 {
-  x q1;
-  ccz q0, q1, q2;
-  x q1;
+  x q1; ccz q0, q1, q2; x q1;
 }
-
-// Diffusion operator
 gate diffusion q0, q1, q2 {
   h q0; h q1; h q2;
   x q0; x q1; x q2;
@@ -596,11 +454,9 @@ gate diffusion q0, q1, q2 {
   x q0; x q1; x q2;
   h q0; h q1; h q2;
 }
-
-// One Grover iteration
+h q[0]; h q[1]; h q[2];
 oracle q[0], q[1], q[2];
 diffusion q[0], q[1], q[2];
-
 c = measure q;</textarea>
   <div class="sandbox-controls">
     <button data-action="run">Run</button>
@@ -609,56 +465,17 @@ c = measure q;</textarea>
   <div class="output"></div>
 </div>
 
-<h3>Interactive: Grover Search Engine</h3>
-<p>
-  Use the WASM-backed Grover implementation to search for one or more target states.
-  Choose the number of qubits (determining the search space size $N = 2^n$), specify
-  which states to mark as targets, and run the full algorithm. The engine automatically
-  computes the optimal number of iterations.
-</p>
-<div class="widget" id="grover-search-widget">
-  <div class="widget-header">Grover Search Engine</div>
-  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
-    <label>Qubits: <select id="grover-qubits">
-      <option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option>
-    </select></label>
-    <label>Targets: <input type="text" id="grover-targets" value="5" placeholder="e.g. 3,5" style="width:6rem" title="Comma-separated target state indices"></label>
-    <label>Shots: <input type="number" id="grover-shots" value="1024" min="1" max="8192" style="width:5rem"></label>
-    <button onclick="runGroverSearch()">Search</button>
-  </div>
-  <div class="widget-output" id="grover-search-output"></div>
-</div>
-<script>
-async function runGroverSearch() {
-  await ensureWasm();
-  var nq = parseInt(document.getElementById('grover-qubits').value);
-  var targets = document.getElementById('grover-targets').value.trim();
-  var shots = parseInt(document.getElementById('grover-shots').value) || 1024;
-  var out = document.getElementById('grover-search-output');
-  out.innerHTML = '<p style="color:var(--color-text-muted)">Running Grover search...</p>';
-  await new Promise(function(r) { setTimeout(r, 0); });
-  try {
-    var r = JSON.parse(window.runSearchAlgorithm("grover", nq, targets, shots, isDark()));
-    if (r.error) { out.innerHTML = '<pre class="error">' + esc(r.error) + '</pre>'; return; }
-    var html = (r.circuitSVG || '') + (r.histogramSVG || '');
-    if (r.result) html += '<p><strong>Result:</strong> ' + esc(r.result) + '</p>';
-    if (r.qasmCode) html += '<details><summary>Generated QASM</summary><pre>' + esc(r.qasmCode) + '</pre></details>';
-    out.innerHTML = html;
-  } catch(e) { out.innerHTML = '<pre class="error">' + esc(e.message) + '</pre>'; }
-}
-</script>
-
 <h3>Interactive: Step-by-Step Amplitude Amplification</h3>
 <p>
   Step through Grover's algorithm one iteration at a time. Watch how the probability
-  of the target state grows with each application of the oracle and diffusion operator.
-  Target states are highlighted.
+  of the target state $|101\rangle$ grows with each application of the oracle and diffusion operator.
+  Target states are highlighted in red.
 </p>
+
 <div class="step-through" data-component="step-through" data-mode="grover" data-qubits="3" data-targets="[5]">
-  <pre class="step-qasm" style="display:none">placeholder</pre>
   <div class="step-controls">
-    <button data-action="prev">Previous</button>
-    <span class="step-info"></span>
+    <button data-action="prev" disabled>Previous</button>
+    <span class="step-info">Step 0</span>
     <button data-action="next">Next</button>
   </div>
   <div class="step-output"></div>
@@ -678,77 +495,76 @@ async function runGroverSearch() {
     <div class="poe-progress-step">Explain</div>
   </div>
   <div class="poe-step poe-predict active">
-    <h3>Predict</h3>
-    <p>
-      The circuit below runs <strong>5 Grover iterations</strong> on a 3-qubit search for
-      $|101\rangle$. We know 1 iteration gives 78% and 2 iterations give 95%. What do you think
-      5 iterations will give? Will the probability of measuring $|101\rangle$ be higher, lower,
-      or about the same?
-    </p>
-    <textarea rows="3" placeholder="Write your prediction here..."></textarea>
+    <h4>Predict</h4>
+    <p>For a 3-qubit search with 1 marked item, 2 iterations gives ~95% success. Will 5 iterations give an even higher probability? Or will something unexpected happen?</p>
+    <textarea rows="3" placeholder="Write your prediction: does more iterations always mean better results?"></textarea>
     <button data-action="next">Submit Prediction</button>
   </div>
   <div class="poe-step poe-observe">
-    <h3>Observe</h3>
-    <p>Run the circuit and look at the histogram. What state has the highest probability?</p>
+    <h4>Observe</h4>
+    <p>Run Grover's algorithm with 5 iterations and compare to 2 iterations:</p>
     <div class="sandbox" data-component="sandbox" data-shots="1024" data-autorun>
-      <textarea class="code" rows="22">OPENQASM 3.0;
-qubit[3] q;
-bit[3] c;
-
-h q[0]; h q[1]; h q[2];
-
+      <textarea class="code" rows="18">OPENQASM 3.0;
+qubit[3] q; bit[3] c;
+// Grover search for |101> with 5 iterations
 gate oracle q0, q1, q2 {
-  x q1;
-  ccz q0, q1, q2;
-  x q1;
+  x q1; ccz q0, q1, q2; x q1;
 }
 gate diffusion q0, q1, q2 {
   h q0; h q1; h q2;
-  x q0; x q1; x q2;
-  ccz q0, q1, q2;
-  x q0; x q1; x q2;
+  x q0; x q1; x q2; ccz q0, q1, q2; x q0; x q1; x q2;
   h q0; h q1; h q2;
 }
-
-// Five Grover iterations
-oracle q[0], q[1], q[2];
-diffusion q[0], q[1], q[2];
-oracle q[0], q[1], q[2];
-diffusion q[0], q[1], q[2];
-oracle q[0], q[1], q[2];
-diffusion q[0], q[1], q[2];
-oracle q[0], q[1], q[2];
-diffusion q[0], q[1], q[2];
-oracle q[0], q[1], q[2];
-diffusion q[0], q[1], q[2];
-
+h q[0]; h q[1]; h q[2];
+oracle q[0], q[1], q[2]; diffusion q[0], q[1], q[2];
+oracle q[0], q[1], q[2]; diffusion q[0], q[1], q[2];
+oracle q[0], q[1], q[2]; diffusion q[0], q[1], q[2];
+oracle q[0], q[1], q[2]; diffusion q[0], q[1], q[2];
+oracle q[0], q[1], q[2]; diffusion q[0], q[1], q[2];
 c = measure q;</textarea>
-      <div class="sandbox-controls">
-        <button data-action="run">Run Again</button>
-      </div>
+      <div class="sandbox-controls"><button data-action="run">Run Again</button></div>
       <div class="output"></div>
     </div>
-    <button data-action="next">Continue to Explanation</button>
+    <button data-action="next">Continue</button>
   </div>
   <div class="poe-step poe-explain">
-    <h3>Explain</h3>
-    <p>
-      After 5 iterations, the total rotation angle is $(2 \times 5 + 1) \times 0.3614 \approx
-      3.976$ radians. Since $\pi/2 \approx 1.571$, we have rotated well past the optimum and
-      the state has swung past $|\text{good}\rangle$ and is now heading back toward
-      $|\text{bad}\rangle$. The probability of finding the marked state has decreased
-      significantly - $\sin^2(3.976) \approx 0.548$, much less than the 95% we achieved with
-      just 2 iterations.
-    </p>
-    <p>
-      This is the overshooting phenomenon. Grover's algorithm is a rotation in a
-      two-dimensional subspace, and like a pendulum swinging past the bottom, more iterations
-      can make things worse. Choosing the right number of iterations is essential. You can verify
-      this quantitatively using the slider in Section 12.2.
-    </p>
-    <button data-action="complete">Complete</button>
+    <h4>Explain</h4>
+    <p>With 5 iterations, the success probability has dropped dramatically - the state has rotated <em>past</em> $|\text{good}\rangle$ and is heading back toward $|\text{bad}\rangle$. Grover's algorithm is a rotation, not a monotonic amplification. After the optimal number of iterations, additional iterations actually reduce the probability. The success probability oscillates as $\sin^2((2k+1)\theta)$. For $N=8, M=1$: $k=2$ gives 94.5%, but $k=5$ gives only about 3.7%.</p>
   </div>
+</div>
+
+<h3>Exercise: Build a Grover Oracle</h3>
+
+<div class="exercise" data-component="exercise">
+  <div class="exercise-header">Exercise: Grover Oracle for Target State |110></div>
+  <div class="exercise-prompt"><p>Build a Grover oracle that marks the state $|110\rangle$ (decimal 6). Complete the oracle gate definition and run the full Grover search. The marked state should appear with high probability after one iteration.</p></div>
+  <textarea class="code" rows="16">OPENQASM 3.0;
+qubit[3] q; bit[3] c;
+gate oracle q0, q1, q2 {
+  // TODO: Mark |110> with a phase flip
+  // Hint: |110> means q0=1, q1=1, q2=0
+  // Use X gates to flip the 0-bits, then CCZ, then flip back
+}
+gate diffusion q0, q1, q2 {
+  h q0; h q1; h q2;
+  x q0; x q1; x q2; ccz q0, q1, q2; x q0; x q1; x q2;
+  h q0; h q1; h q2;
+}
+h q[0]; h q[1]; h q[2];
+oracle q[0], q[1], q[2];
+diffusion q[0], q[1], q[2];
+c = measure q;</textarea>
+  <div class="exercise-expected">
+    <span data-state="110" data-prob="0.78" data-tolerance="0.15"></span>
+  </div>
+  <div class="exercise-controls">
+    <button data-action="run">Run</button>
+    <button data-action="check">Check</button>
+    <button data-action="hint">Hint</button>
+  </div>
+  <div class="exercise-feedback"></div>
+  <div class="output"></div>
+  <div class="exercise-hint hidden"><p>For $|110\rangle$: $q_2 = 0$, so flip it with X. Then apply CCZ. Then flip back: <code>x q2; ccz q0, q1, q2; x q2;</code></p></div>
 </div>
 
 </section>
@@ -1052,101 +868,4 @@ $$M = N \sin^2(\theta).$$
 
 </section>
 
-<!-- ================================================================== -->
-<section id="review">
-<h2>Chapter 12 Review</h2>
 
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 12 Review</div>
-
-  <div class="flashcard" data-card-id="ch12-search-speedup">
-    <div class="card-front">What speedup does Grover's algorithm provide for unstructured search, and how many oracle queries does it require?</div>
-    <div class="card-back">
-      Grover's algorithm provides a quadratic speedup. For searching among $N$ items with $M$ solutions, it requires $O(\sqrt{N/M})$ oracle queries, compared to $\Omega(N/M)$ classically. For a single solution ($M = 1$), this is $O(\sqrt{N})$ versus $O(N)$.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch12-geometric-rotation">
-    <div class="card-front">Describe the geometric picture of Grover's algorithm. What two states define the relevant subspace, and what operation does each Grover iteration perform?</div>
-    <div class="card-back">
-      The algorithm operates in the 2D subspace spanned by $|\text{good}\rangle$ (uniform superposition over solutions) and $|\text{bad}\rangle$ (uniform superposition over non-solutions). Each Grover iteration is a rotation by $2\theta = 2\arcsin(\sqrt{M/N})$ toward $|\text{good}\rangle$, achieved by composing two reflections: the oracle reflection (about $|\text{bad}\rangle$) and the diffusion reflection (about $|s\rangle$).
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch12-optimal-iterations">
-    <div class="card-front">What is the formula for the optimal number of Grover iterations, and what happens if you use too many?</div>
-    <div class="card-back">
-      The optimal number of iterations is $k_{\text{opt}} = \lfloor \pi/(4\theta) - 1/2 \rfloor$ where $\theta = \arcsin(\sqrt{M/N})$, approximately $(\pi/4)\sqrt{N/M}$. Using too many iterations causes the state to rotate <em>past</em> $|\text{good}\rangle$, decreasing the success probability. The behavior is periodic, not monotonically improving.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch12-diffusion-operator">
-    <div class="card-front">What does the diffusion operator $2|s\rangle\langle s| - I$ do to the amplitudes of a quantum state?</div>
-    <div class="card-back">
-      It performs an "inversion about the mean." If the average amplitude is $\bar{a}$, each amplitude $a_x$ is mapped to $2\bar{a} - a_x$. Amplitudes below the mean are boosted above it, and amplitudes above the mean are pushed below it. After the oracle has made the marked states' amplitudes negative (below the mean), the diffusion operator amplifies them.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch12-quantum-counting">
-    <div class="card-front">What is quantum counting, and how does it solve the problem of not knowing the number of solutions $M$ in advance?</div>
-    <div class="card-back">
-      Quantum counting applies Quantum Phase Estimation (QPE) to the Grover operator $G = U_s U_f$. Since $G$ rotates by $2\theta$ in the good/bad subspace, its eigenvalues are $e^{\pm 2i\theta}$. QPE estimates $\theta$, from which we recover $M = N\sin^2(\theta)$. We can then compute the optimal number of Grover iterations.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch12-bbbv-theorem">
-    <div class="card-front">What does the BBBV theorem prove, and why is it significant?</div>
-    <div class="card-back">
-      The BBBV theorem (Bennett, Bernstein, Brassard, Vazirani, 1997) proves that any quantum algorithm solving unstructured search with constant success probability requires $\Omega(\sqrt{N})$ oracle queries. This means Grover's algorithm is asymptotically optimal - no quantum algorithm can do better. It shows the quadratic speedup is the maximum possible for unstructured search.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch12-np-not-polynomial">
-    <div class="card-front">Can Grover's algorithm solve NP-complete problems in polynomial time? Why or why not?</div>
-    <div class="card-back">
-      No. NP-complete problems have search spaces of size $2^n$, so Grover's algorithm reduces this to $O(2^{n/2})$ - still exponential, just with a halved exponent. The BBBV lower bound shows this quadratic speedup is optimal for unstructured search, so quantum computers cannot solve NP-complete problems in polynomial time via this route.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch12-grover-vs-shor">
-    <div class="card-front">Why does Shor's algorithm achieve an exponential speedup while Grover's algorithm achieves only a quadratic speedup?</div>
-    <div class="card-back">
-      Shor's algorithm exploits the specific mathematical structure of periodicity in modular exponentiation, using the Quantum Fourier Transform to extract this structure efficiently. Grover's algorithm works on unstructured problems with no such exploitable pattern. The BBBV lower bound proves that without structure, quadratic is the best possible quantum speedup. Structure-exploiting algorithms can do exponentially better, but only for problems with the right structure.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-</div>
-
-</section>

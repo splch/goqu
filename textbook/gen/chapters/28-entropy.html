@@ -616,6 +616,463 @@ processes.
 </section>
 
 <!-- ================================================================== -->
+<!-- Visualization 1: Binary Entropy Widget -->
+<section id="binary-entropy-widget-section">
+<h2>Interactive: Binary Entropy Function</h2>
+<p>
+  The binary entropy $h(p) = -p\log_2 p - (1-p)\log_2(1-p)$ measures the uncertainty
+  of a binary source. Drag the point along the curve to see how entropy varies with
+  probability. At the extremes ($p = 0$ or $p = 1$), the outcome is certain and entropy
+  is zero. At $p = 1/2$, entropy reaches its maximum of 1 bit.
+</p>
+
+<div class="widget" id="binary-entropy-widget">
+  <div class="widget-header">Binary Entropy $h(p)$</div>
+  <div style="display:flex;gap:1rem;align-items:center;margin-bottom:0.5rem;">
+    <label style="font-family:var(--font-mono);font-size:0.85rem;">$p$:
+      <input type="range" min="0.001" max="0.999" step="0.001" value="0.5" id="be-p" style="width:14rem;accent-color:var(--color-accent);">
+      <span id="be-p-val" style="font-family:var(--font-mono);font-size:0.8rem;">0.500</span>
+    </label>
+  </div>
+  <div id="be-plot" style="width:100%;height:220px;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-code-bg);"></div>
+  <div id="be-info" style="font-family:var(--font-mono);font-size:0.85rem;text-align:center;margin-top:0.5rem;color:var(--color-text-muted);"></div>
+</div>
+<script>
+(function(){
+  var plotEl = document.getElementById("be-plot");
+  var infoEl = document.getElementById("be-info");
+  var slider = document.getElementById("be-p");
+  if(!plotEl || !slider) return;
+
+  function h(p){
+    if(p<=0||p>=1) return 0;
+    return -p*Math.log2(p)-(1-p)*Math.log2(1-p);
+  }
+
+  function draw(){
+    var pVal = parseFloat(slider.value);
+    document.getElementById("be-p-val").textContent = pVal.toFixed(3);
+
+    while(plotEl.firstChild) plotEl.removeChild(plotEl.firstChild);
+    var svg = document.createElementNS("http://www.w3.org/2000/svg","svg");
+    svg.setAttribute("viewBox","0 0 440 200"); svg.setAttribute("width","100%"); svg.setAttribute("height","100%");
+    var pad={l:45,r:15,t:15,b:30}, w=440-pad.l-pad.r, ht=200-pad.t-pad.b;
+    function sx(v){ return pad.l+v*w; }
+    function sy(v){ return pad.t+(1-v)*ht; }
+
+    // Axes
+    var xAxis = document.createElementNS("http://www.w3.org/2000/svg","line");
+    xAxis.setAttribute("x1",pad.l); xAxis.setAttribute("y1",sy(0));
+    xAxis.setAttribute("x2",pad.l+w); xAxis.setAttribute("y2",sy(0));
+    xAxis.setAttribute("stroke","var(--color-text-muted)"); xAxis.setAttribute("stroke-width","1");
+    svg.appendChild(xAxis);
+    var yAxis = document.createElementNS("http://www.w3.org/2000/svg","line");
+    yAxis.setAttribute("x1",pad.l); yAxis.setAttribute("y1",pad.t);
+    yAxis.setAttribute("x2",pad.l); yAxis.setAttribute("y2",sy(0));
+    yAxis.setAttribute("stroke","var(--color-text-muted)"); yAxis.setAttribute("stroke-width","1");
+    svg.appendChild(yAxis);
+
+    // Curve
+    var d = "";
+    for(var i=0;i<=200;i++){
+      var p = i/200;
+      var val = h(p);
+      d += (i===0?"M":"L")+sx(p).toFixed(1)+","+sy(val).toFixed(1);
+    }
+    var path = document.createElementNS("http://www.w3.org/2000/svg","path");
+    path.setAttribute("d",d); path.setAttribute("fill","none");
+    path.setAttribute("stroke","var(--color-accent)"); path.setAttribute("stroke-width","2.5");
+    svg.appendChild(path);
+
+    // Current point
+    var hVal = h(pVal);
+    var dot = document.createElementNS("http://www.w3.org/2000/svg","circle");
+    dot.setAttribute("cx",sx(pVal)); dot.setAttribute("cy",sy(hVal));
+    dot.setAttribute("r","6"); dot.setAttribute("fill","var(--color-state)");
+    dot.setAttribute("stroke","white"); dot.setAttribute("stroke-width","2");
+    svg.appendChild(dot);
+
+    // Dashed lines from point to axes
+    var hLine = document.createElementNS("http://www.w3.org/2000/svg","line");
+    hLine.setAttribute("x1",pad.l); hLine.setAttribute("y1",sy(hVal));
+    hLine.setAttribute("x2",sx(pVal)); hLine.setAttribute("y2",sy(hVal));
+    hLine.setAttribute("stroke","var(--color-state)"); hLine.setAttribute("stroke-width","1");
+    hLine.setAttribute("stroke-dasharray","3,3");
+    svg.appendChild(hLine);
+    var vLine = document.createElementNS("http://www.w3.org/2000/svg","line");
+    vLine.setAttribute("x1",sx(pVal)); vLine.setAttribute("y1",sy(hVal));
+    vLine.setAttribute("x2",sx(pVal)); vLine.setAttribute("y2",sy(0));
+    vLine.setAttribute("stroke","var(--color-state)"); vLine.setAttribute("stroke-width","1");
+    vLine.setAttribute("stroke-dasharray","3,3");
+    svg.appendChild(vLine);
+
+    // Axis labels
+    [0,0.25,0.5,0.75,1].forEach(function(v){
+      var t = document.createElementNS("http://www.w3.org/2000/svg","text");
+      t.setAttribute("x",sx(v)); t.setAttribute("y",sy(0)+14);
+      t.setAttribute("text-anchor","middle"); t.setAttribute("font-size","9");
+      t.setAttribute("fill","var(--color-text-muted)"); t.setAttribute("font-family","var(--font-mono)");
+      t.textContent = v.toFixed(2);
+      svg.appendChild(t);
+    });
+    [0,0.5,1].forEach(function(v){
+      var t = document.createElementNS("http://www.w3.org/2000/svg","text");
+      t.setAttribute("x",pad.l-6); t.setAttribute("y",sy(v)+4);
+      t.setAttribute("text-anchor","end"); t.setAttribute("font-size","9");
+      t.setAttribute("fill","var(--color-text-muted)"); t.setAttribute("font-family","var(--font-mono)");
+      t.textContent = v.toFixed(1);
+      svg.appendChild(t);
+    });
+    var xl = document.createElementNS("http://www.w3.org/2000/svg","text");
+    xl.setAttribute("x",pad.l+w/2); xl.setAttribute("y",sy(0)+26);
+    xl.setAttribute("text-anchor","middle"); xl.setAttribute("font-size","10");
+    xl.setAttribute("fill","var(--color-text-muted)"); xl.textContent = "p";
+    svg.appendChild(xl);
+
+    plotEl.appendChild(svg);
+    infoEl.textContent = "h("+pVal.toFixed(3)+") = "+hVal.toFixed(4)+" bits" +
+      (Math.abs(pVal-0.5)<0.01?" (maximum - coin flip)" :
+       pVal<0.05||pVal>0.95?" (near zero - highly predictable)":"") +
+      " | Compression: "+pVal.toFixed(3)+" can be encoded in ~"+hVal.toFixed(2)+" bits/symbol";
+  }
+
+  slider.addEventListener("input", draw);
+  draw();
+})();
+</script>
+</section>
+
+<!-- ================================================================== -->
+<!-- Visualization 2: Von Neumann Entropy on Bloch Ball Simulation -->
+<section id="vn-entropy-bloch">
+<h2>Interactive: Von Neumann Entropy on the Bloch Ball</h2>
+<p>
+  The von Neumann entropy of a qubit state depends only on its purity (distance from
+  the center of the Bloch sphere). Pure states on the surface have $S = 0$; the
+  maximally mixed state at the center has $S = 1$ bit. The simulation below shows
+  how noise pushes a pure state inward, increasing its entropy.
+</p>
+
+<div class="simulation" data-component="simulation" data-comparison>
+  <div class="sim-controls">
+    <label>Channel:
+      <select data-param="noiseModel">
+        <option value="depolarizing">Depolarizing</option>
+        <option value="amplitude_damping">Amplitude Damping</option>
+        <option value="phase_damping">Phase Damping</option>
+      </select>
+    </label>
+    <label>Noise $p$:
+      <input type="range" min="0.0" max="1.0" step="0.02" value="0.2" data-param="noiseParam">
+      <output>0.20</output>
+    </label>
+  </div>
+  <div class="sim-qasm">OPENQASM 2.0;
+include "qelib1.inc";
+qreg q[1];
+creg c[1];
+h q[0];
+c[0] = measure q[0];</div>
+  <div class="sim-output"></div>
+</div>
+</section>
+
+<!-- ================================================================== -->
+<!-- Visualization 3: Entropy Venn Diagram Widget -->
+<section id="entropy-venn-widget-section">
+<h2>Interactive: Entropy Venn Diagram</h2>
+<p>
+  The quantum entropy relationships are often visualized as a Venn diagram. Select a
+  state type to see how $S(A)$, $S(B)$, $S(AB)$, $I(A:B)$, and $S(A|B)$ relate.
+  For entangled states, the conditional entropy $S(A|B)$ can be <em>negative</em> -
+  shown in red - a uniquely quantum phenomenon.
+</p>
+
+<div class="widget" id="entropy-venn-widget">
+  <div class="widget-header">Entropy Venn Diagram</div>
+  <div style="display:flex;gap:1rem;align-items:center;margin-bottom:0.75rem;">
+    <label style="font-family:var(--font-mono);font-size:0.85rem;">State:
+      <select id="venn-state" style="font-family:var(--font-mono);font-size:0.8rem;padding:0.3rem;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-surface);color:var(--color-text);">
+        <option value="bell">Bell state (maximally entangled)</option>
+        <option value="product">Product state |0>|+></option>
+        <option value="classical">Classical correlation (50/50 |00>,|11>)</option>
+        <option value="partial">Partially entangled</option>
+      </select>
+    </label>
+  </div>
+  <div id="venn-output" style="display:flex;gap:1.5rem;flex-wrap:wrap;align-items:flex-start;"></div>
+</div>
+<script>
+(function(){
+  var outEl = document.getElementById("venn-output");
+  var sel = document.getElementById("venn-state");
+  if(!outEl || !sel) return;
+
+  var states = {
+    bell: {name:"Bell |Phi+>", SA:1, SB:1, SAB:0, desc:"Pure entangled state: S(AB)=0 but S(A)=S(B)=1. The whole has less entropy than its parts."},
+    product: {name:"Product |0>|+>", SA:0, SB:1, SAB:1, desc:"Product state: S(AB)=S(A)+S(B). No correlations of any kind."},
+    classical: {name:"Classical mixture", SA:1, SB:1, SAB:1, desc:"Classically correlated: S(AB)<S(A)+S(B), but S(A|B)>=0. Only classical correlations."},
+    partial: {name:"Partially entangled", SA:0.81, SB:0.81, SAB:0.47, desc:"Partially entangled: S(A|B) is negative (quantum correlations) but not maximally so."}
+  };
+
+  function update(){
+    var s = states[sel.value];
+    var IAB = s.SA + s.SB - s.SAB;
+    var SAcB = s.SAB - s.SB;
+    var SBcA = s.SAB - s.SA;
+
+    while(outEl.firstChild) outEl.removeChild(outEl.firstChild);
+
+    // Diagram
+    var diagDiv = document.createElement("div");
+    diagDiv.style.cssText = "flex:0 0 220px;";
+    var svg = document.createElementNS("http://www.w3.org/2000/svg","svg");
+    svg.setAttribute("viewBox","0 0 220 160"); svg.setAttribute("width","220"); svg.setAttribute("height","160");
+
+    // Two overlapping circles
+    var cA = document.createElementNS("http://www.w3.org/2000/svg","circle");
+    cA.setAttribute("cx","80"); cA.setAttribute("cy","80"); cA.setAttribute("r","55");
+    cA.setAttribute("fill","rgba(74,144,226,0.15)"); cA.setAttribute("stroke","var(--color-accent)"); cA.setAttribute("stroke-width","2");
+    svg.appendChild(cA);
+    var cB = document.createElementNS("http://www.w3.org/2000/svg","circle");
+    cB.setAttribute("cx","140"); cB.setAttribute("cy","80"); cB.setAttribute("r","55");
+    cB.setAttribute("fill","rgba(196,78,82,0.15)"); cB.setAttribute("stroke","var(--color-state)"); cB.setAttribute("stroke-width","2");
+    svg.appendChild(cB);
+
+    // Labels
+    var labA = document.createElementNS("http://www.w3.org/2000/svg","text");
+    labA.setAttribute("x","50"); labA.setAttribute("y","80");
+    labA.setAttribute("text-anchor","middle"); labA.setAttribute("font-size","11"); labA.setAttribute("font-weight","600");
+    labA.setAttribute("fill","var(--color-accent)");
+    labA.textContent = "S(A|B)";
+    svg.appendChild(labA);
+    var valA = document.createElementNS("http://www.w3.org/2000/svg","text");
+    valA.setAttribute("x","50"); valA.setAttribute("y","95");
+    valA.setAttribute("text-anchor","middle"); valA.setAttribute("font-size","10");
+    valA.setAttribute("font-family","var(--font-mono)");
+    valA.setAttribute("fill",SAcB<-0.001?"var(--color-state)":"var(--color-text-muted)");
+    valA.textContent = SAcB.toFixed(2);
+    svg.appendChild(valA);
+
+    var labM = document.createElementNS("http://www.w3.org/2000/svg","text");
+    labM.setAttribute("x","110"); labM.setAttribute("y","75");
+    labM.setAttribute("text-anchor","middle"); labM.setAttribute("font-size","11"); labM.setAttribute("font-weight","600");
+    labM.setAttribute("fill","var(--color-text)");
+    labM.textContent = "I(A:B)";
+    svg.appendChild(labM);
+    var valM = document.createElementNS("http://www.w3.org/2000/svg","text");
+    valM.setAttribute("x","110"); valM.setAttribute("y","90");
+    valM.setAttribute("text-anchor","middle"); valM.setAttribute("font-size","10");
+    valM.setAttribute("font-family","var(--font-mono)"); valM.setAttribute("fill","var(--color-text-muted)");
+    valM.textContent = IAB.toFixed(2);
+    svg.appendChild(valM);
+
+    var labB = document.createElementNS("http://www.w3.org/2000/svg","text");
+    labB.setAttribute("x","170"); labB.setAttribute("y","80");
+    labB.setAttribute("text-anchor","middle"); labB.setAttribute("font-size","11"); labB.setAttribute("font-weight","600");
+    labB.setAttribute("fill","var(--color-state)");
+    labB.textContent = "S(B|A)";
+    svg.appendChild(labB);
+    var valB = document.createElementNS("http://www.w3.org/2000/svg","text");
+    valB.setAttribute("x","170"); valB.setAttribute("y","95");
+    valB.setAttribute("text-anchor","middle"); valB.setAttribute("font-size","10");
+    valB.setAttribute("font-family","var(--font-mono)");
+    valB.setAttribute("fill",SBcA<-0.001?"var(--color-state)":"var(--color-text-muted)");
+    valB.textContent = SBcA.toFixed(2);
+    svg.appendChild(valB);
+
+    // System labels
+    var sysA = document.createElementNS("http://www.w3.org/2000/svg","text");
+    sysA.setAttribute("x","80"); sysA.setAttribute("y","20");
+    sysA.setAttribute("text-anchor","middle"); sysA.setAttribute("font-size","12"); sysA.setAttribute("font-weight","600");
+    sysA.setAttribute("fill","var(--color-accent)"); sysA.textContent = "A";
+    svg.appendChild(sysA);
+    var sysB = document.createElementNS("http://www.w3.org/2000/svg","text");
+    sysB.setAttribute("x","140"); sysB.setAttribute("y","20");
+    sysB.setAttribute("text-anchor","middle"); sysB.setAttribute("font-size","12"); sysB.setAttribute("font-weight","600");
+    sysB.setAttribute("fill","var(--color-state)"); sysB.textContent = "B";
+    svg.appendChild(sysB);
+
+    diagDiv.appendChild(svg);
+    outEl.appendChild(diagDiv);
+
+    // Info table
+    var infoDiv = document.createElement("div");
+    infoDiv.style.cssText = "flex:1;min-width:200px;font-family:var(--font-mono);font-size:0.85rem;";
+    var rows = [
+      {label:"S(A)", val:s.SA.toFixed(2)+" bits"},
+      {label:"S(B)", val:s.SB.toFixed(2)+" bits"},
+      {label:"S(AB)", val:s.SAB.toFixed(2)+" bits"},
+      {label:"I(A:B)", val:IAB.toFixed(2)+" bits"},
+      {label:"S(A|B)", val:SAcB.toFixed(2)+" bits", neg:SAcB<-0.001},
+      {label:"S(B|A)", val:SBcA.toFixed(2)+" bits", neg:SBcA<-0.001}
+    ];
+    rows.forEach(function(r){
+      var row = document.createElement("div");
+      row.style.cssText = "display:flex;justify-content:space-between;padding:0.2rem 0;border-bottom:1px solid var(--color-border);";
+      var lbl = document.createElement("span");
+      lbl.textContent = r.label;
+      var val = document.createElement("span");
+      val.textContent = r.val;
+      if(r.neg){ val.style.color = "var(--color-state)"; val.style.fontWeight = "600"; }
+      row.appendChild(lbl); row.appendChild(val);
+      infoDiv.appendChild(row);
+    });
+    var descP = document.createElement("p");
+    descP.style.cssText = "font-size:0.85rem;margin-top:0.75rem;font-family:var(--font-body);color:var(--color-text-muted);";
+    descP.textContent = s.desc;
+    if(SAcB<-0.001) descP.textContent += " Negative conditional entropy (shown in red) is a signature of entanglement.";
+    infoDiv.appendChild(descP);
+    outEl.appendChild(infoDiv);
+  }
+
+  sel.addEventListener("change", update);
+  update();
+})();
+</script>
+</section>
+
+<!-- ================================================================== -->
+<!-- Visualization 4: Entanglement Entropy Simulation -->
+<section id="entanglement-entropy-sim">
+<h2>Interactive: Entanglement Entropy</h2>
+<p>
+  The state $\cos\theta|00\rangle + \sin\theta|11\rangle$ smoothly interpolates between
+  a product state ($\theta = 0$, $S = 0$) and a maximally entangled Bell state
+  ($\theta = \pi/4$, $S = 1$ bit). Sweep $\theta$ to watch the entanglement entropy
+  and the measurement distribution change together.
+</p>
+
+<div class="simulation" data-component="simulation">
+  <div class="sim-controls">
+    <label>$\theta$:
+      <input type="range" min="0" max="1.5708" step="0.02" value="0.7854" data-param="theta">
+      <output>0.79</output>
+    </label>
+  </div>
+  <div class="sim-qasm">OPENQASM 2.0;
+include "qelib1.inc";
+qreg q[2];
+creg c[2];
+ry({theta}) q[0];
+cx q[0], q[1];
+c[0] = measure q[0];
+c[1] = measure q[1];</div>
+  <div class="sim-output"></div>
+</div>
+
+<div class="widget" id="ent-entropy-curve">
+  <div class="widget-header">Entanglement Entropy vs $\theta$</div>
+  <div style="display:flex;gap:1rem;align-items:center;margin-bottom:0.5rem;">
+    <label style="font-family:var(--font-mono);font-size:0.85rem;">$\theta$:
+      <input type="range" min="0" max="1.5708" step="0.01" value="0.7854" id="ee-theta" style="width:14rem;accent-color:var(--color-accent);">
+      <span id="ee-theta-val" style="font-family:var(--font-mono);font-size:0.8rem;">0.79</span>
+    </label>
+  </div>
+  <div id="ee-plot" style="width:100%;height:200px;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-code-bg);"></div>
+  <div id="ee-info" style="font-family:var(--font-mono);font-size:0.85rem;text-align:center;margin-top:0.5rem;color:var(--color-text-muted);"></div>
+</div>
+<script>
+(function(){
+  var plotEl = document.getElementById("ee-plot");
+  var infoEl = document.getElementById("ee-info");
+  var slider = document.getElementById("ee-theta");
+  if(!plotEl || !slider) return;
+
+  function entEnt(theta){
+    var c2 = Math.cos(theta)*Math.cos(theta);
+    var s2 = Math.sin(theta)*Math.sin(theta);
+    var S = 0;
+    if(c2>1e-10 && c2<1-1e-10) S -= c2*Math.log2(c2);
+    if(s2>1e-10 && s2<1-1e-10) S -= s2*Math.log2(s2);
+    return S;
+  }
+
+  function draw(){
+    var thetaVal = parseFloat(slider.value);
+    document.getElementById("ee-theta-val").textContent = thetaVal.toFixed(2);
+
+    while(plotEl.firstChild) plotEl.removeChild(plotEl.firstChild);
+    var svg = document.createElementNS("http://www.w3.org/2000/svg","svg");
+    svg.setAttribute("viewBox","0 0 440 180"); svg.setAttribute("width","100%"); svg.setAttribute("height","100%");
+    var pad={l:45,r:15,t:15,b:30}, w=440-pad.l-pad.r, h=180-pad.t-pad.b;
+    var maxTheta = Math.PI/2;
+    function sx(v){ return pad.l+(v/maxTheta)*w; }
+    function sy(v){ return pad.t+(1-v)*h; }
+
+    // Axes
+    var xAxis = document.createElementNS("http://www.w3.org/2000/svg","line");
+    xAxis.setAttribute("x1",pad.l); xAxis.setAttribute("y1",sy(0));
+    xAxis.setAttribute("x2",pad.l+w); xAxis.setAttribute("y2",sy(0));
+    xAxis.setAttribute("stroke","var(--color-text-muted)"); xAxis.setAttribute("stroke-width","1");
+    svg.appendChild(xAxis);
+    var yAxis = document.createElementNS("http://www.w3.org/2000/svg","line");
+    yAxis.setAttribute("x1",pad.l); yAxis.setAttribute("y1",pad.t);
+    yAxis.setAttribute("x2",pad.l); yAxis.setAttribute("y2",sy(0));
+    yAxis.setAttribute("stroke","var(--color-text-muted)"); yAxis.setAttribute("stroke-width","1");
+    svg.appendChild(yAxis);
+
+    // Curve
+    var d = "";
+    for(var i=0;i<=200;i++){
+      var theta = (i/200)*maxTheta;
+      var val = entEnt(theta);
+      d += (i===0?"M":"L")+sx(theta).toFixed(1)+","+sy(val).toFixed(1);
+    }
+    var path = document.createElementNS("http://www.w3.org/2000/svg","path");
+    path.setAttribute("d",d); path.setAttribute("fill","none");
+    path.setAttribute("stroke","var(--color-accent)"); path.setAttribute("stroke-width","2.5");
+    svg.appendChild(path);
+
+    // Current point
+    var sVal = entEnt(thetaVal);
+    var dot = document.createElementNS("http://www.w3.org/2000/svg","circle");
+    dot.setAttribute("cx",sx(thetaVal)); dot.setAttribute("cy",sy(sVal));
+    dot.setAttribute("r","6"); dot.setAttribute("fill","var(--color-state)");
+    dot.setAttribute("stroke","white"); dot.setAttribute("stroke-width","2");
+    svg.appendChild(dot);
+
+    // Labels
+    [0,Math.PI/8,Math.PI/4,3*Math.PI/8,Math.PI/2].forEach(function(v){
+      var t = document.createElementNS("http://www.w3.org/2000/svg","text");
+      t.setAttribute("x",sx(v)); t.setAttribute("y",sy(0)+14);
+      t.setAttribute("text-anchor","middle"); t.setAttribute("font-size","9");
+      t.setAttribute("fill","var(--color-text-muted)"); t.setAttribute("font-family","var(--font-mono)");
+      if(Math.abs(v)<0.01) t.textContent = "0";
+      else if(Math.abs(v-Math.PI/4)<0.01) t.textContent = "pi/4";
+      else if(Math.abs(v-Math.PI/2)<0.01) t.textContent = "pi/2";
+      else t.textContent = v.toFixed(2);
+      svg.appendChild(t);
+    });
+    [0,0.5,1].forEach(function(v){
+      var t = document.createElementNS("http://www.w3.org/2000/svg","text");
+      t.setAttribute("x",pad.l-6); t.setAttribute("y",sy(v)+4);
+      t.setAttribute("text-anchor","end"); t.setAttribute("font-size","9");
+      t.setAttribute("fill","var(--color-text-muted)"); t.setAttribute("font-family","var(--font-mono)");
+      t.textContent = v.toFixed(1);
+      svg.appendChild(t);
+    });
+    var xl = document.createElementNS("http://www.w3.org/2000/svg","text");
+    xl.setAttribute("x",pad.l+w/2); xl.setAttribute("y",sy(0)+26);
+    xl.setAttribute("text-anchor","middle"); xl.setAttribute("font-size","10");
+    xl.setAttribute("fill","var(--color-text-muted)"); xl.textContent = "theta";
+    svg.appendChild(xl);
+
+    plotEl.appendChild(svg);
+    infoEl.textContent = "S(rho_A) = "+sVal.toFixed(4)+" bits | " +
+      "cos^2(theta) = "+(Math.cos(thetaVal)*Math.cos(thetaVal)).toFixed(4) +
+      " | sin^2(theta) = "+(Math.sin(thetaVal)*Math.sin(thetaVal)).toFixed(4) +
+      (thetaVal<0.02?" | Product state (no entanglement)":
+       Math.abs(thetaVal-Math.PI/4)<0.02?" | Maximally entangled Bell state":"");
+  }
+
+  slider.addEventListener("input", draw);
+  draw();
+})();
+</script>
+</section>
+
+<!-- ================================================================== -->
 <section id="sandbox-entropy">
 <h2>Sandbox: Entropy Explorer</h2>
 
@@ -626,23 +1083,6 @@ rotation angle, you control the Schmidt coefficients and hence the entanglement.
 rotation is $0$, the state is a product state. When it is $\pi/2$ (i.e., a Hadamard), the
 state is maximally entangled.
 </p>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="9">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-// Rotation angle controls entanglement (0 = none, pi/2 = max)
-ry(1.5708) q[0];  // pi/2 for max entanglement
-cx q[0], q[1];
-// Measure both qubits to see correlations
-c[0] = measure q[0];
-c[1] = measure q[1];</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
 
 <p>
 Experiments to try:
@@ -675,24 +1115,6 @@ in the pure state $|0\rangle$ subjected to increasing noise. Watch the purity dr
 (pure, $S = 0$) toward 0.5 (maximally mixed, $S = 1$ bit) as noise increases.
 </p>
 
-<div class="simulation" data-component="simulation" data-comparison="true">
-  <div class="sim-controls">
-    <label>Channel:
-      <select data-param="noiseModel">
-        <option value="depolarizing">Depolarizing</option>
-        <option value="amplitude_damping">Amplitude Damping</option>
-        <option value="phase_damping">Phase Damping</option>
-      </select>
-    </label>
-    <label>Noise: <input type="range" data-param="noiseParam" min="0" max="0.5" step="0.01" value="0"><output>0.00</output></label>
-  </div>
-  <script type="text/template" class="sim-qasm">OPENQASM 3.0;
-qubit[1] q;
-bit[1] c;
-c = measure q;</script>
-  <div class="sim-output"></div>
-</div>
-
 <p>
 Observations connecting purity to entropy:
 </p>
@@ -715,101 +1137,4 @@ phase damping destroys coherence and increases entropy.</li>
 
 </section>
 
-<!-- ================================================================== -->
 
-<section id="review">
-<h2>Chapter 28 Review</h2>
-
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 28 Review</div>
-
-  <div class="flashcard" data-card-id="ch28-shannon-entropy">
-    <div class="card-front">Define the Shannon entropy $H(X)$ and state its operational meaning.</div>
-    <div class="card-back">
-      The Shannon entropy is $H(X) = -\sum_x p(x) \log p(x)$, measuring the average surprise or uncertainty of random variable $X$. Operationally, $H(X)$ is the minimum average number of bits per symbol needed to losslessly compress a sequence of independent samples from $X$ (Shannon's source coding theorem). It ranges from 0 (deterministic) to $\log|X|$ (uniform).
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch28-von-neumann-entropy">
-    <div class="card-front">Define the von Neumann entropy and list three of its key properties.</div>
-    <div class="card-back">
-      The von Neumann entropy is $S(\rho) = -\text{Tr}(\rho \log \rho)$, which equals $-\sum_i \lambda_i \log \lambda_i$ for eigenvalues $\lambda_i$. Key properties: (1) $S(\rho) \geq 0$, with equality iff $\rho$ is pure. (2) $S(\rho) \leq \log d$, with equality iff $\rho = I/d$. (3) Concavity: $S(\sum_i p_i \rho_i) \geq \sum_i p_i S(\rho_i)$. Also: unitary invariance and additivity on product states.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch28-entropy-not-monotone">
-    <div class="card-front">Why is the von Neumann entropy not monotone, and what does this have to do with entanglement?</div>
-    <div class="card-back">
-      For a Bell state $|\Phi^+\rangle$, the joint entropy $S(\rho_{AB}) = 0$ (pure state) is less than $S(\rho_A) = 1$ (maximally mixed). This means a subsystem can have more entropy than the whole - impossible classically. This non-monotonicity is a direct signature of entanglement: a pure entangled state has perfect global information but maximum local uncertainty.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch28-relative-entropy">
-    <div class="card-front">State Klein's inequality for quantum relative entropy and the data processing inequality.</div>
-    <div class="card-back">
-      Klein's inequality: $D(\rho \| \sigma) = \text{Tr}(\rho \log \rho - \rho \log \sigma) \geq 0$, with equality iff $\rho = \sigma$. The data processing inequality: $D(\mathcal{E}(\rho) \| \mathcal{E}(\sigma)) \leq D(\rho \| \sigma)$ for any quantum channel $\mathcal{E}$. Physical meaning: no physical process can increase the distinguishability of two quantum states.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch28-strong-subadditivity">
-    <div class="card-front">State the strong subadditivity inequality and give its equivalent conditional mutual information form.</div>
-    <div class="card-back">
-      Strong subadditivity (Lieb-Ruskai, 1973): for any tripartite state $\rho_{ABC}$, $S(\rho_{ABC}) + S(\rho_C) \leq S(\rho_{AC}) + S(\rho_{BC})$. Equivalently, the conditional mutual information $I(A:B|C) = S(\rho_{AC}) + S(\rho_{BC}) - S(\rho_{ABC}) - S(\rho_C) \geq 0$. This is the deepest known inequality for the von Neumann entropy and is equivalent to the monotonicity of relative entropy.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch28-negative-conditional-entropy">
-    <div class="card-front">Can the quantum conditional entropy $S(A|B)$ be negative? When, and what does it mean?</div>
-    <div class="card-back">
-      Yes, $S(A|B) = S(\rho_{AB}) - S(\rho_B)$ can be negative for entangled states. For a maximally entangled state of two qubits: $S(A|B) = 0 - 1 = -1$. Negative conditional entropy is a signature of entanglement and operationally quantifies the entanglement gain in quantum state merging. This contrasts sharply with classical conditional entropy, which is always non-negative.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch28-entanglement-entropy">
-    <div class="card-front">Define entanglement entropy for pure states and explain why it is the unique entanglement measure.</div>
-    <div class="card-back">
-      For a pure bipartite state $|\psi\rangle_{AB}$ with Schmidt coefficients $\lambda_i$, the entanglement entropy is $E = S(\rho_A) = -\sum_i \lambda_i^2 \log \lambda_i^2$. It is the unique measure (up to normalization) satisfying: zero for product states, maximal for Bell states, non-increasing under LOCC, and additive on tensor products. It equals the asymptotic rate of Bell pair interconversion.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch28-bound-entanglement">
-    <div class="card-front">What is bound entanglement, and what does the PPT criterion have to do with it?</div>
-    <div class="card-back">
-      Bound entangled states are entangled ($E_f > 0$) but no Bell pairs can be distilled from them ($E_d = 0$). The PPT (positive partial transpose) criterion says separable states must have $\rho^{T_B} \geq 0$. In dimensions higher than $2 \times 3$, there exist entangled states that pass the PPT test - these are bound entangled. Their existence shows entanglement theory is irreversible for mixed states.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-</div>
-</section>

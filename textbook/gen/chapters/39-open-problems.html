@@ -95,6 +95,103 @@
   magnitude.
 </p>
 
+<!-- Widget 1: Qubit Scaling Gap -->
+<div class="widget" id="qubit-scaling-gap">
+  <div class="widget-header">Qubit Scaling Gap: Current vs Required</div>
+  <div id="qsg-svg" style="width:100%; overflow-x:auto;"></div>
+  <div id="qsg-info" style="font-size:0.85rem; color:var(--color-text-muted); margin-top:0.5rem; text-align:center;"></div>
+</div>
+
+<script>
+(function(){
+  var svgBox = document.getElementById('qsg-svg');
+  var infoEl = document.getElementById('qsg-info');
+
+  function isDk(){ return window.matchMedia("(prefers-color-scheme: dark)").matches; }
+
+  function draw(){
+    var dark = isDk();
+    var textC = dark ? '#ccc' : '#333';
+    var gridC = dark ? '#444' : '#ddd';
+
+    var data = [
+      {label:"IBM Eagle",       current:127,    color:"#3498db"},
+      {label:"IBM Condor",      current:1121,   color:"#3498db"},
+      {label:"QuEra Array",     current:3000,   color:"#2ecc71"},
+      {label:"Google Willow",   current:105,    color:"#e74c3c"},
+      {label:"Quantinuum H2",   current:56,     color:"#9b59b6"},
+      {label:"RSA-2048 (est.)", current:4000000, color:"#f39c12", isTarget:true},
+      {label:"Chemistry (est.)",current:1000000, color:"#f39c12", isTarget:true},
+      {label:"Optimization",    current:100000,  color:"#f39c12", isTarget:true}
+    ];
+
+    var W = 520, H = 320, pl = 120, pr = 30, pt = 30, pb = 40;
+    var pw = W - pl - pr, ph = H - pt - pb;
+
+    var ns = document.createElementNS("http://www.w3.org/2000/svg","svg");
+    ns.setAttribute("viewBox","0 0 "+W+" "+H);
+    ns.setAttribute("style","font-family:system-ui,sans-serif;max-width:100%;height:auto;");
+
+    function mkEl(tag,attrs){
+      var e = document.createElementNS("http://www.w3.org/2000/svg",tag);
+      for(var k in attrs) e.setAttribute(k,attrs[k]);
+      return e;
+    }
+    function addText(x,y,txt,sz,anch,col,fw){
+      var t = mkEl("text",{x:x,y:y,"text-anchor":anch||"middle",fill:col||textC,"font-size":sz||"11"});
+      if(fw) t.setAttribute("font-weight",fw);
+      t.textContent = txt;
+      ns.appendChild(t);
+    }
+
+    var maxLog = 7; // 10^7
+
+    // Grid
+    for(var i=0;i<=maxLog;i++){
+      var x = pl + i/maxLog * pw;
+      ns.appendChild(mkEl("line",{x1:x,y1:pt,x2:x,y2:H-pb,stroke:gridC,"stroke-width":"0.5"}));
+      addText(x,H-pb+16,"10^"+i,"10","middle");
+    }
+
+    // Axis
+    ns.appendChild(mkEl("line",{x1:pl,y1:H-pb,x2:W-pr,y2:H-pb,stroke:textC,"stroke-width":"1"}));
+    addText((pl+W-pr)/2,H-pb+35,"Physical qubits (log scale)","11","middle");
+
+    // Bars
+    var barH = (ph - 10) / data.length;
+    for(var i=0;i<data.length;i++){
+      var d = data[i];
+      var y = pt + i * barH + 2;
+      var logVal = Math.log10(d.current);
+      var barW = logVal / maxLog * pw;
+      var opacity = d.isTarget ? "0.4" : "0.85";
+      var pattern = d.isTarget ? "stroke-dasharray:4,2;" : "";
+      ns.appendChild(mkEl("rect",{x:pl,y:y,width:Math.max(barW,2),height:barH-4,rx:3,fill:d.color,opacity:opacity}));
+      if(d.isTarget){
+        ns.appendChild(mkEl("rect",{x:pl,y:y,width:Math.max(barW,2),height:barH-4,rx:3,fill:"none",stroke:d.color,"stroke-width":"1.5","stroke-dasharray":"4,2"}));
+      }
+      addText(pl-4,y+barH/2+1,d.label,"9","end",textC);
+      addText(pl+barW+5,y+barH/2+1,d.current.toLocaleString(),"9","start",d.color,"600");
+    }
+
+    // Gap annotation
+    var gapX = pl + 3.5/maxLog*pw;
+    ns.appendChild(mkEl("line",{x1:gapX,y1:pt+data.length*barH*0.6,x2:gapX,y2:pt,stroke:"#e74c3c","stroke-width":"1.5","stroke-dasharray":"3,2"}));
+    addText(gapX+5,pt+15,"~1000x gap","10","start","#e74c3c","600");
+
+    addText(W/2,18,"Physical Qubit Counts: Current Hardware vs Application Requirements","11","middle",textC,"600");
+
+    while(svgBox.firstChild) svgBox.removeChild(svgBox.firstChild);
+    svgBox.appendChild(ns);
+
+    infoEl.textContent = "Solid bars = current hardware (2025-2026). Dashed bars = estimated requirements for useful fault-tolerant applications. The gap spans roughly three orders of magnitude.";
+  }
+
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener('change', draw);
+  draw();
+})();
+</script>
+
 <h3>The Error Rate Bottleneck</h3>
 
 <p>
@@ -239,6 +336,127 @@ $$\text{Physical qubits needed} \approx \text{Logical qubits} \times \frac{1}{\t
   work at scale and at reasonable cost.
 </div>
 
+<!-- Widget 2: Industry Roadmap -->
+<div class="widget" id="industry-roadmap">
+  <div class="widget-header">Industry Roadmap: Fault-Tolerant QC Milestones</div>
+  <div id="roadmap-svg" style="width:100%; overflow-x:auto;"></div>
+</div>
+
+<script>
+(function(){
+  var svgBox = document.getElementById('roadmap-svg');
+
+  function isDk(){ return window.matchMedia("(prefers-color-scheme: dark)").matches; }
+
+  function draw(){
+    var dark = isDk();
+    var textC = dark ? '#ccc' : '#333';
+    var gridC = dark ? '#444' : '#ddd';
+    var mutedC = dark ? '#888' : '#999';
+
+    var companies = [
+      {name:"IBM", color:"#3498db", milestones:[
+        {year:2024, label:"156q Heron r2"},
+        {year:2025, label:"Loon (qLDPC test)"},
+        {year:2026, label:"Kookaburra (modular)"},
+        {year:2029, label:"Starling: 200 logical qubits"},
+        {year:2033, label:"Blue Jay: 2000 logical qubits"}
+      ]},
+      {name:"Google", color:"#e74c3c", milestones:[
+        {year:2024, label:"Willow threshold"},
+        {year:2025, label:"Quantum Echoes"},
+        {year:2029, label:"Error-corrected computer"},
+        {year:2035, label:"Universal FT QC"}
+      ]},
+      {name:"Quantinuum", color:"#9b59b6", milestones:[
+        {year:2024, label:"12 logical qubits (H2)"},
+        {year:2025, label:"Helios: 48 logical qubits"},
+        {year:2028, label:"Apollo prototype"},
+        {year:2030, label:"Full FTQC"}
+      ]},
+      {name:"QuEra", color:"#2ecc71", milestones:[
+        {year:2025, label:"3000q array, 96 logical"},
+        {year:2026, label:"30 logical + magic states"},
+        {year:2029, label:"100+ logical qubits"},
+        {year:2032, label:"Utility-scale FTQC"}
+      ]},
+      {name:"Microsoft", color:"#f39c12", milestones:[
+        {year:2025, label:"Majorana 1 + tetron measurements"},
+        {year:2028, label:"Logical qubit operations"},
+        {year:2029, label:"FT prototype (DARPA)"},
+        {year:2035, label:"Million-qubit chip"}
+      ]}
+    ];
+
+    var startYear = 2024, endYear = 2036;
+    var W = 520, H = 50 + companies.length * 50;
+    var pl = 90, pr = 20, pt = 30, pb = 25;
+    var pw = W - pl - pr;
+
+    var ns = document.createElementNS("http://www.w3.org/2000/svg","svg");
+    ns.setAttribute("viewBox","0 0 "+W+" "+H);
+    ns.setAttribute("style","font-family:system-ui,sans-serif;max-width:100%;height:auto;");
+
+    function mkEl(tag,attrs){
+      var e = document.createElementNS("http://www.w3.org/2000/svg",tag);
+      for(var k in attrs) e.setAttribute(k,attrs[k]);
+      return e;
+    }
+    function addText(x,y,txt,sz,anch,col,fw){
+      var t = mkEl("text",{x:x,y:y,"text-anchor":anch||"middle",fill:col||textC,"font-size":sz||"11"});
+      if(fw) t.setAttribute("font-weight",fw);
+      t.textContent = txt;
+      ns.appendChild(t);
+    }
+
+    function xPos(year){ return pl + (year - startYear)/(endYear - startYear) * pw; }
+
+    // Year grid
+    for(var y=startYear;y<=endYear;y++){
+      var x = xPos(y);
+      ns.appendChild(mkEl("line",{x1:x,y1:pt,x2:x,y2:H-pb,stroke:gridC,"stroke-width":"0.5"}));
+      if(y%2===0) addText(x,H-pb+15,y.toString(),"10","middle",mutedC);
+    }
+
+    // "Now" marker
+    var nowX = xPos(2026);
+    ns.appendChild(mkEl("line",{x1:nowX,y1:pt-5,x2:nowX,y2:H-pb,stroke:"#e74c3c","stroke-width":"1.5","stroke-dasharray":"4,3"}));
+    addText(nowX,pt-10,"Now","9","middle","#e74c3c","600");
+
+    // Company rows
+    for(var c=0;c<companies.length;c++){
+      var comp = companies[c];
+      var rowY = pt + c * 45 + 20;
+
+      addText(pl-8,rowY+4,comp.name,"10","end",comp.color,"600");
+
+      // Timeline bar
+      var firstYear = comp.milestones[0].year;
+      var lastYear = comp.milestones[comp.milestones.length-1].year;
+      ns.appendChild(mkEl("line",{x1:xPos(firstYear),y1:rowY,x2:xPos(lastYear),y2:rowY,stroke:comp.color,"stroke-width":"3","stroke-linecap":"round",opacity:"0.5"}));
+
+      // Milestone dots
+      for(var m=0;m<comp.milestones.length;m++){
+        var ms = comp.milestones[m];
+        var mx = xPos(ms.year);
+        ns.appendChild(mkEl("circle",{cx:mx,cy:rowY,r:5,fill:comp.color}));
+        // Alternate label above/below
+        var labelY = (m%2===0) ? rowY-12 : rowY+14;
+        addText(mx,labelY,ms.label,"7","middle",textC);
+      }
+    }
+
+    addText(W/2,15,"Fault-Tolerant QC Roadmaps (2024-2035)","12","middle",textC,"600");
+
+    while(svgBox.firstChild) svgBox.removeChild(svgBox.firstChild);
+    svgBox.appendChild(ns);
+  }
+
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener('change', draw);
+  draw();
+})();
+</script>
+
 </section>
 
 <hr />
@@ -378,78 +596,4 @@ $$\text{Physical qubits needed} \approx \text{Logical qubits} \times \frac{1}{\t
 
 <hr />
 
-<!-- ================================================================== -->
-<section id="review">
-<h2>Chapter 39 Review</h2>
 
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 39 Review</div>
-
-  <div class="flashcard" data-card-id="ch39-useful-advantage">
-    <div class="card-front">What is the difference between "quantum supremacy" and "useful quantum advantage"?</div>
-    <div class="card-back">
-      Quantum supremacy means a quantum computer solves <em>any</em> problem faster than any classical computer (demonstrated via random circuit sampling). Useful quantum advantage means solving a <em>commercially or scientifically important</em> problem faster, including all overhead of error correction, compilation, and data loading. As of 2026, supremacy has been demonstrated but useful advantage on a broad, real-world problem has not.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch39-error-rate-bottleneck">
-    <div class="card-front">Why is the error rate more important than the number of qubits?</div>
-    <div class="card-back">
-      Fault-tolerant computation requires logical error rates of $\sim 10^{-10}$. With physical error rates of $10^{-3}$ to $10^{-4}$, roughly 1,000-10,000 physical qubits are needed per logical qubit. A 1,000-qubit processor with high errors may be less useful than 100 qubits with lower errors. The relevant metric is logical qubit count at a target logical error rate, not raw physical qubit count.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch39-ftqc-timeline">
-    <div class="card-front">What is the consensus timeline for fault-tolerant quantum computing?</div>
-    <div class="card-back">
-      2025-2027: Small-scale fault-tolerant demos (tens of logical qubits). 2028-2032: Intermediate-scale systems with hundreds of logical qubits offering advantage on some practical problems. 2033+: Large-scale systems with thousands of logical qubits for flagship applications. Caveat: every QC timeline in history has been optimistic.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch39-extended-church-turing">
-    <div class="card-front">What is the extended Church-Turing thesis and what does quantum computing imply about it?</div>
-    <div class="card-back">
-      The extended Church-Turing thesis claims a Turing machine can <em>efficiently</em> simulate any physical process. If quantum computers provide exponential speedups (as believed for factoring and simulation), this thesis is false. Formally, this would mean BQP $\neq$ BPP, which remains unproven but is widely believed among complexity theorists.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch39-qc-gravity">
-    <div class="card-front">How does quantum computing connect to quantum gravity?</div>
-    <div class="card-back">
-      The AdS/CFT correspondence suggests spacetime may emerge from quantum entanglement, with tensor networks (used in QEC and simulation) appearing in its structure. The black hole information paradox may involve quantum error correction at a fundamental level (island formula, Hayden-Preskill protocol). Quantum computers could test these ideas by simulating quantum gravity.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch39-talent-gap">
-    <div class="card-front">What is the scale of the quantum computing talent gap?</div>
-    <div class="card-back">
-      The global quantum workforce is ~30,000 people, with projections of 250,000 roles by 2030 and 840,000 by 2035. There are roughly 3 open positions per qualified professional. Only 12% of surveyed professionals have formal quantum training. US quantum job postings have nearly tripled since 2018. The gap must be addressed through undergraduate programs, bootcamps, open-source community, and cross-training from adjacent fields.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-</div>
-</section>

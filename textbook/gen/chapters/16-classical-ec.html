@@ -66,6 +66,73 @@ $$P_{\text{fail}} = 3p^2(1-p) + p^3 = 3p^2 - 2p^3$$
   probability drops from $0.01$ to roughly $0.0003$ - an improvement by a factor of 33.
 </p>
 
+<!-- Visualization 1: Repetition Code Widget -->
+<div class="widget" id="widget-repetition-code">
+  <div class="widget-header">Interactive: Repetition Code</div>
+  <p style="margin-bottom:0.75rem;font-size:0.9rem;">A single bit travels through a noisy channel using 3-copy encoding and majority vote. Adjust the error rate to see how the code protects the message.</p>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label style="font-family:var(--font-mono);font-size:0.9rem;">Source bit:
+      <select id="rep-src" style="font-family:var(--font-mono);font-size:0.85rem;padding:0.3rem;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-surface);color:var(--color-text);">
+        <option value="0">0</option>
+        <option value="1">1</option>
+      </select>
+    </label>
+    <label style="font-family:var(--font-mono);font-size:0.9rem;">Error rate (p): <input type="range" id="rep-p" min="0" max="0.5" step="0.01" value="0.1" style="width:10rem;accent-color:var(--color-accent);"><output id="rep-p-val">0.10</output></label>
+    <button id="rep-send" style="font-family:var(--font-body);font-size:0.85rem;padding:0.35rem 0.75rem;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-accent);color:#fff;cursor:pointer;">Send 1000 messages</button>
+  </div>
+  <div id="rep-output" class="widget-output"></div>
+  <script>
+  (function(){
+    var srcSel = document.getElementById("rep-src");
+    var pSlider = document.getElementById("rep-p");
+    var pVal = document.getElementById("rep-p-val");
+    var btn = document.getElementById("rep-send");
+    var output = document.getElementById("rep-output");
+
+    pSlider.addEventListener("input", function(){ pVal.textContent = parseFloat(pSlider.value).toFixed(2); });
+
+    btn.addEventListener("click", function(){
+      var src = parseInt(srcSel.value);
+      var p = parseFloat(pSlider.value);
+      var N = 1000;
+      var uncodedErrors = 0, codedErrors = 0;
+
+      for (var i = 0; i < N; i++) {
+        // Uncoded
+        var received = (Math.random() < p) ? (1-src) : src;
+        if (received !== src) uncodedErrors++;
+
+        // Coded: 3 copies
+        var b0 = (Math.random() < p) ? (1-src) : src;
+        var b1 = (Math.random() < p) ? (1-src) : src;
+        var b2 = (Math.random() < p) ? (1-src) : src;
+        var decoded = (b0 + b1 + b2 >= 2) ? 1 : 0;
+        if (decoded !== src) codedErrors++;
+      }
+
+      var uncodedRate = (uncodedErrors/N*100).toFixed(1);
+      var codedRate = (codedErrors/N*100).toFixed(1);
+      var theoryUncoded = (p*100).toFixed(1);
+      var theoryCoded = ((3*p*p - 2*p*p*p)*100).toFixed(1);
+      var improvement = codedErrors > 0 ? (uncodedErrors/codedErrors).toFixed(1) : "inf";
+
+      var table = document.createElement("table");
+      table.style.cssText = "width:100%;font-size:0.9rem;";
+      table.insertAdjacentHTML("beforeend",
+        "<thead><tr><th></th><th>Observed</th><th>Theory</th></tr></thead>" +
+        "<tbody>" +
+        "<tr><td>Uncoded error rate</td><td>" + uncodedRate + "%</td><td>" + theoryUncoded + "%</td></tr>" +
+        "<tr><td>Coded error rate (3-rep)</td><td>" + codedRate + "%</td><td>" + theoryCoded + "%</td></tr>" +
+        "<tr><td>Improvement factor</td><td colspan='2'>" + improvement + "x</td></tr>" +
+        "</tbody>"
+      );
+      output.textContent = "";
+      output.appendChild(table);
+    });
+  })();
+  </script>
+</div>
+
 <h3>Hamming Distance</h3>
 
 <p>
@@ -121,29 +188,6 @@ $$d(000, 111) = 3$$
   two CNOT gates and a Toffoli, extracting the corrected bit into <code>q[0]</code>. Run the
   circuit and verify that the error is corrected.
 </p>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="14">OPENQASM 3.0;
-qubit[3] q;
-bit[3] c;
-// Encode: copy q[0]=1 to q[1] and q[2]
-x q[0];
-cx q[0], q[1];
-cx q[0], q[2];
-// Simulate single-bit error on q[1]
-x q[1];
-// Decode by majority: if q[1] and q[2] agree
-// and disagree with q[0], the Toffoli flips q[0]
-cx q[0], q[1];
-cx q[0], q[2];
-ccx q[1], q[2], q[0];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
 
 <p>
   The corrected logical bit is in <code>q[0]</code>, which should read <code>1</code>
@@ -297,31 +341,118 @@ $$G = \begin{pmatrix} 1 & 0 & 0 & 0 & 1 & 1 & 0 \\ 0 & 1 & 0 & 0 & 1 & 0 & 1 \\ 
 
 <p>
   The first four columns of $G$ are the identity (systematic form), so encoding preserves
-  the four data bits and appends three parity bits. For example, encoding the message
-  $\mathbf{m} = (1, 0, 1, 1)$:
+  the four data bits and appends three parity bits.
 </p>
 
-$$\mathbf{c} = (1,0,1,1) \begin{pmatrix} 1 & 0 & 0 & 0 & 1 & 1 & 0 \\ 0 & 1 & 0 & 0 & 1 & 0 & 1 \\ 0 & 0 & 1 & 0 & 0 & 1 & 1 \\ 0 & 0 & 0 & 1 & 1 & 1 & 1 \end{pmatrix} = (1, 0, 1, 1, 0, 1, 0)$$
+<!-- Visualization 2: Hamming(7,4) Widget -->
+<div class="widget" id="widget-hamming">
+  <div class="widget-header">Interactive: Hamming(7,4) Code</div>
+  <p style="margin-bottom:0.75rem;font-size:0.9rem;">Enter 4 data bits to see the encoded 7-bit codeword. Then flip any single bit in the received word to watch syndrome decoding identify and correct the error.</p>
+  <div style="display:flex;gap:1rem;align-items:flex-start;flex-wrap:wrap;">
+    <div>
+      <strong style="font-size:0.85rem;">Data bits (click to toggle):</strong>
+      <div id="hamm-data" style="display:flex;gap:4px;margin-top:0.5rem;"></div>
+    </div>
+    <div>
+      <strong style="font-size:0.85rem;">Encoded codeword:</strong>
+      <div id="hamm-code" style="display:flex;gap:4px;margin-top:0.5rem;"></div>
+    </div>
+    <div>
+      <strong style="font-size:0.85rem;">Received (click to inject error):</strong>
+      <div id="hamm-recv" style="display:flex;gap:4px;margin-top:0.5rem;"></div>
+    </div>
+  </div>
+  <div id="hamm-result" class="widget-output" style="margin-top:0.75rem;"></div>
+  <script>
+  (function(){
+    var G = [[1,0,0,0,1,1,0],[0,1,0,0,1,0,1],[0,0,1,0,0,1,1],[0,0,0,1,1,1,1]];
+    var H = [[1,1,0,1,1,0,0],[1,0,1,1,0,1,0],[0,1,1,1,0,0,1]];
+    var data = [1,0,1,1];
+    var errorPos = -1;
 
-<p>
-  All arithmetic is mod 2. The parity bits are:
-  $p_1 = m_1 \oplus m_2 \oplus m_4 = 1 \oplus 0 \oplus 1 = 0$,
-  $p_2 = m_1 \oplus m_3 \oplus m_4 = 1 \oplus 1 \oplus 1 = 1$,
-  $p_3 = m_2 \oplus m_3 \oplus m_4 = 0 \oplus 1 \oplus 1 = 0$.
-  So $\mathbf{c} = (1, 0, 1, 1, 0, 1, 0)$.
-</p>
+    function xor(a,b){ return (a+b)%2; }
 
-<p>
-  Now suppose bit 3 is flipped during transmission, so we receive
-  $\mathbf{r} = (1, 0, \mathbf{0}, 1, 0, 1, 0)$. The syndrome is:
-</p>
+    function encode(d) {
+      var c = [0,0,0,0,0,0,0];
+      for (var i = 0; i < 4; i++) for (var j = 0; j < 7; j++) c[j] = xor(c[j], d[i]*G[i][j]);
+      return c;
+    }
 
-$$\mathbf{s} = H \mathbf{r}^T = \begin{pmatrix} 0 \\ 1 \\ 1 \end{pmatrix}$$
+    function syndrome(r) {
+      var s = [0,0,0];
+      for (var i = 0; i < 3; i++) for (var j = 0; j < 7; j++) s[i] = xor(s[i], H[i][j]*r[j]);
+      return s;
+    }
 
-<p>
-  This matches the third column of $H$, telling us bit 3 is corrupted. We flip it to
-  recover the original codeword.
-</p>
+    function makeBitBox(val, idx, color, clickFn) {
+      var d = document.createElement("div");
+      d.style.cssText = "width:32px;height:32px;display:flex;align-items:center;justify-content:center;border:2px solid " + color + ";border-radius:4px;font-family:var(--font-mono);font-weight:600;font-size:1rem;cursor:" + (clickFn?"pointer":"default") + ";background:" + (val?"color-mix(in srgb, "+color+" 20%, transparent)":"transparent") + ";color:var(--color-text);transition:all 0.15s;";
+      d.textContent = val;
+      d.setAttribute("data-idx", idx);
+      if (clickFn) d.addEventListener("click", function(){ clickFn(idx); });
+      return d;
+    }
+
+    function render() {
+      var codeword = encode(data);
+      var received = codeword.slice();
+      if (errorPos >= 0 && errorPos < 7) received[errorPos] = xor(received[errorPos], 1);
+      var s = syndrome(received);
+      var synVal = s[0]*4 + s[1]*2 + s[2];
+
+      var dataDiv = document.getElementById("hamm-data");
+      dataDiv.textContent = "";
+      data.forEach(function(v,i){
+        dataDiv.appendChild(makeBitBox(v, i, "var(--color-accent)", function(idx){
+          data[idx] = xor(data[idx], 1);
+          errorPos = -1;
+          render();
+        }));
+      });
+
+      var codeDiv = document.getElementById("hamm-code");
+      codeDiv.textContent = "";
+      codeword.forEach(function(v,i){
+        var color = i < 4 ? "var(--color-accent)" : "var(--color-gate-2q)";
+        codeDiv.appendChild(makeBitBox(v, i, color, null));
+      });
+
+      var recvDiv = document.getElementById("hamm-recv");
+      recvDiv.textContent = "";
+      received.forEach(function(v,i){
+        var color = (i === errorPos) ? "var(--color-error)" : "var(--color-border)";
+        recvDiv.appendChild(makeBitBox(v, i, color, function(idx){
+          errorPos = (errorPos === idx) ? -1 : idx;
+          render();
+        }));
+      });
+
+      var resultDiv = document.getElementById("hamm-result");
+      var html = "<strong>Syndrome:</strong> " + s.join("") + " (decimal " + synVal + ")";
+      if (synVal === 0) {
+        html += " - <span style='color:var(--color-success);font-weight:600;'>No error detected</span>";
+      } else {
+        // Map syndrome to column position
+        var errBit = -1;
+        for (var j = 0; j < 7; j++) {
+          if (H[0][j]===s[0] && H[1][j]===s[1] && H[2][j]===s[2]) { errBit = j; break; }
+        }
+        if (errBit >= 0) {
+          html += " - <span style='color:var(--color-error);font-weight:600;'>Error at bit " + (errBit+1) + "</span>";
+          var corrected = received.slice();
+          corrected[errBit] = xor(corrected[errBit], 1);
+          var match = true;
+          for (var j = 0; j < 7; j++) if (corrected[j] !== codeword[j]) match = false;
+          html += match ? " <span style='color:var(--color-success);'>(correction succeeds)</span>" : "";
+        }
+      }
+      resultDiv.textContent = "";
+      resultDiv.insertAdjacentHTML("beforeend", html);
+    }
+    render();
+  })();
+  </script>
+</div>
 
 <h3>Parameters of Hamming Codes</h3>
 
@@ -383,195 +514,83 @@ $$2^k \cdot \sum_{i=0}^{t} \binom{n}{i} \leq 2^n$$
   Hamming distance 1 of exactly one codeword.
 </p>
 
+<!-- Visualization 3: Sphere Packing Widget -->
+<div class="widget" id="widget-sphere-packing">
+  <div class="widget-header">Interactive: Hamming Distance Sphere Packing</div>
+  <p style="margin-bottom:0.75rem;font-size:0.9rem;">Codewords (green) sit at centers of correction spheres. Every 7-bit string falls within distance 1 of exactly one codeword - the Hamming(7,4) code perfectly packs the space.</p>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label style="font-family:var(--font-mono);font-size:0.9rem;">Code:
+      <select id="sp-code" style="font-family:var(--font-mono);font-size:0.85rem;padding:0.3rem;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-surface);color:var(--color-text);">
+        <option value="rep3">Repetition(3,1)</option>
+        <option value="ham74" selected>Hamming(7,4)</option>
+      </select>
+    </label>
+  </div>
+  <div id="sp-output" class="widget-output"></div>
+  <script>
+  (function(){
+    var sel = document.getElementById("sp-code");
+    var output = document.getElementById("sp-output");
+
+    function render() {
+      var code = sel.value;
+      var n, k, codewords, sphereSize;
+      if (code === "rep3") {
+        n = 3; k = 1;
+        codewords = 2;
+        sphereSize = 1 + n; // 1 + C(n,1) = 4
+      } else {
+        n = 7; k = 4;
+        codewords = 16;
+        sphereSize = 1 + n; // 1 + 7 = 8
+      }
+      var totalStrings = Math.pow(2, n);
+      var covered = codewords * sphereSize;
+      var perfect = (covered === totalStrings);
+
+      var table = document.createElement("table");
+      table.style.cssText = "width:100%;font-size:0.9rem;";
+      table.insertAdjacentHTML("beforeend",
+        "<thead><tr><th>Property</th><th>Value</th></tr></thead><tbody>" +
+        "<tr><td>Block length $n$</td><td>" + n + "</td></tr>" +
+        "<tr><td>Data bits $k$</td><td>" + k + "</td></tr>" +
+        "<tr><td>Number of codewords $2^k$</td><td>" + codewords + "</td></tr>" +
+        "<tr><td>Sphere size (1 + $n$)</td><td>" + sphereSize + " strings each</td></tr>" +
+        "<tr><td>Total covered</td><td>" + covered + " / " + totalStrings + "</td></tr>" +
+        "<tr><td>Perfect code?</td><td>" + (perfect ?
+          "<span style='color:var(--color-success);font-weight:600;'>Yes - every string is within distance 1 of exactly one codeword</span>" :
+          "<span style='color:var(--color-warning);'>No - " + (totalStrings - covered) + " strings are uncovered</span>") +
+        "</td></tr></tbody>"
+      );
+
+      var bar = document.createElement("div");
+      bar.style.cssText = "margin-top:0.75rem;height:24px;background:var(--color-code-bg);border-radius:var(--radius);overflow:hidden;position:relative;";
+      var fill = document.createElement("div");
+      fill.style.cssText = "height:100%;background:var(--color-success);width:" + (covered/totalStrings*100) + "%;transition:width 0.3s;";
+      bar.appendChild(fill);
+      var label = document.createElement("span");
+      label.style.cssText = "position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:0.75rem;font-weight:600;color:var(--color-text);";
+      label.textContent = covered + " / " + totalStrings + " (" + (covered/totalStrings*100).toFixed(0) + "%)";
+      bar.appendChild(label);
+
+      output.textContent = "";
+      output.appendChild(table);
+      output.appendChild(bar);
+    }
+
+    sel.addEventListener("change", render);
+    render();
+  })();
+  </script>
+</div>
+
 <h3>Interactive Parity Check Encoder/Decoder</h3>
 
 <p>
-  Use the widget below to explore the Hamming(7,4) code. Enter four data bits to see the
+  Use the widget above to explore the Hamming(7,4) code. Enter four data bits to see the
   encoded 7-bit codeword. Then flip any single bit in the received word to watch syndrome
   decoding identify and correct the error.
 </p>
-
-<div class="widget" id="hamming-widget">
-  <div class="widget-header">Hamming(7,4) Encoder / Syndrome Decoder</div>
-
-  <div style="margin-bottom: 1rem;">
-    <label style="display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.35rem;">Data bits (4 bits):</label>
-    <div id="hw-data-inputs" style="display: flex; gap: 0.35rem;">
-      <input type="text" maxlength="1" value="1" class="hw-data-bit" style="width: 2.2rem; text-align: center; font-family: var(--font-mono); font-size: 1rem; padding: 0.3rem; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-code-bg); color: var(--color-text);" aria-label="d1">
-      <input type="text" maxlength="1" value="0" class="hw-data-bit" style="width: 2.2rem; text-align: center; font-family: var(--font-mono); font-size: 1rem; padding: 0.3rem; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-code-bg); color: var(--color-text);" aria-label="d2">
-      <input type="text" maxlength="1" value="1" class="hw-data-bit" style="width: 2.2rem; text-align: center; font-family: var(--font-mono); font-size: 1rem; padding: 0.3rem; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-code-bg); color: var(--color-text);" aria-label="d3">
-      <input type="text" maxlength="1" value="1" class="hw-data-bit" style="width: 2.2rem; text-align: center; font-family: var(--font-mono); font-size: 1rem; padding: 0.3rem; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-code-bg); color: var(--color-text);" aria-label="d4">
-    </div>
-  </div>
-
-  <div style="margin-bottom: 1rem;">
-    <div style="font-size: 0.85rem; font-weight: 500; margin-bottom: 0.35rem;">Encoded codeword (7 bits):</div>
-    <div id="hw-codeword" style="font-family: var(--font-mono); font-size: 1.1rem; letter-spacing: 0.15em; padding: 0.3rem 0.5rem; background: var(--color-code-bg); border-radius: var(--radius); display: inline-block; border: 1px solid var(--color-border);"></div>
-  </div>
-
-  <div style="margin-bottom: 1rem;">
-    <label style="display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.35rem;">Received word (click a bit to flip it):</label>
-    <div id="hw-received" style="display: flex; gap: 0.35rem;"></div>
-  </div>
-
-  <div style="margin-bottom: 0.75rem;">
-    <div style="font-size: 0.85rem; font-weight: 500; margin-bottom: 0.35rem;">Syndrome:</div>
-    <div id="hw-syndrome" style="font-family: var(--font-mono); font-size: 1.1rem; padding: 0.3rem 0.5rem; background: var(--color-code-bg); border-radius: var(--radius); display: inline-block; border: 1px solid var(--color-border);"></div>
-  </div>
-
-  <div id="hw-result" style="font-size: 0.95rem; padding: 0.5rem; border-radius: var(--radius); margin-top: 0.25rem;" aria-live="polite"></div>
-</div>
-<script>
-(function() {
-  "use strict";
-
-  // Hamming(7,4) matrices over GF(2)
-  // Generator: G = [I4 | P] where P is 4x3
-  var P = [
-    [1, 1, 0],
-    [1, 0, 1],
-    [0, 1, 1],
-    [1, 1, 1]
-  ];
-  // Parity check: H = [P^T | I3], 3x7
-  var H = [
-    [1, 1, 0, 1, 1, 0, 0],
-    [1, 0, 1, 1, 0, 1, 0],
-    [0, 1, 1, 1, 0, 0, 1]
-  ];
-
-  var dataInputs = document.querySelectorAll(".hw-data-bit");
-  var codewordEl = document.getElementById("hw-codeword");
-  var receivedEl = document.getElementById("hw-received");
-  var syndromeEl = document.getElementById("hw-syndrome");
-  var resultEl   = document.getElementById("hw-result");
-
-  if (!codewordEl || !receivedEl) return;
-
-  var codeword = [];
-  var received = [];
-
-  function getDataBits() {
-    var bits = [];
-    for (var i = 0; i < dataInputs.length; i++) {
-      var v = parseInt(dataInputs[i].value, 10);
-      bits.push((v === 1) ? 1 : 0);
-    }
-    return bits;
-  }
-
-  function encode(data) {
-    var cw = data.slice();
-    for (var j = 0; j < 3; j++) {
-      var s = 0;
-      for (var i = 0; i < 4; i++) {
-        s ^= data[i] & P[i][j];
-      }
-      cw.push(s);
-    }
-    return cw;
-  }
-
-  function computeSyndrome(r) {
-    var s = [];
-    for (var i = 0; i < 3; i++) {
-      var v = 0;
-      for (var j = 0; j < 7; j++) {
-        v ^= H[i][j] & r[j];
-      }
-      s.push(v);
-    }
-    return s;
-  }
-
-  function syndromeToPosition(s) {
-    // Find which column of H matches the syndrome
-    var sv = s[0] * 4 + s[1] * 2 + s[2];
-    if (sv === 0) return -1;
-    for (var j = 0; j < 7; j++) {
-      var cv = H[0][j] * 4 + H[1][j] * 2 + H[2][j];
-      if (cv === sv) return j;
-    }
-    return -1;
-  }
-
-  function renderReceived() {
-    receivedEl.innerHTML = "";
-    for (var i = 0; i < received.length; i++) {
-      (function(idx) {
-        var btn = document.createElement("button");
-        btn.textContent = received[idx];
-        btn.style.cssText = "width: 2.2rem; height: 2.2rem; text-align: center; font-family: var(--font-mono); font-size: 1rem; border: 2px solid var(--color-border); border-radius: var(--radius); cursor: pointer; background: var(--color-code-bg); color: var(--color-text);";
-        if (received[idx] !== codeword[idx]) {
-          btn.style.background = "var(--color-danger, #e74c3c)";
-          btn.style.color = "#fff";
-          btn.style.borderColor = "var(--color-danger, #e74c3c)";
-        }
-        btn.addEventListener("click", function() {
-          received[idx] ^= 1;
-          update();
-        });
-        btn.setAttribute("aria-label", "Bit " + (idx + 1) + ": " + received[idx]);
-        receivedEl.appendChild(btn);
-      })(i);
-    }
-  }
-
-  function update() {
-    var data = getDataBits();
-    codeword = encode(data);
-    codewordEl.textContent = codeword.join(" ");
-
-    // Initialize received to codeword if lengths differ
-    if (received.length !== 7) {
-      received = codeword.slice();
-    }
-
-    renderReceived();
-
-    var s = computeSyndrome(received);
-    syndromeEl.textContent = "(" + s.join(", ") + ")";
-
-    var pos = syndromeToPosition(s);
-    if (s[0] === 0 && s[1] === 0 && s[2] === 0) {
-      resultEl.textContent = "No error detected. Received word is a valid codeword.";
-      resultEl.style.background = "var(--color-success-bg, #e8f5e9)";
-      resultEl.style.color = "var(--color-success, #2e7d32)";
-    } else if (pos >= 0) {
-      var corrected = received.slice();
-      corrected[pos] ^= 1;
-      resultEl.textContent = "Error detected at bit " + (pos + 1) + ". Corrected codeword: " + corrected.join("") + ". Decoded data: " + corrected.slice(0, 4).join("");
-      resultEl.style.background = "var(--color-warning-bg, #fff3e0)";
-      resultEl.style.color = "var(--color-warning, #e65100)";
-    } else {
-      resultEl.textContent = "Syndrome does not match any single-bit error (multi-bit error?).";
-      resultEl.style.background = "var(--color-danger-bg, #ffebee)";
-      resultEl.style.color = "var(--color-danger, #c62828)";
-    }
-  }
-
-  function resetReceived() {
-    received = codeword.slice();
-    update();
-  }
-
-  for (var i = 0; i < dataInputs.length; i++) {
-    dataInputs[i].addEventListener("input", function() {
-      var data = getDataBits();
-      codeword = encode(data);
-      received = codeword.slice();
-      update();
-    });
-  }
-
-  // Initial render
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", function() { setTimeout(update, 100); });
-  } else {
-    setTimeout(update, 100);
-  }
-})();
-</script>
 
 <h3>Beyond Single-Error Correction</h3>
 
@@ -633,6 +652,132 @@ $$C = 1 - H(p)$$
 </p>
 
 $$H(p) = -p \log_2 p - (1-p) \log_2(1-p)$$
+
+<!-- Visualization 4: Shannon Capacity Widget -->
+<div class="widget" id="widget-shannon">
+  <div class="widget-header">Interactive: BSC Channel Capacity</div>
+  <p style="margin-bottom:0.75rem;font-size:0.9rem;">Drag the crossover probability to see how capacity $C = 1 - H(p)$ changes. Known codes are marked on the curve.</p>
+  <div style="display:flex;justify-content:center;">
+    <canvas id="shannon-canvas" width="480" height="300" style="border:1px solid var(--color-border);border-radius:var(--radius);max-width:100%;"></canvas>
+  </div>
+  <div style="margin-top:0.5rem;display:flex;align-items:center;gap:0.75rem;">
+    <label style="font-family:var(--font-mono);font-size:0.9rem;">p = <input type="range" id="shannon-p" min="0" max="0.5" step="0.005" value="0.1" style="width:12rem;accent-color:var(--color-accent);"><output id="shannon-pval">0.100</output></label>
+    <span id="shannon-cap" style="font-family:var(--font-mono);font-size:0.9rem;"></span>
+  </div>
+  <script>
+  (function(){
+    var canvas = document.getElementById("shannon-canvas");
+    var ctx = canvas.getContext("2d");
+    var slider = document.getElementById("shannon-p");
+    var pOut = document.getElementById("shannon-pval");
+    var capOut = document.getElementById("shannon-cap");
+    var W = canvas.width, H = canvas.height;
+    var pad = {l:50, r:20, t:20, b:40};
+    var dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+    function h(p) {
+      if (p <= 0 || p >= 1) return 0;
+      return -p*Math.log2(p) - (1-p)*Math.log2(1-p);
+    }
+
+    var codes = [
+      {p:0.01, name:"Hamming(7,4)", rate:4/7},
+      {p:0.05, name:"BCH(31,16)", rate:16/31},
+      {p:0.1, name:"LDPC", rate:0.5}
+    ];
+
+    function draw(pVal) {
+      var gw = W - pad.l - pad.r, gh = H - pad.t - pad.b;
+      ctx.fillStyle = dark ? "#262626" : "#fff";
+      ctx.fillRect(0,0,W,H);
+
+      // Axes
+      ctx.strokeStyle = dark ? "#555" : "#ccc";
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(pad.l, pad.t); ctx.lineTo(pad.l, H-pad.b); ctx.lineTo(W-pad.r, H-pad.b); ctx.stroke();
+
+      // Labels
+      ctx.fillStyle = dark ? "#999" : "#666";
+      ctx.font = "11px system-ui";
+      ctx.textAlign = "center";
+      ctx.fillText("Crossover probability p", W/2, H-5);
+      ctx.save(); ctx.translate(12, H/2); ctx.rotate(-Math.PI/2); ctx.fillText("Capacity C", 0, 0); ctx.restore();
+
+      // Tick marks
+      for (var t = 0; t <= 5; t++) {
+        var px = pad.l + t/5*gw;
+        ctx.fillText((t/10).toFixed(1), px, H-pad.b+15);
+      }
+      for (var t = 0; t <= 4; t++) {
+        var py = H - pad.b - t/4*gh;
+        ctx.textAlign = "right";
+        ctx.fillText((t/4).toFixed(2), pad.l-5, py+4);
+      }
+      ctx.textAlign = "center";
+
+      // Capacity curve
+      ctx.beginPath();
+      ctx.strokeStyle = dark ? "#6A9BD2" : "#4C72B0";
+      ctx.lineWidth = 2;
+      for (var i = 0; i <= 200; i++) {
+        var p = i/400; // 0 to 0.5
+        var c = 1 - h(p);
+        var x = pad.l + (p/0.5)*gw;
+        var y = H - pad.b - c*gh;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      // Fill below curve
+      ctx.lineTo(W-pad.r, H-pad.b);
+      ctx.lineTo(pad.l, H-pad.b);
+      ctx.closePath();
+      ctx.fillStyle = dark ? "rgba(106,155,210,0.1)" : "rgba(76,114,176,0.08)";
+      ctx.fill();
+
+      // Current p marker
+      var cCur = 1 - h(pVal);
+      var xCur = pad.l + (pVal/0.5)*gw;
+      var yCur = H - pad.b - cCur*gh;
+      ctx.beginPath(); ctx.arc(xCur, yCur, 6, 0, 2*Math.PI);
+      ctx.fillStyle = dark ? "#E07070" : "#C44E52";
+      ctx.fill();
+
+      // Dashed lines to axes
+      ctx.setLineDash([4,4]);
+      ctx.strokeStyle = dark ? "#E07070" : "#C44E52";
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(xCur, yCur); ctx.lineTo(xCur, H-pad.b); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(xCur, yCur); ctx.lineTo(pad.l, yCur); ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Code markers
+      codes.forEach(function(code){
+        var cap = 1 - h(code.p);
+        var cx = pad.l + (code.p/0.5)*gw;
+        var cy = H - pad.b - code.rate*gh;
+        ctx.beginPath(); ctx.arc(cx, cy, 4, 0, 2*Math.PI);
+        ctx.fillStyle = dark ? "#22c55e" : "#16a34a";
+        ctx.fill();
+        ctx.fillStyle = dark ? "#999" : "#666";
+        ctx.font = "9px system-ui";
+        ctx.fillText(code.name, cx, cy - 8);
+      });
+    }
+
+    function update() {
+      var p = parseFloat(slider.value);
+      pOut.textContent = p.toFixed(3);
+      var c = 1 - h(p);
+      capOut.textContent = "C = " + c.toFixed(3);
+      draw(p);
+    }
+
+    slider.addEventListener("input", update);
+    update();
+  })();
+  </script>
+</div>
 
 <div class="callout callout-key">
   <strong>Key Concept.</strong>
@@ -777,132 +922,4 @@ $$H(p) = -p \log_2 p - (1-p) \log_2(1-p)$$
   </tbody>
 </table>
 
-</section>
-
-<!-- ================================================================== -->
-
-<section id="review">
-<h2>Chapter 16 Review</h2>
-
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 16 Review</div>
-
-  <div class="flashcard" data-card-id="ch16-repetition-code">
-    <div class="card-front">What is a repetition code, and what is the rate of the 3-bit repetition code?</div>
-    <div class="card-back">
-      A repetition code encodes one logical bit by repeating it $n$ times. The receiver
-      decodes by majority vote. The 3-bit repetition code maps $0 \to 000$ and $1 \to 111$,
-      and its rate is $R = 1/3$. It can correct any single-bit error but uses bandwidth
-      very inefficiently.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch16-hamming-distance">
-    <div class="card-front">Define Hamming distance. How does a code's minimum distance relate to its error-correcting capability?</div>
-    <div class="card-back">
-      The Hamming distance between two binary strings is the number of positions in which they
-      differ. A code with minimum distance $d$ can detect up to $d - 1$ errors and correct up
-      to $\lfloor (d-1)/2 \rfloor$ errors. For example, the Hamming(7,4) code has $d = 3$ and
-      corrects 1 error.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch16-syndrome-decoding">
-    <div class="card-front">Explain syndrome decoding. Why does the syndrome depend only on the error, not on the codeword sent?</div>
-    <div class="card-back">
-      Syndrome decoding computes $\mathbf{s} = H\mathbf{r}^T$ where $H$ is the parity check
-      matrix and $\mathbf{r} = \mathbf{c} + \mathbf{e}$ is the received word. Since
-      $H\mathbf{c}^T = \mathbf{0}$ for any valid codeword, we get
-      $\mathbf{s} = H\mathbf{e}^T$ - the syndrome reveals only the error pattern. For a
-      single-bit error at position $i$, the syndrome equals column $i$ of $H$.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch16-hamming-74-params">
-    <div class="card-front">State the parameters of the Hamming(7,4) code: block length, data bits, parity bits, minimum distance, and rate.</div>
-    <div class="card-back">
-      The Hamming(7,4) code has block length $n = 7$, data bits $k = 4$, parity bits $r = 3$,
-      minimum distance $d = 3$, and rate $R = 4/7 \approx 0.571$. It corrects any single-bit
-      error and detects any double-bit error. It is a perfect code: it achieves the Hamming
-      (sphere-packing) bound with equality.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch16-generator-parity">
-    <div class="card-front">What is the relationship between a linear code's generator matrix $G$ and its parity check matrix $H$?</div>
-    <div class="card-back">
-      When $G = [I_k \mid P]$ is in systematic form, the parity check matrix is
-      $H = [P^T \mid I_r]$ where $r = n - k$. The key identity is $GH^T = \mathbf{0}$
-      (over $\text{GF}(2)$), guaranteeing that every codeword $\mathbf{c} = \mathbf{m}G$
-      satisfies $H\mathbf{c}^T = \mathbf{0}$. The rows of $H$ define the parity constraints
-      that all codewords must satisfy.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch16-perfect-code">
-    <div class="card-front">What is a perfect code, and why are Hamming codes perfect?</div>
-    <div class="card-back">
-      A perfect code achieves the Hamming bound with equality: the spheres of radius $t$
-      around each codeword exactly partition the entire space of $n$-bit strings, with no
-      overlap and no uncovered words. For Hamming codes, each sphere contains $1 + n$ words
-      (the codeword plus $n$ single-bit errors), and $2^k \cdot (1 + n) = 2^n$ exactly.
-      Every received word is within distance 1 of exactly one codeword.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch16-shannon-capacity">
-    <div class="card-front">State Shannon's noisy channel coding theorem for the binary symmetric channel. What is the capacity formula?</div>
-    <div class="card-back">
-      The capacity of the BSC with crossover probability $p$ is $C = 1 - H(p)$, where
-      $H(p) = -p\log_2 p - (1-p)\log_2(1-p)$ is the binary entropy function. Shannon's
-      theorem states: for any rate $R < C$, there exist codes achieving arbitrarily low error
-      probability; for $R > C$, reliable communication is impossible. The theorem is
-      existential - it guarantees good codes exist but does not construct them.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch16-no-cloning-obstacle">
-    <div class="card-front">Why does the no-cloning theorem seem to prevent quantum error correction, and how is this obstacle resolved?</div>
-    <div class="card-back">
-      Classical error correction relies on copying data (repetition). The no-cloning theorem
-      forbids copying unknown quantum states, seemingly making redundancy impossible. The
-      resolution is that quantum error correction does not copy the state - it encodes the
-      logical qubit's information into entanglement across multiple physical qubits. The
-      information lives in the correlations, not in any single qubit. Syndrome measurements
-      extract error information without disturbing the encoded state.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-</div>
 </section>

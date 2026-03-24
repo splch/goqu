@@ -89,24 +89,89 @@ $$|+\rangle \otimes |0\rangle = \frac{1}{\sqrt{2}}(|0\rangle + |1\rangle) \otime
   each qubit has its own well-defined individual state. Try it:
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="6">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-h q[0];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
 <p>
   Notice that outcomes $|00\rangle$ and $|10\rangle$ each appear about 50% of the time,
   while $|01\rangle$ and $|11\rangle$ never appear. The two qubits are uncorrelated. Soon
   we will see states where this independence breaks down completely.
 </p>
+
+<!-- Widget 1: Tensor Product Calculator -->
+<div class="widget" id="tensor-product-widget">
+  <div class="widget-header">Tensor Product Calculator</div>
+  <div class="widget-body">
+    <p style="font-size:0.85rem;color:var(--color-text-muted);margin-bottom:0.5rem">Enter two single-qubit states and see their tensor product (4-component vector) with probability bars.</p>
+    <div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-bottom:0.75rem">
+      <div>
+        <strong style="font-size:0.85rem">Qubit 0:</strong>
+        <div style="display:flex;gap:0.25rem;align-items:center;margin-top:0.25rem">
+          <label style="font-size:0.85rem">$\alpha$=<input type="number" id="tp-a" value="0.707" step="0.1" style="width:4rem"></label>
+          <label style="font-size:0.85rem">$\beta$=<input type="number" id="tp-b" value="0.707" step="0.1" style="width:4rem"></label>
+        </div>
+        <div style="display:flex;gap:0.5rem;margin-top:0.25rem">
+          <button id="tp-p0" style="font-size:0.75rem">|0></button>
+          <button id="tp-p1" style="font-size:0.75rem">|1></button>
+          <button id="tp-pp" style="font-size:0.75rem">|+></button>
+        </div>
+      </div>
+      <div>
+        <strong style="font-size:0.85rem">Qubit 1:</strong>
+        <div style="display:flex;gap:0.25rem;align-items:center;margin-top:0.25rem">
+          <label style="font-size:0.85rem">$\gamma$=<input type="number" id="tp-c" value="1" step="0.1" style="width:4rem"></label>
+          <label style="font-size:0.85rem">$\delta$=<input type="number" id="tp-d" value="0" step="0.1" style="width:4rem"></label>
+        </div>
+        <div style="display:flex;gap:0.5rem;margin-top:0.25rem">
+          <button id="tp-q0" style="font-size:0.75rem">|0></button>
+          <button id="tp-q1" style="font-size:0.75rem">|1></button>
+          <button id="tp-qp" style="font-size:0.75rem">|+></button>
+        </div>
+      </div>
+    </div>
+    <div id="tp-output" style="font-family:var(--font-mono);font-size:0.85rem"></div>
+  </div>
+</div>
+<script>
+(function(){
+  var aI=document.getElementById("tp-a"),bI=document.getElementById("tp-b"),cI=document.getElementById("tp-c"),dI=document.getElementById("tp-d");
+  var out=document.getElementById("tp-output");
+  var sq=1/Math.sqrt(2);
+  function set(ai,bi,ci,di){aI.value=ai;bI.value=bi;cI.value=ci;dI.value=di;render();}
+  document.getElementById("tp-p0").addEventListener("click",function(){aI.value=1;bI.value=0;render();});
+  document.getElementById("tp-p1").addEventListener("click",function(){aI.value=0;bI.value=1;render();});
+  document.getElementById("tp-pp").addEventListener("click",function(){aI.value=sq.toFixed(3);bI.value=sq.toFixed(3);render();});
+  document.getElementById("tp-q0").addEventListener("click",function(){cI.value=1;dI.value=0;render();});
+  document.getElementById("tp-q1").addEventListener("click",function(){cI.value=0;dI.value=1;render();});
+  document.getElementById("tp-qp").addEventListener("click",function(){cI.value=sq.toFixed(3);dI.value=sq.toFixed(3);render();});
+  function render(){
+    var a=parseFloat(aI.value)||0,b=parseFloat(bI.value)||0,c=parseFloat(cI.value)||0,d=parseFloat(dI.value)||0;
+    var amps=[a*c,a*d,b*c,b*d];
+    var labels=["|00>","|01>","|10>","|11>"];
+    var probs=amps.map(function(x){return x*x;});
+    var total=probs.reduce(function(s,v){return s+v;},0);
+    var el=document.createElement("div");
+    var header=document.createElement("div");
+    header.textContent="Tensor product: ("+a.toFixed(3)+"|0> + "+b.toFixed(3)+"|1>) x ("+c.toFixed(3)+"|0> + "+d.toFixed(3)+"|1>)";
+    header.style.marginBottom="0.5rem";
+    el.appendChild(header);
+    for(var i=0;i<4;i++){
+      var row=document.createElement("div");
+      row.style.cssText="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem";
+      var lbl=document.createElement("span");lbl.textContent=labels[i]+": "+amps[i].toFixed(3);lbl.style.cssText="min-width:7rem";
+      var bar=document.createElement("div");bar.style.cssText="height:16px;border-radius:3px;background:var(--color-accent);transition:width 0.3s";
+      bar.style.width=Math.max(probs[i]/Math.max(total,0.001)*200,1)+"px";
+      var pct=document.createElement("span");pct.textContent=(probs[i]*100).toFixed(1)+"%";pct.style.cssText="font-size:0.8rem;color:var(--color-text-muted)";
+      row.appendChild(lbl);row.appendChild(bar);row.appendChild(pct);
+      el.appendChild(row);
+    }
+    if(Math.abs(total-1)>0.05){
+      var warn=document.createElement("div");warn.textContent="Warning: probabilities sum to "+total.toFixed(3)+" (should be 1.0). Normalize your input states.";warn.style.color="var(--color-error)";warn.style.marginTop="0.5rem";el.appendChild(warn);
+    }
+    while(out.firstChild)out.removeChild(out.firstChild);
+    out.appendChild(el);
+  }
+  [aI,bI,cI,dI].forEach(function(e){e.addEventListener("input",render);});
+  render();
+})();
+</script>
 
 <h3>Exponential growth: the power and the curse</h3>
 
@@ -188,20 +253,6 @@ $$\text{CNOT} = \begin{pmatrix} 1 & 0 & 0 & 0 \\ 0 & 1 & 0 & 0 \\ 0 & 0 & 0 & 1 
   and target q[1] flips q[1], producing $|11\rangle$:
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="7">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-x q[0];
-cx q[0], q[1];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
 <h3>CNOT on superpositions: where the magic happens</h3>
 
 <p>
@@ -231,20 +282,6 @@ $$\text{CNOT}\left(\frac{1}{\sqrt{2}}|00\rangle + \frac{1}{\sqrt{2}}|10\rangle\r
   qubit 1 in a superposition, or both qubits:
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="8">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-// Try different inputs: h q[1]; or x q[1]; h q[0];
-h q[0];
-cx q[0], q[1];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
 </section>
 
 <!-- ============================================================ -->
@@ -370,10 +407,13 @@ $$|\Psi^-\rangle = \frac{1}{\sqrt{2}}(|01\rangle - |10\rangle)$$
 
 <p>
   In 1935, Einstein, Podolsky, and Rosen published a paper arguing that quantum mechanics
-  must be incomplete. Their argument: prepare two particles in the singlet state $|\Psi^-\rangle$
-  and send them far apart. If Alice measures her qubit and gets $|0\rangle$, she instantly
-  knows Bob's qubit is $|1\rangle$. EPR argued this means Bob's qubit "already had" a
-  definite value - there must be "hidden variables" that quantum mechanics fails to describe.
+  must be incomplete. Their original argument used continuous position and momentum variables,
+  but David Bohm reformulated it in 1951 using the cleaner language of spin-1/2 particles,
+  which is the version universally taught today. In Bohm's formulation: prepare two particles
+  in the singlet state $|\Psi^-\rangle$ and send them far apart. If Alice measures her qubit
+  and gets $|0\rangle$, she instantly knows Bob's qubit is $|1\rangle$. EPR argued this means
+  Bob's qubit "already had" a definite value - there must be "hidden variables" that quantum
+  mechanics fails to describe.
 </p>
 
 <p>
@@ -387,6 +427,7 @@ $$|\Psi^-\rangle = \frac{1}{\sqrt{2}}(|01\rangle - |10\rangle)$$
 
 <h3>Predict, Observe, Explain: entanglement in action</h3>
 
+<!-- POE 5: No-Cloning -->
 <div class="poe" data-component="poe">
   <div class="poe-progress">
     <div class="poe-progress-step active">Predict</div>
@@ -394,16 +435,14 @@ $$|\Psi^-\rangle = \frac{1}{\sqrt{2}}(|01\rangle - |10\rangle)$$
     <div class="poe-progress-step">Explain</div>
   </div>
   <div class="poe-step poe-predict active">
-    <h3>Predict</h3>
-    <p>We will create the Bell state $|\Phi^+\rangle = \frac{1}{\sqrt{2}}(|00\rangle + |11\rangle)$
-    and measure both qubits 1024 times. What outcomes will appear in the histogram? What will
-    be the approximate probability of each outcome? Could you ever see $|01\rangle$ or $|10\rangle$?</p>
-    <textarea rows="3" placeholder="Write your prediction here..."></textarea>
+    <h4>Predict</h4>
+    <p>CNOT "copies" a classical bit: $|10\rangle \to |11\rangle$ (control copied to target). What happens if we try to "copy" the superposition $|+\rangle$ using CNOT? Will we get $|+\rangle \otimes |+\rangle = \frac{1}{2}(|00\rangle + |01\rangle + |10\rangle + |11\rangle)$?</p>
+    <textarea rows="3" placeholder="Write your prediction..."></textarea>
     <button data-action="next">Submit Prediction</button>
   </div>
   <div class="poe-step poe-observe">
-    <h3>Observe</h3>
-    <p>Run the Bell state circuit and examine the histogram carefully.</p>
+    <h4>Observe</h4>
+    <p>Run the circuit below. It applies H to create $|+\rangle$ on q[0], then CNOT to "copy" it to q[1].</p>
     <div class="sandbox" data-component="sandbox" data-shots="1024" data-autorun>
       <textarea class="code" rows="6">OPENQASM 3.0;
 qubit[2] q;
@@ -417,16 +456,8 @@ c = measure q;</textarea>
     <button data-action="next">Continue to Explanation</button>
   </div>
   <div class="poe-step poe-explain">
-    <h3>Explain</h3>
-    <p>You see only $|00\rangle$ and $|11\rangle$, each with approximately 50% probability.
-    The outcomes $|01\rangle$ and $|10\rangle$ never appear - they have zero amplitude in
-    the state $|\Phi^+\rangle$. This is entanglement at work: the two qubits are in a
-    superposition, but only of states where both qubits agree. When you measure qubit 0 and
-    find $|0\rangle$, the entire system collapses to $|00\rangle$, guaranteeing qubit 1 is
-    also $|0\rangle$. This 100% correlation holds no matter how far apart the qubits are.
-    It is not that one qubit "signals" the other - the joint state simply has no component
-    where they differ.</p>
-    <button data-action="complete">Complete</button>
+    <h4>Explain</h4>
+    <p>Instead of getting all four outcomes (which $|+\rangle \otimes |+\rangle$ would produce), you see only $|00\rangle$ and $|11\rangle$. The CNOT did not copy the superposition - it created <strong>entanglement</strong>: $\frac{1}{\sqrt{2}}(|00\rangle + |11\rangle)$. This is the Bell state $|\Phi^+\rangle$. The no-cloning theorem guarantees that no quantum operation can copy an arbitrary unknown state. CNOT only "copies" classical basis states, not superpositions.</p>
   </div>
 </div>
 
@@ -437,24 +468,26 @@ c = measure q;</textarea>
   changing which qubits start in $|1\rangle$:
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="12">OPENQASM 3.0;
+<!-- Simulation 3: All Four Bell States -->
+<div class="simulation" data-component="simulation">
+  <div class="sim-qasm" hidden>OPENQASM 3.0;
 qubit[2] q;
 bit[2] c;
-// Bell state |Phi+>: start from |00>
+{init}
 h q[0];
 cx q[0], q[1];
-c = measure q;
-// Try these variations:
-// |Phi->: add x q[0]; before h q[0];
-// |Psi+>: add x q[1]; before h q[0];
-// |Psi->: add x q[0]; x q[1]; before h q[0];</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
+c = measure q;</div>
+  <div class="sim-controls">
+    <label>Bell state: <select data-param="init">
+      <option value="" selected>|Phi+> (from |00>)</option>
+      <option value="x q[0];">|Phi-> (from |10>)</option>
+      <option value="x q[1];">|Psi+> (from |01>)</option>
+      <option value="x q[0]; x q[1];">|Psi-> (from |11>)</option>
+    </select></label>
   </div>
-  <div class="output"></div>
+  <div class="sim-output"></div>
 </div>
+
 </section>
 
 <!-- ============================================================ -->
@@ -487,21 +520,6 @@ $$|\text{GHZ}\rangle = \frac{1}{\sqrt{2}}(|000\rangle + |111\rangle)$$
   or all qubits are 1, with equal probability. The circuit follows the same pattern as the
   Bell state, extended with additional CNOT gates:
 </p>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="8">OPENQASM 3.0;
-qubit[3] q;
-bit[3] c;
-h q[0];
-cx q[0], q[1];
-cx q[0], q[2];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
 
 <p>
   You should see only $|000\rangle$ and $|111\rangle$, each at roughly 50%. The GHZ state
@@ -540,6 +558,39 @@ $$|W\rangle = \frac{1}{\sqrt{3}}(|001\rangle + |010\rangle + |100\rangle)$$
   the central challenges of quantum computing, because entanglement is extremely sensitive
   to noise and decoherence (Chapter 14).
 </p>
+
+<!-- Comparison 4: GHZ vs W State -->
+<div class="comparison" data-component="comparison" data-mode="default">
+  <div class="comparison-controls">
+    <span style="font-size:0.85rem;color:var(--color-text-muted)">Compare GHZ and W states side by side. Both are 3-qubit entangled states with very different properties.</span>
+  </div>
+  <div class="comparison-panels">
+    <div class="comparison-panel" data-label="GHZ State">
+      <div class="comparison-qasm" hidden>OPENQASM 3.0;
+qubit[3] q;
+bit[3] c;
+h q[0];
+cx q[0], q[1];
+cx q[0], q[2];
+c = measure q;</div>
+      <div class="comparison-output"></div>
+    </div>
+    <div class="comparison-panel" data-label="W State">
+      <div class="comparison-qasm" hidden>OPENQASM 3.0;
+qubit[3] q;
+bit[3] c;
+ry(1.9106) q[0];
+cx q[0], q[1];
+ry(1.5708) q[1];
+cx q[1], q[2];
+x q[0];
+x q[1];
+c = measure q;</div>
+      <div class="comparison-output"></div>
+    </div>
+  </div>
+</div>
+
 </section>
 
 <!-- ============================================================ -->
@@ -566,20 +617,6 @@ $$\text{SWAP} = \begin{pmatrix} 1 & 0 & 0 & 0 \\ 0 & 0 & 1 & 0 \\ 0 & 1 & 0 & 0 
   information to where it needs to be.
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="7">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-x q[0];
-swap q[0], q[1];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
 <p>
   We start with $|10\rangle$ (qubit 0 is 1, qubit 1 is 0). After the SWAP, the state
   becomes $|01\rangle$. A useful fact: SWAP can be decomposed into exactly three CNOT gates:
@@ -592,23 +629,6 @@ $$\text{SWAP} = \text{CNOT}_{01} \cdot \text{CNOT}_{10} \cdot \text{CNOT}_{01}$$
   $\text{CNOT}_{10}$ has qubit 1 as control and qubit 0 as target. Try the decomposition
   yourself:
 </p>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="9">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-x q[0];
-// SWAP decomposed into 3 CNOTs:
-cx q[0], q[1];
-cx q[1], q[0];
-cx q[0], q[1];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
 
 <p>Both circuits produce $|01\rangle$ with 100% probability, confirming that the three-CNOT decomposition is equivalent to SWAP.</p>
 
@@ -656,21 +676,6 @@ $$\text{CZ} = \begin{pmatrix} 1 & 0 & 0 & 0 \\ 0 & 1 & 0 & 0 \\ 0 & 0 & 1 & 0 \\
   When the target starts in $|0\rangle$, the Toffoli computes the AND of the two controls.
   It is universal for classical reversible computing, as we saw in Chapter 3.
 </p>
-
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="9">OPENQASM 3.0;
-qubit[3] q;
-bit[3] c;
-x q[0];
-x q[1];
-ccx q[0], q[1], q[2];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
 
 <p>
   Both controls are $|1\rangle$, so the target flips from $|0\rangle$ to $|1\rangle$: the
@@ -894,62 +899,6 @@ $$(\langle\psi| \otimes \langle\psi|)(|\phi\rangle \otimes |\phi\rangle) = \lang
 <section id="exercises">
 <h2>Exercises</h2>
 
-<div class="exercise" data-component="exercise">
-  <div class="exercise-header">Exercise 6.1: Create the Anti-Correlated Bell State</div>
-  <div class="exercise-prompt">
-    <p>Write a circuit that creates the Bell state $|\Psi^+\rangle = \frac{1}{\sqrt{2}}(|01\rangle + |10\rangle)$.
-    You should see approximately 50% $|01\rangle$ and 50% $|10\rangle$, with no $|00\rangle$ or $|11\rangle$.</p>
-  </div>
-  <textarea class="code" rows="8">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-// Your code here: prepare |Psi+>
-// Hint: which qubit needs to start in |1>?
-
-c = measure q;</textarea>
-  <div class="exercise-expected">
-    <span data-state="01" data-prob="0.5" data-tolerance="0.1"></span>
-    <span data-state="10" data-prob="0.5" data-tolerance="0.1"></span>
-  </div>
-  <div class="exercise-hint" style="display:none">
-    <p>To get $|\Psi^+\rangle$, start from $|01\rangle$ (apply X to qubit 1), then apply
-    H to qubit 0 and CNOT from qubit 0 to qubit 1.</p>
-  </div>
-  <div class="exercise-controls">
-    <button data-action="check">Check</button>
-    <button data-action="hint">Hint</button>
-  </div>
-  <div class="exercise-feedback"></div>
-</div>
-
-<div class="exercise" data-component="exercise">
-  <div class="exercise-header">Exercise 6.2: SWAP Decomposition</div>
-  <div class="exercise-prompt">
-    <p>Implement the SWAP operation using only CNOT gates. Start with qubit 0 in $|1\rangle$
-    and qubit 1 in $|0\rangle$, then use three <code>cx</code> gates to swap the qubit states.
-    The result should be $|01\rangle$ with 100% probability.</p>
-  </div>
-  <textarea class="code" rows="9">OPENQASM 3.0;
-qubit[2] q;
-bit[2] c;
-x q[0];
-// Implement SWAP using 3 CNOT gates:
-// Your code here
-
-c = measure q;</textarea>
-  <div class="exercise-expected">
-    <span data-state="01" data-prob="1.0" data-tolerance="0.05"></span>
-  </div>
-  <div class="exercise-hint" style="display:none">
-    <p>The SWAP decomposition is: CNOT(q[0], q[1]), then CNOT(q[1], q[0]), then CNOT(q[0], q[1]).
-    In QASM: <code>cx q[0], q[1]; cx q[1], q[0]; cx q[0], q[1];</code></p>
-  </div>
-  <div class="exercise-controls">
-    <button data-action="check">Check</button>
-    <button data-action="hint">Hint</button>
-  </div>
-  <div class="exercise-feedback"></div>
-</div>
 </section>
 
 <!-- ============================================================ -->
@@ -984,111 +933,4 @@ c = measure q;</textarea>
 </p>
 </section>
 
-<!-- ============================================================ -->
-<section id="review">
-<h2>Chapter 6 Review</h2>
 
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 6 Review</div>
-
-  <div class="flashcard" data-card-id="ch06-tensor-product">
-    <div class="card-front">What is the tensor product and how does it build multi-qubit state spaces?</div>
-    <div class="card-back">The tensor product $\otimes$ combines individual qubit state spaces into a joint space. For $n$ qubits, the joint space has dimension $2^n$, requiring $2^n$ complex amplitudes. A state $|\psi\rangle \otimes |\phi\rangle$ represents two independent qubits; entangled states cannot be written in this product form.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch06-cnot">
-    <div class="card-front">What does the CNOT gate do, and why is it fundamental?</div>
-    <div class="card-back">CNOT has a control qubit and a target qubit. It flips the target (applies X) when the control is $|1\rangle$, and leaves it unchanged when the control is $|0\rangle$. On basis states, it computes target $\to$ target XOR control. It is the primary two-qubit gate for creating entanglement, and together with single-qubit gates it forms a universal gate set.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch06-entanglement-def">
-    <div class="card-front">What does it mean for a multi-qubit state to be entangled?</div>
-    <div class="card-back">A multi-qubit state is entangled when it cannot be written as a tensor product of individual qubit states. Entangled qubits have correlations with no classical explanation - measuring one qubit instantaneously constrains the outcomes of measuring the other, regardless of distance. The simplest example is $|\Phi^+\rangle = \frac{1}{\sqrt{2}}(|00\rangle + |11\rangle)$.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch06-bell-states">
-    <div class="card-front">Name the four Bell states and give their formulas.</div>
-    <div class="card-back">$|\Phi^+\rangle = \frac{1}{\sqrt{2}}(|00\rangle + |11\rangle)$, $|\Phi^-\rangle = \frac{1}{\sqrt{2}}(|00\rangle - |11\rangle)$, $|\Psi^+\rangle = \frac{1}{\sqrt{2}}(|01\rangle + |10\rangle)$, $|\Psi^-\rangle = \frac{1}{\sqrt{2}}(|01\rangle - |10\rangle)$. They form a complete orthonormal basis of maximally entangled two-qubit states. Each is created by H then CNOT on one of the four computational basis inputs.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch06-bell-circuit">
-    <div class="card-front">What is the Bell circuit, and how does it create entanglement step by step?</div>
-    <div class="card-back">Start with $|00\rangle$. Apply H to qubit 0: $\frac{1}{\sqrt{2}}(|0\rangle + |1\rangle)|0\rangle = \frac{1}{\sqrt{2}}(|00\rangle + |10\rangle)$. Then CNOT (control 0, target 1): $|00\rangle$ is unchanged, $|10\rangle$ becomes $|11\rangle$, giving $\frac{1}{\sqrt{2}}(|00\rangle + |11\rangle) = |\Phi^+\rangle$. The CNOT on a superposition creates entanglement.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch06-ghz-vs-w">
-    <div class="card-front">What is the difference between GHZ and W states?</div>
-    <div class="card-back">GHZ: $\frac{1}{\sqrt{2}}(|000\rangle + |111\rangle)$ - maximally entangled but fragile; losing one qubit destroys all entanglement. W: $\frac{1}{\sqrt{3}}(|001\rangle + |010\rangle + |100\rangle)$ - robust; losing one qubit leaves partial entanglement. They represent fundamentally different entanglement classes that cannot be interconverted by local operations.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch06-toffoli">
-    <div class="card-front">What is the Toffoli gate and why is it important?</div>
-    <div class="card-back">The Toffoli gate (CCX) is a three-qubit gate that flips the target only when both control qubits are $|1\rangle$. It implements a reversible AND gate and is universal for classical reversible computing. Combined with the Hadamard gate, $\{H, \text{Toffoli}\}$ forms a universal quantum gate set.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch06-universality">
-    <div class="card-front">What does it mean for a gate set to be universal, and what is the standard universal set?</div>
-    <div class="card-back">A gate set is universal if any unitary operation can be approximated to arbitrary precision using gates from the set. The standard universal set is $\{H, T, \text{CNOT}\}$. The Solovay-Kitaev theorem guarantees that approximating any gate to precision $\epsilon$ requires only $O(\log^c(1/\epsilon))$ gates, where $c$ is a small constant.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch06-no-cloning">
-    <div class="card-front">State the no-cloning theorem and outline its proof.</div>
-    <div class="card-back">No quantum operation can perfectly copy an arbitrary unknown state. Proof: assume a unitary $U$ clones any state. For states $|\psi\rangle, |\phi\rangle$, taking inner products gives $\langle\psi|\phi\rangle = \langle\psi|\phi\rangle^2$, which is satisfied only when $\langle\psi|\phi\rangle = 0$ or $1$. So $U$ can only clone orthogonal or identical states, not arbitrary ones.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch06-exponential-space">
-    <div class="card-front">How does the state space grow with the number of qubits, and why does this matter?</div>
-    <div class="card-back">$n$ qubits require $2^n$ complex amplitudes. This exponential growth means classical computers cannot efficiently simulate quantum systems (50 qubits need petabytes of memory). It is the source of quantum computing's potential advantage, but measurement collapses the state to one basis outcome, so algorithm design must concentrate useful information in observable amplitudes.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-</div>
-</section>

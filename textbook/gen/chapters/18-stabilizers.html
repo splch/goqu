@@ -93,6 +93,91 @@ $$\mathcal{P}_n = \{\alpha \, P_1 \otimes P_2 \otimes \cdots \otimes P_n : \alph
   </p>
 </div>
 
+<!-- Visualization 1: Pauli Commutation Widget -->
+<div class="widget" id="widget-pauli-comm">
+  <div class="widget-header">Interactive: Pauli Commutation Calculator</div>
+  <p style="margin-bottom:0.75rem;font-size:0.9rem;">Enter two Pauli strings to check if they commute or anticommute. Anticommuting positions are highlighted in red.</p>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label style="font-family:var(--font-mono);font-size:0.9rem;">P: <input type="text" id="pauli-p" value="XZI" maxlength="8" style="width:6rem;"></label>
+    <label style="font-family:var(--font-mono);font-size:0.9rem;">Q: <input type="text" id="pauli-q" value="ZXI" maxlength="8" style="width:6rem;"></label>
+    <button id="pauli-check">Check</button>
+  </div>
+  <div id="pauli-result" class="widget-output"></div>
+  <script>
+  (function(){
+    var pIn = document.getElementById("pauli-p");
+    var qIn = document.getElementById("pauli-q");
+    var btn = document.getElementById("pauli-check");
+    var result = document.getElementById("pauli-result");
+
+    function anticommutes1Q(a, b) {
+      if (a === "I" || b === "I" || a === b) return false;
+      return true; // X,Y / X,Z / Y,Z all anticommute
+    }
+
+    function check() {
+      var p = pIn.value.toUpperCase().replace(/[^IXYZ]/g,"");
+      var q = qIn.value.toUpperCase().replace(/[^IXYZ]/g,"");
+      if (p.length === 0 || q.length === 0) { result.textContent = "Enter valid Pauli strings (I, X, Y, Z)."; return; }
+      var n = Math.max(p.length, q.length);
+      while (p.length < n) p += "I";
+      while (q.length < n) q += "I";
+
+      var antiCount = 0;
+      var table = document.createElement("table");
+      table.style.cssText = "font-family:var(--font-mono);font-size:1rem;border-collapse:collapse;margin:0 auto;";
+      var headerRow = document.createElement("tr");
+      var th0 = document.createElement("th"); th0.textContent = "Qubit"; th0.style.padding = "0.3rem 0.5rem";
+      headerRow.appendChild(th0);
+      for (var i = 0; i < n; i++) {
+        var th = document.createElement("th"); th.textContent = "" + i; th.style.cssText = "padding:0.3rem 0.5rem;text-align:center;";
+        headerRow.appendChild(th);
+      }
+      table.appendChild(headerRow);
+
+      var pRow = document.createElement("tr");
+      var pLabel = document.createElement("td"); pLabel.textContent = "P"; pLabel.style.cssText = "padding:0.3rem 0.5rem;font-weight:600;";
+      pRow.appendChild(pLabel);
+      var qRow = document.createElement("tr");
+      var qLabel = document.createElement("td"); qLabel.textContent = "Q"; qLabel.style.cssText = "padding:0.3rem 0.5rem;font-weight:600;";
+      qRow.appendChild(qLabel);
+
+      for (var i = 0; i < n; i++) {
+        var ac = anticommutes1Q(p[i], q[i]);
+        if (ac) antiCount++;
+        var color = ac ? "var(--color-error)" : "var(--color-text)";
+        var bg = ac ? "color-mix(in srgb, var(--color-error) 15%, transparent)" : "transparent";
+
+        var pTd = document.createElement("td");
+        pTd.textContent = p[i]; pTd.style.cssText = "padding:0.3rem 0.75rem;text-align:center;font-weight:600;color:" + color + ";background:" + bg + ";";
+        pRow.appendChild(pTd);
+        var qTd = document.createElement("td");
+        qTd.textContent = q[i]; qTd.style.cssText = "padding:0.3rem 0.75rem;text-align:center;font-weight:600;color:" + color + ";background:" + bg + ";";
+        qRow.appendChild(qTd);
+      }
+      table.appendChild(pRow);
+      table.appendChild(qRow);
+
+      var commutes = (antiCount % 2 === 0);
+      var summary = document.createElement("p");
+      summary.style.cssText = "margin-top:0.75rem;font-size:0.9rem;text-align:center;";
+      summary.textContent = antiCount + " anticommuting position" + (antiCount !== 1 ? "s" : "") + " (parity: " + (antiCount % 2 === 0 ? "even" : "odd") + ") => PQ = " + (commutes ? "+QP" : "-QP") + " => they " + (commutes ? "COMMUTE" : "ANTICOMMUTE");
+      summary.style.fontWeight = "600";
+      summary.style.color = commutes ? "var(--color-success)" : "var(--color-error)";
+
+      result.textContent = "";
+      result.appendChild(table);
+      result.appendChild(summary);
+    }
+
+    btn.addEventListener("click", check);
+    pIn.addEventListener("keyup", function(e){ if (e.key==="Enter") check(); });
+    qIn.addEventListener("keyup", function(e){ if (e.key==="Enter") check(); });
+    check();
+  })();
+  </script>
+</div>
+
 <h3>Stabilizer States</h3>
 
 <p>
@@ -318,6 +403,129 @@ $$\bar{X}_j \bar{Z}_j = -\bar{Z}_j \bar{X}_j, \quad [\bar{X}_j, \bar{Z}_\ell] = 
   </p>
 </div>
 
+<!-- Visualization 3: Steane Code Syndrome Widget -->
+<div class="widget" id="widget-steane-syndrome">
+  <div class="widget-header">Interactive: Steane Code Syndrome</div>
+  <p style="margin-bottom:0.75rem;font-size:0.9rem;">Click a qubit (1-7) to inject an error and see which stabilizer generators anticommute with it, revealing the syndrome.</p>
+  <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label style="font-family:var(--font-mono);font-size:0.85rem;">Error type:
+      <select id="steane-err-type" style="font-family:var(--font-mono);font-size:0.85rem;padding:0.2rem 0.4rem;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-surface);color:var(--color-text);">
+        <option value="X">X (bit-flip)</option>
+        <option value="Z">Z (phase-flip)</option>
+        <option value="Y">Y (both)</option>
+      </select>
+    </label>
+    <span style="font-size:0.85rem;color:var(--color-text-muted);">Click qubit to inject error:</span>
+    <div id="steane-qubits" style="display:flex;gap:4px;"></div>
+  </div>
+  <div id="steane-output" class="widget-output"></div>
+  <script>
+  (function(){
+    var errTypeSel = document.getElementById("steane-err-type");
+    var qubitsDiv = document.getElementById("steane-qubits");
+    var output = document.getElementById("steane-output");
+    var errorQubit = -1;
+
+    // Steane code generators (qubits 1-7, index 0-6)
+    var xGens = [
+      [0,0,0,1,1,1,1], // g1: IIIXXXX
+      [0,1,1,0,0,1,1], // g2: IXXIIXX
+      [1,0,1,0,1,0,1]  // g3: XIXIXIX
+    ];
+    var zGens = [
+      [0,0,0,1,1,1,1], // g4: IIIZZZZ
+      [0,1,1,0,0,1,1], // g5: IZZIIZZ
+      [1,0,1,0,1,0,1]  // g6: ZIZIZIZ
+    ];
+
+    function render() {
+      qubitsDiv.textContent = "";
+      for (var i = 0; i < 7; i++) {
+        var btn = document.createElement("div");
+        var isErr = (i === errorQubit);
+        btn.style.cssText = "width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:4px;font-family:var(--font-mono);font-weight:600;font-size:0.8rem;cursor:pointer;border:2px solid " + (isErr ? "var(--color-error)" : "var(--color-border)") + ";background:" + (isErr ? "color-mix(in srgb, var(--color-error) 20%, transparent)" : "var(--color-code-bg)") + ";color:var(--color-text);";
+        btn.textContent = (i+1);
+        (function(idx){
+          btn.addEventListener("click", function(){ errorQubit = (errorQubit === idx) ? -1 : idx; render(); });
+        })(i);
+        qubitsDiv.appendChild(btn);
+      }
+
+      var errType = errTypeSel.value;
+      var hasX = (errType === "X" || errType === "Y");
+      var hasZ = (errType === "Z" || errType === "Y");
+
+      // Compute syndromes
+      var xSyn = [0,0,0]; // Z-generators detect X errors
+      var zSyn = [0,0,0]; // X-generators detect Z errors
+
+      if (errorQubit >= 0) {
+        if (hasX) {
+          for (var g = 0; g < 3; g++) xSyn[g] = zGens[g][errorQubit]; // Z at error pos => anticommutes with X
+        }
+        if (hasZ) {
+          for (var g = 0; g < 3; g++) zSyn[g] = xGens[g][errorQubit]; // X at error pos => anticommutes with Z
+        }
+      }
+
+      var table = document.createElement("table");
+      table.style.cssText = "width:100%;font-size:0.85rem;font-family:var(--font-mono);";
+      table.insertAdjacentHTML("beforeend", "<thead><tr><th>Generator</th><th>Type</th><th>Q1</th><th>Q2</th><th>Q3</th><th>Q4</th><th>Q5</th><th>Q6</th><th>Q7</th><th>Syndrome</th></tr></thead>");
+
+      var tbody = document.createElement("tbody");
+      var genNames = ["g1","g2","g3","g4","g5","g6"];
+      var allGens = xGens.concat(zGens);
+      var types = ["X","X","X","Z","Z","Z"];
+      var synBits = zSyn.concat(xSyn); // X-gens detect Z, Z-gens detect X
+
+      // Correct: Z-type generators (g4,g5,g6) detect X errors, X-type generators (g1,g2,g3) detect Z errors
+      var syndromes = [];
+      for (var g = 0; g < 3; g++) syndromes.push(xSyn[g]); // Z-gens detect X
+      for (var g = 0; g < 3; g++) syndromes.push(zSyn[g]); // X-gens detect Z
+
+      for (var g = 0; g < 6; g++) {
+        var tr = document.createElement("tr");
+        var gen = g < 3 ? xGens[g] : zGens[g-3];
+        var type = g < 3 ? "X" : "Z";
+        var syn = syndromes[g];
+        tr.insertAdjacentHTML("beforeend", "<td>" + genNames[g] + "</td><td>" + type + "</td>");
+        for (var q = 0; q < 7; q++) {
+          var pauli = gen[q] ? type : "I";
+          var isErrPos = (q === errorQubit && gen[q] === 1);
+          var td = document.createElement("td");
+          td.textContent = pauli;
+          td.style.cssText = "text-align:center;" + (isErrPos ? "color:var(--color-error);font-weight:700;" : (pauli === "I" ? "opacity:0.4;" : ""));
+          tr.appendChild(td);
+        }
+        var synTd = document.createElement("td");
+        synTd.textContent = syn ? "-1" : "+1";
+        synTd.style.cssText = "text-align:center;font-weight:600;color:" + (syn ? "var(--color-error)" : "var(--color-success)") + ";";
+        tr.appendChild(synTd);
+        tbody.appendChild(tr);
+      }
+      table.appendChild(tbody);
+
+      output.textContent = "";
+      output.appendChild(table);
+
+      if (errorQubit >= 0) {
+        var xSynStr = xSyn.join("");
+        var zSynStr = zSyn.join("");
+        var xSynDec = xSyn[0]*4 + xSyn[1]*2 + xSyn[2];
+        var zSynDec = zSyn[0]*4 + zSyn[1]*2 + zSyn[2];
+        var infoP = document.createElement("p");
+        infoP.style.cssText = "margin-top:0.75rem;font-size:0.9rem;";
+        infoP.textContent = errType + " error on qubit " + (errorQubit+1) + ": X-syndrome = " + xSynStr + " (dec " + xSynDec + "), Z-syndrome = " + zSynStr + " (dec " + zSynDec + "). The syndrome binary value matches the qubit number - Hamming structure at work.";
+        output.appendChild(infoP);
+      }
+    }
+
+    errTypeSel.addEventListener("change", render);
+    render();
+  })();
+  </script>
+</div>
+
 <h3>Syndrome Decoding Example</h3>
 
 <p>
@@ -380,29 +588,6 @@ $$g_1 = XZZXI, \quad g_2 = IXZZX, \quad g_3 = XIXZZ, \quad g_4 = ZXIXZ$$
   first qubit, measure the syndrome, and correct it. Try modifying which qubit gets the error.
 </p>
 
-<div class="sandbox" data-component="sandbox" data-shots="1024">
-  <textarea class="code" rows="14">OPENQASM 3.0;
-qubit[5] q;
-bit[5] c;
-// q[0] = data qubit, q[1],q[2] = ancillas for encoding
-// q[3],q[4] = syndrome ancillas
-// Encode |1> into 3-qubit code: |111>
-x q[0];
-cx q[0], q[1];
-cx q[0], q[2];
-// Introduce X error on qubit 0
-x q[0];
-// Measure syndrome: ZZI and IZZ
-cx q[0], q[3]; cx q[1], q[3];
-cx q[1], q[4]; cx q[2], q[4];
-c = measure q;</textarea>
-  <div class="sandbox-controls">
-    <button data-action="run">Run</button>
-    <button data-action="reset">Reset</button>
-  </div>
-  <div class="output"></div>
-</div>
-
 <p>
   With the error on qubit 0, the syndrome qubits $q[3]$ and $q[4]$ should read $10$
   (generator $ZZI$ flipped, $IZZ$ unchanged), correctly identifying the error location.
@@ -420,17 +605,21 @@ c = measure q;</textarea>
   Each Clifford gate transforms these generators according to the conjugation rules.
 </p>
 
+<!-- Visualization 2: Stabilizer Tableau Step-Through -->
 <div class="step-through" data-component="step-through" data-mode="clifford">
-  <div class="step-controls">
-    <button data-action="prev" disabled>Previous</button>
-    <button data-action="next">Next Gate</button>
-    <span class="step-info">Loading...</span>
-  </div>
-  <script type="text/template" class="step-qasm">OPENQASM 3.0;
+  <div class="step-qasm">
+OPENQASM 3.0;
+include "stdgates.inc";
 qubit[3] q;
 h q[0];
 cx q[0], q[1];
-cx q[0], q[2];</script>
+cx q[0], q[2];
+  </div>
+  <div class="step-controls">
+    <button data-action="prev">Previous</button>
+    <span class="step-info"></span>
+    <button data-action="next">Next</button>
+  </div>
   <div class="step-output"></div>
 </div>
 
@@ -442,29 +631,6 @@ cx q[0], q[2];</script>
   control to target while propagating $Z$ from target to control.
 </p>
 
-<div class="exercise" data-component="exercise">
-  <div class="exercise-header">Exercise: Predict the Stabilizers</div>
-  <div class="exercise-prompt">
-    <p>
-      Without running the step-through, predict the stabilizer generators of the 2-qubit
-      Bell state $\frac{1}{\sqrt{2}}(|00\rangle + |11\rangle)$ prepared by H on qubit 0
-      followed by CNOT(0,1). Write them as signed Pauli strings (e.g., +XX, +ZZ).
-    </p>
-  </div>
-  <textarea class="code" rows="3">OPENQASM 3.0;
-qubit[2] q;
-h q[0];
-cx q[0], q[1];</textarea>
-  <div class="exercise-controls">
-    <button data-action="check">Check</button>
-  </div>
-  <div class="exercise-feedback"></div>
-  <div class="exercise-expected visually-hidden">
-    <span data-state="00" data-prob="0.5" data-tolerance="0.05"></span>
-    <span data-state="11" data-prob="0.5" data-tolerance="0.05"></span>
-  </div>
-</div>
-
 <h3>Interactive: Clifford Simulator Scalability</h3>
 <p>
   The Gottesman-Knill theorem guarantees that Clifford circuits can be simulated
@@ -473,21 +639,6 @@ cx q[0], q[1];</textarea>
   qubits. The Clifford simulator tracks the full stabilizer tableau, showing how
   entanglement propagates through each gate.
 </p>
-<div class="simulation" data-component="simulation" data-clifford="true">
-  <div class="sim-controls">
-    <label>Shots: <input type="range" data-param="shots" min="100" max="4096" step="100" value="1024"><output>1024</output></label>
-  </div>
-  <pre class="sim-qasm">OPENQASM 3.0;
-qubit[4] q;
-bit[4] c;
-h q[0];
-cx q[0], q[1];
-cx q[1], q[2];
-cx q[2], q[3];
-c = measure q;</pre>
-  <div class="sim-output"></div>
-</div>
-
 </section>
 
 <!-- ================================================================== -->
@@ -580,6 +731,56 @@ $$T = \begin{pmatrix} 1 & 0 \\ 0 & e^{i\pi/4} \end{pmatrix}$$
   any unitary operation to arbitrary precision. This is the Clifford + $T$ gate set, and it
   is the standard gate set for fault-tolerant quantum computing (Chapter 20).
 </p>
+
+<!-- Visualization 4: Clifford Conjugation Widget -->
+<div class="widget" id="widget-clifford-conj">
+  <div class="widget-header">Interactive: Clifford Conjugation Explorer</div>
+  <p style="margin-bottom:0.75rem;font-size:0.9rem;">Select a Clifford gate and a Pauli operator to see the result of $UPU^\dagger$ - how the gate transforms the Pauli by conjugation.</p>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <label style="font-family:var(--font-mono);font-size:0.9rem;">Gate U:
+      <select id="cliff-gate" style="font-family:var(--font-mono);font-size:0.85rem;padding:0.2rem 0.4rem;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-surface);color:var(--color-text);">
+        <option value="H">H (Hadamard)</option>
+        <option value="S">S (Phase)</option>
+        <option value="Sd">S-dagger</option>
+      </select>
+    </label>
+    <label style="font-family:var(--font-mono);font-size:0.9rem;">Pauli P:
+      <select id="cliff-pauli" style="font-family:var(--font-mono);font-size:0.85rem;padding:0.2rem 0.4rem;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-surface);color:var(--color-text);">
+        <option value="X">X</option>
+        <option value="Y">Y</option>
+        <option value="Z">Z</option>
+      </select>
+    </label>
+  </div>
+  <div id="cliff-result" class="widget-output" style="font-size:1.1rem;text-align:center;"></div>
+  <script>
+  (function(){
+    var gateSel = document.getElementById("cliff-gate");
+    var pauliSel = document.getElementById("cliff-pauli");
+    var result = document.getElementById("cliff-result");
+
+    // Conjugation rules: gate -> {pauli -> [sign, result]}
+    var rules = {
+      "H": {"X": ["+","Z"], "Y": ["-","Y"], "Z": ["+","X"]},
+      "S": {"X": ["+","Y"], "Y": ["-","X"], "Z": ["+","Z"]},
+      "Sd": {"X": ["-","Y"], "Y": ["+","X"], "Z": ["+","Z"]}
+    };
+
+    function update() {
+      var gate = gateSel.value;
+      var pauli = pauliSel.value;
+      var r = rules[gate][pauli];
+      var gateDisplay = gate === "Sd" ? "S^dagger" : gate;
+      result.textContent = gateDisplay + " " + pauli + " " + gateDisplay + "^dagger = " + r[0] + r[1];
+      result.style.color = r[0] === "+" ? "var(--color-success)" : "var(--color-error)";
+    }
+
+    gateSel.addEventListener("change", update);
+    pauliSel.addEventListener("change", update);
+    update();
+  })();
+  </script>
+</div>
 
 <h3>Counting Clifford Gates</h3>
 
@@ -720,101 +921,4 @@ $$|\mathcal{C}_n| = 2^{n^2 + 2n} \prod_{j=0}^{n-1} (4^{j+1} - 1)$$
 
 </section>
 
-<!-- ================================================================== -->
-<section id="review">
-<h2>Chapter 18 Review</h2>
 
-<div class="flashcard-deck" data-component="flashcard-deck">
-  <div class="flashcard-deck-header">Chapter 18 Review</div>
-
-  <div class="flashcard" data-card-id="ch18-pauli-group">
-    <div class="card-front">What is the $n$-qubit Pauli group $\mathcal{P}_n$, and how many elements does it have?</div>
-    <div class="card-back">
-      $\mathcal{P}_n$ consists of all $n$-fold tensor products of single-qubit Paulis $\{I, X, Y, Z\}$ multiplied by overall phases $\{\pm 1, \pm i\}$. It has $4 \cdot 4^n$ elements. Any two elements either commute or anticommute, determined by counting anticommuting positions.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch18-stabilizer-state">
-    <div class="card-front">What is a stabilizer state, and how many classical bits are needed to describe one?</div>
-    <div class="card-back">
-      A stabilizer state on $n$ qubits is the unique state $|\psi\rangle$ satisfying $g_i|\psi\rangle = +|\psi\rangle$ for $n$ independent, commuting Pauli generators $g_1, \ldots, g_n$. Despite requiring $2^n$ amplitudes in general, a stabilizer state is fully described by $O(n^2)$ classical bits (the $n$ generators, each an $n$-character Pauli string plus a phase bit).
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch18-nkd-notation">
-    <div class="card-front">What do the parameters $[[n, k, d]]$ mean for a stabilizer code?</div>
-    <div class="card-back">
-      $n$ is the number of physical qubits, $k$ is the number of encoded logical qubits, and $d$ is the code distance (minimum weight of any logical operator). The code has $n - k$ stabilizer generators, can detect errors of weight up to $d - 1$, and correct errors of weight up to $\lfloor(d-1)/2\rfloor$.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch18-syndrome">
-    <div class="card-front">What is an error syndrome, and why does measuring it not destroy the encoded information?</div>
-    <div class="card-back">
-      The error syndrome is the list of $\pm 1$ eigenvalues obtained by measuring each stabilizer generator on the corrupted state. It reveals which generators anticommute with the error, identifying the error type and location. It does not disturb the encoded information because stabilizer measurements distinguish between error subspaces, not between different logical states within the code space.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch18-steane-code">
-    <div class="card-front">What is the Steane code, and what special structure does it have?</div>
-    <div class="card-back">
-      The Steane code is a $[[7, 1, 3]]$ quantum error-correcting code that encodes one logical qubit in seven physical qubits and corrects any single-qubit error. It is a CSS code, meaning its six stabilizer generators split into three $X$-type and three $Z$-type, with matching support patterns derived from the classical $[7, 4, 3]$ Hamming code. This allows $X$ and $Z$ errors to be decoded independently.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch18-five-qubit">
-    <div class="card-front">Why is the $[[5,1,3]]$ code called "perfect"?</div>
-    <div class="card-back">
-      It saturates the quantum Hamming bound. With $n = 5$ physical qubits and $k = 1$ logical qubit, there are $n - k = 4$ syndrome bits yielding $2^4 = 16$ distinct syndromes. This exactly matches the number needed: 1 for no error plus $3 \times 5 = 15$ for a single $X$, $Y$, or $Z$ error on each of 5 qubits. No code using fewer than 5 qubits can correct arbitrary single-qubit errors.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch18-gottesman-knill">
-    <div class="card-front">State the Gottesman-Knill theorem. What are its implications?</div>
-    <div class="card-back">
-      Any quantum circuit using only computational-basis state preparation, Clifford gates ($H$, $S$, CNOT), computational-basis measurements, and classical feed-forward can be efficiently simulated on a classical computer in polynomial time. The implication is that Clifford circuits alone - despite producing entanglement - do not provide quantum speedup. Quantum advantage requires non-Clifford gates such as the $T$ gate.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="flashcard" data-card-id="ch18-degeneracy">
-    <div class="card-front">What is code degeneracy, and why is it advantageous?</div>
-    <div class="card-back">
-      Degeneracy occurs when multiple distinct physical errors have the same syndrome and the same effect on the code space (their product is a stabilizer element). The decoder does not need to distinguish between degenerate errors, so the code effectively corrects more error patterns than a non-degenerate code of the same parameters. This is especially important for topological codes like the surface code.
-      <div class="flashcard-controls">
-        <button class="easy">Easy</button>
-        <button class="hard">Hard</button>
-      </div>
-    </div>
-  </div>
-
-</div>
-
-</section>

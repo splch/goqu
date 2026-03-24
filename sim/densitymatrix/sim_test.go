@@ -648,7 +648,7 @@ func TestEvolve_Reset(t *testing.T) {
 	})
 }
 
-// --- StatePrep tests ---
+// StatePrep tests
 
 func TestStatePrep_FastPath_Plus(t *testing.T) {
 	// Full-state prep on 1 qubit: |+> via fast path.
