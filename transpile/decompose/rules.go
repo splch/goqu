@@ -455,6 +455,12 @@ func cxOpsToRZZ(ops []ir.Operation) []ir.Operation {
 
 // decomposeToIonQ decomposes gates to {GPI, GPI2, MS} basis.
 func decomposeToIonQ(g gate.Gate, qubits []int, _ map[string]bool) []ir.Operation {
+	if cg, ok := g.(gate.ControlledGate); ok {
+		ops := DecomposeMultiControlled(cg, qubits)
+		if ops != nil {
+			return expandOpsToIonQ(ops)
+		}
+	}
 	switch g.Qubits() {
 	case 1:
 		return decompose1qToIonQ(g, qubits)
@@ -628,6 +634,12 @@ func expandOpsToIonQ(ops []ir.Operation) []ir.Operation {
 
 // decomposeToIonQZZ decomposes gates to {GPI, GPI2, ZZ} basis (Forte).
 func decomposeToIonQZZ(g gate.Gate, qubits []int, _ map[string]bool) []ir.Operation {
+	if cg, ok := g.(gate.ControlledGate); ok {
+		ops := DecomposeMultiControlled(cg, qubits)
+		if ops != nil {
+			return expandOpsToIonQZZ(ops)
+		}
+	}
 	switch g.Qubits() {
 	case 1:
 		return decompose1qToIonQ(g, qubits)
