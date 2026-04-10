@@ -650,7 +650,8 @@ func decompose2qToIonQZZ(g gate.Gate, qubits []int) []ir.Operation {
 	}
 
 	if g == gate.CNOT {
-		var ops []ir.Operation
+		// H(2) + ZZ(1) + RZ(2) + RZ(2) + H(2) = 9 ops.
+		ops := make([]ir.Operation, 0, 9)
 		ops = append(ops, decompose1qToIonQ(gate.H, []int{q1})...)
 		ops = append(ops, ir.Operation{Gate: gate.ZZ(math.Pi / 2), Qubits: []int{q0, q1}})
 		ops = append(ops, rzToIonQ(-math.Pi/2, q0)...)
@@ -660,7 +661,8 @@ func decompose2qToIonQZZ(g gate.Gate, qubits []int) []ir.Operation {
 	}
 	if g == gate.CZ {
 		cnotOps := decompose2qToIonQZZ(gate.CNOT, qubits)
-		var ops []ir.Operation
+		// H(2) + CNOT(9) + H(2) = 13 ops.
+		ops := make([]ir.Operation, 0, 2+len(cnotOps)+2)
 		ops = append(ops, decompose1qToIonQ(gate.H, []int{q1})...)
 		ops = append(ops, cnotOps...)
 		ops = append(ops, decompose1qToIonQ(gate.H, []int{q1})...)
