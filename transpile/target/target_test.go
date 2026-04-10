@@ -22,13 +22,13 @@ func TestHasBasisGate_IBM(t *testing.T) {
 
 func TestHasBasisGate_IonQ(t *testing.T) {
 	ionq := IonQForte
-	yes := []string{"GPI", "GPI2", "MS"}
+	yes := []string{"GPI", "GPI2", "ZZ"}
 	for _, g := range yes {
 		if !ionq.HasBasisGate(g) {
 			t.Errorf("IonQForte.HasBasisGate(%q) = false, want true", g)
 		}
 	}
-	no := []string{"CX", "H", "RZ", "X"}
+	no := []string{"CX", "H", "RZ", "X", "MS"}
 	for _, g := range no {
 		if ionq.HasBasisGate(g) {
 			t.Errorf("IonQForte.HasBasisGate(%q) = true, want false", g)

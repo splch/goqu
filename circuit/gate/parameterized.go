@@ -321,10 +321,32 @@ func RZZ(theta float64) Gate {
 	}}
 }
 
+// ZZ returns the IonQ native ZZ entangling gate. It has the same matrix as
+// [RZZ] but is recognized as a native gate by the IonQ serializer. On Forte
+// hardware the ZZ gate is the native two-qubit entangling interaction.
+//
+//	diag(exp(-iθ/2), exp(iθ/2), exp(iθ/2), exp(-iθ/2))
+func ZZ(theta float64) Gate {
+	em := cmplx.Exp(complex(0, -theta/2))
+	ep := cmplx.Exp(complex(0, theta/2))
+	return &diagonal2Q{&parameterized{
+		name:   fmt.Sprintf("ZZ(%.4f)", theta),
+		n:      2,
+		params: []float64{theta},
+		matrix: []complex128{
+			em, 0, 0, 0,
+			0, ep, 0, 0,
+			0, 0, ep, 0,
+			0, 0, 0, em,
+		},
+	}}
+}
+
 // GPI returns an IonQ native GPI gate. On trapped-ion hardware, GPI
 // implements a pi rotation (180 degrees) around an axis in the XY plane of
-// the Bloch sphere at azimuthal angle phi. Together with [GPI2] and [MS],
-// the GPI gate forms a universal native gate set for IonQ processors.
+// the Bloch sphere at azimuthal angle phi. Together with [GPI2] and an
+// entangling gate ([MS] on Aria, [ZZ] on Forte), GPI forms a universal
+// native gate set for IonQ processors.
 //
 //	[[0, exp(-iφ)],
 //	 [exp(iφ), 0]]

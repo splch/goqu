@@ -28,6 +28,9 @@ func DecomposeByRule(g gate.Gate, qubits []int, basisGates []string) []ir.Operat
 	if basis["MS"] {
 		return decomposeToIonQ(g, qubits, basis)
 	}
+	if basis["ZZ"] {
+		return decomposeToIonQZZ(g, qubits, basis)
+	}
 	return nil
 }
 
@@ -487,10 +490,10 @@ func decompose1qToIonQ(g gate.Gate, qubits []int) []ir.Operation {
 			{Gate: gate.GPI(math.Pi / 2), Qubits: []int{q}},
 		}
 	case gate.H:
-		// H = GPI(0)·GPI2(π/2)  (GPI2 is √X-like rotation)
+		// H = GPI(0)·GPI2(π/2): GPI2 applied first in circuit order.
 		return []ir.Operation{
-			{Gate: gate.GPI(0), Qubits: []int{q}},
 			{Gate: gate.GPI2(math.Pi / 2), Qubits: []int{q}},
+			{Gate: gate.GPI(0), Qubits: []int{q}},
 		}
 	}
 
@@ -526,16 +529,15 @@ func euler1qToIonQ(g gate.Gate, q int) []ir.Operation {
 }
 
 // rzToIonQ converts RZ(θ) to IonQ native gates.
-// RZ(θ) = GPI(θ/(2π))·GPI(0) up to global phase.
-// More precisely: use GPI2 pair: GPI2(φ+π)·GPI2(φ) = RZ(2φ+π)
-// So RZ(θ) = GPI2((θ-π)/2 + π)·GPI2((θ-π)/2) ... this gets complex.
-// Simplest correct: GPI(θ/2)·GPI(0) = [[0,e^{-iθ/2}],[e^{iθ/2},0]]·[[0,1],[1,0]]
+// GPI(θ/2)·GPI(0) = [[0,e^{-iθ/2}],[e^{iθ/2},0]]·[[0,1],[1,0]]
 //
-//	= [[e^{-iθ/2},0],[0,e^{iθ/2}]] which is exactly RZ(θ)!
+//	= [[e^{-iθ/2},0],[0,e^{iθ/2}]] = RZ(θ)
+//
+// GPI(0) applied first in circuit order, then GPI(θ/2).
 func rzToIonQ(theta float64, q int) []ir.Operation {
 	return []ir.Operation{
-		{Gate: gate.GPI(theta / 2), Qubits: []int{q}},
 		{Gate: gate.GPI(0), Qubits: []int{q}},
+		{Gate: gate.GPI(theta / 2), Qubits: []int{q}},
 	}
 }
 
@@ -610,6 +612,103 @@ func expandOpsToIonQ(ops []ir.Operation) []ir.Operation {
 		switch {
 		case bn == "CNOT" || bn == "CX":
 			result = append(result, decompose2qToIonQ(gate.CNOT, op.Qubits)...)
+		case op.Gate.Qubits() == 1:
+			sub := decompose1qToIonQ(op.Gate, op.Qubits)
+			if sub != nil {
+				result = append(result, sub...)
+			} else {
+				result = append(result, op)
+			}
+		default:
+			result = append(result, op)
+		}
+	}
+	return result
+}
+
+// decomposeToIonQZZ decomposes gates to {GPI, GPI2, ZZ} basis (Forte).
+func decomposeToIonQZZ(g gate.Gate, qubits []int, _ map[string]bool) []ir.Operation {
+	switch g.Qubits() {
+	case 1:
+		return decompose1qToIonQ(g, qubits)
+	case 2:
+		return decompose2qToIonQZZ(g, qubits)
+	case 3:
+		return decompose3qToIonQZZ(g, qubits)
+	}
+	return nil
+}
+
+// decompose2qToIonQZZ decomposes 2-qubit gates to ZZ-based sequences.
+// CNOT(q0,q1) = H(q1) . ZZ(pi/2) . RZ(-pi/2,q0) . RZ(-pi/2,q1) . H(q1)
+// with H and RZ expressed in GPI/GPI2.
+func decompose2qToIonQZZ(g gate.Gate, qubits []int) []ir.Operation {
+	q0, q1 := qubits[0], qubits[1]
+
+	if mathutil.StripParamsAndDagger(g.Name()) == "ZZ" {
+		return nil
+	}
+
+	if g == gate.CNOT {
+		var ops []ir.Operation
+		ops = append(ops, decompose1qToIonQ(gate.H, []int{q1})...)
+		ops = append(ops, ir.Operation{Gate: gate.ZZ(math.Pi / 2), Qubits: []int{q0, q1}})
+		ops = append(ops, rzToIonQ(-math.Pi/2, q0)...)
+		ops = append(ops, rzToIonQ(-math.Pi/2, q1)...)
+		ops = append(ops, decompose1qToIonQ(gate.H, []int{q1})...)
+		return ops
+	}
+	if g == gate.CZ {
+		cnotOps := decompose2qToIonQZZ(gate.CNOT, qubits)
+		var ops []ir.Operation
+		ops = append(ops, decompose1qToIonQ(gate.H, []int{q1})...)
+		ops = append(ops, cnotOps...)
+		ops = append(ops, decompose1qToIonQ(gate.H, []int{q1})...)
+		return ops
+	}
+	if g == gate.SWAP {
+		cnot01 := decompose2qToIonQZZ(gate.CNOT, []int{q0, q1})
+		cnot10 := decompose2qToIonQZZ(gate.CNOT, []int{q1, q0})
+		ops := make([]ir.Operation, 0, len(cnot01)+len(cnot10)+len(cnot01))
+		ops = append(ops, cnot01...)
+		ops = append(ops, cnot10...)
+		ops = append(ops, cnot01...)
+		return ops
+	}
+
+	cxOps := decompose2qToCX(g, qubits)
+	if cxOps == nil {
+		return nil
+	}
+	return expandOpsToIonQZZ(cxOps)
+}
+
+// decompose3qToIonQZZ decomposes 3-qubit gates via CX then to IonQ ZZ basis.
+func decompose3qToIonQZZ(g gate.Gate, qubits []int) []ir.Operation {
+	cxOps := decompose3qToCX(g, qubits)
+	if cxOps == nil {
+		return nil
+	}
+	return expandOpsToIonQZZ(cxOps)
+}
+
+// expandOpsToIonQZZ recursively expands CX-basis ops to IonQ ZZ native gates.
+func expandOpsToIonQZZ(ops []ir.Operation) []ir.Operation {
+	var result []ir.Operation
+	zzBasis := map[string]bool{"GPI": true, "GPI2": true, "ZZ": true}
+	for _, op := range ops {
+		if op.Gate == nil {
+			result = append(result, op)
+			continue
+		}
+		bn := mathutil.StripParamsAndDagger(op.Gate.Name())
+		if zzBasis[bn] {
+			result = append(result, op)
+			continue
+		}
+		switch {
+		case bn == "CNOT" || bn == "CX":
+			result = append(result, decompose2qToIonQZZ(gate.CNOT, op.Qubits)...)
 		case op.Gate.Qubits() == 1:
 			sub := decompose1qToIonQ(op.Gate, op.Qubits)
 			if sub != nil {
