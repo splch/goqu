@@ -151,6 +151,38 @@ func TestMarshalNativeGates(t *testing.T) {
 	}
 }
 
+func TestMarshalZZGate(t *testing.T) {
+	c := ir.New("zz-test", 2, 0, []ir.Operation{
+		{Gate: gate.GPI2(0), Qubits: []int{0}},
+		{Gate: gate.ZZ(math.Pi / 2), Qubits: []int{0, 1}},
+		{Gate: gate.GPI2(math.Pi / 2), Qubits: []int{0}},
+		{Gate: gate.GPI2(math.Pi / 2), Qubits: []int{1}},
+	}, nil)
+
+	input, err := marshalCircuit(c)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if input.Gateset != "native" {
+		t.Errorf("gateset = %q, want %q", input.Gateset, "native")
+	}
+	if len(input.Circuit) != 4 {
+		t.Fatalf("gates = %d, want 4", len(input.Circuit))
+	}
+
+	zz := input.Circuit[1]
+	if zz.Gate != "zz" {
+		t.Errorf("gate = %q, want %q", zz.Gate, "zz")
+	}
+	// pi/2 radians = 0.25 turns
+	if zz.Angle == nil || math.Abs(*zz.Angle-0.25) > 1e-10 {
+		t.Errorf("zz.angle = %v, want 0.25", zz.Angle)
+	}
+	if len(zz.Targets) != 2 || zz.Targets[0] != 0 || zz.Targets[1] != 1 {
+		t.Errorf("zz.targets = %v, want [0 1]", zz.Targets)
+	}
+}
+
 func TestMarshalNOPGate(t *testing.T) {
 	c := ir.New("nop-test", 2, 0, []ir.Operation{
 		{Gate: gate.GPI(0), Qubits: []int{0}},

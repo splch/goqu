@@ -22,7 +22,7 @@ func TestUnitarity(t *testing.T) {
 		CP(math.Pi / 4), CRZ(math.Pi / 3), CRX(math.Pi / 4), CRY(math.Pi / 5),
 		RXX(math.Pi / 4), RYY(math.Pi / 3), RZZ(math.Pi / 6),
 		FSim(math.Pi/4, math.Pi/6), PSwap(math.Pi / 4),
-		GPI(math.Pi / 4), GPI2(math.Pi / 3), MS(math.Pi/4, math.Pi/6),
+		GPI(math.Pi / 4), GPI2(math.Pi / 3), MS(math.Pi/4, math.Pi/6), ZZ(math.Pi / 4),
 	}
 	for _, g := range gates {
 		t.Run(g.Name(), func(t *testing.T) {

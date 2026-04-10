@@ -29,7 +29,7 @@
 // [U1], [U2], [Rot], [PhasedXZ], [GlobalPhase] provide various single-qubit
 // parameterizations. Two-qubit: [CP], [CRX], [CRY], [CRZ] (controlled
 // rotations), [RXX], [RYY], [RZZ] (Ising interactions), [FSim], [PSwap].
-// IonQ native: [GPI], [GPI2], [MS].
+// IonQ native: [GPI], [GPI2], [MS], [ZZ], [NOP].
 //
 // # Custom and multi-controlled gates
 //

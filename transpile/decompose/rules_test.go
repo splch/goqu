@@ -2,6 +2,7 @@ package decompose
 
 import (
 	"math"
+	"strings"
 	"testing"
 
 	"github.com/splch/goqu/circuit/gate"
@@ -319,11 +320,64 @@ func TestDecomposeByRule_H(t *testing.T) {
 	}
 }
 
+func TestDecomposeByRule_CNOT_ToZZBasis(t *testing.T) {
+	basis := []string{"GPI", "GPI2", "ZZ"}
+	ops := DecomposeByRule(gate.CNOT, []int{0, 1}, basis)
+	if ops == nil {
+		t.Fatal("DecomposeByRule(CNOT, ZZ basis): returned nil")
+	}
+
+	hasZZ := false
+	for _, op := range ops {
+		if op.Gate != nil && strings.HasPrefix(op.Gate.Name(), "ZZ(") {
+			hasZZ = true
+			break
+		}
+	}
+	if !hasZZ {
+		t.Error("DecomposeByRule(CNOT, ZZ basis): no ZZ gate in decomposition")
+	}
+
+	got := circuitUnitary2q(ops)
+	want := gate.CNOT.Matrix()
+	if _, ok := GlobalPhase(got, want, 1e-10); !ok {
+		t.Error("DecomposeByRule(CNOT, ZZ basis): decomposed circuit does not match CNOT up to global phase")
+	}
+}
+
+func TestDecomposeByRule_CZ_ToZZBasis(t *testing.T) {
+	basis := []string{"GPI", "GPI2", "ZZ"}
+	ops := DecomposeByRule(gate.CZ, []int{0, 1}, basis)
+	if ops == nil {
+		t.Fatal("DecomposeByRule(CZ, ZZ basis): returned nil")
+	}
+
+	got := circuitUnitary2q(ops)
+	want := gate.CZ.Matrix()
+	if _, ok := GlobalPhase(got, want, 1e-10); !ok {
+		t.Error("DecomposeByRule(CZ, ZZ basis): decomposed circuit does not match CZ up to global phase")
+	}
+}
+
+func TestDecomposeByRule_SWAP_ToZZBasis(t *testing.T) {
+	basis := []string{"GPI", "GPI2", "ZZ"}
+	ops := DecomposeByRule(gate.SWAP, []int{0, 1}, basis)
+	if ops == nil {
+		t.Fatal("DecomposeByRule(SWAP, ZZ basis): returned nil")
+	}
+
+	got := circuitUnitary2q(ops)
+	want := gate.SWAP.Matrix()
+	if _, ok := GlobalPhase(got, want, 1e-10); !ok {
+		t.Error("DecomposeByRule(SWAP, ZZ basis): decomposed circuit does not match SWAP up to global phase")
+	}
+}
+
 func TestDecomposeByRule_NilForUnknownBasis(t *testing.T) {
-	// With a basis that has no CX or MS, DecomposeByRule should return nil.
+	// With a basis that has no CX, MS, or ZZ, DecomposeByRule should return nil.
 	ops := DecomposeByRule(gate.SWAP, []int{0, 1}, []string{"RY", "RZ"})
 	if ops != nil {
-		t.Errorf("DecomposeByRule with no CX/MS basis: expected nil, got %d ops", len(ops))
+		t.Errorf("DecomposeByRule with no CX/MS/ZZ basis: expected nil, got %d ops", len(ops))
 	}
 }
 

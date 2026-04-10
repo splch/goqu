@@ -106,7 +106,7 @@ var (
 	IonQForte = Target{
 		Name:       "IonQ Forte",
 		NumQubits:  36,
-		BasisGates: []string{"GPI", "GPI2", "MS"},
+		BasisGates: []string{"GPI", "GPI2", "ZZ"},
 		// all-to-all connectivity (nil)
 	}
 

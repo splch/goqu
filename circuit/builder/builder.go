@@ -271,6 +271,9 @@ func (b *Builder) RYY(theta float64, q0, q1 int) *Builder { return b.Apply(gate.
 // RZZ applies an Ising ZZ rotation gate.
 func (b *Builder) RZZ(theta float64, q0, q1 int) *Builder { return b.Apply(gate.RZZ(theta), q0, q1) }
 
+// ZZ applies an IonQ native ZZ entangling gate.
+func (b *Builder) ZZ(theta float64, q0, q1 int) *Builder { return b.Apply(gate.ZZ(theta), q0, q1) }
+
 // FSim applies a fermionic simulation gate.
 func (b *Builder) FSim(theta, phi float64, q0, q1 int) *Builder {
 	return b.Apply(gate.FSim(theta, phi), q0, q1)
